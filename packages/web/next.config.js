@@ -1,8 +1,15 @@
 /** @type {import('next').NextConfig} */
-const withPWA = require('next-pwa')({
-  dest: 'public',
-  disable: process.env.NODE_ENV === 'development',
-});
+let withPWA;
+
+try {
+  withPWA = require('next-pwa')({
+    dest: 'public',
+    disable: process.env.NODE_ENV === 'development',
+  });
+} catch (error) {
+  console.warn('next-pwa not installed, PWA features disabled');
+  withPWA = (config) => config;
+}
 
 const nextConfig = {
   reactStrictMode: true,
