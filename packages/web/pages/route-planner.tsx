@@ -56,19 +56,9 @@ const RoutePlannerPage: React.FC = () => {
       let url = '/api/sales';
       
       if (mode === 'saturday') {
-        // For Saturday, get sales happening on Saturday
-        const saturday = new Date(date);
-        const saturdayFormatted = `${saturday.getFullYear()}-${String(
-          saturday.getMonth() + 1
-        ).padStart(2, "0")}-${String(saturday.getDate()).padStart(2, "0")}`;
-        url += `?date=${saturdayFormatted}`;
+        url += '?day=saturday';
       } else if (mode === 'sunday') {
-        // For Sunday, get sales happening on Sunday
-        const sunday = new Date(date);
-        const sundayFormatted = `${sunday.getFullYear()}-${String(
-          sunday.getMonth() + 1
-        ).padStart(2, "0")}-${String(sunday.getDate()).padStart(2, "0")}`;
-        url += `?date=${sundayFormatted}`;
+        url += '?day=sunday';
       } else if (mode === 'thisWeekend') {
         // For this weekend, we'll show both Saturday and Sunday sales
         const saturday = new Date(date);

@@ -24,6 +24,17 @@ export default async function handler(
         return res.status(400).json({ error: "Invalid day parameter. Must be a day of the week." });
       }
       
+      // Get the date for the upcoming occurrence of this day
+      const today = new Date();
+      const currentDay = today.getDay();
+      const diff = (dayIndex - currentDay + 7) % 7;
+      const targetDate = new Date(today);
+      targetDate.setDate(today.getDate() + diff);
+      
+      const formattedDate = `${targetDate.getFullYear()}-${String(
+        targetDate.getMonth() + 1
+      ).padStart(2, "0")}-${String(targetDate.getDate()).padStart(2, "0")}`;
+
       const result = await pool.query(
         `
         SELECT 
@@ -32,11 +43,11 @@ export default async function handler(
           address, city, state, zip,
           latitude, longitude
         FROM sales
-        WHERE EXTRACT(DOW FROM start_date::date) = $1
-        AND end_date >= CURRENT_DATE
+        WHERE start_date <= $1::date
+        AND end_date >= $1::date
         ORDER BY start_date ASC
         `,
-        [dayIndex]
+        [formattedDate]
       );
 
       // Transform the data to match the expected format
