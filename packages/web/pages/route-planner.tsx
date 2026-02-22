@@ -36,14 +36,7 @@ const RoutePlannerPage: React.FC = () => {
   const [salesData, setSalesData] = useState<SaleData[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [selectedDate, setSelectedDate] = useState<Date>(() => {
-    const today = new Date();
-    const day = today.getDay();
-    const saturdayOffset = (6 - day + 7) % 7;
-    const saturday = new Date(today);
-    saturday.setDate(today.getDate() + saturdayOffset);
-    return saturday;
-  });
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [filterMode, setFilterMode] = useState<'date' | 'saturday' | 'sunday' | 'thisWeekend'>('thisWeekend');
 
   /* -----------------------------
@@ -56,7 +49,7 @@ const RoutePlannerPage: React.FC = () => {
       let url = '/api/sales';
       
       if (mode === 'saturday') {
-        // For Saturday, get the upcoming Saturday
+        // Calculate the upcoming Saturday
         const saturday = new Date(date);
         const day = saturday.getDay();
         const offset = (6 - day + 7) % 7;
@@ -67,10 +60,10 @@ const RoutePlannerPage: React.FC = () => {
         ).padStart(2, "0")}-${String(saturday.getDate()).padStart(2, "0")}`;
         url += `?date=${formattedDate}`;
       } else if (mode === 'sunday') {
-        // For Sunday, get the upcoming Sunday
+        // Calculate the upcoming Sunday
         const sunday = new Date(date);
         const day = sunday.getDay();
-        const offset = (0 - day + 7) % 7;
+        const offset = (0 - day + 7) % 7; // Sunday is 0
         sunday.setDate(sunday.getDate() + offset);
         
         const formattedDate = `${sunday.getFullYear()}-${String(
@@ -187,23 +180,19 @@ const RoutePlannerPage: React.FC = () => {
   ------------------------------ */
   const goToPreviousWeekend = () => {
     const newDate = new Date(selectedDate);
-    newDate.setDate(new Date(selectedDate).getDate() - 7);
+    newDate.setDate(newDate.getDate() - 7);
     setSelectedDate(newDate);
   };
 
   const goToNextWeekend = () => {
     const newDate = new Date(selectedDate);
-    newDate.setDate(new Date(selectedDate).getDate() + 7);
+    newDate.setDate(newDate.getDate() + 7);
     setSelectedDate(newDate);
   };
 
   const goToThisWeekend = () => {
     const today = new Date();
-    const day = today.getDay();
-    const saturdayOffset = (6 - day + 7) % 7;
-    const saturday = new Date(today);
-    saturday.setDate(today.getDate() + saturdayOffset);
-    setSelectedDate(saturday);
+    setSelectedDate(today);
     setFilterMode('thisWeekend');
   };
 
@@ -212,24 +201,12 @@ const RoutePlannerPage: React.FC = () => {
   ------------------------------ */
   const setToSaturday = () => {
     setFilterMode('saturday');
-    // Set date to the Saturday of the current weekend
-    const date = new Date(selectedDate);
-    const day = date.getDay();
-    const saturdayOffset = (6 - day + 7) % 7;
-    const saturday = new Date(date);
-    saturday.setDate(date.getDate() + saturdayOffset);
-    setSelectedDate(saturday);
+    setSelectedDate(new Date()); // Reset to today for proper calculation
   };
 
   const setToSunday = () => {
     setFilterMode('sunday');
-    // Set date to the Sunday of the current weekend
-    const date = new Date(selectedDate);
-    const day = date.getDay();
-    const sundayOffset = (0 - day + 7) % 7; // Sunday is 0
-    const sunday = new Date(date);
-    sunday.setDate(date.getDate() + sundayOffset);
-    setSelectedDate(sunday);
+    setSelectedDate(new Date()); // Reset to today for proper calculation
   };
 
   const setToDate = () => {
@@ -238,12 +215,7 @@ const RoutePlannerPage: React.FC = () => {
 
   const setToThisWeekend = () => {
     setFilterMode('thisWeekend');
-    const today = new Date();
-    const day = today.getDay();
-    const saturdayOffset = (6 - day + 7) % 7;
-    const saturday = new Date(today);
-    saturday.setDate(today.getDate() + saturdayOffset);
-    setSelectedDate(saturday);
+    setSelectedDate(new Date());
   };
 
   const isSaturday = filterMode === 'saturday';
@@ -280,6 +252,22 @@ const RoutePlannerPage: React.FC = () => {
     return `${startStr} - ${endStr}`;
   };
 
+  // Calculate the current weekend dates
+  const getCurrentWeekendDates = (): { saturday: Date, sunday: Date } => {
+    const today = new Date();
+    const day = today.getDay();
+    const saturdayOffset = (6 - day + 7) % 7;
+    const saturday = new Date(today);
+    saturday.setDate(today.getDate() + saturdayOffset);
+    
+    const sunday = new Date(saturday);
+    sunday.setDate(sunday.getDate() + 1);
+    
+    return { saturday, sunday };
+  };
+
+  const { saturday: currentSaturday, sunday: currentSunday } = getCurrentWeekendDates();
+
   return (
     <div className="container mx-auto px-4 py-8">
       <Head>
@@ -313,7 +301,7 @@ const RoutePlannerPage: React.FC = () => {
             
             <h2 className="text-xl font-semibold">
               {isThisWeekend ? (
-                <span>This Weekend ({formatWeekendRange(selectedDate)})</span>
+                <span>This Weekend ({formatWeekendRange(currentSaturday)})</span>
               ) : !isByDate ? (
                 <span>{formatDate(selectedDate)}</span>
               ) : (
