@@ -428,4 +428,88 @@ export default function Dashboard() {
                         name="isAuction"
                         type="checkbox"
                         checked={formData.isAuction}
-                        onChange={handleChange
+                        onChange={handleChange}
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                      <label htmlFor="isAuction" className="ml-2 block text-sm text-gray-900">
+                        This is an auction sale
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setShowCreateForm(false)}
+                    className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={geocoding}
+                    className="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                  >
+                    {geocoding ? 'Creating...' : 'Create Sale'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          <div className="px-4 py-5 sm:px-6">
+            <h3 className="text-lg leading-6 font-medium text-gray-900">Recent Sales</h3>
+            <div className="mt-4">
+              {loading ? (
+                <div className="text-center py-4">
+                  <p>Loading sales...</p>
+                </div>
+              ) : sales.length === 0 ? (
+                <div className="text-center py-4">
+                  <p className="text-gray-500">No sales yet. Create your first sale!</p>
+                </div>
+              ) : (
+                <div className="overflow-hidden bg-white shadow sm:rounded-md">
+                  <ul className="divide-y divide-gray-200">
+                    {sales.map((sale) => (
+                      <li key={sale.id}>
+                        <div className="px-4 py-4 sm:px-6">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center">
+                              <p className="truncate text-sm font-medium text-blue-600">{sale.title}</p>
+                              <div className="ml-2 flex-shrink-0 flex">
+                                <p className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800 capitalize">
+                                  {sale.status}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="ml-2 flex flex-shrink-0">
+                              <p className="text-sm text-gray-500">{sale.date}</p>
+                            </div>
+                          </div>
+                          <div className="mt-2 sm:flex sm:justify-between">
+                            <div className="sm:flex">
+                              <p className="flex items-center text-sm text-gray-500">
+                                {sale.items} items listed
+                              </p>
+                            </div>
+                            <div className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
+                              <button className="font-medium text-blue-600 hover:text-blue-500">
+                                View details
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </Layout>
+  );
+}
