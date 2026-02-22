@@ -34,46 +34,46 @@ async function run() {
 
     for (const sale of sales) {
       // Generate safe title if missing
-      const title =
-        sale.title ||
-        sale.name ||
-        `${sale.address || "Garage Sale"}${sale.city ? " - " + sale.city : ""}`;
+      const title = sale.name || sale.title || "Estate Sale";
 
-      // Support both single-day and multi-day sales
-      const startDate =
-        sale.startDate ||
-        sale.start_date ||
-        sale.date ||
-        new Date().toISOString().split("T")[0];
+      // Extract address components
+      let address = "";
+      let city = "";
+      let state = "";
+      let zipCode = "";
 
-      const endDate =
-        sale.endDate ||
-        sale.end_date ||
-        sale.date ||
-        startDate;
-
-      // Extract city and state from address if not provided
-      let city = sale.city || "";
-      let state = sale.state || "";
-      
-      if (sale.address && !city && !state) {
+      if (sale.address) {
+        address = sale.address;
         const addressParts = sale.address.split(", ");
-        if (addressParts.length >= 2) {
-          const lastPart = addressParts[addressParts.length - 1];
-          const stateZip = lastPart.split(" ");
-          if (stateZip.length >= 1) {
-            state = stateZip[0];
-          }
-          if (addressParts.length >= 3) {
-            city = addressParts[addressParts.length - 2];
+        if (addressParts.length >= 3) {
+          city = addressParts[addressParts.length - 2];
+          const stateZipPart = addressParts[addressParts.length - 1];
+          const stateZipParts = stateZipPart.split(" ");
+          if (stateZipParts.length >= 1) {
+            state = stateZipParts[0];
+            if (stateZipParts.length >= 2) {
+              zipCode = stateZipParts[1];
+            }
           }
         }
       }
+
+      // Use provided dates or defaults
+      const startDate = new Date().toISOString().split("T")[0];
+      const endDate = new Date().toISOString().split("T")[0];
+
+      // Use provided times or defaults
+      const startTime = sale.startTime || "08:00:00";
+      const endTime = sale.endTime || "17:00:00";
+
+      // Generate a slug from the title
+      const slug = title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
 
       await pool.query(
         `
         INSERT INTO sales
         (
+          slug,
           title,
           description,
           address,
@@ -88,21 +88,36 @@ async function run() {
           end_time,
           status
         )
-        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
+        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
+        ON CONFLICT (slug) DO UPDATE SET
+          title = EXCLUDED.title,
+          description = EXCLUDED.description,
+          address = EXCLUDED.address,
+          city = EXCLUDED.city,
+          state = EXCLUDED.state,
+          zip_code = EXCLUDED.zip_code,
+          latitude = EXCLUDED.latitude,
+          longitude = EXCLUDED.longitude,
+          start_date = EXCLUDED.start_date,
+          end_date = EXCLUDED.end_date,
+          start_time = EXCLUDED.start_time,
+          end_time = EXCLUDED.end_time,
+          status = EXCLUDED.status
         `,
         [
+          slug,
           title,
-          sale.description || "",
-          sale.address || "",
+          `Estate sale at ${address}`,
+          address,
           city,
           state,
-          sale.zip || sale.zip_code || "",
-          sale.lat || sale.latitude || null,
-          sale.lng || sale.longitude || null,
+          zipCode,
+          sale.latitude || 0,
+          sale.longitude || 0,
           startDate,
           endDate,
-          sale.startTime || sale.start_time || "08:00:00",
-          sale.endTime || sale.end_time || "17:00:00",
+          startTime,
+          endTime,
           "published"
         ]
       );
