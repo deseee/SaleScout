@@ -1,19 +1,23 @@
 {
-  "name": "salescout",
-  "private": true,
+  "name": "@salescout/shared",
+  "version": "1.0.0",
+  "description": "Shared types and utilities for SaleScout",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
-    "build": "turbo run build",
-    "dev": "turbo run dev --parallel",
-    "lint": "turbo run lint",
-    "test": "turbo run test"
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "zod": "^3.22.0"
   },
   "devDependencies": {
-    "turbo": "^1.10.0"
-  },
-  "engines": {
-    "node": ">=18.0.0"
-  },
-  "dependencies": {
-    "pg": "^8.18.0"
+    "typescript": "^5.1.6"
   }
 }
