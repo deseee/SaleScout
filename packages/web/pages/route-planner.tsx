@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import Head from 'next/head';
 import { RouteStop } from '@salescout/tools/route-planner';
-import RoutePlannerComponent from '@/components/route-planner';
-import salesData from '@/data/sales.json';
+import RoutePlannerComponent from '../components/route-planner';
+import salesData from '../data/sales.json';
 
 // Define the SaleData type
 interface SaleData {
