@@ -1,7 +1,8 @@
 import { useRouter } from 'next/router';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Layout from '../../components/layout';
 import { useAuth } from '../../lib/auth';
+import apiClient from '../../lib/api';
 
 // Mock data for a single sale
 const mockSale = {
@@ -13,11 +14,43 @@ const mockSale = {
   address: '123 Main Street, Grand Rapids, MI 49503',
   organizer: 'John Smith',
   items: [
-    { id: '1', name: 'Antique Wooden Desk', price: '$250', category: 'Furniture' },
-    { id: '2', name: 'Vintage China Set', price: '$180', category: 'Kitchen' },
-    { id: '3', name: 'Oil Paintings Collection', price: '$450', category: 'Art' },
-    { id: '4', name: 'Silver Flatware Set', price: '$120', category: 'Kitchen' },
-    { id: '5', name: 'Leather Armchair', price: '$95', category: 'Furniture' },
+    { 
+      id: '1', 
+      name: 'Antique Wooden Desk', 
+      price: 25000, // in cents
+      category: 'Furniture',
+      isAuctionItem: false
+    },
+    { 
+      id: '2', 
+      name: 'Vintage China Set', 
+      price: 18000, // in cents
+      category: 'Kitchen',
+      isAuctionItem: false
+    },
+    { 
+      id: '3', 
+      name: 'Oil Paintings Collection', 
+      price: 45000, // in cents
+      category: 'Art',
+      isAuctionItem: true,
+      auctionEndTime: '2023-06-20T18:00:00Z',
+      bidIncrement: 500 // in cents
+    },
+    { 
+      id: '4', 
+      name: 'Silver Flatware Set', 
+      price: 12000, // in cents
+      category: 'Kitchen',
+      isAuctionItem: false
+    },
+    { 
+      id: '5', 
+      name: 'Leather Armchair', 
+      price: 9500, // in cents
+      category: 'Furniture',
+      isAuctionItem: false
+    },
   ],
 };
 
@@ -34,9 +67,27 @@ export default function SaleDetail() {
     auctionEndTime: '',
     bidIncrement: '',
   });
+  const [stripe, setStripe] = useState<any>(null);
+  const [elements, setElements] = useState<any>(null);
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [selectedItem, setSelectedItem] = useState<any>(null);
+  const [paymentLoading, setPaymentLoading] = useState(false);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
 
   // In a real implementation, you would fetch the sale data based on the ID
   const sale = mockSale;
+
+  useEffect(() => {
+    // Load Stripe.js dynamically
+    if (typeof window !== 'undefined') {
+      const loadStripe = async () => {
+        const stripeModule = await import('@stripe/stripe-js');
+        const stripeInstance = await stripeModule.loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+        setStripe(stripeInstance);
+      };
+      loadStripe();
+    }
+  }, []);
 
   const handleItemChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target as HTMLInputElement;
@@ -62,6 +113,49 @@ export default function SaleDetail() {
       bidIncrement: '',
     });
     alert('Item added successfully!');
+  };
+
+  const handleReserveClick = async (item: any) => {
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+
+    setSelectedItem(item);
+    setPaymentLoading(true);
+    setPaymentError(null);
+
+    try {
+      // Create payment intent
+      const response = await apiClient.post('/stripe/create-payment-intent', {
+        itemId: item.id,
+        amount: item.price,
+        currency: 'usd'
+      });
+
+      setClientSecret(response.data.clientSecret);
+    } catch (error) {
+      setPaymentError('Failed to initiate payment. Please try again.');
+      console.error('Payment initiation error:', error);
+    } finally {
+      setPaymentLoading(false);
+    }
+  };
+
+  const handlePayment = async () => {
+    if (!stripe || !elements || !clientSecret) return;
+
+    const result = await stripe.confirmPayment({
+      elements,
+      clientSecret,
+      confirmParams: {
+        return_url: `${window.location.origin}/sales/${id}`,
+      },
+    });
+
+    if (result.error) {
+      setPaymentError(result.error.message || 'Payment failed');
+    }
   };
 
   return (
@@ -138,11 +232,11 @@ export default function SaleDetail() {
 
                   <div className="sm:col-span-3">
                     <label htmlFor="price" className="block text-sm font-medium text-gray-700">
-                      Price
+                      Price (in USD)
                     </label>
                     <div className="mt-1">
                       <input
-                        type="text"
+                        type="number"
                         name="price"
                         id="price"
                         value={itemFormData.price}
@@ -189,11 +283,11 @@ export default function SaleDetail() {
 
                       <div className="sm:col-span-3">
                         <label htmlFor="bidIncrement" className="block text-sm font-medium text-gray-700">
-                          Bid Increment
+                          Bid Increment (in USD)
                         </label>
                         <div className="mt-1">
                           <input
-                            type="text"
+                            type="number"
                             name="bidIncrement"
                             id="bidIncrement"
                             value={itemFormData.bidIncrement}
@@ -267,13 +361,69 @@ export default function SaleDetail() {
                   <h4 className="text-lg font-medium text-gray-900">{item.name}</h4>
                   <div className="mt-2 flex justify-between items-center">
                     <span className="text-sm text-gray-500">{item.category}</span>
-                    <span className="text-lg font-bold text-blue-600">{item.price}</span>
+                    <span className="text-lg font-bold text-blue-600">${(item.price / 100).toFixed(2)}</span>
                   </div>
+                  {!item.isAuctionItem && (
+                    <button
+                      onClick={() => handleReserveClick(item)}
+                      disabled={paymentLoading}
+                      className="mt-4 w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                    >
+                      {paymentLoading && selectedItem?.id === item.id ? 'Processing...' : 'Reserve / Buy Now'}
+                    </button>
+                  )}
+                  {item.isAuctionItem && (
+                    <div className="mt-4">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                        Auction Item
+                      </span>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Bidding ends: {new Date(item.auctionEndTime).toLocaleString()}
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
           </div>
         </div>
+
+        {/* Payment Modal */}
+        {selectedItem && clientSecret && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Complete Payment</h3>
+              <p className="text-gray-600 mb-2">Item: {selectedItem.name}</p>
+              <p className="text-gray-600 mb-4">Amount: ${(selectedItem.price / 100).toFixed(2)}</p>
+              
+              {paymentError && (
+                <div className="bg-red-50 text-red-500 p-3 rounded-md mb-4">
+                  {paymentError}
+                </div>
+              )}
+              
+              <div className="mt-4">
+                <button
+                  onClick={handlePayment}
+                  disabled={!stripe}
+                  className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                >
+                  Pay Now
+                </button>
+                <button
+                  onClick={() => {
+                    setSelectedItem(null);
+                    setClientSecret(null);
+                    setPaymentError(null);
+                  }}
+                  className="mt-2 w-full bg-gray-200 text-gray-800 py-2 px-4 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </Layout>
   );

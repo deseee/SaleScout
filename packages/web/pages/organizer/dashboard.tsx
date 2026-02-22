@@ -49,6 +49,8 @@ export default function Dashboard() {
   });
   const [geocoding, setGeocoding] = useState(false);
   const [error, setError] = useState('');
+  const [stripeOnboardingUrl, setStripeOnboardingUrl] = useState<string | null>(null);
+  const [onboardingLoading, setOnboardingLoading] = useState(false);
   const { user } = useAuth();
   const router = useRouter();
 
@@ -121,6 +123,24 @@ export default function Dashboard() {
       setError('Failed to create sale. Please try again.');
     } finally {
       setGeocoding(false);
+    }
+  };
+
+  const handleSetupPayments = async () => {
+    setOnboardingLoading(true);
+    try {
+      // Call backend to create Stripe Connect account
+      const response = await apiClient.post('/stripe/create-connect-account');
+      setStripeOnboardingUrl(response.data.url);
+      
+      // Redirect to Stripe onboarding
+      if (response.data.url) {
+        window.location.href = response.data.url;
+      }
+    } catch (err) {
+      setError('Failed to initiate Stripe onboarding. Please try again.');
+    } finally {
+      setOnboardingLoading(false);
     }
   };
 
@@ -202,12 +222,21 @@ export default function Dashboard() {
           <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
             <div className="flex justify-between items-center">
               <h3 className="text-lg leading-6 font-medium text-gray-900">Your Sales</h3>
-              <button 
-                onClick={() => setShowCreateForm(!showCreateForm)}
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
-                {showCreateForm ? 'Cancel' : 'Create New Sale'}
-              </button>
+              <div className="flex space-x-2">
+                <button 
+                  onClick={handleSetupPayments}
+                  disabled={onboardingLoading}
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
+                >
+                  {onboardingLoading ? 'Setting up...' : 'Setup Payments'}
+                </button>
+                <button 
+                  onClick={() => setShowCreateForm(!showCreateForm)}
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  {showCreateForm ? 'Cancel' : 'Create New Sale'}
+                </button>
+              </div>
             </div>
           </div>
           
@@ -399,99 +428,4 @@ export default function Dashboard() {
                         name="isAuction"
                         type="checkbox"
                         checked={formData.isAuction}
-                        onChange={handleChange}
-                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                      />
-                      <label htmlFor="isAuction" className="ml-2 block text-sm text-gray-900">
-                        Is this an auction sale?
-                      </label>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex justify-end">
-                  <button
-                    type="button"
-                    onClick={() => setShowCreateForm(false)}
-                    className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={geocoding}
-                    className="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-                  >
-                    {geocoding ? 'Creating...' : 'Create Sale'}
-                  </button>
-                </div>
-              </form>
-            </div>
-          )}
-          
-          {loading ? (
-            <div className="px-4 py-12 text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="mt-4 text-gray-500">Loading your sales...</p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Sale
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Date
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Items
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {sales.map((sale) => (
-                    <tr key={sale.id}>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">{sale.title}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-500">{sale.date}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                          ${sale.status === 'published' ? 'bg-blue-100 text-blue-800' : 
-                            sale.status === 'draft' ? 'bg-yellow-100 text-yellow-800' : 
-                            'bg-green-100 text-green-800'}`}>
-                          {sale.status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {sale.items}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <a href={`/sales/${sale.id}`} className="text-blue-600 hover:text-blue-900 mr-4">
-                          View
-                        </a>
-                        <button className="text-indigo-600 hover:text-indigo-900">
-                          Edit
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      </div>
-    </Layout>
-  );
-}
+                        onChange={handleChange
