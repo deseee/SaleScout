@@ -2,55 +2,41 @@ import React, { useState } from 'react';
 import Head from 'next/head';
 import { RouteStop } from '@salescout/tools/route-planner';
 import RoutePlannerComponent from '@/components/route-planner';
+import salesData from '@/data/sales.json';
 
-// Mock data for demonstration
-const mockSales: RouteStop[] = [
-  {
-    id: '1',
-    name: 'Eastown Estate Sale',
-    address: '123 Eastown Ave, Grand Rapids, MI',
-    lat: 42.9583,
-    lng: -85.6572,
-    startTime: '08:00',
-    endTime: '17:00'
-  },
-  {
-    id: '2',
-    name: 'Heritage Hill Sale',
-    address: '456 Heritage St, Grand Rapids, MI',
-    lat: 42.9512,
-    lng: -85.6531,
-    startTime: '09:00',
-    endTime: '16:00'
-  },
-  {
-    id: '3',
-    name: 'Downtown Vintage Finds',
-    address: '789 Main St, Grand Rapids, MI',
-    lat: 42.9634,
-    lng: -85.6681,
-    startTime: '10:00',
-    endTime: '18:00'
-  },
-  {
-    id: '4',
-    name: 'North Park Treasures',
-    address: '321 Oak Ln, Grand Rapids, MI',
-    lat: 42.9812,
-    lng: -85.6723,
-    startTime: '08:30',
-    endTime: '15:30'
-  }
-];
+// Define the SaleData type
+interface SaleData {
+  id: string;
+  name: string;
+  address: string;
+  latitude: number;
+  longitude: number;
+  startTime: string;
+  endTime: string;
+  day: string;
+}
 
-const RoutePlannerPage: React.FC = () => {
-  const [selectedSales, setSelectedSales] = useState<RouteStop[]>(mockSales);
+// Convert JSON data to RouteStop format
+const convertToRouteStops = (sales: SaleData[]): RouteStop[] => {
+  return sales.map(sale => ({
+    id: sale.id,
+    name: sale.name,
+    address: sale.address,
+    lat: sale.latitude,
+    lng: sale.longitude,
+    startTime: sale.startTime,
+    endTime: sale.endTime
+  }));
+};
+
+const RoutePlannerPage: React.FC<{ sales: RouteStop[] }> = ({ sales }) => {
+  const [selectedSales, setSelectedSales] = useState<RouteStop[]>(sales);
 
   const toggleSaleSelection = (saleId: string) => {
     if (selectedSales.some(sale => sale.id === saleId)) {
       setSelectedSales(selectedSales.filter(sale => sale.id !== saleId));
     } else {
-      const saleToAdd = mockSales.find(sale => sale.id === saleId);
+      const saleToAdd = sales.find(sale => sale.id === saleId);
       if (saleToAdd) {
         setSelectedSales([...selectedSales, saleToAdd]);
       }
@@ -75,7 +61,7 @@ const RoutePlannerPage: React.FC = () => {
             </p>
             
             <div className="space-y-3">
-              {mockSales.map(sale => (
+              {sales.map(sale => (
                 <div 
                   key={sale.id} 
                   className={`border rounded p-3 cursor-pointer transition-colors ${
@@ -118,5 +104,16 @@ const RoutePlannerPage: React.FC = () => {
     </div>
   );
 };
+
+export async function getStaticProps() {
+  // Convert the imported JSON data to RouteStop format
+  const sales: RouteStop[] = convertToRouteStops(salesData);
+  
+  return {
+    props: {
+      sales
+    }
+  };
+}
 
 export default RoutePlannerPage;
