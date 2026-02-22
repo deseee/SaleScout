@@ -1,3 +1,7 @@
+/* Ensure Mapbox styles are loaded first */
+@import 'mapbox-gl/dist/mapbox-gl.css';
+
+/* Custom print styles */
 @media print {
   body * {
     visibility: hidden;
