@@ -43,12 +43,12 @@ const RoutePlannerPage: React.FC = () => {
     saturday.setDate(today.getDate() + saturdayOffset);
     return saturday;
   });
-  const [filterMode, setFilterMode] = useState<'date' | 'saturday' | 'sunday'>('saturday');
+  const [filterMode, setFilterMode] = useState<'date' | 'saturday' | 'sunday' | ' thisWeekend'>('thisWeekend');
 
   /* -----------------------------
      Fetch Sales From API with Date Parameter
   ------------------------------ */
-  const fetchSales = async (date: Date, mode: 'date' | 'saturday' | 'sunday') => {
+  const fetchSales = async (date: Date, mode: 'date' | 'saturday' | 'sunday' | 'thisWeekend') => {
     setLoading(true);
     try {
       let url = '/api/sales';
@@ -57,6 +57,42 @@ const RoutePlannerPage: React.FC = () => {
         url += '?day=saturday';
       } else if (mode === 'sunday') {
         url += '?day=sunday';
+      } else if (mode === 'thisWeekend') {
+        // For this weekend, we'll show both Saturday and Sunday sales
+        const saturday = new Date(date);
+        const sunday = new Date(date);
+        sunday.setDate(sunday.getDate() + 1);
+        
+        const saturdayFormatted = `${saturday.getFullYear()}-${String(
+          saturday.getMonth() + 1
+        ).padStart(2, "0")}-${String(saturday.getDate()).padStart(2, "0")}`;
+        
+        const sundayFormatted = `${sunday.getFullYear()}-${String(
+          sunday.getMonth() + 1
+        ).padStart(2, "0")}-${String(sunday.getDate()).padStart(2, "0")}`;
+        
+        // Fetch Saturday sales
+        const saturdayResponse = await fetch(`/api/sales?date=${saturdayFormatted}`);
+        if (!saturdayResponse.ok) {
+          throw new Error(`HTTP error! status: ${saturdayResponse.status}`);
+        }
+        const saturdayData = await saturdayResponse.json();
+        
+        // Fetch Sunday sales
+        const sundayResponse = await fetch(`/api/sales?date=${sundayFormatted}`);
+        if (!sundayResponse.ok) {
+          throw new Error(`HTTP error! status: ${sundayResponse.status}`);
+        }
+        const sundayData = await sundayResponse.json();
+        
+        // Combine and deduplicate sales
+        const combinedData = [...saturdayData, ...sundayData];
+        const uniqueSales = combinedData.filter((sale, index, self) => 
+          index === self.findIndex((s) => s.id === sale.id)
+        );
+        
+        setSalesData(uniqueSales);
+        return;
       } else {
         // Format date as YYYY-MM-DD for API
         const formattedDate = `${date.getFullYear()}-${String(
@@ -121,6 +157,31 @@ const RoutePlannerPage: React.FC = () => {
   };
 
   /* -----------------------------
+     Date Navigation Functions
+  ------------------------------ */
+  const goToPreviousWeekend = () => {
+    const newDate = new Date(selectedDate);
+    newDate.setDate(newDate.getDate() - 7);
+    setSelectedDate(newDate);
+  };
+
+  const goToNextWeekend = () => {
+    const newDate = new Date(selectedDate);
+    newDate.setDate(newDate.getDate() + 7);
+    setSelectedDate(newDate);
+  };
+
+  const goToThisWeekend = () => {
+    const today = new Date();
+    const day = today.getDay();
+    const saturdayOffset = (6 - day + 7) % 7;
+    const saturday = new Date(today);
+    saturday.setDate(today.getDate() + saturdayOffset);
+    setSelectedDate(saturday);
+    setFilterMode('thisWeekend');
+  };
+
+  /* -----------------------------
      Saturday / Sunday Buttons
   ------------------------------ */
   const setToSaturday = () => {
@@ -143,9 +204,20 @@ const RoutePlannerPage: React.FC = () => {
     setFilterMode('date');
   };
 
+  const setToThisWeekend = () => {
+    setFilterMode('thisWeekend');
+    const today = new Date();
+    const day = today.getDay();
+    const saturdayOffset = (6 - day + 7) % 7;
+    const saturday = new Date(today);
+    saturday.setDate(today.getDate() + saturdayOffset);
+    setSelectedDate(saturday);
+  };
+
   const isSaturday = filterMode === 'saturday';
   const isSunday = filterMode === 'sunday';
   const isByDate = filterMode === 'date';
+  const isThisWeekend = filterMode === 'thisWeekend';
 
   // Format date for display
   const formatDate = (date: Date): string => {
@@ -155,6 +227,25 @@ const RoutePlannerPage: React.FC = () => {
       month: 'long', 
       day: 'numeric' 
     });
+  };
+
+  // Format weekend range for display
+  const formatWeekendRange = (startDate: Date): string => {
+    const endDate = new Date(startDate);
+    endDate.setDate(endDate.getDate() + 1); // Sunday
+    
+    const startStr = startDate.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric' 
+    });
+    
+    const endStr = endDate.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric', 
+      year: 'numeric'
+    });
+    
+    return `${startStr} - ${endStr}`;
   };
 
   return (
@@ -169,7 +260,51 @@ const RoutePlannerPage: React.FC = () => {
 
       {/* Date Display and Controls */}
       <div className="mb-6">
-        <div className="flex items-center space-x-4 mb-4">
+        <div className="flex flex-wrap items-center gap-4 mb-4">
+          <button
+            onClick={goToPreviousWeekend}
+            className="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+          >
+            ← Previous
+          </button>
+          
+          {isThisWeekend ? (
+            <div className="text-lg font-medium">
+              This Weekend ({formatWeekendRange(selectedDate)})
+            </div>
+          ) : !isByDate ? (
+            <div className="text-lg font-medium">
+              {formatDate(selectedDate)}
+            </div>
+          ) : null}
+          
+          <button
+            onClick={goToNextWeekend}
+            className="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+          >
+            Next →
+          </button>
+          
+          <button
+            onClick={goToThisWeekend}
+            className="px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+          >
+            This Weekend
+          </button>
+        </div>
+        
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={setToThisWeekend}
+            className={`px-4 py-2 rounded-lg ${
+              isThisWeekend
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            }`}
+          >
+            This Weekend
+          </button>
+          
           <button
             onClick={setToSaturday}
             className={`px-4 py-2 rounded-lg ${
@@ -211,16 +346,10 @@ const RoutePlannerPage: React.FC = () => {
               className="border px-3 py-2 rounded"
             />
           )}
-          
-          {!isByDate && (
-            <div className="text-lg font-medium">
-              {formatDate(selectedDate)}
-            </div>
-          )}
         </div>
         
         {loading && (
-          <div className="text-gray-500">Loading sales...</div>
+          <div className="text-gray-500 mt-2">Loading sales...</div>
         )}
       </div>
 
@@ -268,17 +397,20 @@ const RoutePlannerPage: React.FC = () => {
                           className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                         />
                       </div>
-                      <div className="ml-3">
-                        <h3 className="font-medium text-gray-900">
+                      <div className="ml-3 flex-1 min-w-0">
+                        <h3 className="font-medium text-gray-900 truncate">
                           {sale.name}
                         </h3>
-                        <p className="text-sm text-gray-600 mt-1">
+                        <p className="text-sm text-gray-600 mt-1 truncate">
                           {sale.address}
                         </p>
                         <div className="flex items-center mt-1">
                           <span className="inline-flex items-center text-xs text-gray-500">
                             {sale.startTime} - {sale.endTime}
                           </span>
+                        </div>
+                        <div className="text-xs text-gray-400 mt-1">
+                          {new Date(sale.startDate).toLocaleDateString()} - {new Date(sale.endDate).toLocaleDateString()}
                         </div>
                       </div>
                     </div>
