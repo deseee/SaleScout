@@ -33,8 +33,8 @@ export default async function handler(
 
     let result;
 
-    // Handle specific date query
-    if (req.query.date) {
+    // Handle specific date query (when date param is provided)
+    if (date && typeof date === 'string') {
       result = await pool.query(
         `
         SELECT *
