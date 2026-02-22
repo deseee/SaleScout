@@ -51,9 +51,14 @@ const RoutePlannerPage: React.FC<{ sales: RouteStop[] }> = ({ sales }) => {
   };
 
   // Update selected sales when day changes
-  React.useEffect(() => {
-    setSelectedSales(filteredSales);
-  }, [selectedDay, filteredSales]);
+React.useEffect(() => {
+  const newFiltered = sales.filter(sale => {
+    const saleData = salesData.find(s => s.id === sale.id);
+    return saleData?.day === selectedDay;
+  });
+
+  setSelectedSales(newFiltered);
+}, [selectedDay, sales]);
 
   return (
     <div className="container mx-auto px-4 py-8">
