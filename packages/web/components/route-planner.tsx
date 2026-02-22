@@ -1,250 +1,181 @@
-import React, { useState, useEffect } from 'react';
-import { RouteStop, OptimizedRoute, RoutePlanner } from '../../tools/route-planner/planner';
-import dynamic from 'next/dynamic';
+import React, { useState, useEffect, useMemo } from "react";
+import dynamic from "next/dynamic";
+import {
+  RouteStop,
+  OptimizedRoute,
+  RoutePlanner,
+} from "../../tools/route-planner/planner";
 
-const RouteMap = dynamic(() => import('../components/route-map'), { ssr: false });
+const RouteMap = dynamic(() => import("../components/route-map"), {
+  ssr: false,
+});
 
 interface RoutePlannerProps {
   sales: RouteStop[];
 }
 
-const RoutePlannerComponent: React.FC<RoutePlannerProps> = ({ sales }) => {
-  const [startLocation, setStartLocation] = useState({ lat: 42.9634, lng: -85.6681 }); // Default to Grand Rapids
-  const [address, setAddress] = useState('');
-  const [useCurrentLocation, setUseCurrentLocation] = useState(true);
-  const [optimizedRoute, setOptimizedRoute] = useState<OptimizedRoute | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [printMode, setPrintMode] = useState(false);
+// 🔥 Safe local date helper (no UTC shifting)
+const getLocalToday = () => {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(
+    now.getMonth() + 1
+  ).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+};
 
-  // Get the user's current location (if available)
-  useEffect(() => {
-    if (navigator.geolocation && useCurrentLocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          setStartLocation({ lat: latitude, lng: longitude });
-        },
-        (error) => {
-          console.error('Error getting geolocation:', error);
-          // Fallback to default location if geolocation fails
-        }
-      );
-    }
-  }, [useCurrentLocation]);
+const RoutePlannerComponent: React.FC<RoutePlannerProps> = ({
+  sales,
+}) => {
+  const [startLocation, setStartLocation] = useState({
+    lat: 42.9634,
+    lng: -85.6681,
+  });
 
-  const handleAddressChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    setAddress(event.target.value);
-  };
+  const [addressInput, setAddressInput] = useState("");
+  const [optimizedRoute, setOptimizedRoute] =
+    useState<OptimizedRoute | null>(null);
 
-  const handleGeocodeAddress = async () => {
-    if (!address) return;
+  const [directions, setDirections] = useState<any[]>([]);
 
-    const response = await fetch(
-      `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json?access_token=${process.env.NEXT_PUBLIC_MAPBOX_TOKEN}`
+  const today = useMemo(() => getLocalToday(), []);
+
+  // ✅ Use browser location safely
+  const handleUseCurrentLocation = () => {
+    if (!navigator.geolocation) return;
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setStartLocation({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        });
+      },
+      (error) => {
+        console.error("Geolocation error:", error);
+      }
     );
-
-    const data = await response.json();
-
-    if (data.features && data.features.length > 0) {
-      const { center } = data.features[0];
-      setStartLocation({ lat: center[1], lng: center[0] });
-    } else {
-      console.error('Address not found.');
-    }
   };
 
-  const handleOptimizeRoute = async () => {
-    setLoading(true);
+  // ✅ Geocode address safely
+  const handleUseAddress = async () => {
+    if (!addressInput) return;
+
     try {
-      const route = await RoutePlanner.optimizeRoute(sales, startLocation);
-      setOptimizedRoute(route);
-    } catch (error) {
-      console.error('Error optimizing route:', error);
-    } finally {
-      setLoading(false);
+      const response = await fetch(
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
+          addressInput
+        )}.json?access_token=${process.env.NEXT_PUBLIC_MAPBOX_TOKEN}`
+      );
+
+      const data = await response.json();
+
+      if (data.features && data.features.length > 0) {
+        const [lng, lat] = data.features[0].center;
+        setStartLocation({ lat, lng });
+      }
+    } catch (err) {
+      console.error("Geocoding failed:", err);
     }
   };
 
-  const handlePrint = () => {
-    setPrintMode(true);
-    setTimeout(() => {
-      window.print();
-      setPrintMode(false);
-    }, 100);
-  };
+  // ✅ Optimize only when sales or start location changes
+  useEffect(() => {
+    if (!sales || sales.length === 0) {
+      setOptimizedRoute(null);
+      return;
+    }
 
-  // Always show something on the map
-  const mapStops = optimizedRoute ? optimizedRoute.stops : sales;
+    const optimize = async () => {
+      try {
+        const route = await RoutePlanner.optimizeRoute(
+          sales,
+          startLocation
+        );
+        setOptimizedRoute(route);
+      } catch (err) {
+        console.error("Route optimization failed:", err);
+      }
+    };
+
+    optimize();
+  }, [sales, startLocation]);
+
+  // ✅ Filter sales by the current day
+  const filteredSales = useMemo(() => {
+    return sales.filter(
+      (sale) =>
+        new Date(sale.startDate).toISOString().split("T")[0] === today
+    );
+  }, [sales, today]);
+
+  const mapStops = optimizedRoute?.stops
+    ? [
+        {
+          id: "start",
+          name: "Start",
+          address: "Starting Point",
+          lat: startLocation.lat,
+          lng: startLocation.lng,
+          startTime: "",
+          endTime: "",
+        },
+        ...optimizedRoute.stops,
+      ]
+    : filteredSales;
 
   return (
-    <div className={`route-planner-container ${printMode ? 'print-mode' : ''}`}>
-      {/* Route Controls */}
-      {!printMode && (
-        <div className="route-planner-controls mb-6">
-          <h2 className="text-xl font-bold mb-4">Route Controls</h2>
+    <div>
+      {/* Controls */}
+      <div className="mb-4 flex flex-wrap gap-3 items-center">
+        <button
+          onClick={handleUseCurrentLocation}
+          className="px-3 py-2 bg-blue-600 text-white rounded"
+        >
+          Use Current Location
+        </button>
 
-          {/* Toggle for Current Location or Address */}
-          <div className="flex mb-4">
-            <button
-              onClick={() => setUseCurrentLocation(true)}
-              className={`px-4 py-2 rounded-lg ${
-                useCurrentLocation ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-            >
-              Use Current Location
-            </button>
-            <button
-              onClick={() => setUseCurrentLocation(false)}
-              className={`px-4 py-2 rounded-lg ${
-                !useCurrentLocation ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-            >
-              Use Address
-            </button>
-          </div>
+        <input
+          type="text"
+          value={addressInput}
+          onChange={(e) => setAddressInput(e.target.value)}
+          placeholder="Enter start address"
+          className="border px-3 py-2 rounded"
+        />
 
-          {/* Conditional Input for Address */}
-          {!useCurrentLocation && (
-            <div className="mb-4">
-              <label className="block text-sm font-medium mb-1">Enter Start Address</label>
-              <input
-                type="text"
-                value={address}
-                onChange={handleAddressChange}
-                placeholder="Enter address or location"
-                className="w-full p-2 border rounded"
-              />
-              <button
-                onClick={handleGeocodeAddress}
-                className="bg-blue-600 text-white px-4 py-2 rounded mt-4 hover:bg-blue-700"
-              >
-                Set Start Location
-              </button>
-            </div>
-          )}
-
-          {/* Starting Latitude and Longitude */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">Starting Latitude</label>
-              <input
-                type="number"
-                step="any"
-                value={startLocation.lat}
-                onChange={(e) => setStartLocation({ ...startLocation, lat: parseFloat(e.target.value) })}
-                className="w-full p-2 border rounded"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1">Starting Longitude</label>
-              <input
-                type="number"
-                step="any"
-                value={startLocation.lng}
-                onChange={(e) => setStartLocation({ ...startLocation, lng: parseFloat(e.target.value) })}
-                className="w-full p-2 border rounded"
-              />
-            </div>
-          </div>
-
-          <button
-            onClick={handleOptimizeRoute}
-            disabled={loading || sales.length === 0}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
-          >
-            {loading ? 'Optimizing...' : 'Optimize Route'}
-          </button>
-        </div>
-      )}
-
-      {/* MAP ALWAYS RENDERS */}
-      <div className="mb-8">
-        <div style={{ width: '100%', height: '500px' }}>
-          <RouteMap key={mapStops.map((s) => s.id).join('-')} sales={mapStops} />
-        </div>
+        <button
+          onClick={handleUseAddress}
+          className="px-3 py-2 bg-green-600 text-white rounded"
+        >
+          Use Address
+        </button>
       </div>
 
-      {/* Optimized Route Results */}
-      {optimizedRoute && (
-        <div className="route-results">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-bold">Your Optimized Route</h3>
-            {!printMode && (
-              <button
-                onClick={handlePrint}
-                className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700"
-              >
-                Print Plan
-              </button>
-            )}
-          </div>
+      {/* Map */}
+      <RouteMap
+        sales={mapStops}
+        onDirectionsLoaded={setDirections}
+      />
 
-          <div className="route-summary bg-gray-50 p-4 rounded mb-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm text-gray-600">Total Distance</p>
-                <p className="font-bold">{optimizedRoute.totalDistance} km</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Estimated Time</p>
-                <p className="font-bold">{optimizedRoute.estimatedTime.toFixed(1)} hours</p>
+      {/* Directions */}
+      {directions.length > 0 && (
+        <div className="mt-4 bg-white p-4 rounded shadow max-h-72 overflow-y-auto">
+          <h3 className="font-semibold mb-3">
+            Turn-by-Turn Directions
+          </h3>
+
+          {directions.map((step, index) => (
+            <div key={index} className="mb-3 text-sm">
+              <div
+                dangerouslySetInnerHTML={{
+                  __html: step.maneuver.instruction,
+                }}
+              />
+              <div className="text-gray-500 text-xs">
+                {(step.distance / 1000).toFixed(2)} km
               </div>
             </div>
-          </div>
-
-          <div className="mb-4">
-            <a
-              href={optimizedRoute.mapUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-600 hover:underline block mb-2"
-            >
-              View Route on Google Maps
-            </a>
-          </div>
-
-          <div className="route-stops">
-            <h4 className="font-bold mb-2">Route Stops:</h4>
-            <ol className="space-y-3">
-              {optimizedRoute.stops.map((stop, index) => (
-                <li key={stop.id} className="flex items-start">
-                  <span className="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center mr-2 mt-1 flex-shrink-0">
-                    {index + 1}
-                  </span>
-                  <div className="flex-1">
-                    <p className="font-medium">{stop.name}</p>
-                    <p className="text-sm text-gray-600">{stop.address}</p>
-                    <p className="text-sm">Hours: {stop.startTime} - {stop.endTime}</p>
-                  </div>
-                </li>
-              ))}
-            </ol>
-          </div>
+          ))}
         </div>
       )}
-
-      <style jsx>{`
-        .route-planner-container {
-          max-width: 900px;
-          margin: 0 auto;
-          padding: 1rem;
-        }
-
-        .print-mode {
-          max-width: 100%;
-        }
-
-        @media print {
-          .route-planner-container {
-            padding: 0;
-          }
-
-          button {
-            display: none;
-          }
-        }
-      `}</style>
     </div>
   );
 };

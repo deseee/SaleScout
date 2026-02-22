@@ -2,154 +2,199 @@ import React, { useState, useEffect, useMemo } from 'react';
 import Head from 'next/head';
 import { RouteStop } from '@salescout/tools/route-planner';
 import RoutePlannerComponent from '../components/route-planner';
-import salesData from '../data/sales.json';
 
 interface SaleData {
   id: string;
-  name: string;
+  title: string;
   address: string;
   latitude: number;
   longitude: number;
-  startTime: string;
-  endTime: string;
-  day: string;
+  start_date: string;
+  end_date: string;
+  start_time?: string;
+  end_time?: string;
 }
 
+/* -----------------------------
+   Multi-Day Helper
+------------------------------ */
+function isSaleOnDate(sale: SaleData, selectedDate: Date) {
+  const start = new Date(sale.start_date);
+  const end = new Date(sale.end_date);
+
+  start.setHours(0, 0, 0, 0);
+  end.setHours(23, 59, 59, 999);
+
+  return selectedDate >= start && selectedDate <= end;
+}
+
+/* -----------------------------
+   Convert DB Sales → RouteStops
+------------------------------ */
 const convertToRouteStops = (sales: SaleData[]): RouteStop[] => {
   return sales.map((sale) => ({
     id: sale.id,
-    name: sale.name,
+    name: sale.title,
     address: sale.address,
     lat: sale.latitude,
     lng: sale.longitude,
-    startTime: sale.startTime,
-    endTime: sale.endTime,
+    startTime: sale.start_time || '',
+    endTime: sale.end_time || '',
   }));
 };
 
-const RoutePlannerPage: React.FC<{ sales: RouteStop[] }> = ({ sales }) => {
-  const [selectedDay, setSelectedDay] =
-    useState<'Saturday' | 'Sunday'>('Saturday');
+const RoutePlannerPage: React.FC = () => {
+  const [salesData, setSalesData] = useState<SaleData[]>([]);
+  const [selectedDate, setSelectedDate] = useState<Date>(() => {
+    const today = new Date();
+    const day = today.getDay();
+    const saturdayOffset = (6 - day + 7) % 7;
+    const saturday = new Date(today);
+    saturday.setDate(today.getDate() + saturdayOffset);
+    return saturday;
+  });
 
+  /* -----------------------------
+     Fetch Sales From API
+  ------------------------------ */
+  useEffect(() => {
+    fetch('/api/sales')
+      .then((res) => res.json())
+      .then((data) => setSalesData(data));
+  }, []);
+
+  /* -----------------------------
+     Filter Multi-Day Correctly
+  ------------------------------ */
   const filteredSales = useMemo(() => {
-    return sales.filter((sale) => {
-      const original = salesData.find((s) => s.id === sale.id);
-      return original?.day === selectedDay;
-    });
-  }, [selectedDay, sales]);
+    return salesData.filter((sale) =>
+      isSaleOnDate(sale, selectedDate)
+    );
+  }, [salesData, selectedDate]);
+
+  const routeStops = useMemo(
+    () => convertToRouteStops(filteredSales),
+    [filteredSales]
+  );
 
   const [selectedSales, setSelectedSales] =
-    useState<RouteStop[]>(filteredSales);
+    useState<RouteStop[]>([]);
 
-  // Reset selected sales when day changes
   useEffect(() => {
-    setSelectedSales(filteredSales);
-  }, [filteredSales]);
+    setSelectedSales(routeStops);
+  }, [routeStops]);
 
   const toggleSaleSelection = (saleId: string) => {
     setSelectedSales((prev) => {
       if (prev.some((sale) => sale.id === saleId)) {
         return prev.filter((sale) => sale.id !== saleId);
       }
-      const saleToAdd = filteredSales.find((sale) => sale.id === saleId);
+      const saleToAdd = routeStops.find(
+        (sale) => sale.id === saleId
+      );
       return saleToAdd ? [...prev, saleToAdd] : prev;
     });
   };
+
+  /* -----------------------------
+     Saturday / Sunday Buttons
+  ------------------------------ */
+  const setToSaturday = () => {
+    const date = new Date();
+    const offset = (6 - date.getDay() + 7) % 7;
+    date.setDate(date.getDate() + offset);
+    setSelectedDate(date);
+  };
+
+  const setToSunday = () => {
+    const date = new Date();
+    const offset = (7 - date.getDay() + 7) % 7;
+    date.setDate(date.getDate() + offset);
+    setSelectedDate(date);
+  };
+
+  const isSaturday = selectedDate.getDay() === 6;
+  const isSunday = selectedDate.getDay() === 0;
 
   return (
     <div className="container mx-auto px-4 py-8">
       <Head>
         <title>Estate Sales Route Planner | SaleScout</title>
-        <meta
-          name="description"
-          content="Plan your estate sales weekend route with our optimizer"
-        />
       </Head>
 
-      <h1 className="text-3xl font-bold mb-6">Weekend Route Planner</h1>
+      <h1 className="text-3xl font-bold mb-6">
+        Weekend Route Planner
+      </h1>
 
       {/* Day Selection */}
       <div className="flex space-x-4 mb-6">
-        {['Saturday', 'Sunday'].map((day) => (
-          <button
-            key={day}
-            onClick={() => setSelectedDay(day as 'Saturday' | 'Sunday')}
-            className={`px-4 py-2 rounded-lg ${
-              selectedDay === day
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-            }`}
-          >
-            {day}
-          </button>
-        ))}
+        <button
+          onClick={setToSaturday}
+          className={`px-4 py-2 rounded-lg ${
+            isSaturday
+              ? 'bg-blue-600 text-white'
+              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+          }`}
+        >
+          Saturday
+        </button>
+
+        <button
+          onClick={setToSunday}
+          className={`px-4 py-2 rounded-lg ${
+            isSunday
+              ? 'bg-blue-600 text-white'
+              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+          }`}
+        >
+          Sunday
+        </button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Sales Selection */}
         <div className="lg:col-span-1">
           <div className="bg-white rounded-lg shadow p-4 mb-6">
-            <h2 className="text-xl font-bold mb-4">Select Sales</h2>
-            <p className="text-sm text-gray-600 mb-4">
-              Choose which estate sales you want to include in your route
-            </p>
+            <h2 className="text-xl font-bold mb-4">
+              Select Sales
+            </h2>
 
             <div className="space-y-3">
-              {filteredSales.map((sale) => (
+              {routeStops.map((sale) => (
                 <div
                   key={sale.id}
-                  onClick={() => toggleSaleSelection(sale.id)}
-                  className={`border rounded p-3 cursor-pointer transition-colors ${
-                    selectedSales.some((s) => s.id === sale.id)
+                  onClick={() =>
+                    toggleSaleSelection(sale.id)
+                  }
+                  className={`border rounded p-3 cursor-pointer ${
+                    selectedSales.some(
+                      (s) => s.id === sale.id
+                    )
                       ? 'border-blue-500 bg-blue-50'
                       : 'border-gray-200 hover:bg-gray-50'
                   }`}
                 >
-                  <div className="flex justify-between items-start">
-                    <h3 className="font-medium">{sale.name}</h3>
-                    <input
-                      type="checkbox"
-                      checked={selectedSales.some(
-                        (s) => s.id === sale.id
-                      )}
-                      readOnly
-                      className="mt-1"
-                    />
-                  </div>
+                  <h3 className="font-medium">
+                    {sale.name}
+                  </h3>
                   <p className="text-sm text-gray-600">
                     {sale.address}
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    {sale.startTime} - {sale.endTime}
                   </p>
                 </div>
               ))}
             </div>
           </div>
-
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-            <h3 className="font-bold text-yellow-800 mb-2">
-              Pro Tip
-            </h3>
-            <p className="text-sm text-yellow-700">
-              Select sales that are geographically close to each other
-              for the most efficient route.
-            </p>
-          </div>
         </div>
 
         {/* Route Planner */}
         <div className="lg:col-span-2">
-          <RoutePlannerComponent sales={selectedSales} />
+          <RoutePlannerComponent
+            sales={selectedSales}
+          />
         </div>
       </div>
     </div>
   );
 };
-
-export async function getStaticProps() {
-  const sales: RouteStop[] = convertToRouteStops(salesData);
-  return { props: { sales } };
-}
 
 export default RoutePlannerPage;
