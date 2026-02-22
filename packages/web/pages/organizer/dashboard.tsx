@@ -160,16 +160,16 @@ export default function Dashboard() {
           <div className="bg-white overflow-hidden shadow rounded-lg">
             <div className="px-4 py-5 sm:p-6">
               <div className="flex items-center">
-                <div className="flex-shrink-0 bg-blue-100 rounded-md p-2">
-                  <svg className="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="flex-shrink-0 bg-blue-100 rounded-md p-1">
+                  <svg className="h-4 w-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                   </svg>
                 </div>
-                <div className="ml-4 w-0 flex-1">
+                <div className="ml-3 w-0 flex-1">
                   <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">Total Sales</dt>
+                    <dt className="text-xs font-medium text-gray-500 truncate">Total Sales</dt>
                     <dd className="flex items-baseline">
-                      <div className="text-lg font-semibold text-gray-900">12</div>
+                      <div className="text-base font-semibold text-gray-900">12</div>
                     </dd>
                   </dl>
                 </div>
@@ -180,16 +180,16 @@ export default function Dashboard() {
           <div className="bg-white overflow-hidden shadow rounded-lg">
             <div className="px-4 py-5 sm:p-6">
               <div className="flex items-center">
-                <div className="flex-shrink-0 bg-green-100 rounded-md p-2">
-                  <svg className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="flex-shrink-0 bg-green-100 rounded-md p-1">
+                  <svg className="h-4 w-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
-                <div className="ml-4 w-0 flex-1">
+                <div className="ml-3 w-0 flex-1">
                   <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">Revenue</dt>
+                    <dt className="text-xs font-medium text-gray-500 truncate">Revenue</dt>
                     <dd className="flex items-baseline">
-                      <div className="text-lg font-semibold text-gray-900">$24,560</div>
+                      <div className="text-base font-semibold text-gray-900">$24,560</div>
                     </dd>
                   </dl>
                 </div>
@@ -200,16 +200,16 @@ export default function Dashboard() {
           <div className="bg-white overflow-hidden shadow rounded-lg">
             <div className="px-4 py-5 sm:p-6">
               <div className="flex items-center">
-                <div className="flex-shrink-0 bg-yellow-100 rounded-md p-2">
-                  <svg className="h-5 w-5 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="flex-shrink-0 bg-yellow-100 rounded-md p-1">
+                  <svg className="h-4 w-4 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.385-1.543 3 3 0 00-2.615.543A3 3 0 009 18v2h5m-7 0H4a2 2 0 01-2-2v-2a2 2 0 012-2h14a2 2 0 012 2v2a2 2 0 01-2 2h-5m-7 0v-5a2 2 0 012-2h10a2 2 0 012 2v5" />
                   </svg>
                 </div>
-                <div className="ml-4 w-0 flex-1">
+                <div className="ml-3 w-0 flex-1">
                   <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">Items Sold</dt>
+                    <dt className="text-xs font-medium text-gray-500 truncate">Items Sold</dt>
                     <dd className="flex items-baseline">
-                      <div className="text-lg font-semibold text-gray-900">1,842</div>
+                      <div className="text-base font-semibold text-gray-900">1,842</div>
                     </dd>
                   </dl>
                 </div>
