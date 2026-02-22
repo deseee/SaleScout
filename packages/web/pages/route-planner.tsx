@@ -30,18 +30,30 @@ const convertToRouteStops = (sales: SaleData[]): RouteStop[] => {
 };
 
 const RoutePlannerPage: React.FC<{ sales: RouteStop[] }> = ({ sales }) => {
+  const [selectedDay, setSelectedDay] = useState<'Saturday' | 'Sunday'>('Saturday');
   const [selectedSales, setSelectedSales] = useState<RouteStop[]>(sales);
+
+  // Filter sales by selected day
+  const filteredSales = sales.filter(sale => {
+    const saleData = salesData.find(s => s.id === sale.id);
+    return saleData?.day === selectedDay;
+  });
 
   const toggleSaleSelection = (saleId: string) => {
     if (selectedSales.some(sale => sale.id === saleId)) {
       setSelectedSales(selectedSales.filter(sale => sale.id !== saleId));
     } else {
-      const saleToAdd = sales.find(sale => sale.id === saleId);
+      const saleToAdd = filteredSales.find(sale => sale.id === saleId);
       if (saleToAdd) {
         setSelectedSales([...selectedSales, saleToAdd]);
       }
     }
   };
+
+  // Update selected sales when day changes
+  React.useEffect(() => {
+    setSelectedSales(filteredSales);
+  }, [selectedDay, filteredSales]);
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -52,6 +64,30 @@ const RoutePlannerPage: React.FC<{ sales: RouteStop[] }> = ({ sales }) => {
 
       <h1 className="text-3xl font-bold mb-6">Weekend Route Planner</h1>
       
+      {/* Day Selection Buttons */}
+      <div className="flex space-x-4 mb-6">
+        <button
+          className={`px-4 py-2 rounded-lg ${
+            selectedDay === 'Saturday'
+              ? 'bg-blue-600 text-white'
+              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+          }`}
+          onClick={() => setSelectedDay('Saturday')}
+        >
+          Saturday
+        </button>
+        <button
+          className={`px-4 py-2 rounded-lg ${
+            selectedDay === 'Sunday'
+              ? 'bg-blue-600 text-white'
+              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+          }`}
+          onClick={() => setSelectedDay('Sunday')}
+        >
+          Sunday
+        </button>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1">
           <div className="bg-white rounded-lg shadow p-4 mb-6">
@@ -61,7 +97,7 @@ const RoutePlannerPage: React.FC<{ sales: RouteStop[] }> = ({ sales }) => {
             </p>
             
             <div className="space-y-3">
-              {sales.map(sale => (
+              {filteredSales.map(sale => (
                 <div 
                   key={sale.id} 
                   className={`border rounded p-3 cursor-pointer transition-colors ${
