@@ -33,7 +33,7 @@ export default async function handler(
           latitude, longitude
         FROM sales
         WHERE EXTRACT(DOW FROM start_date::date) = $1
-        AND start_date >= CURRENT_DATE
+        AND end_date >= CURRENT_DATE
         ORDER BY start_date ASC
         `,
         [dayIndex]
@@ -50,8 +50,8 @@ export default async function handler(
         zip_code: row.zip_code,
         latitude: parseFloat(row.latitude),
         longitude: parseFloat(row.longitude),
-        start_date: row.start_date.toISOString().split('T')[0],
-        end_date: row.end_date.toISOString().split('T')[0],
+        start_date: row.start_date instanceof Date ? row.start_date.toISOString().split('T')[0] : row.start_date,
+        end_date: row.end_date instanceof Date ? row.end_date.toISOString().split('T')[0] : row.end_date,
         start_time: row.start_time,
         end_time: row.end_time
       }));
@@ -108,7 +108,7 @@ export default async function handler(
         [targetDate]
       );
     }
-    // Default = active on target date
+    // Default = active on target date (including upcoming sales)
     else {
       result = await pool.query(
         `
@@ -118,8 +118,7 @@ export default async function handler(
           address, city, state, zip_code,
           latitude, longitude
         FROM sales
-        WHERE start_date <= $1::date
-        AND end_date >= $1::date
+        WHERE end_date >= $1::date
         ORDER BY start_date ASC
         `,
         [targetDate]
@@ -137,8 +136,8 @@ export default async function handler(
       zip_code: row.zip_code,
       latitude: parseFloat(row.latitude),
       longitude: parseFloat(row.longitude),
-      start_date: row.start_date.toISOString().split('T')[0],
-      end_date: row.end_date.toISOString().split('T')[0],
+      start_date: row.start_date instanceof Date ? row.start_date.toISOString().split('T')[0] : row.start_date,
+      end_date: row.end_date instanceof Date ? row.end_date.toISOString().split('T')[0] : row.end_date,
       start_time: row.start_time,
       end_time: row.end_time
     }));
