@@ -130,7 +130,7 @@ const RoutePlannerComponent: React.FC<RoutePlannerProps> = ({ sales }) => {
           </div>
 
           <div className="mt-6">
-            <RouteMap sales={optimizedRoute.stops} />
+            <RouteMap sales={optimizedRoute ? optimizedRoute.stops : sales} />
           </div>
         </div>
       )}
