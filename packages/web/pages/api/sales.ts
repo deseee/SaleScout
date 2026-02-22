@@ -28,7 +28,7 @@ export default async function handler(
         `
         SELECT 
           id, title, description, 
-          start_date, end_date, start_time, end_time,
+          start_date, end_date,
           address, city, state, zip_code,
           latitude, longitude
         FROM sales
@@ -52,8 +52,8 @@ export default async function handler(
         longitude: parseFloat(row.longitude),
         start_date: row.start_date instanceof Date ? row.start_date.toISOString().split('T')[0] : row.start_date,
         end_date: row.end_date instanceof Date ? row.end_date.toISOString().split('T')[0] : row.end_date,
-        start_time: row.start_time,
-        end_time: row.end_time
+        start_time: '',
+        end_time: ''
       }));
 
       return res.status(200).json(transformedData);
@@ -83,7 +83,7 @@ export default async function handler(
         `
         SELECT 
           id, title, description, 
-          start_date, end_date, start_time, end_time,
+          start_date, end_date,
           address, city, state, zip_code,
           latitude, longitude
         FROM sales
@@ -98,7 +98,7 @@ export default async function handler(
         `
         SELECT 
           id, title, description, 
-          start_date, end_date, start_time, end_time,
+          start_date, end_date,
           address, city, state, zip_code,
           latitude, longitude
         FROM sales
@@ -114,7 +114,7 @@ export default async function handler(
         `
         SELECT 
           id, title, description, 
-          start_date, end_date, start_time, end_time,
+          start_date, end_date,
           address, city, state, zip_code,
           latitude, longitude
         FROM sales
@@ -138,8 +138,8 @@ export default async function handler(
       longitude: parseFloat(row.longitude),
       start_date: row.start_date instanceof Date ? row.start_date.toISOString().split('T')[0] : row.start_date,
       end_date: row.end_date instanceof Date ? row.end_date.toISOString().split('T')[0] : row.end_date,
-      start_time: row.start_time,
-      end_time: row.end_time
+      start_time: '',
+      end_time: ''
     }));
 
     res.status(200).json(transformedData);
