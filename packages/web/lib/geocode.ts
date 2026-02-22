@@ -9,7 +9,7 @@ interface GeocodeResult {
 export async function geocodeAddress(address: string): Promise<GeocodeResult | null> {
   try {
     // Check cache first
-    const cacheKey = `geocode_${address}`;
+    const cacheKey = `geocode_${encodeURIComponent(address)}`;
     const cached = localStorage.getItem(cacheKey);
     if (cached) {
       return JSON.parse(cached);
