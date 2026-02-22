@@ -108,7 +108,7 @@ export default async function handler(
         [targetDate]
       );
     }
-    // Default = active on target date (sales that are currently running)
+    // Default = active OR upcoming sales (more inclusive)
     else {
       result = await pool.query(
         `
@@ -118,11 +118,10 @@ export default async function handler(
           address, city, state, zip_code,
           latitude, longitude
         FROM sales
-        WHERE start_date <= $1::date
-        AND end_date >= $1::date
+        WHERE end_date >= CURRENT_DATE
         ORDER BY start_date ASC
-        `,
-        [targetDate]
+        LIMIT 20
+        `
       );
     }
 
@@ -146,6 +145,6 @@ export default async function handler(
     res.status(200).json(transformedData);
   } catch (error) {
     console.error("Database error:", error);
-    res.status(500).json({ error: "Failed to fetch sales" });
+    res.status(500).json({ error: "Failed to fetch sales", details: error.message });
   }
 }
