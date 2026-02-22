@@ -1,42 +1,63 @@
-import axios from 'axios';
-
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
-const apiClient = axios.create({
-  baseURL: API_BASE_URL,
-  timeout: 10000,
-  headers: {
+// Add a request interceptor equivalent to include auth token
+const getAuthToken = () => {
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem('auth-token');
+  }
+  return null;
+};
+
+// Generic request function with auth header
+const apiRequest = async (url: string, options: RequestInit = {}) => {
+  const token = getAuthToken();
+  
+  const defaultHeaders = {
     'Content-Type': 'application/json',
-  },
-});
+  };
+  
+  const authHeader = token ? { Authorization: `Bearer ${token}` } : {};
+  
+  const config: RequestInit = {
+    ...options,
+    headers: {
+      ...defaultHeaders,
+      ...authHeader,
+      ...options.headers,
+    },
+  };
 
-// Add a request interceptor to include auth token
-apiClient.interceptors.request.use(
-  (config) => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null;
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+  const response = await fetch(`${API_BASE_URL}${url}`, config);
+  
+  // Handle unauthorized access
+  if (response.status === 401) {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('auth-token');
+      window.location.href = '/login';
     }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
   }
-);
+  
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+  
+  return response.json();
+};
 
-// Add a response interceptor to handle errors
-apiClient.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      // Handle unauthorized access
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('auth-token');
-        window.location.href = '/login';
-      }
-    }
-    return Promise.reject(error);
-  }
-);
+const apiClient = {
+  get: (url: string) => apiRequest(url, { method: 'GET' }),
+  
+  post: (url: string, data?: any) => apiRequest(url, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  }),
+  
+  put: (url: string, data: any) => apiRequest(url, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  }),
+  
+  delete: (url: string) => apiRequest(url, { method: 'DELETE' }),
+};
 
 export default apiClient;
