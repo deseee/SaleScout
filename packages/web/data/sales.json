@@ -1,0 +1,42 @@
+[
+  {
+    "id": "eastown",
+    "name": "Eastown Estate Sale",
+    "address": "123 Eastown Ave, Grand Rapids, MI",
+    "latitude": 42.955,
+    "longitude": -85.645,
+    "startTime": "08:00",
+    "endTime": "17:00",
+    "day": "Saturday"
+  },
+  {
+    "id": "heritage-hill",
+    "name": "Heritage Hill Sale",
+    "address": "456 Heritage St, Grand Rapids, MI",
+    "latitude": 42.963,
+    "longitude": -85.655,
+    "startTime": "09:00",
+    "endTime": "16:00",
+    "day": "Saturday"
+  },
+  {
+    "id": "downtown-vintage",
+    "name": "Downtown Vintage Finds",
+    "address": "789 Main St, Grand Rapids, MI",
+    "latitude": 42.964,
+    "longitude": -85.668,
+    "startTime": "10:00",
+    "endTime": "18:00",
+    "day": "Saturday"
+  },
+  {
+    "id": "north-park",
+    "name": "North Park Treasures",
+    "address": "321 Oak Ln, Grand Rapids, MI",
+    "latitude": 42.980,
+    "longitude": -85.640,
+    "startTime": "08:30",
+    "endTime": "15:30",
+    "day": "Saturday"
+  }
+]
