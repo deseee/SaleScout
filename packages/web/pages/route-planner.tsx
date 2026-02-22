@@ -56,13 +56,35 @@ const RoutePlannerPage: React.FC = () => {
       let url = '/api/sales';
       
       if (mode === 'saturday') {
-        url += '?day=saturday';
+        // For Saturday, get the upcoming Saturday
+        const saturday = new Date(date);
+        const day = saturday.getDay();
+        const offset = (6 - day + 7) % 7;
+        saturday.setDate(saturday.getDate() + offset);
+        
+        const formattedDate = `${saturday.getFullYear()}-${String(
+          saturday.getMonth() + 1
+        ).padStart(2, "0")}-${String(saturday.getDate()).padStart(2, "0")}`;
+        url += `?date=${formattedDate}`;
       } else if (mode === 'sunday') {
-        url += '?day=sunday';
+        // For Sunday, get the upcoming Sunday
+        const sunday = new Date(date);
+        const day = sunday.getDay();
+        const offset = (0 - day + 7) % 7;
+        sunday.setDate(sunday.getDate() + offset);
+        
+        const formattedDate = `${sunday.getFullYear()}-${String(
+          sunday.getMonth() + 1
+        ).padStart(2, "0")}-${String(sunday.getDate()).padStart(2, "0")}`;
+        url += `?date=${formattedDate}`;
       } else if (mode === 'thisWeekend') {
         // For this weekend, we'll show both Saturday and Sunday sales
         const saturday = new Date(date);
-        const sunday = new Date(date);
+        const day = saturday.getDay();
+        const saturdayOffset = (6 - day + 7) % 7;
+        saturday.setDate(saturday.getDate() + saturdayOffset);
+        
+        const sunday = new Date(saturday);
         sunday.setDate(sunday.getDate() + 1);
         
         const saturdayFormatted = `${saturday.getFullYear()}-${String(
@@ -204,7 +226,7 @@ const RoutePlannerPage: React.FC = () => {
     // Set date to the Sunday of the current weekend
     const date = new Date(selectedDate);
     const day = date.getDay();
-    const sundayOffset = (7 - day + 7) % 7;
+    const sundayOffset = (0 - day + 7) % 7; // Sunday is 0
     const sunday = new Date(date);
     sunday.setDate(date.getDate() + sundayOffset);
     setSelectedDate(sunday);
@@ -279,113 +301,119 @@ const RoutePlannerPage: React.FC = () => {
       </div>
 
       {/* Date Display and Controls */}
-      <div className="mb-6">
-        <div className="flex flex-wrap items-center gap-4 mb-4">
-          <button
-            onClick={goToPreviousWeekend}
-            className="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
-          >
-            ← Previous
-          </button>
-          
-          {isThisWeekend ? (
-            <div className="text-lg font-medium">
-              This Weekend ({formatWeekendRange(selectedDate)})
-            </div>
-          ) : !isByDate ? (
-            <div className="text-lg font-medium">
-              {formatDate(selectedDate)}
-            </div>
-          ) : null}
-          
-          <button
-            onClick={goToNextWeekend}
-            className="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
-          >
-            Next →
-          </button>
+      <div className="mb-6 bg-white rounded-xl shadow-md p-6">
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={goToPreviousWeekend}
+              className="px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+            >
+              ← Previous
+            </button>
+            
+            <h2 className="text-xl font-semibold">
+              {isThisWeekend ? (
+                <span>This Weekend ({formatWeekendRange(selectedDate)})</span>
+              ) : !isByDate ? (
+                <span>{formatDate(selectedDate)}</span>
+              ) : (
+                <span>Select Date</span>
+              )}
+            </h2>
+            
+            <button
+              onClick={goToNextWeekend}
+              className="px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+            >
+              Next →
+            </button>
+          </div>
           
           <button
             onClick={goToThisWeekend}
-            className="px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
           >
             This Weekend
           </button>
         </div>
         
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            onClick={setToThisWeekend}
-            className={`px-4 py-2 rounded-lg ${
-              isThisWeekend
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-            }`}
-          >
-            This Weekend
-          </button>
-          
-          <button
-            onClick={setToSaturday}
-            className={`px-4 py-2 rounded-lg ${
-              isSaturday
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-            }`}
-          >
-            Saturday
-          </button>
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={setToThisWeekend}
+              className={`px-4 py-2 rounded-lg transition-colors ${
+                isThisWeekend
+                  ? 'bg-purple-600 text-white shadow-md'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              This Weekend
+            </button>
+            
+            <button
+              onClick={setToSaturday}
+              className={`px-4 py-2 rounded-lg transition-colors ${
+                isSaturday
+                  ? 'bg-blue-600 text-white shadow-md'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              Saturday
+            </button>
 
-          <button
-            onClick={setToSunday}
-            className={`px-4 py-2 rounded-lg ${
-              isSunday
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-            }`}
-          >
-            Sunday
-          </button>
+            <button
+              onClick={setToSunday}
+              className={`px-4 py-2 rounded-lg transition-colors ${
+                isSunday
+                  ? 'bg-blue-600 text-white shadow-md'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              Sunday
+            </button>
+          </div>
           
-          <button
-            onClick={setToDate}
-            className={`px-4 py-2 rounded-lg ${
-              isByDate
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-            }`}
-          >
-            By Date
-          </button>
-          
-          {isByDate && (
-            <input
-              type="date"
-              value={selectedDate.toISOString().split('T')[0]}
-              onChange={(e) => setSelectedDate(new Date(e.target.value))}
-              className="border px-3 py-2 rounded"
-            />
-          )}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={setToDate}
+              className={`px-4 py-2 rounded-lg transition-colors ${
+                isByDate
+                  ? 'bg-green-600 text-white shadow-md'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              By Date
+            </button>
+            
+            {isByDate && (
+              <input
+                type="date"
+                value={selectedDate.toISOString().split('T')[0]}
+                onChange={(e) => setSelectedDate(new Date(e.target.value))}
+                className="border px-3 py-2 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            )}
+          </div>
         </div>
         
         {loading && (
-          <div className="text-gray-500 mt-2">Loading sales...</div>
+          <div className="text-gray-500 mt-4">Loading sales...</div>
         )}
         
         {error && (
-          <div className="text-red-500 mt-2">{error}</div>
+          <div className="text-red-500 mt-4">{error}</div>
         )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Sales Selection */}
         <div className="lg:col-span-1">
-          <div className="bg-white rounded-lg shadow p-4 mb-6">
+          <div className="bg-white rounded-xl shadow-md p-4 mb-6">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold">
                 Select Sales
               </h2>
-              <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">
+              <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
                 {selectedSales.length} selected
               </span>
             </div>
@@ -454,7 +482,7 @@ const RoutePlannerPage: React.FC = () => {
       </div>
 
       {/* Organizer CTA Section */}
-      <div className="mt-8 bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-lg border border-blue-200">
+      <div className="mt-8 bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-200 shadow-md">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between">
           <div>
             <h3 className="text-xl font-bold text-gray-900 mb-2">Hosting an Estate Sale?</h3>
@@ -466,7 +494,7 @@ const RoutePlannerPage: React.FC = () => {
           <div className="flex-shrink-0">
             <a 
               href="mailto:organizers@salescout.app?subject=Grand Rapids Organizer Beta" 
-              className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition duration-300 whitespace-nowrap"
+              className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition duration-300 whitespace-nowrap shadow-md"
             >
               Join Beta Program
             </a>
