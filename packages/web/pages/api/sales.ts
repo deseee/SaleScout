@@ -29,7 +29,7 @@ export default async function handler(
         SELECT 
           id, title, description, 
           start_date, end_date,
-          address, city, state, zip_code,
+          address, city, state, zip,
           latitude, longitude
         FROM sales
         WHERE EXTRACT(DOW FROM start_date::date) = $1
@@ -47,7 +47,7 @@ export default async function handler(
         address: row.address,
         city: row.city,
         state: row.state,
-        zip_code: row.zip_code,
+        zip_code: row.zip,
         latitude: parseFloat(row.latitude),
         longitude: parseFloat(row.longitude),
         start_date: row.start_date instanceof Date ? row.start_date.toISOString().split('T')[0] : row.start_date,
@@ -84,7 +84,7 @@ export default async function handler(
         SELECT 
           id, title, description, 
           start_date, end_date,
-          address, city, state, zip_code,
+          address, city, state, zip,
           latitude, longitude
         FROM sales
         WHERE end_date < $1::date
@@ -99,7 +99,7 @@ export default async function handler(
         SELECT 
           id, title, description, 
           start_date, end_date,
-          address, city, state, zip_code,
+          address, city, state, zip,
           latitude, longitude
         FROM sales
         WHERE start_date > $1::date
@@ -115,7 +115,7 @@ export default async function handler(
         SELECT 
           id, title, description, 
           start_date, end_date,
-          address, city, state, zip_code,
+          address, city, state, zip,
           latitude, longitude
         FROM sales
         WHERE end_date >= CURRENT_DATE
@@ -133,7 +133,7 @@ export default async function handler(
       address: row.address,
       city: row.city,
       state: row.state,
-      zip_code: row.zip_code,
+      zip_code: row.zip,
       latitude: parseFloat(row.latitude),
       longitude: parseFloat(row.longitude),
       start_date: row.start_date instanceof Date ? row.start_date.toISOString().split('T')[0] : row.start_date,
