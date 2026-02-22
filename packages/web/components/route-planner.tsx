@@ -6,6 +6,7 @@ import {
   RoutePlanner,
 } from "../../tools/route-planner/planner";
 
+// Dynamically import the map component to avoid SSR issues
 const RouteMap = dynamic(() => import("../components/route-map"), {
   ssr: false,
 });
@@ -14,7 +15,7 @@ interface RoutePlannerProps {
   sales: RouteStop[];
 }
 
-// 🔥 Safe local date helper (no UTC shifting)
+// Helper to get today's date in YYYY-MM-DD format
 const getLocalToday = () => {
   const now = new Date();
   return `${now.getFullYear()}-${String(
@@ -38,9 +39,12 @@ const RoutePlannerComponent: React.FC<RoutePlannerProps> = ({
 
   const today = useMemo(() => getLocalToday(), []);
 
-  // ✅ Use browser location safely
+  // Use browser's current location
   const handleUseCurrentLocation = () => {
-    if (!navigator.geolocation) return;
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser");
+      return;
+    }
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
@@ -51,13 +55,17 @@ const RoutePlannerComponent: React.FC<RoutePlannerProps> = ({
       },
       (error) => {
         console.error("Geolocation error:", error);
+        alert("Unable to get your location");
       }
     );
   };
 
-  // ✅ Geocode address safely
+  // Geocode address using Mapbox
   const handleUseAddress = async () => {
-    if (!addressInput) return;
+    if (!addressInput) {
+      alert("Please enter an address");
+      return;
+    }
 
     try {
       const response = await fetch(
@@ -66,18 +74,25 @@ const RoutePlannerComponent: React.FC<RoutePlannerProps> = ({
         )}.json?access_token=${process.env.NEXT_PUBLIC_MAPBOX_TOKEN}`
       );
 
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
       const data = await response.json();
 
       if (data.features && data.features.length > 0) {
         const [lng, lat] = data.features[0].center;
         setStartLocation({ lat, lng });
+      } else {
+        alert("Address not found");
       }
     } catch (err) {
       console.error("Geocoding failed:", err);
+      alert("Failed to geocode address");
     }
   };
 
-  // ✅ Optimize only when sales or start location changes
+  // Optimize route when sales or start location changes
   useEffect(() => {
     if (!sales || sales.length === 0) {
       setOptimizedRoute(null);
@@ -93,13 +108,14 @@ const RoutePlannerComponent: React.FC<RoutePlannerProps> = ({
         setOptimizedRoute(route);
       } catch (err) {
         console.error("Route optimization failed:", err);
+        alert("Failed to optimize route");
       }
     };
 
     optimize();
   }, [sales, startLocation]);
 
-  // ✅ Filter sales by the current day
+  // Filter sales by the current day
   const filteredSales = useMemo(() => {
     return sales.filter(
       (sale) =>
@@ -107,6 +123,7 @@ const RoutePlannerComponent: React.FC<RoutePlannerProps> = ({
     );
   }, [sales, today]);
 
+  // Prepare stops for the map (including start point)
   const mapStops = optimizedRoute?.stops
     ? [
         {
@@ -128,7 +145,7 @@ const RoutePlannerComponent: React.FC<RoutePlannerProps> = ({
       <div className="mb-4 flex flex-wrap gap-3 items-center">
         <button
           onClick={handleUseCurrentLocation}
-          className="px-3 py-2 bg-blue-600 text-white rounded"
+          className="px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
         >
           Use Current Location
         </button>
@@ -138,16 +155,44 @@ const RoutePlannerComponent: React.FC<RoutePlannerProps> = ({
           value={addressInput}
           onChange={(e) => setAddressInput(e.target.value)}
           placeholder="Enter start address"
-          className="border px-3 py-2 rounded"
+          className="border px-3 py-2 rounded flex-grow max-w-md"
         />
 
         <button
           onClick={handleUseAddress}
-          className="px-3 py-2 bg-green-600 text-white rounded"
+          className="px-3 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
         >
           Use Address
         </button>
       </div>
+
+      {/* Stats */}
+      {optimizedRoute && (
+        <div className="mb-4 p-3 bg-blue-50 rounded-lg">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-center">
+            <div>
+              <div className="font-semibold">{optimizedRoute.stops.length}</div>
+              <div className="text-sm text-gray-600">Stops</div>
+            </div>
+            <div>
+              <div className="font-semibold">{optimizedRoute.totalDistance.toFixed(1)} km</div>
+              <div className="text-sm text-gray-600">Distance</div>
+            </div>
+            <div>
+              <div className="font-semibold">{optimizedRoute.estimatedTime.toFixed(1)} hrs</div>
+              <div className="text-sm text-gray-600">Est. Time</div>
+            </div>
+            <div>
+              <button 
+                onClick={() => window.print()}
+                className="px-3 py-1 bg-purple-600 text-white text-sm rounded hover:bg-purple-700 transition-colors"
+              >
+                Print Route
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Map */}
       <RouteMap
@@ -157,7 +202,7 @@ const RoutePlannerComponent: React.FC<RoutePlannerProps> = ({
 
       {/* Directions */}
       {directions.length > 0 && (
-        <div className="mt-4 bg-white p-4 rounded shadow max-h-72 overflow-y-auto">
+        <div className="mt-4 bg-white p-4 rounded shadow max-h-72 overflow-y-auto print-only-content">
           <h3 className="font-semibold mb-3">
             Turn-by-Turn Directions
           </h3>
