@@ -3,35 +3,40 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { RouteStop } from '@salescout/tools/route-planner';
 
-mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
-
 interface RouteMapProps {
   sales: RouteStop[];
 }
 
 const RouteMap: React.FC<RouteMapProps> = ({ sales }) => {
-  const mapContainer = useRef<HTMLDivElement>(null);
+  const mapContainer = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
 
   useEffect(() => {
     if (!mapContainer.current) return;
+    if (!process.env.NEXT_PUBLIC_MAPBOX_TOKEN) {
+      console.error("Missing Mapbox token");
+      return;
+    }
 
     if (!mapRef.current) {
+      mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+
       mapRef.current = new mapboxgl.Map({
         container: mapContainer.current,
         style: 'mapbox://styles/mapbox/streets-v11',
-        center: [-85.668, 42.963], // Grand Rapids default
+        center: [-85.6681, 42.9634],
         zoom: 12,
+      });
+
+      mapRef.current.on('load', () => {
+        mapRef.current?.resize();
       });
     }
 
     const map = mapRef.current;
 
-    // Remove old markers
-    const markers = document.getElementsByClassName('mapbox-marker');
-    while (markers[0]) {
-      markers[0].remove();
-    }
+    // Remove existing markers safely
+    document.querySelectorAll('.mapbox-marker').forEach(el => el.remove());
 
     sales.forEach((sale) => {
       const el = document.createElement('div');
@@ -56,7 +61,12 @@ const RouteMap: React.FC<RouteMapProps> = ({ sales }) => {
   return (
     <div
       ref={mapContainer}
-      style={{ width: '100%', height: '500px', borderRadius: '12px' }}
+      style={{
+        width: '100%',
+        height: '500px',
+        borderRadius: '12px',
+        marginTop: '1rem'
+      }}
     />
   );
 };
