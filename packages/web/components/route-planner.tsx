@@ -1,7 +1,12 @@
 import React, { useState } from 'react';
 import { RouteStop, OptimizedRoute, RoutePlanner } 
 from '../../tools/route-planner/planner';
-import RouteMap from '../components/route-map';
+import dynamic from 'next/dynamic';
+
+const RouteMap = dynamic(
+  () => import('../components/route-map'),
+  { ssr: false }
+);
 
 interface RoutePlannerProps {
   sales: RouteStop[];
