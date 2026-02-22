@@ -27,7 +27,7 @@ export default async function handler(
       const result = await pool.query(
         `
         SELECT 
-          id, slug, title, description, 
+          id, title, description, 
           start_date, end_date, start_time, end_time,
           address, city, state, zip_code,
           latitude, longitude
@@ -82,7 +82,7 @@ export default async function handler(
       result = await pool.query(
         `
         SELECT 
-          id, slug, title, description, 
+          id, title, description, 
           start_date, end_date, start_time, end_time,
           address, city, state, zip_code,
           latitude, longitude
@@ -97,7 +97,7 @@ export default async function handler(
       result = await pool.query(
         `
         SELECT 
-          id, slug, title, description, 
+          id, title, description, 
           start_date, end_date, start_time, end_time,
           address, city, state, zip_code,
           latitude, longitude
@@ -113,7 +113,7 @@ export default async function handler(
       result = await pool.query(
         `
         SELECT 
-          id, slug, title, description, 
+          id, title, description, 
           start_date, end_date, start_time, end_time,
           address, city, state, zip_code,
           latitude, longitude
