@@ -56,9 +56,19 @@ const RoutePlannerPage: React.FC = () => {
       let url = '/api/sales';
       
       if (mode === 'saturday') {
-        url += '?day=saturday';
+        // For Saturday, get sales happening on Saturday
+        const saturday = new Date(date);
+        const saturdayFormatted = `${saturday.getFullYear()}-${String(
+          saturday.getMonth() + 1
+        ).padStart(2, "0")}-${String(saturday.getDate()).padStart(2, "0")}`;
+        url += `?date=${saturdayFormatted}`;
       } else if (mode === 'sunday') {
-        url += '?day=sunday';
+        // For Sunday, get sales happening on Sunday
+        const sunday = new Date(date);
+        const sundayFormatted = `${sunday.getFullYear()}-${String(
+          sunday.getMonth() + 1
+        ).padStart(2, "0")}-${String(sunday.getDate()).padStart(2, "0")}`;
+        url += `?date=${sundayFormatted}`;
       } else if (mode === 'thisWeekend') {
         // For this weekend, we'll show both Saturday and Sunday sales
         const saturday = new Date(date);
@@ -94,6 +104,7 @@ const RoutePlannerPage: React.FC = () => {
         );
         
         setSalesData(uniqueSales);
+        setLoading(false);
         return;
       } else {
         // Format date as YYYY-MM-DD for API
@@ -164,13 +175,13 @@ const RoutePlannerPage: React.FC = () => {
   ------------------------------ */
   const goToPreviousWeekend = () => {
     const newDate = new Date(selectedDate);
-    newDate.setDate(newDate.getDate() - 7);
+    newDate.setDate(new Date(selectedDate).getDate() - 7);
     setSelectedDate(newDate);
   };
 
   const goToNextWeekend = () => {
     const newDate = new Date(selectedDate);
-    newDate.setDate(newDate.getDate() + 7);
+    newDate.setDate(new Date(selectedDate).getDate() + 7);
     setSelectedDate(newDate);
   };
 
@@ -189,18 +200,24 @@ const RoutePlannerPage: React.FC = () => {
   ------------------------------ */
   const setToSaturday = () => {
     setFilterMode('saturday');
-    const date = new Date();
-    const offset = (6 - date.getDay() + 7) % 7;
-    date.setDate(date.getDate() + offset);
-    setSelectedDate(date);
+    // Set date to the Saturday of the current weekend
+    const date = new Date(selectedDate);
+    const day = date.getDay();
+    const saturdayOffset = (6 - day + 7) % 7;
+    const saturday = new Date(date);
+    saturday.setDate(date.getDate() + saturdayOffset);
+    setSelectedDate(saturday);
   };
 
   const setToSunday = () => {
     setFilterMode('sunday');
-    const date = new Date();
-    const offset = (7 - date.getDay() + 7) % 7;
-    date.setDate(date.getDate() + offset);
-    setSelectedDate(date);
+    // Set date to the Sunday of the current weekend
+    const date = new Date(selectedDate);
+    const day = date.getDay();
+    const sundayOffset = (7 - day + 7) % 7;
+    const sunday = new Date(date);
+    sunday.setDate(date.getDate() + sundayOffset);
+    setSelectedDate(sunday);
   };
 
   const setToDate = () => {
