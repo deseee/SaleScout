@@ -1,5 +1,9 @@
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
 import Layout from '../../components/layout';
+import { useAuth } from '../../lib/auth';
+import apiClient from '../../lib/api';
+import { geocodeAddress } from '../../lib/geocode';
 
 // Mock data for sales
 const mockSales = [
@@ -29,6 +33,31 @@ const mockSales = [
 export default function Dashboard() {
   const [sales, setSales] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    startDate: '',
+    endDate: '',
+    startTime: '',
+    endTime: '',
+    address: '',
+    city: '',
+    state: 'MI',
+    zip: '',
+    isAuction: false,
+  });
+  const [geocoding, setGeocoding] = useState(false);
+  const [error, setError] = useState('');
+  const { user } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    // Redirect if not organizer or admin
+    if (user && user.role !== 'ORGANIZER' && user.role !== 'ADMIN') {
+      router.push('/');
+    }
+  }, [user, router]);
 
   useEffect(() => {
     // Simulate API call
@@ -37,6 +66,67 @@ export default function Dashboard() {
       setLoading(false);
     }, 1000);
   }, []);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value, type } = e.target as HTMLInputElement;
+    const val = type === 'checkbox' ? (e.target as HTMLInputElement).checked : value;
+    
+    setFormData({
+      ...formData,
+      [name]: val
+    });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setGeocoding(true);
+
+    try {
+      // Geocode address
+      const fullAddress = `${formData.address}, ${formData.city}, ${formData.state} ${formData.zip}`;
+      const geocodeResult = await geocodeAddress(fullAddress);
+      
+      if (!geocodeResult) {
+        setError('Could not geocode address. Please check the address details.');
+        setGeocoding(false);
+        return;
+      }
+
+      // In a real implementation, you would call your API here
+      // For now, we'll simulate a successful creation
+      console.log('Creating sale with data:', {
+        ...formData,
+        latitude: geocodeResult.lat,
+        longitude: geocodeResult.lng
+      });
+
+      // Reset form and hide it
+      setFormData({
+        title: '',
+        description: '',
+        startDate: '',
+        endDate: '',
+        startTime: '',
+        endTime: '',
+        address: '',
+        city: '',
+        state: 'MI',
+        zip: '',
+        isAuction: false,
+      });
+      setShowCreateForm(false);
+      alert('Sale created successfully!');
+    } catch (err) {
+      setError('Failed to create sale. Please try again.');
+    } finally {
+      setGeocoding(false);
+    }
+  };
+
+  if (!user || (user.role !== 'ORGANIZER' && user.role !== 'ADMIN')) {
+    return <div>Access denied</div>;
+  }
 
   return (
     <Layout>
@@ -108,15 +198,236 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+        <div className="bg-white shadow overflow-hidden sm:rounded-lg mb-8">
           <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
             <div className="flex justify-between items-center">
               <h3 className="text-lg leading-6 font-medium text-gray-900">Your Sales</h3>
-              <button className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                Create New Sale
+              <button 
+                onClick={() => setShowCreateForm(!showCreateForm)}
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                {showCreateForm ? 'Cancel' : 'Create New Sale'}
               </button>
             </div>
           </div>
+          
+          {showCreateForm && (
+            <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
+              <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">Create New Sale</h3>
+              
+              {error && (
+                <div className="bg-red-50 text-red-500 p-4 rounded-md mb-6">
+                  {error}
+                </div>
+              )}
+              
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                  <div className="sm:col-span-6">
+                    <label htmlFor="title" className="block text-sm font-medium text-gray-700">
+                      Sale Title
+                    </label>
+                    <div className="mt-1">
+                      <input
+                        type="text"
+                        name="title"
+                        id="title"
+                        value={formData.title}
+                        onChange={handleChange}
+                        required
+                        className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="sm:col-span-6">
+                    <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+                      Description
+                    </label>
+                    <div className="mt-1">
+                      <textarea
+                        id="description"
+                        name="description"
+                        rows={3}
+                        value={formData.description}
+                        onChange={handleChange}
+                        className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border border-gray-300 rounded-md"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="sm:col-span-3">
+                    <label htmlFor="startDate" className="block text-sm font-medium text-gray-700">
+                      Start Date
+                    </label>
+                    <div className="mt-1">
+                      <input
+                        type="date"
+                        name="startDate"
+                        id="startDate"
+                        value={formData.startDate}
+                        onChange={handleChange}
+                        required
+                        className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="sm:col-span-3">
+                    <label htmlFor="startTime" className="block text-sm font-medium text-gray-700">
+                      Start Time
+                    </label>
+                    <div className="mt-1">
+                      <input
+                        type="time"
+                        name="startTime"
+                        id="startTime"
+                        value={formData.startTime}
+                        onChange={handleChange}
+                        required
+                        className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="sm:col-span-3">
+                    <label htmlFor="endDate" className="block text-sm font-medium text-gray-700">
+                      End Date
+                    </label>
+                    <div className="mt-1">
+                      <input
+                        type="date"
+                        name="endDate"
+                        id="endDate"
+                        value={formData.endDate}
+                        onChange={handleChange}
+                        required
+                        className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="sm:col-span-3">
+                    <label htmlFor="endTime" className="block text-sm font-medium text-gray-700">
+                      End Time
+                    </label>
+                    <div className="mt-1">
+                      <input
+                        type="time"
+                        name="endTime"
+                        id="endTime"
+                        value={formData.endTime}
+                        onChange={handleChange}
+                        required
+                        className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="sm:col-span-4">
+                    <label htmlFor="address" className="block text-sm font-medium text-gray-700">
+                      Street Address
+                    </label>
+                    <div className="mt-1">
+                      <input
+                        type="text"
+                        name="address"
+                        id="address"
+                        value={formData.address}
+                        onChange={handleChange}
+                        required
+                        className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <label htmlFor="city" className="block text-sm font-medium text-gray-700">
+                      City
+                    </label>
+                    <div className="mt-1">
+                      <input
+                        type="text"
+                        name="city"
+                        id="city"
+                        value={formData.city}
+                        onChange={handleChange}
+                        required
+                        className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="sm:col-span-1">
+                    <label htmlFor="state" className="block text-sm font-medium text-gray-700">
+                      State
+                    </label>
+                    <div className="mt-1">
+                      <input
+                        type="text"
+                        name="state"
+                        id="state"
+                        value={formData.state}
+                        onChange={handleChange}
+                        required
+                        className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="sm:col-span-1">
+                    <label htmlFor="zip" className="block text-sm font-medium text-gray-700">
+                      ZIP
+                    </label>
+                    <div className="mt-1">
+                      <input
+                        type="text"
+                        name="zip"
+                        id="zip"
+                        value={formData.zip}
+                        onChange={handleChange}
+                        required
+                        className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="sm:col-span-6">
+                    <div className="flex items-center">
+                      <input
+                        id="isAuction"
+                        name="isAuction"
+                        type="checkbox"
+                        checked={formData.isAuction}
+                        onChange={handleChange}
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                      <label htmlFor="isAuction" className="ml-2 block text-sm text-gray-900">
+                        Is this an auction sale?
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setShowCreateForm(false)}
+                    className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={geocoding}
+                    className="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                  >
+                    {geocoding ? 'Creating...' : 'Create Sale'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
           
           {loading ? (
             <div className="px-4 py-12 text-center">
@@ -166,9 +477,12 @@ export default function Dashboard() {
                         {sale.items}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <a href={`/sales/${sale.id}`} className="text-blue-600 hover:text-blue-900">
+                        <a href={`/sales/${sale.id}`} className="text-blue-600 hover:text-blue-900 mr-4">
                           View
                         </a>
+                        <button className="text-indigo-600 hover:text-indigo-900">
+                          Edit
+                        </button>
                       </td>
                     </tr>
                   ))}

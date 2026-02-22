@@ -1,5 +1,7 @@
 import { useRouter } from 'next/router';
+import { useState } from 'react';
 import Layout from '../../components/layout';
+import { useAuth } from '../../lib/auth';
 
 // Mock data for a single sale
 const mockSale = {
@@ -22,9 +24,45 @@ const mockSale = {
 export default function SaleDetail() {
   const router = useRouter();
   const { id } = router.query;
+  const { user } = useAuth();
+  const [showItemForm, setShowItemForm] = useState(false);
+  const [itemFormData, setItemFormData] = useState({
+    title: '',
+    description: '',
+    price: '',
+    isAuctionItem: false,
+    auctionEndTime: '',
+    bidIncrement: '',
+  });
 
   // In a real implementation, you would fetch the sale data based on the ID
   const sale = mockSale;
+
+  const handleItemChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value, type } = e.target as HTMLInputElement;
+    const val = type === 'checkbox' ? (e.target as HTMLInputElement).checked : value;
+    
+    setItemFormData({
+      ...itemFormData,
+      [name]: val
+    });
+  };
+
+  const handleItemSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // In a real implementation, you would submit the item data to your API
+    console.log('Creating item:', itemFormData);
+    setShowItemForm(false);
+    setItemFormData({
+      title: '',
+      description: '',
+      price: '',
+      isAuctionItem: false,
+      auctionEndTime: '',
+      bidIncrement: '',
+    });
+    alert('Item added successfully!');
+  };
 
   return (
     <Layout>
@@ -43,9 +81,149 @@ export default function SaleDetail() {
 
         <div className="bg-white shadow overflow-hidden sm:rounded-lg">
           <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
-            <h3 className="text-2xl leading-6 font-bold text-gray-900">{sale.title}</h3>
-            <p className="mt-1 max-w-2xl text-sm text-gray-500">{sale.description}</p>
+            <div className="flex justify-between items-center">
+              <div>
+                <h3 className="text-2xl leading-6 font-bold text-gray-900">{sale.title}</h3>
+                <p className="mt-1 max-w-2xl text-sm text-gray-500">{sale.description}</p>
+              </div>
+              {user && (user.role === 'ORGANIZER' || user.role === 'ADMIN') && (
+                <button 
+                  onClick={() => setShowItemForm(!showItemForm)}
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  {showItemForm ? 'Cancel' : 'Add Items'}
+                </button>
+              )}
+            </div>
           </div>
+          
+          {showItemForm && (
+            <div className="px-4 py-5 sm:px-6 border-b border-gray-200 bg-gray-50">
+              <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">Add New Item</h3>
+              
+              <form onSubmit={handleItemSubmit} className="space-y-6">
+                <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                  <div className="sm:col-span-6">
+                    <label htmlFor="title" className="block text-sm font-medium text-gray-700">
+                      Item Title
+                    </label>
+                    <div className="mt-1">
+                      <input
+                        type="text"
+                        name="title"
+                        id="title"
+                        value={itemFormData.title}
+                        onChange={handleItemChange}
+                        required
+                        className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="sm:col-span-6">
+                    <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+                      Description
+                    </label>
+                    <div className="mt-1">
+                      <textarea
+                        id="description"
+                        name="description"
+                        rows={3}
+                        value={itemFormData.description}
+                        onChange={handleItemChange}
+                        className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border border-gray-300 rounded-md"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="sm:col-span-3">
+                    <label htmlFor="price" className="block text-sm font-medium text-gray-700">
+                      Price
+                    </label>
+                    <div className="mt-1">
+                      <input
+                        type="text"
+                        name="price"
+                        id="price"
+                        value={itemFormData.price}
+                        onChange={handleItemChange}
+                        required
+                        className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="sm:col-span-6">
+                    <div className="flex items-center">
+                      <input
+                        id="isAuctionItem"
+                        name="isAuctionItem"
+                        type="checkbox"
+                        checked={itemFormData.isAuctionItem}
+                        onChange={handleItemChange}
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                      <label htmlFor="isAuctionItem" className="ml-2 block text-sm text-gray-900">
+                        Is this an auction item?
+                      </label>
+                    </div>
+                  </div>
+
+                  {itemFormData.isAuctionItem && (
+                    <>
+                      <div className="sm:col-span-3">
+                        <label htmlFor="auctionEndTime" className="block text-sm font-medium text-gray-700">
+                          Auction End Time
+                        </label>
+                        <div className="mt-1">
+                          <input
+                            type="datetime-local"
+                            name="auctionEndTime"
+                            id="auctionEndTime"
+                            value={itemFormData.auctionEndTime}
+                            onChange={handleItemChange}
+                            className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="sm:col-span-3">
+                        <label htmlFor="bidIncrement" className="block text-sm font-medium text-gray-700">
+                          Bid Increment
+                        </label>
+                        <div className="mt-1">
+                          <input
+                            type="text"
+                            name="bidIncrement"
+                            id="bidIncrement"
+                            value={itemFormData.bidIncrement}
+                            onChange={handleItemChange}
+                            className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                          />
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setShowItemForm(false)}
+                    className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  >
+                    Add Item
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
           
           <div className="border-t border-gray-200">
             <dl>

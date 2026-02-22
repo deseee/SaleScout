@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
+import apiClient from './api';
 
 interface User {
   id: string;
@@ -22,7 +23,7 @@ export function useAuth() {
         id: '1',
         name: 'John Doe',
         email: 'john@example.com',
-        role: 'organizer'
+        role: 'ORGANIZER' // Changed to match expected role
       });
     }
     setLoading(false);
@@ -35,7 +36,7 @@ export function useAuth() {
       id: '1',
       name: 'John Doe',
       email: 'john@example.com',
-      role: 'organizer'
+      role: 'ORGANIZER'
     });
   };
 
@@ -64,6 +65,29 @@ export function requireAuth(WrappedComponent: React.ComponentType<any>) {
     }
 
     if (!user) {
+      return null;
+    }
+
+    return <WrappedComponent {...props} user={user} />;
+  };
+}
+
+export function requireOrganizer(WrappedComponent: React.ComponentType<any>) {
+  return (props: any) => {
+    const { user, loading } = useAuth();
+    const router = useRouter();
+
+    useEffect(() => {
+      if (!loading && (!user || (user.role !== 'ORGANIZER' && user.role !== 'ADMIN'))) {
+        router.push('/');
+      }
+    }, [user, loading, router]);
+
+    if (loading) {
+      return <div>Loading...</div>;
+    }
+
+    if (!user || (user.role !== 'ORGANIZER' && user.role !== 'ADMIN')) {
       return null;
     }
 
