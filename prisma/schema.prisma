@@ -1,0 +1,330 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String     @id @default(cuid())
+  email           String     @unique
+  name            String?
+  phone           String?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  deletedAt       DateTime?
+  followers       Follower[] @relation("UserFollowers")
+  following       Follower[] @relation("UserFollowing")
+  reviews         Review[]
+  badges          UserBadge[]
+  referrals       Referral[] @relation("UserReferrals")
+  referredBy      Referral[] @relation("UserReferredBy")
+  reservations    Reservation[]
+  smsNotifications SMSNotification[]
+  role            Role       @default(SHOPPER)
+  xp              UserXP?
+  streak          UserStreak?
+}
+
+enum Role {
+  SHOPPER
+  ORGANIZER
+  ADMIN
+}
+
+model Organizer {
+  id              String     @id @default(cuid())
+  userId          String     @unique
+  businessName    String
+  description     String?
+  website         String?
+  facebook        String?
+  instagram       String?
+  stripeAccountId String?
+  verified        Boolean    @default(false)
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  deletedAt       DateTime?
+  user            User       @relation(fields: [userId], references: [id])
+  sales           Sale[]
+  followers       Follower[] @relation("OrganizerFollowers")
+  reviews         Review[]
+}
+
+model Sale {
+  id              String       @id @default(cuid())
+  slug            String       @unique
+  title           String
+  description     String
+  startDate       DateTime
+  endDate         DateTime
+  startTime       String
+  endTime         String
+  status          SaleStatus   @default(DRAFT)
+  seoTitle        String?
+  seoDescription  String?
+  featuredImage   String?
+  isAuction       Boolean      @default(false)
+  auctionEndTime  DateTime?
+  minBid          Float?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  deletedAt       DateTime?
+  organizerId     String
+  organizer       Organizer    @relation(fields: [organizerId], references: [id])
+  locations       SaleLocation[]
+  items           Item[]
+  reservations    Reservation[]
+  reviews         Review[]
+  photoBatches    PhotoBatch[]
+  neighborhoods   Neighborhood[]
+}
+
+enum SaleStatus {
+  DRAFT
+  PUBLISHED
+  LIVE
+  ENDED
+}
+
+model SaleLocation {
+  id          String    @id @default(cuid())
+  name        String?
+  address     String
+  city        String
+  state       String
+  zipCode     String
+  latitude    Float
+  longitude   Float
+  instructions String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+  saleId      String
+  sale        Sale      @relation(fields: [saleId], references: [id])
+}
+
+model Item {
+  id             String      @id @default(cuid())
+  name           String
+  description    String?
+  price          Float?
+  estimatedValue Float?
+  isFeatured     Boolean     @default(false)
+  isAuctionItem  Boolean     @default(false)
+  minBid         Float?
+  bidIncrement   Float?
+  finalBid       Float?
+  imageUrls      String[]
+  categoryId     String?
+  category       Category?   @relation(fields: [categoryId], references: [id])
+  condition      String?
+  brand          String?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  deletedAt      DateTime?
+  saleId         String
+  sale           Sale        @relation(fields: [saleId], references: [id])
+  reservations   Reservation[]
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  slug      String   @unique
+  parentId  String?
+  parent    Category? @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children  Category[] @relation("CategoryHierarchy")
+  items     Item[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+}
+
+model Reservation {
+  id               String    @id @default(cuid())
+  itemId           String
+  userId           String
+  status           ResStatus @default(PENDING)
+  stripePaymentId  String?
+  amount           Float
+  reservedAt       DateTime  @default(now())
+  expiresAt        DateTime?
+  confirmedAt      DateTime?
+  cancelledAt      DateTime?
+  item             Item      @relation(fields: [itemId], references: [id])
+  user             User      @relation(fields: [userId], references: [id])
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+}
+
+enum ResStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  EXPIRED
+  COMPLETED
+}
+
+model Follower {
+  id          String   @id @default(cuid())
+  followerId  String
+  followingId String?
+  organizerId String?
+  createdAt   DateTime @default(now())
+  follower    User     @relation("UserFollowers", fields: [followerId], references: [id])
+  following   User?    @relation("UserFollowing", fields: [followingId], references: [id])
+  organizer   Organizer? @relation("OrganizerFollowers", fields: [organizerId], references: [id])
+  @@unique([followerId, followingId])
+  @@unique([followerId, organizerId])
+}
+
+model Review {
+  id         String   @id @default(cuid())
+  rating     Int
+  comment    String?
+  userId     String
+  saleId     String?
+  organizerId String?
+  user       User     @relation(fields: [userId], references: [id])
+  sale       Sale?    @relation(fields: [saleId], references: [id])
+  organizer  Organizer? @relation(fields: [organizerId], references: [id])
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  @@unique([userId, saleId])
+  @@unique([userId, organizerId])
+}
+
+model Badge {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  description String
+  icon        String?
+  criteria    String
+  type        BadgeType @default(SHOPPER)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  userBadges  UserBadge[]
+}
+
+enum BadgeType {
+  SHOPPER
+  ORGANIZER
+}
+
+model UserBadge {
+  id        String   @id @default(cuid())
+  userId    String
+  badgeId   String
+  awardedAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+  badge     Badge    @relation(fields: [badgeId], references: [id])
+  @@unique([userId, badgeId])
+}
+
+model Referral {
+  id           String   @id @default(cuid())
+  referrerId   String
+  referredId   String
+  code         String   @unique
+  redeemed     Boolean  @default(false)
+  redeemedAt   DateTime?
+  referrer     User     @relation("UserReferrals", fields: [referrerId], references: [id])
+  referred     User     @relation("UserReferredBy", fields: [referredId], references: [id])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model SMSNotification {
+  id           String   @id @default(cuid())
+  userId       String
+  phoneNumber  String
+  message      String
+  status       SMSStatus @default(PENDING)
+  sentAt       DateTime?
+  deliveredAt  DateTime?
+  user         User     @relation(fields: [userId], references: [id])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+enum SMSStatus {
+  PENDING
+  SENT
+  DELIVERED
+  FAILED
+}
+
+model PhotoBatch {
+  id          String   @id @default(cuid())
+  saleId      String
+  imageUrl    String
+  processed   Boolean  @default(false)
+  droppedAt   DateTime?
+  metadata    Json?
+  sale        Sale     @relation(fields: [saleId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Neighborhood {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  cityId    String
+  city      City     @relation(fields: [cityId], references: [id])
+  sales     Sale[]
+  latitude  Float
+  longitude Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+}
+
+model City {
+  id        String       @id @default(cuid())
+  name      String
+  slug      String       @unique
+  state     String
+  neighborhoods Neighborhood[]
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  deletedAt DateTime?
+}
+
+// Gamification models
+model UserXP {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  totalXP           Int      @default(0)
+  level             Int      @default(1)
+  streak            Int      @default(0)
+  lastActivityDate  DateTime @default(now())
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  user              User     @relation(fields: [userId], references: [id])
+}
+
+model UserStreak {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  currentDate     DateTime @default(dbgenerated("CURRENT_DATE"))
+  streakCount     Int      @default(0)
+  createdAt       DateTime @default(now())
+  user            User     @relation(fields: [userId], references: [id])
+}
+
+model LeaderboardEntry {
+  id         String   @id @default(cuid())
+  userId     String
+  userName   String
+  metric     String
+  value      Int
+  rank       Int
+  timeframe  String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  @@unique([userId, metric, timeframe])
+}

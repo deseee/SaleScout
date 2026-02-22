@@ -1,0 +1,17 @@
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .print-only-content,
+  .print-only-content * {
+    visibility: visible;
+  }
+
+  .print-only-content {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+}
