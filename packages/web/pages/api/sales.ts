@@ -29,7 +29,7 @@ export default async function handler(
     let result;
 
     // 1️⃣ Specific date requested
-    if (date) {
+    if (date && typeof date === 'string') {
       result = await pool.query(
         `
         SELECT *
