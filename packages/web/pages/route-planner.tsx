@@ -58,7 +58,19 @@ const RoutePlannerPage: React.FC = () => {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
-      setSalesData(data);
+      
+      // Ensure data is an array and filter out any invalid entries
+      if (Array.isArray(data)) {
+        const validSales = data.filter(sale => 
+          sale.id && 
+          sale.title && 
+          typeof sale.latitude === 'number' && 
+          typeof sale.longitude === 'number'
+        );
+        setSalesData(validSales);
+      } else {
+        setSalesData([]);
+      }
     } catch (error) {
       console.error("Failed to fetch sales:", error);
       setSalesData([]); // Set empty array on error
