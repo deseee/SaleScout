@@ -13,37 +13,37 @@ export default function Home() {
           </p>
         </div>
 
-        <div className="mt-16 bg-blue-50 p-8 rounded-lg">
+        <div className="mt-16 bg-blue-50 p-6 rounded-lg">
           <h2 className="text-2xl font-bold text-gray-900">🎉 Grand Rapids Organizers: Join Our Beta!</h2>
           <p className="mt-4">
             Be among the first 50 organizers to join SaleScout and enjoy:
           </p>
           <ul className="mt-4 space-y-2">
             <li className="flex items-start">
-              <span className="flex-shrink-0 h-6 w-6 text-green-500">✓</span>
-              <span className="ml-2"><strong>Zero commission for 6 months</strong></span>
+              <span className="flex-shrink-0 h-5 w-5 text-green-500 mt-0.5">✓</span>
+              <span className="ml-3"><strong>Zero commission for 6 months</strong></span>
             </li>
             <li className="flex items-start">
-              <span className="flex-shrink-0 h-6 w-6 text-green-500">✓</span>
-              <span className="ml-2">Premium placement in local search results</span>
+              <span className="flex-shrink-0 h-5 w-5 text-green-500 mt-0.5">✓</span>
+              <span className="ml-3">Premium placement in local search results</span>
             </li>
             <li className="flex items-start">
-              <span className="flex-shrink-0 h-6 w-6 text-green-500">✓</span>
-              <span className="ml-2">Free QR codes for all your items</span>
+              <span className="flex-shrink-0 h-5 w-5 text-green-500 mt-0.5">✓</span>
+              <span className="ml-3">Free QR codes for all your items</span>
             </li>
             <li className="flex items-start">
-              <span className="flex-shrink-0 h-6 w-6 text-green-500">✓</span>
-              <span className="ml-2">Personalized support from our local team</span>
+              <span className="flex-shrink-0 h-5 w-5 text-green-500 mt-0.5">✓</span>
+              <span className="ml-3">Personalized support from our local team</span>
             </li>
             <li className="flex items-start">
-              <span className="flex-shrink-0 h-6 w-6 text-green-500">✓</span>
-              <span className="ml-2">Early access to our route planning tools</span>
+              <span className="flex-shrink-0 h-5 w-5 text-green-500 mt-0.5">✓</span>
+              <span className="ml-3">Early access to our route planning tools</span>
             </li>
           </ul>
           <p className="mt-6">
             <a 
               href="mailto:organizers@salescout.app?subject=Grand Rapids Organizer Beta" 
-              className="inline-block bg-blue-600 text-white px-6 py-3 rounded-md font-bold hover:bg-blue-700 transition duration-300"
+              className="inline-block bg-blue-600 text-white px-6 py-3 rounded-md font-medium hover:bg-blue-700 transition duration-300"
             >
               Claim Your Spot
             </a>
@@ -51,7 +51,7 @@ export default function Home() {
         </div>
 
         <div className="mt-16 grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="border border-gray-200 rounded-lg p-6">
+          <div className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
             <h3 className="text-xl font-bold text-gray-900">🔍 For Shoppers</h3>
             <p className="mt-2 text-gray-600">Discover estate sales near you with our powerful search and filtering tools.</p>
             <a href="/route-planner" className="mt-4 inline-flex items-center text-blue-600 hover:text-blue-800">
@@ -62,7 +62,7 @@ export default function Home() {
             </a>
           </div>
           
-          <div className="border border-gray-200 rounded-lg p-6">
+          <div className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
             <h3 className="text-xl font-bold text-gray-900">💼 For Organizers</h3>
             <p className="mt-2 text-gray-600">List your sales and reach more buyers with our optimized platform.</p>
             <a 
@@ -77,16 +77,16 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="mt-16 bg-yellow-50 p-8 rounded-lg text-center">
+        <div className="mt-16 bg-yellow-50 p-6 rounded-lg text-center">
           <h3 className="text-2xl font-bold text-gray-900">Why Choose SaleScout Over estatesales.net?</h3>
           <p className="mt-4">
             <strong className="text-lg">We're 100% focused on Grand Rapids</strong> - while they're nationwide, 
             we put local organizers first.
           </p>
           <div className="mt-6 flex flex-wrap justify-center gap-4">
-            <span className="px-4 py-2 bg-white rounded-full text-sm font-medium">📍 Local SEO Advantage</span>
-            <span className="px-4 py-2 bg-white rounded-full text-sm font-medium">⚡ Faster Sales</span>
-            <span className="px-4 py-2 bg-white rounded-full text-sm font-medium">🤝 Personal Support</span>
+            <span className="px-4 py-2 bg-white rounded-full text-sm font-medium shadow-sm">📍 Local SEO Advantage</span>
+            <span className="px-4 py-2 bg-white rounded-full text-sm font-medium shadow-sm">⚡ Faster Sales</span>
+            <span className="px-4 py-2 bg-white rounded-full text-sm font-medium shadow-sm">🤝 Personal Support</span>
           </div>
         </div>
       </main>
