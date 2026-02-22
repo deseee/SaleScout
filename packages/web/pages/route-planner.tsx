@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import Head from 'next/head';
-import { RouteStop } from '@salescout/tools/route-planner';
+import { RouteStop } from '../../tools/route-planner/planner';
 import RoutePlannerComponent from '../components/route-planner';
 
 interface SaleData {
@@ -13,19 +13,6 @@ interface SaleData {
   end_date: string;
   start_time?: string;
   end_time?: string;
-}
-
-/* -----------------------------
-   Multi-Day Helper
------------------------------- */
-function isSaleOnDate(sale: SaleData, selectedDate: Date) {
-  const start = new Date(sale.start_date);
-  const end = new Date(sale.end_date);
-
-  start.setHours(0, 0, 0, 0);
-  end.setHours(23, 59, 59, 999);
-
-  return selectedDate >= start && selectedDate <= end;
 }
 
 /* -----------------------------
@@ -45,6 +32,7 @@ const convertToRouteStops = (sales: SaleData[]): RouteStop[] => {
 
 const RoutePlannerPage: React.FC = () => {
   const [salesData, setSalesData] = useState<SaleData[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
   const [selectedDate, setSelectedDate] = useState<Date>(() => {
     const today = new Date();
     const day = today.getDay();
@@ -55,26 +43,34 @@ const RoutePlannerPage: React.FC = () => {
   });
 
   /* -----------------------------
-     Fetch Sales From API
+     Fetch Sales From API with Date Parameter
   ------------------------------ */
-  useEffect(() => {
-    fetch('/api/sales')
-      .then((res) => res.json())
-      .then((data) => setSalesData(data));
-  }, []);
+  const fetchSales = async (date: Date) => {
+    setLoading(true);
+    try {
+      // Format date as YYYY-MM-DD for API
+      const formattedDate = `${date.getFullYear()}-${String(
+        date.getMonth() + 1
+      ).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+      
+      const response = await fetch(`/api/sales?date=${formattedDate}`);
+      const data = await response.json();
+      setSalesData(data);
+    } catch (error) {
+      console.error("Failed to fetch sales:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  /* -----------------------------
-     Filter Multi-Day Correctly
-  ------------------------------ */
-  const filteredSales = useMemo(() => {
-    return salesData.filter((sale) =>
-      isSaleOnDate(sale, selectedDate)
-    );
-  }, [salesData, selectedDate]);
+  // Fetch sales when date changes
+  useEffect(() => {
+    fetchSales(selectedDate);
+  }, [selectedDate]);
 
   const routeStops = useMemo(
-    () => convertToRouteStops(filteredSales),
-    [filteredSales]
+    () => convertToRouteStops(salesData),
+    [salesData]
   );
 
   const [selectedSales, setSelectedSales] =
@@ -116,6 +112,16 @@ const RoutePlannerPage: React.FC = () => {
   const isSaturday = selectedDate.getDay() === 6;
   const isSunday = selectedDate.getDay() === 0;
 
+  // Format date for display
+  const formatDate = (date: Date): string => {
+    return date.toLocaleDateString('en-US', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <Head>
@@ -126,29 +132,39 @@ const RoutePlannerPage: React.FC = () => {
         Weekend Route Planner
       </h1>
 
-      {/* Day Selection */}
-      <div className="flex space-x-4 mb-6">
-        <button
-          onClick={setToSaturday}
-          className={`px-4 py-2 rounded-lg ${
-            isSaturday
-              ? 'bg-blue-600 text-white'
-              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-          }`}
-        >
-          Saturday
-        </button>
+      {/* Date Display and Controls */}
+      <div className="mb-6">
+        <div className="flex items-center space-x-4 mb-4">
+          <button
+            onClick={setToSaturday}
+            className={`px-4 py-2 rounded-lg ${
+              isSaturday
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            }`}
+          >
+            Saturday
+          </button>
 
-        <button
-          onClick={setToSunday}
-          className={`px-4 py-2 rounded-lg ${
-            isSunday
-              ? 'bg-blue-600 text-white'
-              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-          }`}
-        >
-          Sunday
-        </button>
+          <button
+            onClick={setToSunday}
+            className={`px-4 py-2 rounded-lg ${
+              isSunday
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            }`}
+          >
+            Sunday
+          </button>
+          
+          <div className="text-lg font-medium">
+            {formatDate(selectedDate)}
+          </div>
+        </div>
+        
+        {loading && (
+          <div className="text-gray-500">Loading sales...</div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

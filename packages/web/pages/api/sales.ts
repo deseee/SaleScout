@@ -15,11 +15,16 @@ export default async function handler(
   try {
     const { date, mode } = req.query;
 
-    const now = new Date();
-
-    const today = `${now.getFullYear()}-${String(
-      now.getMonth() + 1
-    ).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+    // Use provided date or default to today
+    let targetDate: string;
+    if (date && typeof date === 'string') {
+      targetDate = date;
+    } else {
+      const now = new Date();
+      targetDate = `${now.getFullYear()}-${String(
+        now.getMonth() + 1
+      ).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+    }
 
     let result;
 
@@ -46,7 +51,7 @@ export default async function handler(
         WHERE end_date < $1
         ORDER BY end_date DESC
         `,
-        [today]
+        [targetDate]
       );
     }
 
@@ -59,20 +64,21 @@ export default async function handler(
         WHERE start_date > $1
         ORDER BY start_date ASC
         `,
-        [today]
+        [targetDate]
       );
     }
 
-    // 4️⃣ Default = active today
+    // 4️⃣ Default = active on target date
     else {
       result = await pool.query(
         `
         SELECT *
         FROM sales
-        WHERE end_date >= $1
+        WHERE start_date <= $1
+        AND end_date >= $1
         ORDER BY start_date ASC
         `,
-        [today]
+        [targetDate]
       );
     }
 
