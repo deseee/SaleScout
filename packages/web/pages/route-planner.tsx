@@ -35,6 +35,7 @@ const convertToRouteStops = (sales: SaleData[]): RouteStop[] => {
 const RoutePlannerPage: React.FC = () => {
   const [salesData, setSalesData] = useState<SaleData[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>(() => {
     const today = new Date();
     const day = today.getDay();
@@ -43,13 +44,14 @@ const RoutePlannerPage: React.FC = () => {
     saturday.setDate(today.getDate() + saturdayOffset);
     return saturday;
   });
-  const [filterMode, setFilterMode] = useState<'date' | 'saturday' | 'sunday' | ' thisWeekend'>('thisWeekend');
+  const [filterMode, setFilterMode] = useState<'date' | 'saturday' | 'sunday' | 'thisWeekend'>('thisWeekend');
 
   /* -----------------------------
      Fetch Sales From API with Date Parameter
   ------------------------------ */
   const fetchSales = async (date: Date, mode: 'date' | 'saturday' | 'sunday' | 'thisWeekend') => {
     setLoading(true);
+    setError(null);
     try {
       let url = '/api/sales';
       
@@ -121,6 +123,7 @@ const RoutePlannerPage: React.FC = () => {
       }
     } catch (error) {
       console.error("Failed to fetch sales:", error);
+      setError("Failed to load sales data. Please try again later.");
       setSalesData([]); // Set empty array on error
     } finally {
       setLoading(false);
@@ -351,6 +354,10 @@ const RoutePlannerPage: React.FC = () => {
         {loading && (
           <div className="text-gray-500 mt-2">Loading sales...</div>
         )}
+        
+        {error && (
+          <div className="text-red-500 mt-2">{error}</div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -367,7 +374,7 @@ const RoutePlannerPage: React.FC = () => {
             </div>
 
             <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2">
-              {routeStops.length === 0 ? (
+              {routeStops.length === 0 && !loading ? (
                 <p className="text-gray-500 text-center py-4">
                   No sales available for this date
                 </p>
