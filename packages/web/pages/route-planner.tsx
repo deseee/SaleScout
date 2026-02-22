@@ -255,11 +255,21 @@ const RoutePlannerPage: React.FC = () => {
     <div className="container mx-auto px-4 py-8">
       <Head>
         <title>Estate Sales Route Planner | SaleScout</title>
+        <meta name="description" content="Plan your estate sale shopping route in Grand Rapids. Find the best sales this weekend and optimize your trip." />
       </Head>
 
-      <h1 className="text-3xl font-bold mb-6">
-        Weekend Route Planner
-      </h1>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold mb-2">Weekend Route Planner</h1>
+        <p className="text-gray-600">
+          Plan efficient routes for estate sales in Grand Rapids. 
+          <a 
+            href="mailto:organizers@salescout.app?subject=Grand Rapids Organizer Beta" 
+            className="text-blue-600 hover:underline ml-1"
+          >
+            Organizers: Join our beta program
+          </a>
+        </p>
+      </div>
 
       {/* Date Display and Controls */}
       <div className="mb-6">
@@ -433,6 +443,47 @@ const RoutePlannerPage: React.FC = () => {
           <RoutePlannerComponent
             sales={selectedSales}
           />
+        </div>
+      </div>
+
+      {/* Organizer CTA Section */}
+      <div className="mt-8 bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-lg border border-blue-200">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+          <div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Hosting an Estate Sale?</h3>
+            <p className="text-gray-700 mb-4">
+              List your sale on SaleScout to reach more buyers and sell items faster. 
+              Get started with our exclusive beta program for Grand Rapids organizers.
+            </p>
+          </div>
+          <div className="flex-shrink-0">
+            <a 
+              href="mailto:organizers@salescout.app?subject=Grand Rapids Organizer Beta" 
+              className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition duration-300 whitespace-nowrap"
+            >
+              Join Beta Program
+            </a>
+          </div>
+        </div>
+        <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
+          <div className="flex items-center">
+            <svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            Zero commission for 6 months
+          </div>
+          <div className="flex items-center">
+            <svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            Premium placement in search results
+          </div>
+          <div className="flex items-center">
+            <svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            Free QR codes for all items
+          </div>
         </div>
       </div>
     </div>
