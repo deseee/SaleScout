@@ -13,7 +13,7 @@ export default async function handler(
   res: NextApiResponse
 ) {
   try {
-    const { date, mode } = req.query;
+    const { date, mode, day } = req.query;
 
     // Use provided date or default to today
     let targetDate: string;
@@ -33,8 +33,28 @@ export default async function handler(
 
     let result;
 
+    // Handle specific day of week filtering (Saturday/Sunday)
+    if (day && typeof day === 'string') {
+      const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+      const dayIndex = days.indexOf(day.toLowerCase());
+      
+      if (dayIndex === -1) {
+        return res.status(400).json({ error: "Invalid day parameter. Must be a day of the week." });
+      }
+      
+      result = await pool.query(
+        `
+        SELECT *
+        FROM sales
+        WHERE EXTRACT(DOW FROM start_date::date) = $1
+        AND start_date >= CURRENT_DATE
+        ORDER BY start_date ASC
+        `,
+        [dayIndex]
+      );
+    }
     // Handle specific date query (when date param is provided)
-    if (date && typeof date === 'string') {
+    else if (date && typeof date === 'string') {
       result = await pool.query(
         `
         SELECT *

@@ -27,6 +27,8 @@ const convertToRouteStops = (sales: SaleData[]): RouteStop[] => {
     lng: sale.longitude,
     startTime: sale.start_time || '',
     endTime: sale.end_time || '',
+    startDate: sale.start_date,
+    endDate: sale.end_date,
   }));
 };
 
