@@ -33,8 +33,8 @@ export default async function handler(
 
     let result;
 
-    // 1️⃣ Specific date requested
-    if (date && typeof date === 'string') {
+    // Handle specific date query
+    if (req.query.date) {
       result = await pool.query(
         `
         SELECT *
@@ -43,11 +43,10 @@ export default async function handler(
         AND end_date >= $1
         ORDER BY start_date ASC
         `,
-        [date]
+        [targetDate]
       );
     }
-
-    // 2️⃣ Past sales
+    // Handle mode-based queries
     else if (mode === "past") {
       result = await pool.query(
         `
@@ -59,8 +58,6 @@ export default async function handler(
         [targetDate]
       );
     }
-
-    // 3️⃣ Upcoming sales
     else if (mode === "upcoming") {
       result = await pool.query(
         `
@@ -72,8 +69,7 @@ export default async function handler(
         [targetDate]
       );
     }
-
-    // 4️⃣ Default = active on target date
+    // Default = active on target date
     else {
       result = await pool.query(
         `
