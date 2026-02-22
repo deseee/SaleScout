@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { RouteStop, OptimizedRoute, RoutePlanner } 
 from '../../tools/route-planner/planner';
+import RouteMap from '../components/route-map';
 
 interface RoutePlannerProps {
   sales: RouteStop[];
@@ -126,6 +127,10 @@ const RoutePlannerComponent: React.FC<RoutePlannerProps> = ({ sales }) => {
                 </li>
               ))}
             </ol>
+          </div>
+
+          <div className="mt-6">
+            <RouteMap sales={optimizedRoute.stops} />
           </div>
         </div>
       )}
