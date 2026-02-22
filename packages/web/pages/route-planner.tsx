@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import Head from 'next/head';
-import { RouteStop } from '../../tools/route-planner/planner';
+import { RouteStop } from '@salescout/tools/route-planner/planner';
 import RoutePlannerComponent from '../components/route-planner';
 
 interface SaleData {
