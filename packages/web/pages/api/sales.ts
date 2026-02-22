@@ -13,7 +13,51 @@ export default async function handler(
   res: NextApiResponse
 ) {
   try {
-    const { date, mode } = req.query;
+    const { date, mode, day } = req.query;
+
+    // Handle specific day of week filtering (Saturday/Sunday)
+    if (day && typeof day === 'string') {
+      const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+      const dayIndex = days.indexOf(day.toLowerCase());
+      
+      if (dayIndex === -1) {
+        return res.status(400).json({ error: "Invalid day parameter. Must be a day of the week." });
+      }
+      
+      const result = await pool.query(
+        `
+        SELECT 
+          id, slug, title, description, 
+          start_date, end_date, start_time, end_time,
+          address, city, state, zip_code,
+          latitude, longitude
+        FROM sales
+        WHERE EXTRACT(DOW FROM start_date::date) = $1
+        AND start_date >= CURRENT_DATE
+        ORDER BY start_date ASC
+        `,
+        [dayIndex]
+      );
+
+      // Transform the data to match the expected format
+      const transformedData = result.rows.map(row => ({
+        id: row.id,
+        title: row.title,
+        description: row.description,
+        address: row.address,
+        city: row.city,
+        state: row.state,
+        zip_code: row.zip_code,
+        latitude: parseFloat(row.latitude),
+        longitude: parseFloat(row.longitude),
+        start_date: row.start_date.toISOString().split('T')[0],
+        end_date: row.end_date.toISOString().split('T')[0],
+        start_time: row.start_time,
+        end_time: row.end_time
+      }));
+
+      return res.status(200).json(transformedData);
+    }
 
     // Use provided date or default to today
     let targetDate: string;

@@ -36,6 +36,7 @@ async function run() {
       // Generate safe title if missing
       const title =
         sale.title ||
+        sale.name ||
         `${sale.address || "Garage Sale"}${sale.city ? " - " + sale.city : ""}`;
 
       // Support both single-day and multi-day sales
@@ -51,6 +52,24 @@ async function run() {
         sale.date ||
         startDate;
 
+      // Extract city and state from address if not provided
+      let city = sale.city || "";
+      let state = sale.state || "";
+      
+      if (sale.address && !city && !state) {
+        const addressParts = sale.address.split(", ");
+        if (addressParts.length >= 2) {
+          const lastPart = addressParts[addressParts.length - 1];
+          const stateZip = lastPart.split(" ");
+          if (stateZip.length >= 1) {
+            state = stateZip[0];
+          }
+          if (addressParts.length >= 3) {
+            city = addressParts[addressParts.length - 2];
+          }
+        }
+      }
+
       await pool.query(
         `
         INSERT INTO sales
@@ -60,25 +79,31 @@ async function run() {
           address,
           city,
           state,
-          zip,
+          zip_code,
           latitude,
           longitude,
           start_date,
-          end_date
+          end_date,
+          start_time,
+          end_time,
+          status
         )
-        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
         `,
         [
           title,
           sale.description || "",
           sale.address || "",
-          sale.city || "",
-          sale.state || "",
-          sale.zip || "",
+          city,
+          state,
+          sale.zip || sale.zip_code || "",
           sale.lat || sale.latitude || null,
           sale.lng || sale.longitude || null,
           startDate,
-          endDate
+          endDate,
+          sale.startTime || sale.start_time || "08:00:00",
+          sale.endTime || sale.end_time || "17:00:00",
+          "published"
         ]
       );
     }

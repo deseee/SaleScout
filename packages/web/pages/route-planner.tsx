@@ -43,19 +43,29 @@ const RoutePlannerPage: React.FC = () => {
     saturday.setDate(today.getDate() + saturdayOffset);
     return saturday;
   });
+  const [filterMode, setFilterMode] = useState<'date' | 'saturday' | 'sunday'>('saturday');
 
   /* -----------------------------
      Fetch Sales From API with Date Parameter
   ------------------------------ */
-  const fetchSales = async (date: Date) => {
+  const fetchSales = async (date: Date, mode: 'date' | 'saturday' | 'sunday') => {
     setLoading(true);
     try {
-      // Format date as YYYY-MM-DD for API
-      const formattedDate = `${date.getFullYear()}-${String(
-        date.getMonth() + 1
-      ).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+      let url = '/api/sales';
       
-      const response = await fetch(`/api/sales?date=${formattedDate}`);
+      if (mode === 'saturday') {
+        url += '?day=saturday';
+      } else if (mode === 'sunday') {
+        url += '?day=sunday';
+      } else {
+        // Format date as YYYY-MM-DD for API
+        const formattedDate = `${date.getFullYear()}-${String(
+          date.getMonth() + 1
+        ).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+        url += `?date=${formattedDate}`;
+      }
+      
+      const response = await fetch(url);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -81,10 +91,10 @@ const RoutePlannerPage: React.FC = () => {
     }
   };
 
-  // Fetch sales when date changes
+  // Fetch sales when date or filter mode changes
   useEffect(() => {
-    fetchSales(selectedDate);
-  }, [selectedDate]);
+    fetchSales(selectedDate, filterMode);
+  }, [selectedDate, filterMode]);
 
   const routeStops = useMemo(
     () => convertToRouteStops(salesData),
@@ -114,6 +124,7 @@ const RoutePlannerPage: React.FC = () => {
      Saturday / Sunday Buttons
   ------------------------------ */
   const setToSaturday = () => {
+    setFilterMode('saturday');
     const date = new Date();
     const offset = (6 - date.getDay() + 7) % 7;
     date.setDate(date.getDate() + offset);
@@ -121,14 +132,20 @@ const RoutePlannerPage: React.FC = () => {
   };
 
   const setToSunday = () => {
+    setFilterMode('sunday');
     const date = new Date();
     const offset = (7 - date.getDay() + 7) % 7;
     date.setDate(date.getDate() + offset);
     setSelectedDate(date);
   };
 
-  const isSaturday = selectedDate.getDay() === 6;
-  const isSunday = selectedDate.getDay() === 0;
+  const setToDate = () => {
+    setFilterMode('date');
+  };
+
+  const isSaturday = filterMode === 'saturday';
+  const isSunday = filterMode === 'sunday';
+  const isByDate = filterMode === 'date';
 
   // Format date for display
   const formatDate = (date: Date): string => {
@@ -175,9 +192,31 @@ const RoutePlannerPage: React.FC = () => {
             Sunday
           </button>
           
-          <div className="text-lg font-medium">
-            {formatDate(selectedDate)}
-          </div>
+          <button
+            onClick={setToDate}
+            className={`px-4 py-2 rounded-lg ${
+              isByDate
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            }`}
+          >
+            By Date
+          </button>
+          
+          {isByDate && (
+            <input
+              type="date"
+              value={selectedDate.toISOString().split('T')[0]}
+              onChange={(e) => setSelectedDate(new Date(e.target.value))}
+              className="border px-3 py-2 rounded"
+            />
+          )}
+          
+          {!isByDate && (
+            <div className="text-lg font-medium">
+              {formatDate(selectedDate)}
+            </div>
+          )}
         </div>
         
         {loading && (
