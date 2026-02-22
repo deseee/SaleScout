@@ -187,33 +187,63 @@ const RoutePlannerPage: React.FC = () => {
         {/* Sales Selection */}
         <div className="lg:col-span-1">
           <div className="bg-white rounded-lg shadow p-4 mb-6">
-            <h2 className="text-xl font-bold mb-4">
-              Select Sales
-            </h2>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">
+                Select Sales
+              </h2>
+              <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                {selectedSales.length} selected
+              </span>
+            </div>
 
-            <div className="space-y-3">
-              {routeStops.map((sale) => (
-                <div
-                  key={sale.id}
-                  onClick={() =>
-                    toggleSaleSelection(sale.id)
-                  }
-                  className={`border rounded p-3 cursor-pointer ${
-                    selectedSales.some(
-                      (s) => s.id === sale.id
-                    )
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-gray-200 hover:bg-gray-50'
-                  }`}
-                >
-                  <h3 className="font-medium">
-                    {sale.name}
-                  </h3>
-                  <p className="text-sm text-gray-600">
-                    {sale.address}
-                  </p>
-                </div>
-              ))}
+            <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2">
+              {routeStops.length === 0 ? (
+                <p className="text-gray-500 text-center py-4">
+                  No sales available for this date
+                </p>
+              ) : (
+                routeStops.map((sale) => (
+                  <div
+                    key={sale.id}
+                    onClick={() =>
+                      toggleSaleSelection(sale.id)
+                    }
+                    className={`border rounded-lg p-3 cursor-pointer transition-all ${
+                      selectedSales.some(
+                        (s) => s.id === sale.id
+                      )
+                        ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-100'
+                        : 'border-gray-200 hover:bg-gray-50'
+                    }`}
+                  >
+                    <div className="flex items-start">
+                      <div className="flex items-center h-5 mt-0.5">
+                        <input
+                          type="checkbox"
+                          checked={selectedSales.some(
+                            (s) => s.id === sale.id
+                          )}
+                          readOnly
+                          className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                        />
+                      </div>
+                      <div className="ml-3">
+                        <h3 className="font-medium text-gray-900">
+                          {sale.name}
+                        </h3>
+                        <p className="text-sm text-gray-600 mt-1">
+                          {sale.address}
+                        </p>
+                        <div className="flex items-center mt-1">
+                          <span className="inline-flex items-center text-xs text-gray-500">
+                            {sale.startTime} - {sale.endTime}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </div>
