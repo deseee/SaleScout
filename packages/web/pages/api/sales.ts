@@ -108,7 +108,7 @@ export default async function handler(
         [targetDate]
       );
     }
-    // Default = active on target date (including upcoming sales)
+    // Default = active on target date (sales that are currently running)
     else {
       result = await pool.query(
         `
@@ -118,7 +118,8 @@ export default async function handler(
           address, city, state, zip_code,
           latitude, longitude
         FROM sales
-        WHERE end_date >= $1::date
+        WHERE start_date <= $1::date
+        AND end_date >= $1::date
         ORDER BY start_date ASC
         `,
         [targetDate]
