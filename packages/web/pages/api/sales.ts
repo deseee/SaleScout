@@ -18,6 +18,11 @@ export default async function handler(
     // Use provided date or default to today
     let targetDate: string;
     if (date && typeof date === 'string') {
+      // Validate date format (YYYY-MM-DD)
+      const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+      if (!dateRegex.test(date)) {
+        return res.status(400).json({ error: "Invalid date format. Expected YYYY-MM-DD" });
+      }
       targetDate = date;
     } else {
       const now = new Date();

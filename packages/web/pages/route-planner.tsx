@@ -54,10 +54,14 @@ const RoutePlannerPage: React.FC = () => {
       ).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
       
       const response = await fetch(`/api/sales?date=${formattedDate}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       const data = await response.json();
       setSalesData(data);
     } catch (error) {
       console.error("Failed to fetch sales:", error);
+      setSalesData([]); // Set empty array on error
     } finally {
       setLoading(false);
     }
