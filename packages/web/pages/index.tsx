@@ -1,9 +1,9 @@
 export default function Home() {
   return (
     <main style={{ padding: 40 }}>
-      <h1>SaleScout</h1>
-      <p>Your estate sale route planner.</p>
-      <a href="/route-planner">Go to Route Planner →</a>
+      <h1>Hey there! Welcome to SaleScout</h1>
+      <p>Ready to plan your estate sale route?</p>
+      <a href="/route-planner">Check out the Route Planner →</a>
     </main>
   );
 }
