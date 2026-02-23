@@ -1,0 +1,5 @@
+# Replace SALE_ID with actual ID and YOUR_TOKEN with actual token
+curl -X PUT http://localhost:3001/api/sales/SALE_ID \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"title": "Updated Test Sale"}'

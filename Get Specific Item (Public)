@@ -1,0 +1,2 @@
+# Replace ITEM_ID with actual ID
+curl http://localhost:3001/api/items/ITEM_ID

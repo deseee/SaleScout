@@ -1,0 +1,5 @@
+# Get all items
+curl http://localhost:3001/api/items
+
+# Filter by sale
+curl "http://localhost:3001/api/items?saleId=SALE_ID"

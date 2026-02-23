@@ -7,6 +7,8 @@ import { PrismaClient } from '@prisma/client';
 
 // Import routes
 import authRoutes from './routes/auth';
+import saleRoutes from './routes/sales';
+import itemRoutes from './routes/items';
 
 // Initialize dotenv
 dotenv.config();
@@ -25,6 +27,8 @@ app.use(express.json());
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/sales', saleRoutes);
+app.use('/api/items', itemRoutes);
 
 // Health check endpoint
 app.get('/', (req, res) => {

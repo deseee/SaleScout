@@ -1,0 +1,10 @@
+# Replace SALE_ID with actual sale ID and YOUR_TOKEN with actual token
+curl -X POST http://localhost:3001/api/items \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "saleId": "SALE_ID",
+    "title": "Test Item",
+    "description": "A test item",
+    "price": 50.00
+  }'
