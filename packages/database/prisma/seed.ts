@@ -70,8 +70,11 @@ async function main() {
     },
   });
 
-  // Create sample sales in February 2026 and beyond
-  const sale1 = await prisma.sale.create({
+  // Create 12 sample sales in February 2026 and beyond
+  const sales = [];
+  
+  // Sale 1
+  sales.push(await prisma.sale.create({
     data: {
       organizerId: organizer1.id,
       title: 'Downtown Estate Sale',
@@ -91,9 +94,10 @@ async function main() {
       ],
       tags: ['antiques', 'furniture', 'collectibles'],
     },
-  });
+  }));
 
-  const sale2 = await prisma.sale.create({
+  // Sale 2
+  sales.push(await prisma.sale.create({
     data: {
       organizerId: organizer2.id,
       title: 'Heritage Hill Estate Sale',
@@ -114,9 +118,10 @@ async function main() {
       tags: ['art', 'vintage', 'collectibles'],
       isAuctionSale: true,
     },
-  });
+  }));
 
-  const sale3 = await prisma.sale.create({
+  // Sale 3
+  sales.push(await prisma.sale.create({
     data: {
       organizerId: organizer1.id,
       title: 'West Side Moving Sale',
@@ -135,9 +140,10 @@ async function main() {
       ],
       tags: ['moving', 'household', 'kitchen'],
     },
-  });
+  }));
 
-  const sale4 = await prisma.sale.create({
+  // Sale 4
+  sales.push(await prisma.sale.create({
     data: {
       organizerId: organizer2.id,
       title: 'Antique Collector\'s Final Sale',
@@ -158,34 +164,217 @@ async function main() {
       tags: ['antiques', 'books', 'collectibles'],
       isAuctionSale: true,
     },
-  });
+  }));
+
+  // Sale 5
+  sales.push(await prisma.sale.create({
+    data: {
+      organizerId: organizer1.id,
+      title: 'Spring Cleaning Garage Sale',
+      description: 'Annual spring cleaning sale with tools, sports equipment, and household items',
+      startDate: new Date('2026-04-05T07:00:00Z'),
+      endDate: new Date('2026-04-06T15:00:00Z'),
+      address: '101 Spring Dr',
+      city: 'Grand Rapids',
+      state: 'MI',
+      zip: '49508',
+      lat: 42.9234,
+      lng: -85.6432,
+      status: 'PUBLISHED',
+      photoUrls: [
+        'https://example.com/sale5_img1.jpg',
+      ],
+      tags: ['garage', 'tools', 'sports'],
+    },
+  }));
+
+  // Sale 6
+  sales.push(await prisma.sale.create({
+    data: {
+      organizerId: organizer2.id,
+      title: 'Vintage Jewelry & Collectibles Auction',
+      description: 'Rare vintage jewelry, coins, and collectible items auction',
+      startDate: new Date('2026-04-18T12:00:00Z'),
+      endDate: new Date('2026-04-18T20:00:00Z'),
+      address: '202 Auction Way',
+      city: 'Grand Rapids',
+      state: 'MI',
+      zip: '49509',
+      lat: 42.9123,
+      lng: -85.6321,
+      status: 'PUBLISHED',
+      photoUrls: [
+        'https://example.com/sale6_img1.jpg',
+        'https://example.com/sale6_img2.jpg',
+      ],
+      tags: ['jewelry', 'coins', 'auction'],
+      isAuctionSale: true,
+    },
+  }));
+
+  // Sale 7
+  sales.push(await prisma.sale.create({
+    data: {
+      organizerId: organizer1.id,
+      title: 'Family Estate Liquidation',
+      description: 'Complete family estate liquidation including furniture, artwork, and decor',
+      startDate: new Date('2026-05-02T09:00:00Z'),
+      endDate: new Date('2026-05-03T17:00:00Z'),
+      address: '303 Family Cir',
+      city: 'Grand Rapids',
+      state: 'MI',
+      zip: '49510',
+      lat: 42.9012,
+      lng: -85.6210,
+      status: 'PUBLISHED',
+      photoUrls: [
+        'https://example.com/sale7_img1.jpg',
+      ],
+      tags: ['estate', 'furniture', 'artwork'],
+    },
+  }));
+
+  // Sale 8
+  sales.push(await prisma.sale.create({
+    data: {
+      organizerId: organizer2.id,
+      title: 'Tech & Gaming Equipment Sale',
+      description: 'Professional gaming setup equipment and high-end tech items',
+      startDate: new Date('2026-05-15T11:00:00Z'),
+      endDate: new Date('2026-05-16T19:00:00Z'),
+      address: '404 Tech Blvd',
+      city: 'Grand Rapids',
+      state: 'MI',
+      zip: '49511',
+      lat: 42.8901,
+      lng: -85.6109,
+      status: 'PUBLISHED',
+      photoUrls: [
+        'https://example.com/sale8_img1.jpg',
+      ],
+      tags: ['technology', 'gaming', 'electronics'],
+    },
+  }));
+
+  // Sale 9
+  sales.push(await prisma.sale.create({
+    data: {
+      organizerId: organizer1.id,
+      title: 'Garden & Outdoor Living Auction',
+      description: 'Garden tools, outdoor furniture, and patio items auction',
+      startDate: new Date('2026-05-28T08:00:00Z'),
+      endDate: new Date('2026-05-28T16:00:00Z'),
+      address: '505 Garden Path',
+      city: 'Grand Rapids',
+      state: 'MI',
+      zip: '49512',
+      lat: 42.8790,
+      lng: -85.5987,
+      status: 'PUBLISHED',
+      photoUrls: [
+        'https://example.com/sale9_img1.jpg',
+      ],
+      tags: ['garden', 'outdoor', 'auction'],
+      isAuctionSale: true,
+    },
+  }));
+
+  // Sale 10
+  sales.push(await prisma.sale.create({
+    data: {
+      organizerId: organizer2.id,
+      title: 'Vintage Clothing & Memorabilia',
+      description: '1960s-90s vintage clothing and pop culture memorabilia',
+      startDate: new Date('2026-06-10T10:00:00Z'),
+      endDate: new Date('2026-06-11T18:00:00Z'),
+      address: '606 Vintage Ave',
+      city: 'Grand Rapids',
+      state: 'MI',
+      zip: '49513',
+      lat: 42.8678,
+      lng: -85.5876,
+      status: 'PUBLISHED',
+      photoUrls: [
+        'https://example.com/sale10_img1.jpg',
+      ],
+      tags: ['clothing', 'vintage', 'memorabilia'],
+    },
+  }));
+
+  // Sale 11
+  sales.push(await prisma.sale.create({
+    data: {
+      organizerId: organizer1.id,
+      title: 'Musical Instruments & Studio Equipment',
+      description: 'Professional audio equipment and musical instruments',
+      startDate: new Date('2026-06-22T12:00:00Z'),
+      endDate: new Date('2026-06-23T20:00:00Z'),
+      address: '707 Music St',
+      city: 'Grand Rapids',
+      state: 'MI',
+      zip: '49514',
+      lat: 42.8567,
+      lng: -85.5765,
+      status: 'PUBLISHED',
+      photoUrls: [
+        'https://example.com/sale11_img1.jpg',
+      ],
+      tags: ['music', 'instruments', 'audio'],
+    },
+  }));
+
+  // Sale 12
+  sales.push(await prisma.sale.create({
+    data: {
+      organizerId: organizer2.id,
+      title: 'Summer Moving Sale',
+      description: 'Complete household moving sale - everything must go!',
+      startDate: new Date('2026-07-05T07:00:00Z'),
+      endDate: new Date('2026-07-06T15:00:00Z'),
+      address: '808 Summer Rd',
+      city: 'Grand Rapids',
+      state: 'MI',
+      zip: '49515',
+      lat: 42.8456,
+      lng: -85.5654,
+      status: 'PUBLISHED',
+      photoUrls: [
+        'https://example.com/sale12_img1.jpg',
+      ],
+      tags: ['moving', 'household', 'everything'],
+    },
+  }));
 
   // Create items for sales
-  const item1 = await prisma.item.create({
+  const items = [];
+  
+  // Items for Sale 1
+  items.push(await prisma.item.create({
     data: {
-      saleId: sale1.id,
+      saleId: sales[0].id,
       title: 'Victorian Wooden Secretary Desk',
       description: 'Beautiful handcrafted desk with intricate woodwork, circa 1890',
       price: 450.0,
       status: 'AVAILABLE',
       photoUrls: ['https://example.com/desk_front.jpg', 'https://example.com/desk_side.jpg'],
     },
-  });
+  }));
 
-  const item2 = await prisma.item.create({
+  items.push(await prisma.item.create({
     data: {
-      saleId: sale1.id,
+      saleId: sales[0].id,
       title: 'Mid-Century Modern Lounge Chair',
       description: 'Original Eames style chair with leather upholstery',
       price: 275.0,
       status: 'AVAILABLE',
       photoUrls: ['https://example.com/chair.jpg'],
     },
-  });
+  }));
 
-  const item3 = await prisma.item.create({
+  // Items for Sale 2
+  items.push(await prisma.item.create({
     data: {
-      saleId: sale2.id,
+      saleId: sales[1].id,
       title: 'Oil Landscape Painting',
       description: 'Signed oil painting by local artist from the 1950s',
       auctionStartPrice: 50.0,
@@ -195,22 +384,24 @@ async function main() {
       status: 'AVAILABLE',
       photoUrls: ['https://example.com/painting.jpg'],
     },
-  });
+  }));
 
-  const item4 = await prisma.item.create({
+  // Items for Sale 3
+  items.push(await prisma.item.create({
     data: {
-      saleId: sale3.id,
+      saleId: sales[2].id,
       title: 'Vintage Record Collection',
       description: 'Over 200 classic rock and jazz vinyl records from the 60s-80s',
       price: 150.0,
       status: 'AVAILABLE',
       photoUrls: ['https://example.com/records.jpg'],
     },
-  });
+  }));
 
-  const item5 = await prisma.item.create({
+  // Items for Sale 4
+  items.push(await prisma.item.create({
     data: {
-      saleId: sale4.id,
+      saleId: sales[3].id,
       title: 'Antique Silver Tea Set',
       description: 'Solid silver tea set with ornate engravings, early 1900s',
       auctionStartPrice: 200.0,
@@ -220,7 +411,109 @@ async function main() {
       status: 'AVAILABLE',
       photoUrls: ['https://example.com/tea_set.jpg'],
     },
-  });
+  }));
+
+  // Items for Sale 5
+  items.push(await prisma.item.create({
+    data: {
+      saleId: sales[4].id,
+      title: 'Power Tool Collection',
+      description: 'Complete set of professional power tools from知名品牌',
+      price: 300.0,
+      status: 'AVAILABLE',
+      photoUrls: ['https://example.com/tools.jpg'],
+    },
+  }));
+
+  // Items for Sale 6
+  items.push(await prisma.item.create({
+    data: {
+      saleId: sales[5].id,
+      title: 'Diamond Engagement Ring',
+      description: '1 carat solitaire diamond ring, certified appraisal included',
+      auctionStartPrice: 1500.0,
+      currentBid: 2200.0,
+      bidIncrement: 100.0,
+      auctionEndTime: new Date('2026-04-18T19:00:00Z'),
+      status: 'AVAILABLE',
+      photoUrls: ['https://example.com/ring.jpg'],
+    },
+  }));
+
+  // Items for Sale 7
+  items.push(await prisma.item.create({
+    data: {
+      saleId: sales[6].id,
+      title: 'Oil Portrait Painting',
+      description: 'Hand-painted portrait of a gentleman, 1800s',
+      price: 450.0,
+      status: 'AVAILABLE',
+      photoUrls: ['https://example.com/portrait.jpg'],
+    },
+  }));
+
+  // Items for Sale 8
+  items.push(await prisma.item.create({
+    data: {
+      saleId: sales[7].id,
+      title: 'Gaming Computer Setup',
+      description: 'High-end gaming PC with multiple monitors and accessories',
+      price: 2500.0,
+      status: 'AVAILABLE',
+      photoUrls: ['https://example.com/gaming_setup.jpg'],
+    },
+  }));
+
+  // Items for Sale 9
+  items.push(await prisma.item.create({
+    data: {
+      saleId: sales[8].id,
+      title: 'Patio Furniture Set',
+      description: '5-piece aluminum patio furniture set with cushions',
+      auctionStartPrice: 150.0,
+      currentBid: 175.0,
+      bidIncrement: 10.0,
+      auctionEndTime: new Date('2026-05-28T15:00:00Z'),
+      status: 'AVAILABLE',
+      photoUrls: ['https://example.com/patio_furniture.jpg'],
+    },
+  }));
+
+  // Items for Sale 10
+  items.push(await prisma.item.create({
+    data: {
+      saleId: sales[9].id,
+      title: '1980s Pop Culture Collection',
+      description: 'Vintage action figures, posters, and memorabilia from the 80s',
+      price: 200.0,
+      status: 'AVAILABLE',
+      photoUrls: ['https://example.com/pop_culture.jpg'],
+    },
+  }));
+
+  // Items for Sale 11
+  items.push(await prisma.item.create({
+    data: {
+      saleId: sales[10].id,
+      title: 'Electric Guitar',
+      description: 'Vintage electric guitar with case and accessories',
+      price: 600.0,
+      status: 'AVAILABLE',
+      photoUrls: ['https://example.com/guitar.jpg'],
+    },
+  }));
+
+  // Items for Sale 12
+  items.push(await prisma.item.create({
+    data: {
+      saleId: sales[11].id,
+      title: 'Kitchen Appliance Bundle',
+      description: 'Complete set of kitchen appliances including refrigerator, stove, microwave',
+      price: 800.0,
+      status: 'AVAILABLE',
+      photoUrls: ['https://example.com/appliances.jpg'],
+    },
+  }));
 
   // Create regular users
   const user1 = await prisma.user.create({
@@ -247,21 +540,21 @@ async function main() {
   await prisma.favorite.create({
     data: {
       userId: user1.id,
-      saleId: sale1.id,
+      saleId: sales[0].id,
     },
   });
 
   await prisma.favorite.create({
     data: {
       userId: user2.id,
-      itemId: item3.id,
+      itemId: items[2].id,
     },
   });
 
   // Create bids
   await prisma.bid.create({
     data: {
-      itemId: item3.id,
+      itemId: items[2].id,
       userId: user1.id,
       amount: 65.0,
     },
@@ -269,7 +562,7 @@ async function main() {
 
   await prisma.bid.create({
     data: {
-      itemId: item3.id,
+      itemId: items[2].id,
       userId: user2.id,
       amount: 75.0,
     },
@@ -279,7 +572,7 @@ async function main() {
   await prisma.purchase.create({
     data: {
       userId: user1.id,
-      itemId: item1.id,
+      itemId: items[0].id,
       amount: 450.0,
       status: 'PAID',
       stripePaymentIntentId: 'pi_123456789',
@@ -290,7 +583,7 @@ async function main() {
   await prisma.review.create({
     data: {
       userId: user1.id,
-      saleId: sale1.id,
+      saleId: sales[0].id,
       rating: 5,
       comment: 'Excellent organization and great finds!',
     },
