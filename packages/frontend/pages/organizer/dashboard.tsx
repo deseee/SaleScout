@@ -153,12 +153,9 @@ const OrganizerDashboard = () => {
                         <Link href={`/organizer/edit-sale/${sale.id}`} className="text-blue-600 hover:text-blue-900 mr-3">
                           Edit
                         </Link>
-                        <Link href={`/organizer/add-items?saleId=${sale.id}`} className="text-green-600 hover:text-green-900 mr-3">
+                        <Link href={`/organizer/add-items/${sale.id}`} className="text-green-600 hover:text-green-900">
                           Add Items
                         </Link>
-                        <button className="text-red-600 hover:text-red-900">
-                          Delete
-                        </button>
                       </td>
                     </tr>
                   ))}
