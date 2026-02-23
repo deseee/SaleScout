@@ -37,6 +37,16 @@ const OrganizerDashboard = () => {
     },
   });
 
+  const handleSetupPayments = async () => {
+    try {
+      const response = await api.post('/stripe/create-connect-account');
+      window.location.href = response.data.url;
+    } catch (error) {
+      console.error('Error setting up payments:', error);
+      alert('Failed to set up payments. Please try again.');
+    }
+  };
+
   if (isLoading) return <div className="min-h-screen flex items-center justify-center">Loading dashboard...</div>;
   if (isError) return <div className="min-h-screen flex items-center justify-center">Error loading dashboard</div>;
 
@@ -50,15 +60,27 @@ const OrganizerDashboard = () => {
       <main className="container mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Organizer Dashboard</h1>
-          <Link 
-            href="/organizer/create-sale" 
-            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded inline-flex items-center"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
-            </svg>
-            Create New Sale
-          </Link>
+          <div className="flex space-x-4">
+            <button 
+              onClick={handleSetupPayments}
+              className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded inline-flex items-center"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
+                <path fillRule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clipRule="evenodd" />
+              </svg>
+              Setup Payments
+            </button>
+            <Link 
+              href="/organizer/create-sale" 
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded inline-flex items-center"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+              </svg>
+              Create New Sale
+            </Link>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">

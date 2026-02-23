@@ -19,6 +19,7 @@
     "helmet": "^7.0.0",
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.0",
+    "stripe": "^14.19.0",
     "zod": "^3.25.76"
   },
   "devDependencies": {

@@ -4,11 +4,13 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
 import { PrismaClient } from '@prisma/client';
+import bodyParser from 'body-parser';
 
 // Import routes
 import authRoutes from './routes/auth';
 import saleRoutes from './routes/sales';
 import itemRoutes from './routes/items';
+import stripeRoutes from './routes/stripe';
 
 // Initialize dotenv
 dotenv.config();
@@ -43,10 +45,14 @@ app.use(cors({
   credentials: true,
 }));
 
+// Stripe webhook needs raw body
+app.use('/api/stripe/webhook', bodyParser.raw({ type: 'application/json' }));
+
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/sales', saleRoutes);
 app.use('/api/items', itemRoutes);
+app.use('/api/stripe', stripeRoutes);
 
 // Health check endpoint
 app.get('/', (req, res) => {
