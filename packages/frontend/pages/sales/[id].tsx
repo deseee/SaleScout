@@ -61,7 +61,7 @@ const SaleDetailPage = () => {
     queryKey: ['sale', id],
     queryFn: async () => {
       if (!id) throw new Error('No sale ID provided');
-      const response = await api.get(`/api/sales/${id}`);
+      const response = await api.get(`/sales/${id}`);
       return response.data as Sale;
     },
     enabled: !!id,
