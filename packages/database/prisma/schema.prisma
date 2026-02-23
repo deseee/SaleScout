@@ -11,7 +11,7 @@ model User {
   id              String      @id @default(cuid())
   email           String      @unique
   name            String?
-  password        String      // Added password field
+  password        String?     // Make password optional initially
   role            Role        @default(USER)
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt

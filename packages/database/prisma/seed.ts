@@ -1,8 +1,13 @@
 import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
 async function main() {
+  // Hash password function
+  const saltRounds = 10;
+  const defaultPassword = await bcrypt.hash('password123', saltRounds);
+
   // Create admin user
   const admin = await prisma.user.create({
     data: {
@@ -10,6 +15,7 @@ async function main() {
       name: 'Admin User',
       role: 'ADMIN',
       points: 0,
+      password: defaultPassword,
     },
   });
 
@@ -20,6 +26,7 @@ async function main() {
       name: 'Grand Rapids Sales Inc',
       role: 'ORGANIZER',
       points: 0,
+      password: defaultPassword,
     },
   });
 
@@ -38,6 +45,7 @@ async function main() {
       name: 'Michigan Estate Pros',
       role: 'ORGANIZER',
       points: 0,
+      password: defaultPassword,
     },
   });
 
@@ -140,6 +148,7 @@ async function main() {
       name: 'Alex Johnson',
       role: 'USER',
       points: 150,
+      password: defaultPassword,
     },
   });
 
@@ -149,6 +158,7 @@ async function main() {
       name: 'Taylor Smith',
       role: 'USER',
       points: 320,
+      password: defaultPassword,
     },
   });
 
