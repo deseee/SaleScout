@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -33,11 +33,29 @@ interface Sale {
     status: string;
     photoUrls: string[];
   }[];
+  isAuctionSale: boolean;
 }
 
 const SaleDetailPage = () => {
   const router = useRouter();
   const { id } = router.query;
+  const [token, setToken] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
+
+  // Get token and user role from localStorage
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const storedToken = localStorage.getItem('token');
+      setToken(storedToken);
+      
+      // In a real app, you would decode the JWT to get the user role
+      // For now, we'll simulate this by checking if a token exists
+      if (storedToken) {
+        // This is a simplified check - in reality, decode the JWT to get role
+        setUserRole('ORGANIZER'); // Simulate organizer role when logged in
+      }
+    }
+  }, []);
 
   const { data: sale, isLoading, isError } = useQuery({
     queryKey: ['sale', id],
@@ -51,6 +69,9 @@ const SaleDetailPage = () => {
   if (isLoading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   if (isError) return <div className="min-h-screen flex items-center justify-center">Error loading sale</div>;
   if (!sale) return <div className="min-h-screen flex items-center justify-center">Sale not found</div>;
+
+  // Check if user is organizer or admin
+  const isOrganizer = userRole === 'ORGANIZER' || userRole === 'ADMIN';
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -99,6 +120,29 @@ const SaleDetailPage = () => {
               <p className="text-gray-700">{sale.description}</p>
             </div>
           )}
+
+          {isOrganizer && (
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Link 
+                href={`/organizer/edit-sale/${sale.id}`}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded inline-flex items-center"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                </svg>
+                Edit Sale Details
+              </Link>
+              <Link 
+                href={`/organizer/add-items/${sale.id}`}
+                className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded inline-flex items-center"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+                </svg>
+                Add Items
+              </Link>
+            </div>
+          )}
         </div>
 
         {/* Map Section */}
@@ -113,9 +157,36 @@ const SaleDetailPage = () => {
 
         {/* Items Section */}
         <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-2xl font-bold mb-6">Items for Sale</h2>
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold">Items for Sale</h2>
+            {isOrganizer && sale.items.length > 0 && (
+              <Link 
+                href={`/organizer/add-items/${sale.id}`}
+                className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded inline-flex items-center"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+                </svg>
+                Add More Items
+              </Link>
+            )}
+          </div>
+
           {sale.items.length === 0 ? (
-            <p className="text-gray-600 text-center py-8">No items listed for this sale yet.</p>
+            <div className="text-center py-8">
+              <p className="text-gray-600 mb-4">No items listed for this sale yet.</p>
+              {isOrganizer && (
+                <Link 
+                  href={`/organizer/add-items/${sale.id}`}
+                  className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded inline-flex items-center"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+                  </svg>
+                  Add Your First Item
+                </Link>
+              )}
+            </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {sale.items.map((item) => (
