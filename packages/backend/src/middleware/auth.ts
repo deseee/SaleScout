@@ -24,4 +24,14 @@ export const authenticate = async (req: AuthRequest, res: Response, next: NextFu
     });
 
     if (!user) {
-      return res.status(401).
+      return res.status(401).json({ message: 'Invalid token' });
+    }
+
+    // Attach user to request
+    req.user = user;
+    next();
+  } catch (error) {
+    console.error('Authentication error:', error);
+    return res.status(401).json({ message: 'Invalid token' });
+  }
+};
