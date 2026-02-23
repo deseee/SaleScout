@@ -24,15 +24,12 @@ const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 5000;
 const allowedOrigins = [
   'http://localhost:3000', 
   'http://127.0.0.1:3000',
-  'http://localhost:5000' // Add this for direct API testing
+  'http://localhost:5000'
 ];
 
-// Middleware
-app.use(helmet());
-app.use(morgan('combined'));
-app.use(express.json());
-app.use(cors({
-  origin: (origin, callback) => {
+// Configure CORS options
+const corsOptions = {
+  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
     // Allow requests with no origin (like mobile apps, curl, etc.)
     if (!origin) return callback(null, true);
     
@@ -43,7 +40,16 @@ app.use(cors({
     }
   },
   credentials: true,
-}));
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization'],
+  exposedHeaders: ['Authorization']
+};
+
+// Middleware
+app.use(helmet());
+app.use(morgan('combined'));
+app.use(express.json());
+app.use(cors(corsOptions));
 
 // Stripe webhook needs raw body
 app.use('/api/stripe/webhook', bodyParser.raw({ type: 'application/json' }));
