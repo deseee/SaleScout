@@ -43,7 +43,10 @@ const RegisterPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    // Add suppressHydrationWarning to temporarily bypass mismatches that may come from layout/auth context.
+    // Root cause likely in _app.tsx or a header component using client‑only data (e.g., localStorage).
+    // Remove this after fixing the underlying layout issue.
+    <div suppressHydrationWarning className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <Head>
         <title>Register - SaleScout</title>
         <meta name="description" content="Create a SaleScout account" />

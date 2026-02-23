@@ -4,7 +4,7 @@
   "description": "",
   "main": "dist/index.js",
   "scripts": {
-    "dev": "nodemon",
+    "dev": "concurrently \"pnpm --filter backend dev\" \"pnpm --filter frontend dev\"",
     "build": "tsc",
     "start": "node dist/index.js"
   },
@@ -28,6 +28,7 @@
     "@types/jsonwebtoken": "^9.0.5",
     "@types/morgan": "^1.9.0",
     "@types/node": "^20.0.0",
+    "concurrently": "^9.2.1",
     "nodemon": "^3.0.2",
     "ts-node": "^10.9.1",
     "typescript": "^5.0.0"

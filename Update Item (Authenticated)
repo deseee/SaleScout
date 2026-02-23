@@ -1,5 +1,0 @@
-# Replace ITEM_ID with actual ID and YOUR_TOKEN with actual token
-curl -X PUT http://localhost:3001/api/items/ITEM_ID \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"title": "Updated Test Item"}'

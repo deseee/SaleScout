@@ -1,2 +1,0 @@
-# Replace SALE_ID with actual ID from your database
-curl http://localhost:3001/api/sales/SALE_ID

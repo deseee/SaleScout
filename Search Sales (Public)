@@ -1,2 +1,0 @@
-# Search by keyword
-curl "http://localhost:3001/api/sales/search?q=estate"
