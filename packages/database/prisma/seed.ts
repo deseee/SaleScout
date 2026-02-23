@@ -8,6 +8,18 @@ async function main() {
   const saltRounds = 10;
   const defaultPassword = await bcrypt.hash('password123', saltRounds);
 
+  // Clear existing data in the correct order to avoid foreign key constraints
+  await prisma.$transaction([
+    prisma.bid.deleteMany(),
+    prisma.purchase.deleteMany(),
+    prisma.favorite.deleteMany(),
+    prisma.review.deleteMany(),
+    prisma.item.deleteMany(),
+    prisma.sale.deleteMany(),
+    prisma.organizer.deleteMany(),
+    prisma.user.deleteMany(),
+  ]);
+
   // Create admin user
   const admin = await prisma.user.create({
     data: {

@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
@@ -10,20 +11,19 @@
     "prisma:seed": "prisma db seed"
   },
   "prisma": {
-    "seed": "ts-node prisma/seed.ts"
+    "seed": "node prisma/seed.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@prisma/client": "^5.0.0",
-    "bcrypt": "^5.1.0"
+    "@prisma/client": "^5.0.0"
   },
   "devDependencies": {
     "@types/node": "^25.3.0",
+    "bcryptjs": "^3.0.3",
     "prisma": "^5.0.0",
     "ts-node": "^10.9.2",
-    "typescript": "^5.9.3",
-    "@types/bcrypt": "^5.0.0"
+    "typescript": "^5.9.3"
   }
 }
