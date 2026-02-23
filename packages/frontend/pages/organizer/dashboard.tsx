@@ -2,7 +2,7 @@ import React from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
-import axios from 'axios';
+import axios from '../lib/api'; // Use the api client with auth header support
 
 interface Sale {
   id: string;
@@ -18,13 +18,12 @@ interface Sale {
 }
 
 const OrganizerDashboard = () => {
-  // In a real app, you would get the organizer ID from auth context
-  // For now, we'll mock this data
+  // Fetch organizer's sales
   const { data: sales, isLoading, isError } = useQuery({
     queryKey: ['organizer-sales'],
     queryFn: async () => {
-      // This would normally be filtered by organizer ID
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/sales`);
+      const response = await axios.get('/api/sales');
+      // In a real app, this would be filtered by organizer ID on the backend
       return response.data.sales as Sale[];
     },
   });
@@ -44,8 +43,11 @@ const OrganizerDashboard = () => {
           <h1 className="text-3xl font-bold text-gray-900">Organizer Dashboard</h1>
           <Link 
             href="/organizer/create-sale" 
-            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded inline-flex items-center"
           >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+            </svg>
             Create New Sale
           </Link>
         </div>
@@ -76,8 +78,11 @@ const OrganizerDashboard = () => {
               <p className="text-gray-600 mb-4">You haven't created any sales yet.</p>
               <Link 
                 href="/organizer/create-sale" 
-                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded inline-block"
+                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded inline-flex items-center"
               >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+                </svg>
                 Create Your First Sale
               </Link>
             </div>
@@ -133,6 +138,9 @@ const OrganizerDashboard = () => {
                         {sale.items.length}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <Link href={`/sales/${sale.id}`} className="text-blue-600 hover:text-blue-900 mr-3">
+                          View
+                        </Link>
                         <Link href={`/organizer/edit-sale/${sale.id}`} className="text-blue-600 hover:text-blue-900 mr-3">
                           Edit
                         </Link>
