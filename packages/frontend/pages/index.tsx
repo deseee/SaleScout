@@ -25,12 +25,17 @@ interface Sale {
 const HomePage = () => {
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   
-  // Fetch sales data
-  const { data: sales, isLoading, isError } = useQuery({
+  // Fetch sales data with better error handling
+  const { data: sales, isLoading, isError, error } = useQuery({
     queryKey: ['sales'],
     queryFn: async () => {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/sales`);
-      return response.data.sales as Sale[];
+      try {
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/sales`);
+        return response.data.sales as Sale[];
+      } catch (err: any) {
+        console.error('Error fetching sales:', err);
+        throw new Error('Failed to load sales. Please try again later.');
+      }
     },
   });
 
@@ -52,7 +57,23 @@ const HomePage = () => {
   }, []);
 
   if (isLoading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
-  if (isError) return <div className="min-h-screen flex items-center justify-center">Error loading sales</div>;
+  
+  if (isError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-red-600 mb-4">Error Loading Sales</h2>
+          <p className="text-gray-700 mb-4">There was a problem loading the sales data.</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -88,36 +109,43 @@ const HomePage = () => {
         {/* Upcoming Sales */}
         <section>
           <h2 className="text-2xl font-bold mb-6">Upcoming Sales</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {sales?.map((sale) => (
-              <Link href={`/sales/${sale.id}`} key={sale.id}>
-                <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
-                  {sale.photoUrls.length > 0 ? (
-                    <img 
-                      src={sale.photoUrls[0]} 
-                      alt={sale.title} 
-                      className="w-full h-48 object-cover"
-                    />
-                  ) : (
-                    <div className="bg-gray-200 h-48 flex items-center justify-center">
-                      <span className="text-gray-500">No image</span>
-                    </div>
-                  )}
-                  <div className="p-4">
-                    <h3 className="text-xl font-bold mb-2">{sale.title}</h3>
-                    <p className="text-gray-600 mb-2">{sale.description}</p>
-                    <div className="flex justify-between text-sm text-gray-500">
-                      <span>{new Date(sale.startDate).toLocaleDateString()}</span>
-                      <span>{sale.city}, {sale.state}</span>
-                    </div>
-                    <div className="mt-3 text-blue-600 font-medium">
-                      Organized by: {sale.organizer.businessName}
+          {sales && sales.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {sales.map((sale) => (
+                <Link href={`/sales/${sale.id}`} key={sale.id}>
+                  <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
+                    {sale.photoUrls.length > 0 ? (
+                      <img 
+                        src={sale.photoUrls[0]} 
+                        alt={sale.title} 
+                        className="w-full h-48 object-cover"
+                      />
+                    ) : (
+                      <div className="bg-gray-200 h-48 flex items-center justify-center">
+                        <span className="text-gray-500">No image</span>
+                      </div>
+                    )}
+                    <div className="p-4">
+                      <h3 className="text-xl font-bold mb-2">{sale.title}</h3>
+                      <p className="text-gray-600 mb-2">{sale.description}</p>
+                      <div className="flex justify-between text-sm text-gray-500">
+                        <span>{new Date(sale.startDate).toLocaleDateString()}</span>
+                        <span>{sale.city}, {sale.state}</span>
+                      </div>
+                      <div className="mt-3 text-blue-600 font-medium">
+                        Organized by: {sale.organizer.businessName}
+                      </div>
                     </div>
                   </div>
-                </div>
-              </Link>
-            ))}
-          </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="bg-white rounded-lg shadow-md p-8 text-center">
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">No Sales Found</h3>
+              <p className="text-gray-600">Check back later for upcoming estate sales in your area.</p>
+            </div>
+          )}
         </section>
       </main>
     </div>
