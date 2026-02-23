@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import axios from '../../lib/api'; // Use the api client with auth header support
+import api from '../../lib/api'; // Use the api client with auth header support
 
 interface FormData {
   title: string;
@@ -65,7 +65,7 @@ const CreateSalePage = () => {
       }
 
       // Create sale
-      const response = await axios.post('/api/sales', {
+      const response = await api.post('/sales', {
         ...formData,
         lat,
         lng,

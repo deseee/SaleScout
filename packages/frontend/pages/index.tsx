@@ -30,7 +30,7 @@ const HomePage = () => {
     queryKey: ['sales'],
     queryFn: async () => {
       try {
-        const response = await api.get('/api/sales');
+        const response = await api.get('/sales');
         return response.data.sales as Sale[];
       } catch (err: any) {
         console.error('Error fetching sales:', err);

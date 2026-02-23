@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Head from 'next/head';
-import axios from '../lib/api'; // Use local API client
+import Link from 'next/link';
+import api from '../lib/api'; // Use local API client
 
 const ContactPage = () => {
   const [formData, setFormData] = useState({
@@ -18,7 +19,7 @@ const ContactPage = () => {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     // In a real app, you would send this data to your backend
     console.log('Form submitted:', formData);

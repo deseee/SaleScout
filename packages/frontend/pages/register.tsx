@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import axios from '../lib/api'; // Use local API client
+import api from '../lib/api'; // Use local API client
 
 const RegisterPage = () => {
   const router = useRouter();
@@ -28,7 +28,7 @@ const RegisterPage = () => {
     setError('');
 
     try {
-      const response = await axios.post('/api/auth/register', formData);
+      const response = await api.post('/auth/register', formData);
 
       // Store token in localStorage
       localStorage.setItem('token', response.data.token);
