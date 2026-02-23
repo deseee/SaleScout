@@ -14,8 +14,7 @@ model User {
   role            Role        @default(USER)
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
-  organizerProfile Organizer? @relation(fields: [organizerProfileId], references: [id])
-  organizerProfileId String?   @unique
+  organizerProfile Organizer? 
   purchases       Purchase[]
   favorites       Favorite[]
   reviews         Review[]
@@ -26,7 +25,7 @@ model User {
 model Organizer {
   id              String   @id @default(cuid())
   userId          String   @unique
-  user            User     @relation(references: [id])
+  user            User     @relation(fields: [userId], references: [id])
   businessName    String
   phone           String?
   address         String?
