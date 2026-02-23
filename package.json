@@ -1,23 +1,22 @@
 {
-  "name": "database",
+  "name": "estate-sale-marketplace",
   "version": "1.0.0",
-  "description": "",
+  "description": "Disrupting the estate sale industry",
   "main": "index.js",
   "scripts": {
-    "db:generate": "prisma generate",
-    "db:migrate": "prisma migrate dev",
-    "db:studio": "prisma studio",
-    "prisma:seed": "ts-node prisma/seed.ts"
+    "dev": "concurrently \"cd packages/backend && pnpm dev\" \"cd packages/frontend && pnpm dev\"",
+    "build": "concurrently \"cd packages/backend && pnpm build\" \"cd packages/frontend && pnpm build\"",
+    "start": "concurrently \"cd packages/backend && pnpm start\" \"cd packages/frontend && pnpm start\""
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "dependencies": {
-    "@prisma/client": "^5.0.0"
-  },
   "devDependencies": {
+    "typescript": "^5.0.0",
+    "@types/node": "^20.0.0",
     "prisma": "^5.0.0",
-    "ts-node": "^10.9.1",
-    "@types/node": "^20.0.0"
+    "dotenv": "^16.0.0",
+    "cross-env": "^7.0.0",
+    "concurrently": "^8.0.0"
   }
 }
