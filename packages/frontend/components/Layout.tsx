@@ -23,7 +23,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
     router.push('/login');
   };
 
-  // Don't render auth-specific content until mounted
+  // Render simplified version until mounted
   if (!isMounted) {
     return (
       <div className="min-h-screen flex flex-col">
