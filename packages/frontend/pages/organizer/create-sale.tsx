@@ -48,6 +48,10 @@ const CreateSalePage = () => {
     setError('');
 
     try {
+      // Format dates to ISO string if they exist
+      const formattedStartDate = formData.startDate ? new Date(formData.startDate).toISOString() : '';
+      const formattedEndDate = formData.endDate ? new Date(formData.endDate).toISOString() : '';
+
       // Geocode address to get lat/lng
       const geocodeUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
         `${formData.address}, ${formData.city}, ${formData.state} ${formData.zip}`
@@ -67,6 +71,8 @@ const CreateSalePage = () => {
       // Create sale
       const response = await api.post('/sales', {
         ...formData,
+        startDate: formattedStartDate,
+        endDate: formattedEndDate,
         lat,
         lng,
       });
