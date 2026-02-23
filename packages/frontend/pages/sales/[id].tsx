@@ -60,7 +60,7 @@ const SaleDetailPage = () => {
   const { data: sale, isLoading, isError } = useQuery({
     queryKey: ['sale', id],
     queryFn: async () => {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/sales/${id}`);
+      const response = await axios.get(`http://localhost:5000/api/sales/${id}`);
       return response.data as Sale;
     },
     enabled: !!id,
