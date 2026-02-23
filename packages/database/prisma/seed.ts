@@ -70,14 +70,14 @@ async function main() {
     },
   });
 
-  // Create sample sales
+  // Create sample sales in February 2026 and beyond
   const sale1 = await prisma.sale.create({
     data: {
       organizerId: organizer1.id,
       title: 'Downtown Estate Sale',
       description: 'Complete household estate sale featuring antiques, furniture, and collectibles',
-      startDate: new Date('2023-11-15T09:00:00Z'),
-      endDate: new Date('2023-11-16T17:00:00Z'),
+      startDate: new Date('2026-02-15T09:00:00Z'),
+      endDate: new Date('2026-02-16T17:00:00Z'),
       address: '789 Market St',
       city: 'Grand Rapids',
       state: 'MI',
@@ -98,8 +98,8 @@ async function main() {
       organizerId: organizer2.id,
       title: 'Heritage Hill Estate Sale',
       description: 'Fine art and vintage collectibles from a distinguished estate',
-      startDate: new Date('2023-11-20T10:00:00Z'),
-      endDate: new Date('2023-11-22T18:00:00Z'),
+      startDate: new Date('2026-02-20T10:00:00Z'),
+      endDate: new Date('2026-02-22T18:00:00Z'),
       address: '321 Heritage Blvd',
       city: 'Grand Rapids',
       state: 'MI',
@@ -112,6 +112,50 @@ async function main() {
         'https://example.com/sale2_img2.jpg',
       ],
       tags: ['art', 'vintage', 'collectibles'],
+      isAuctionSale: true,
+    },
+  });
+
+  const sale3 = await prisma.sale.create({
+    data: {
+      organizerId: organizer1.id,
+      title: 'West Side Moving Sale',
+      description: 'Entire household moving sale - furniture, electronics, kitchenware and more',
+      startDate: new Date('2026-03-05T08:00:00Z'),
+      endDate: new Date('2026-03-06T16:00:00Z'),
+      address: '456 West Ln',
+      city: 'Grand Rapids',
+      state: 'MI',
+      zip: '49505',
+      lat: 42.9456,
+      lng: -85.6789,
+      status: 'PUBLISHED',
+      photoUrls: [
+        'https://example.com/sale3_img1.jpg',
+      ],
+      tags: ['moving', 'household', 'kitchen'],
+    },
+  });
+
+  const sale4 = await prisma.sale.create({
+    data: {
+      organizerId: organizer2.id,
+      title: 'Antique Collector\'s Final Sale',
+      description: 'Lifetime collection of antiques, books, and curiosities',
+      startDate: new Date('2026-03-12T10:00:00Z'),
+      endDate: new Date('2026-03-13T18:00:00Z'),
+      address: '789 Oak St',
+      city: 'Grand Rapids',
+      state: 'MI',
+      zip: '49507',
+      lat: 42.9345,
+      lng: -85.6543,
+      status: 'PUBLISHED',
+      photoUrls: [
+        'https://example.com/sale4_img1.jpg',
+        'https://example.com/sale4_img2.jpg',
+      ],
+      tags: ['antiques', 'books', 'collectibles'],
       isAuctionSale: true,
     },
   });
@@ -147,9 +191,34 @@ async function main() {
       auctionStartPrice: 50.0,
       currentBid: 75.0,
       bidIncrement: 10.0,
-      auctionEndTime: new Date('2023-11-19T20:00:00Z'),
+      auctionEndTime: new Date('2026-02-19T20:00:00Z'),
       status: 'AVAILABLE',
       photoUrls: ['https://example.com/painting.jpg'],
+    },
+  });
+
+  const item4 = await prisma.item.create({
+    data: {
+      saleId: sale3.id,
+      title: 'Vintage Record Collection',
+      description: 'Over 200 classic rock and jazz vinyl records from the 60s-80s',
+      price: 150.0,
+      status: 'AVAILABLE',
+      photoUrls: ['https://example.com/records.jpg'],
+    },
+  });
+
+  const item5 = await prisma.item.create({
+    data: {
+      saleId: sale4.id,
+      title: 'Antique Silver Tea Set',
+      description: 'Solid silver tea set with ornate engravings, early 1900s',
+      auctionStartPrice: 200.0,
+      currentBid: 350.0,
+      bidIncrement: 25.0,
+      auctionEndTime: new Date('2026-03-12T17:00:00Z'),
+      status: 'AVAILABLE',
+      photoUrls: ['https://example.com/tea_set.jpg'],
     },
   });
 
