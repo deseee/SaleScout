@@ -5,13 +5,21 @@ import { useRouter } from 'next/router';
 const Layout = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
   const [token, setToken] = useState<string | null>(null);
+  const [userName, setUserName] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
   
   // Only access localStorage on the client side
   useEffect(() => {
     setIsMounted(true);
     if (typeof window !== 'undefined') {
-      setToken(localStorage.getItem('token'));
+      const storedToken = localStorage.getItem('token');
+      setToken(storedToken);
+      
+      // In a real app, you would decode the JWT to get the user name
+      // For now, we'll just show a generic name if logged in
+      if (storedToken) {
+        setUserName('User');
+      }
     }
   }, []);
   
@@ -20,6 +28,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
       localStorage.removeItem('token');
     }
     setToken(null);
+    setUserName(null);
     router.push('/login');
   };
 
@@ -121,7 +130,8 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
               </Link>
               
               {token ? (
-                <>
+                <div className="flex items-center space-x-4">
+                  <span className="text-gray-700">Hi, {userName}</span>
                   <Link href="/organizer/dashboard" className="text-gray-700 hover:text-blue-600">
                     Dashboard
                   </Link>
@@ -131,7 +141,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                   >
                     Logout
                   </button>
-                </>
+                </div>
               ) : (
                 <>
                   <Link href="/login" className="text-gray-700 hover:text-blue-600">
@@ -171,6 +181,8 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                 <li><Link href="/" className="text-gray-400 hover:text-white">Home</Link></li>
                 <li><Link href="/about" className="text-gray-400 hover:text-white">About</Link></li>
                 <li><Link href="/contact" className="text-gray-400 hover:text-white">Contact</Link></li>
+                <li><Link href="/organizer/dashboard" className="text-gray-400 hover:text-white">Dashboard</Link></li>
+                <li><Link href="/organizer/create-sale" className="text-gray-400 hover:text-white">Create Sale</Link></li>
               </ul>
             </div>
             <div>
