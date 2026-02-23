@@ -17,7 +17,7 @@ dotenv.config();
 const prisma = new PrismaClient();
 
 const app = express();
-const port = process.env.PORT || 5000;
+const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 5000;
 
 const allowedOrigins = [
   'http://localhost:3000', 
