@@ -61,6 +61,11 @@ export const login = async (req: Request, res: Response) => {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
+    // Check if user has a password (some OAuth users might not)
+    if (!user.password) {
+      return res.status(400).json({ message: 'Invalid credentials' });
+    }
+
     // Check password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
