@@ -178,7 +178,7 @@ const AddItemsPage = () => {
                   <input
                     id="title"
                     {...register('title')}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
                   />
                   {errors.title && <p className="mt-1 text-sm text-red-600">{errors.title.message}</p>}
                 </div>
@@ -191,7 +191,7 @@ const AddItemsPage = () => {
                     id="description"
                     {...register('description')}
                     rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
                   />
                 </div>
 
@@ -217,7 +217,7 @@ const AddItemsPage = () => {
                       type="number"
                       step="0.01"
                       {...register('price')}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
                     />
                   </div>
                 ) : (
@@ -231,7 +231,7 @@ const AddItemsPage = () => {
                         type="number"
                         step="0.01"
                         {...register('auctionStartPrice')}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
                       />
                     </div>
                     <div>
@@ -243,7 +243,7 @@ const AddItemsPage = () => {
                         type="number"
                         step="0.01"
                         {...register('bidIncrement')}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
                       />
                     </div>
                     <div className="md:col-span-2">
@@ -254,7 +254,7 @@ const AddItemsPage = () => {
                         id="auctionEndTime"
                         type="datetime-local"
                         {...register('auctionEndTime')}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
                       />
                     </div>
                   </div>
@@ -267,7 +267,7 @@ const AddItemsPage = () => {
                   <select
                     id="status"
                     {...register('status')}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
                   >
                     <option value="AVAILABLE">Available</option>
                     <option value="SOLD">Sold</option>
@@ -285,7 +285,7 @@ const AddItemsPage = () => {
                       type="text"
                       value={photoUrl}
                       onChange={(e) => setPhotoUrl(e.target.value)}
-                      className="flex-grow px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="flex-grow px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
                       placeholder="https://example.com/photo.jpg"
                     />
                     <button
