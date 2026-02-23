@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
-import axios from 'axios';
+import api from '../lib/api';
 
 interface Sale {
   id: string;
@@ -30,7 +30,7 @@ const HomePage = () => {
     queryKey: ['sales'],
     queryFn: async () => {
       try {
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/sales`);
+        const response = await api.get('/api/sales');
         return response.data.sales as Sale[];
       } catch (err: any) {
         console.error('Error fetching sales:', err);
