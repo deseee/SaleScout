@@ -37,6 +37,7 @@ const HomePage = () => {
         throw new Error('Failed to load sales. Please try again later.');
       }
     },
+    retry: 1, // Reduce retry attempts to prevent excessive retries
   });
 
   // Get user location
