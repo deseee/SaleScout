@@ -1,34 +1,17 @@
 {
-  "name": "backend",
+  "name": "salescout",
   "version": "1.0.0",
   "description": "",
-  "main": "dist/index.js",
+  "main": "index.js",
   "scripts": {
-    "dev": "ts-node src/index.ts",
-    "build": "tsc",
-    "start": "node dist/index.js"
+    "dev": "concurrently \"pnpm --filter backend dev\" \"pnpm --filter frontend dev\"",
+    "build": "pnpm -r build",
+    "start": "pnpm --filter backend start"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "dependencies": {
-    "bcryptjs": "^3.0.3",
-    "cors": "^2.8.5",
-    "dotenv": "^16.0.0",
-    "express": "^4.18.0",
-    "helmet": "^7.0.0",
-    "jsonwebtoken": "^9.0.0",
-    "morgan": "^1.10.0",
-    "@prisma/client": "^5.0.0"
-  },
   "devDependencies": {
-    "@types/bcryptjs": "^2.4.2",
-    "@types/cors": "^2.8.5",
-    "@types/express": "^4.17.0",
-    "@types/jsonwebtoken": "^9.0.0",
-    "@types/morgan": "^1.9.0",
-    "@types/node": "^20.0.0",
-    "ts-node": "^10.9.1",
-    "typescript": "^5.0.0"
+    "concurrently": "^8.2.0"
   }
 }
