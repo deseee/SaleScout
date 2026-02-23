@@ -2,7 +2,7 @@ import React from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
-import axios from '../lib/api'; // Use the api client with auth header support
+import api from '../../lib/api'; // Use the api client with auth header support
 
 interface Sale {
   id: string;
@@ -22,7 +22,7 @@ const OrganizerDashboard = () => {
   const { data: sales, isLoading, isError } = useQuery({
     queryKey: ['organizer-sales'],
     queryFn: async () => {
-      const response = await axios.get('/api/sales');
+      const response = await api.get('/sales');
       // In a real app, this would be filtered by organizer ID on the backend
       return response.data.sales as Sale[];
     },
