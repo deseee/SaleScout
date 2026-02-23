@@ -3,7 +3,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useQuery } from '@tanstack/react-query';
-import axios from 'axios';
+import api from '../../lib/api'; // Use the local API client instead of raw axios
 
 interface Sale {
   id: string;
@@ -60,7 +60,8 @@ const SaleDetailPage = () => {
   const { data: sale, isLoading, isError } = useQuery({
     queryKey: ['sale', id],
     queryFn: async () => {
-      const response = await axios.get(`http://localhost:5000/api/sales/${id}`);
+      if (!id) throw new Error('No sale ID provided');
+      const response = await api.get(`/api/sales/${id}`);
       return response.data as Sale;
     },
     enabled: !!id,

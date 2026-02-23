@@ -17,17 +17,30 @@ dotenv.config();
 const prisma = new PrismaClient();
 
 const app = express();
-const port = process.env.PORT || 3001;
+const port = process.env.PORT || 5000;
 
-const allowedOrigins = ['http://localhost:3000', 'http://127.0.0.1:3000'];
+const allowedOrigins = [
+  'http://localhost:3000', 
+  'http://127.0.0.1:3000',
+  'http://localhost:5000' // Add this for direct API testing
+];
 
 // Middleware
 app.use(helmet());
 app.use(morgan('combined'));
 app.use(express.json());
 app.use(cors({
-  origin: allowedOrigins,
-  credentials: true, // if you are using cookies or authorization headers
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps, curl, etc.)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
 }));
 
 // Routes
@@ -47,6 +60,6 @@ process.on('SIGINT', async () => {
 });
 
 // Start server
-app.listen(port, () => {
+app.listen(port, '0.0.0.0', () => {
   console.log(`Backend server running on port ${port}`);
 });
