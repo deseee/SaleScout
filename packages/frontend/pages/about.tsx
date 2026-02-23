@@ -1,6 +1,7 @@
 import React from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
+import axios from '../lib/api'; // Use local API client
 
 const AboutPage = () => {
   return (

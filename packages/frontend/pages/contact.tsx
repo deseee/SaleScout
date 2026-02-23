@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import Head from 'next/head';
+import axios from '../lib/api'; // Use local API client
 
 const ContactPage = () => {
   const [formData, setFormData] = useState({

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import axios from 'axios';
+import axios from '../lib/api'; // Use local API client
 
 const LoginPage = () => {
   const router = useRouter();
@@ -17,7 +17,7 @@ const LoginPage = () => {
     setError('');
 
     try {
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`, {
+      const response = await axios.post('/api/auth/login', {
         email,
         password,
       });
