@@ -24,7 +24,16 @@ const OrganizerDashboard = () => {
     queryFn: async () => {
       const response = await api.get('/sales');
       // In a real app, this would be filtered by organizer ID on the backend
-      return response.data.sales as Sale[];
+      // For now, we're getting all sales but will filter by checking items array
+      const allSales = response.data.sales || response.data;
+      
+      // Ensure each sale has an items array
+      return Array.isArray(allSales) 
+        ? allSales.map(sale => ({
+            ...sale,
+            items: Array.isArray(sale.items) ? sale.items : []
+          }))
+        : [];
     },
   });
 
@@ -66,7 +75,7 @@ const OrganizerDashboard = () => {
           <div className="bg-white rounded-lg shadow-md p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-2">Total Items</h3>
             <p className="text-3xl font-bold text-purple-600">
-              {sales?.reduce((total, sale) => total + sale.items.length, 0) || 0}
+              {sales?.reduce((total, sale) => total + (sale.items?.length || 0), 0) || 0}
             </p>
           </div>
         </div>
@@ -135,7 +144,7 @@ const OrganizerDashboard = () => {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {sale.items.length}
+                        {sale.items?.length || 0}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <Link href={`/sales/${sale.id}`} className="text-blue-600 hover:text-blue-900 mr-3">
