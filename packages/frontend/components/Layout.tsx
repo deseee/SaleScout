@@ -1,13 +1,23 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
-  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+  const [token, setToken] = useState<string | null>(null);
+  
+  // Only access localStorage on the client side
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setToken(localStorage.getItem('token'));
+    }
+  }, []);
   
   const handleLogout = () => {
-    localStorage.removeItem('token');
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('token');
+    }
+    setToken(null);
     router.push('/login');
   };
 
