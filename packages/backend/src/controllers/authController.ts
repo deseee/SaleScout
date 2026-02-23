@@ -43,7 +43,7 @@ export const register = async (req: Request, res: Response) => {
     const { password: _, ...userWithoutPassword } = user;
     res.status(201).json({ user: userWithoutPassword, token });
   } catch (error) {
-    console.error(error);
+    console.error('Registration error:', error);
     res.status(500).json({ message: 'Server error during registration' });
   }
 };
@@ -58,18 +58,18 @@ export const login = async (req: Request, res: Response) => {
     });
 
     if (!user) {
-      return res.status(400).json({ message: 'Invalid credentials' });
+      return res.status(400).json({ message: 'Invalid credentials - User not found' });
     }
 
     // Check if user has a password (some OAuth users might not)
     if (!user.password) {
-      return res.status(400).json({ message: 'Invalid credentials' });
+      return res.status(400).json({ message: 'Account not set up for password login. Please contact support.' });
     }
 
     // Check password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(400).json({ message: 'Invalid credentials' });
+      return res.status(400).json({ message: 'Invalid credentials - Incorrect password' });
     }
 
     // Generate JWT
@@ -83,7 +83,7 @@ export const login = async (req: Request, res: Response) => {
     const { password: _, ...userWithoutPassword } = user;
     res.json({ user: userWithoutPassword, token });
   } catch (error) {
-    console.error(error);
+    console.error('Login error:', error);
     res.status(500).json({ message: 'Server error during login' });
   }
 };
