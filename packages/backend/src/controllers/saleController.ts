@@ -4,6 +4,11 @@ import { z } from 'zod';
 
 const prisma = new PrismaClient();
 
+// Extend Express Request type to include user property
+interface AuthRequest extends Request {
+  user?: any;
+}
+
 // Validation schemas
 const saleQuerySchema = z.object({
   city: z.string().optional(),
@@ -167,7 +172,7 @@ export const getSale = async (req: Request, res: Response) => {
   }
 };
 
-export const createSale = async (req: Request, res: Response) => {
+export const createSale = async (req: AuthRequest, res: Response) => {
   try {
     // Verify user is organizer or admin
     if (!req.user || (req.user.role !== 'ORGANIZER' && req.user.role !== 'ADMIN')) {
@@ -216,7 +221,7 @@ export const createSale = async (req: Request, res: Response) => {
   }
 };
 
-export const updateSale = async (req: Request, res: Response) => {
+export const updateSale = async (req: AuthRequest, res: Response) => {
   try {
     // Verify user is organizer or admin
     if (!req.user || (req.user.role !== 'ORGANIZER' && req.user.role !== 'ADMIN')) {
@@ -265,7 +270,7 @@ export const updateSale = async (req: Request, res: Response) => {
   }
 };
 
-export const deleteSale = async (req: Request, res: Response) => {
+export const deleteSale = async (req: AuthRequest, res: Response) => {
   try {
     // Verify user is organizer or admin
     if (!req.user || (req.user.role !== 'ORGANIZER' && req.user.role !== 'ADMIN')) {
