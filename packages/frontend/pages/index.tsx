@@ -1,30 +1,127 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import Head from 'next/head';
+import Link from 'next/link';
+import { useQuery } from '@tanstack/react-query';
+import axios from 'axios';
 
-export default function Home() {
+interface Sale {
+  id: string;
+  title: string;
+  description: string;
+  startDate: string;
+  endDate: string;
+  address: string;
+  city: string;
+  state: string;
+  zip: string;
+  lat: number;
+  lng: number;
+  photoUrls: string[];
+  organizer: {
+    businessName: string;
+  };
+}
+
+const HomePage = () => {
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  
+  // Fetch sales data
+  const { data: sales, isLoading, isError } = useQuery({
+    queryKey: ['sales'],
+    queryFn: async () => {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/sales`);
+      return response.data.sales as Sale[];
+    },
+  });
+
+  // Get user location
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          });
+        },
+        (error) => {
+          console.error('Error getting location:', error);
+        }
+      );
+    }
+  }, []);
+
+  if (isLoading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  if (isError) return <div className="min-h-screen flex items-center justify-center">Error loading sales</div>;
+
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center">
-      <main className="flex flex-col items-center justify-center w-full flex-1 px-20 text-center">
-        <h1 className="text-6xl font-bold text-blue-600">
-          SaleScout
-        </h1>
-        <p className="mt-3 text-2xl">
-          Disrupting the estate sale industry
-        </p>
-        <div className="flex flex-wrap items-center justify-around max-w-4xl mt-6 sm:w-full">
-          <div className="p-6 mt-6 text-left border w-96 rounded-xl hover:text-blue-600 focus:text-blue-600">
-            <h3 className="text-2xl font-bold">For Organizers</h3>
-            <p className="mt-4 text-xl">
-              Create amazing estate sales with our powerful tools
-            </p>
+    <div className="min-h-screen bg-gray-50">
+      <Head>
+        <title>SaleScout - Find Estate Sales Near You</title>
+        <meta name="description" content="Find estate sales and auctions near you" />
+      </Head>
+
+      <main className="container mx-auto px-4 py-8">
+        <section className="mb-12 text-center">
+          <h1 className="text-4xl md:text-5xl font-bold text-blue-600 mb-4">Discover Amazing Deals</h1>
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            Find estate sales, garage sales, and auctions near you with SaleScout
+          </p>
+        </section>
+
+        {/* Map Section */}
+        <section className="mb-12">
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <h2 className="text-2xl font-bold mb-4">Sales Map</h2>
+            <div className="h-96 bg-gray-200 rounded-lg flex items-center justify-center">
+              {userLocation ? (
+                <p className="text-gray-600">
+                  Map would show here with your location at ({userLocation.lat.toFixed(4)}, {userLocation.lng.toFixed(4)})
+                </p>
+              ) : (
+                <p className="text-gray-600">Enable location to see nearby sales</p>
+              )}
+            </div>
           </div>
-          <div className="p-6 mt-6 text-left border w-96 rounded-xl hover:text-blue-600 focus:text-blue-600">
-            <h3 className="text-2xl font-bold">For Shoppers</h3>
-            <p className="mt-4 text-xl">
-              Find incredible deals at estate sales near you
-            </p>
+        </section>
+
+        {/* Upcoming Sales */}
+        <section>
+          <h2 className="text-2xl font-bold mb-6">Upcoming Sales</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {sales?.map((sale) => (
+              <Link href={`/sales/${sale.id}`} key={sale.id}>
+                <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
+                  {sale.photoUrls.length > 0 ? (
+                    <img 
+                      src={sale.photoUrls[0]} 
+                      alt={sale.title} 
+                      className="w-full h-48 object-cover"
+                    />
+                  ) : (
+                    <div className="bg-gray-200 h-48 flex items-center justify-center">
+                      <span className="text-gray-500">No image</span>
+                    </div>
+                  )}
+                  <div className="p-4">
+                    <h3 className="text-xl font-bold mb-2">{sale.title}</h3>
+                    <p className="text-gray-600 mb-2">{sale.description}</p>
+                    <div className="flex justify-between text-sm text-gray-500">
+                      <span>{new Date(sale.startDate).toLocaleDateString()}</span>
+                      <span>{sale.city}, {sale.state}</span>
+                    </div>
+                    <div className="mt-3 text-blue-600 font-medium">
+                      Organized by: {sale.organizer.businessName}
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            ))}
           </div>
-        </div>
+        </section>
       </main>
     </div>
   );
-}
+};
+
+export default HomePage;
