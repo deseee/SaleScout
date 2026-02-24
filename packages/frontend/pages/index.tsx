@@ -97,4 +97,61 @@ const HomePage = () => {
             <h2 className="text-2xl font-bold mb-4 text-gray-900">Sales Map</h2>
             <div className="h-96 bg-gray-200 rounded-lg flex items-center justify-center">
               {userLocation ? (
-                <p className="text-gray-6
+                <p className="text-gray-600">Map would be displayed here with your location</p>
+              ) : (
+                <p className="text-gray-600">Enable location to see nearby sales</p>
+              )}
+            </div>
+          </div>
+        </section>
+
+        {/* Featured Sales Section */}
+        <section>
+          <h2 className="text-3xl font-bold mb-6 text-gray-900 text-center">Featured Sales</h2>
+          {sales && sales.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {sales.map((sale) => (
+                <Link href={`/sales/${sale.id}`} key={sale.id} className="block">
+                  <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+                    {sale.photoUrls && sale.photoUrls.length > 0 ? (
+                      <img 
+                        src={sale.photoUrls[0]} 
+                        alt={sale.title}
+                        className="w-full h-48 object-cover"
+                      />
+                    ) : (
+                      <div className="bg-gray-200 h-48 flex items-center justify-center">
+                        <span className="text-gray-500">No image available</span>
+                      </div>
+                    )}
+                    <div className="p-4">
+                      <h3 className="text-xl font-semibold mb-2 text-gray-900">{sale.title}</h3>
+                      <p className="text-gray-600 mb-2">{sale.description}</p>
+                      <div className="flex justify-between items-center mt-4">
+                        <span className="text-sm text-gray-500">
+                          {new Date(sale.startDate).toLocaleDateString()} - {new Date(sale.endDate).toLocaleDateString()}
+                        </span>
+                        <span className="text-sm font-medium text-blue-600">
+                          {sale.organizer.businessName}
+                        </span>
+                      </div>
+                      <div className="mt-3 text-sm text-gray-500">
+                        {sale.city}, {sale.state}
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-gray-600">No sales available at the moment. Check back later!</p>
+            </div>
+          )}
+        </section>
+      </main>
+    </div>
+  );
+};
+
+export default HomePage;
