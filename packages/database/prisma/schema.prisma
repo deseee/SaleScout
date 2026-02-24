@@ -21,6 +21,11 @@ model User {
   reviews         Review[]
   bids            Bid[]
   points          Int         @default(0)
+  referralCode    String      @unique
+  referredBy      String?
+  badges          UserBadge[]
+  referrals       Referral[]  @relation("referrer")
+  referredUsers   Referral[]  @relation("referred")
 }
 
 model Organizer {
@@ -60,6 +65,7 @@ model Sale {
   purchases      Purchase[]
   isAuctionSale  Boolean     @default(false)
   tags           String[]
+  earlyAccess    Boolean     @default(false)
 }
 
 model Item {
@@ -130,6 +136,39 @@ model Review {
   rating    Int
   comment   String?
   createdAt DateTime @default(now())
+}
+
+model Badge {
+  id          String     @id @default(cuid())
+  name        String
+  description String
+  iconUrl     String?
+  criteria    Json       // e.g., {type: "sales_visited", count: 5}
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  userBadges  UserBadge[]
+}
+
+model UserBadge {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  badgeId   String
+  badge     Badge    @relation(fields: [badgeId], references: [id])
+  awardedAt DateTime @default(now())
+
+  @@unique([userId, badgeId])
+}
+
+model Referral {
+  id              String   @id @default(cuid())
+  referrerId      String
+  referrer        User     @relation("referrer", fields: [referrerId], references: [id])
+  referredUserId  String
+  referredUser    User     @relation("referred", fields: [referredUserId], references: [id])
+  createdAt       DateTime @default(now())
+
+  @@unique([referrerId, referredUserId])
 }
 
 enum Role {

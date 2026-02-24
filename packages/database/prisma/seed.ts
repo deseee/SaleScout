@@ -14,11 +14,52 @@ async function main() {
     prisma.purchase.deleteMany(),
     prisma.favorite.deleteMany(),
     prisma.review.deleteMany(),
+    prisma.userBadge.deleteMany(),
+    prisma.referral.deleteMany(),
     prisma.item.deleteMany(),
     prisma.sale.deleteMany(),
     prisma.organizer.deleteMany(),
     prisma.user.deleteMany(),
+    prisma.badge.deleteMany(),
   ]);
+
+  // Create badges
+  const badges = await prisma.badge.createMany({
+    data: [
+      {
+        name: "Newcomer",
+        description: "Visit your first sale",
+        iconUrl: "https://example.com/badges/newcomer.png",
+        criteria: JSON.stringify({ type: "sales_visited", count: 1 }),
+      },
+      {
+        name: "Collector",
+        description: "Visit 5 sales",
+        iconUrl: "https://example.com/badges/collector.png",
+        criteria: JSON.stringify({ type: "sales_visited", count: 5 }),
+      },
+      {
+        name: "Treasure Hunter",
+        description: "Make your first purchase",
+        iconUrl: "https://example.com/badges/treasure_hunter.png",
+        criteria: JSON.stringify({ type: "purchases_made", count: 1 }),
+      },
+      {
+        name: "Regular",
+        description: "Refer 3 friends",
+        iconUrl: "https://example.com/badges/regular.png",
+        criteria: JSON.stringify({ type: "referrals_made", count: 3 }),
+      },
+      {
+        name: "VIP",
+        description: "Earn 500 points",
+        iconUrl: "https://example.com/badges/vip.png",
+        criteria: JSON.stringify({ type: "points_earned", count: 500 }),
+      },
+    ],
+  });
+
+  console.log(`Created ${badges.count} badges`);
 
   // Create admin user
   const admin = await prisma.user.create({
@@ -28,6 +69,7 @@ async function main() {
       role: 'ADMIN',
       points: 0,
       password: defaultPassword,
+      referralCode: 'ADMIN123',
     },
   });
 
@@ -39,6 +81,7 @@ async function main() {
       role: 'ORGANIZER',
       points: 0,
       password: defaultPassword,
+      referralCode: 'GRSALES123',
     },
   });
 
@@ -58,6 +101,7 @@ async function main() {
       role: 'ORGANIZER',
       points: 0,
       password: defaultPassword,
+      referralCode: 'MIES123',
     },
   });
 
@@ -523,6 +567,7 @@ async function main() {
       role: 'USER',
       points: 150,
       password: defaultPassword,
+      referralCode: 'ALEX123',
     },
   });
 
@@ -533,6 +578,7 @@ async function main() {
       role: 'USER',
       points: 320,
       password: defaultPassword,
+      referralCode: 'TAYLOR123',
     },
   });
 

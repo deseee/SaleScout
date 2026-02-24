@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
+import { v4 as uuidv4 } from 'uuid';
 
 const prisma = new PrismaClient();
 
@@ -101,5 +102,170 @@ export const getFavorites = async (req: AuthRequest, res: Response) => {
   } catch (error) {
     console.error('Error fetching favorites:', error);
     res.status(500).json({ message: 'Server error while fetching favorites' });
+  }
+};
+
+export const getUserProfile = async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.id },
+      include: {
+        badges: {
+          include: {
+            badge: true
+          }
+        }
+      }
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Convert to plain object and remove password
+    const { password, ...userWithoutPassword } = user;
+    
+    res.json(userWithoutPassword);
+  } catch (error) {
+    console.error('Error fetching user profile:', error);
+    res.status(500).json({ message: 'Server error while fetching user profile' });
+  }
+};
+
+export const getLeaderboard = async (req: Request, res: Response) => {
+  try {
+    const users = await prisma.user.findMany({
+      where: {
+        role: 'USER'
+      },
+      orderBy: {
+        points: 'desc'
+      },
+      take: 10,
+      select: {
+        id: true,
+        name: true,
+        points: true,
+        badges: {
+          include: {
+            badge: {
+              select: {
+                name: true,
+                iconUrl: true
+              }
+            }
+          }
+        }
+      }
+    });
+
+    res.json(users);
+  } catch (error) {
+    console.error('Error fetching leaderboard:', error);
+    res.status(500).json({ message: 'Server error while fetching leaderboard' });
+  }
+};
+
+export const awardBadge = async (userId: string, badgeCriteriaType: string, count: number) => {
+  try {
+    // Find badges that match the criteria
+    const badges = await prisma.badge.findMany({
+      where: {
+        criteria: {
+          path: ['type'],
+          equals: badgeCriteriaType
+        }
+      }
+    });
+
+    for (const badge of badges) {
+      const badgeCriteria = JSON.parse(JSON.stringify(badge.criteria));
+      
+      // Check if user qualifies for this badge
+      if (count >= badgeCriteria.count) {
+        // Check if user already has this badge
+        const existingUserBadge = await prisma.userBadge.findUnique({
+          where: {
+            userId_badgeId: {
+              userId,
+              badgeId: badge.id
+            }
+          }
+        });
+
+        if (!existingUserBadge) {
+          // Award the badge
+          await prisma.userBadge.create({
+            data: {
+              userId,
+              badgeId: badge.id
+            }
+          });
+
+          console.log(`Awarded badge "${badge.name}" to user ${userId}`);
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Error awarding badge:', error);
+  }
+};
+
+// Call this function when a user makes a purchase
+export const handlePurchaseBadge = async (userId: string) => {
+  try {
+    // Count user's purchases
+    const purchaseCount = await prisma.purchase.count({
+      where: { userId }
+    });
+
+    // Award badge based on purchase count
+    await awardBadge(userId, 'purchases_made', purchaseCount);
+  } catch (error) {
+    console.error('Error handling purchase badge:', error);
+  }
+};
+
+// Call this function when a user creates a favorite
+export const handleFavoriteBadge = async (userId: string) => {
+  try {
+    // Count user's favorites
+    const favoriteCount = await prisma.favorite.count({
+      where: { userId }
+    });
+
+    // Award badge based on favorite count
+    await awardBadge(userId, 'sales_visited', favoriteCount);
+  } catch (error) {
+    console.error('Error handling favorite badge:', error);
+  }
+};
+
+// Call this function when a user refers someone
+export const handleReferralBadge = async (userId: string) => {
+  try {
+    // Count user's referrals
+    const referralCount = await prisma.referral.count({
+      where: { referrerId: userId }
+    });
+
+    // Award badge based on referral count
+    await awardBadge(userId, 'referrals_made', referralCount);
+  } catch (error) {
+    console.error('Error handling referral badge:', error);
+  }
+};
+
+// Call this function when points are updated
+export const handlePointsBadge = async (userId: string, points: number) => {
+  try {
+    // Award badge based on points
+    await awardBadge(userId, 'points_earned', points);
+  } catch (error) {
+    console.error('Error handling points badge:', error);
   }
 };

@@ -2,12 +2,14 @@ import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { PrismaClient } from '@prisma/client';
+import { v4 as uuidv4 } from 'uuid';
+import { handleReferralBadge, handlePointsBadge } from './userController';
 
 const prisma = new PrismaClient();
 
 export const register = async (req: Request, res: Response) => {
   try {
-    const { email, password, name, role } = req.body;
+    const { email, password, name, role, referralCode } = req.body;
 
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({
@@ -22,15 +24,60 @@ export const register = async (req: Request, res: Response) => {
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
+    // Generate unique referral code
+    const userReferralCode = uuidv4().substring(0, 8).toUpperCase();
+
     // Create user
     const user = await prisma.user.create({
       data: {
         email,
         name,
         role,
-        password: hashedPassword
+        password: hashedPassword,
+        referralCode: userReferralCode,
+        points: 0
       }
     });
+
+    // Handle referral if provided
+    if (referralCode) {
+      const referrer = await prisma.user.findUnique({
+        where: { referralCode }
+      });
+
+      if (referrer) {
+        // Create referral record
+        await prisma.referral.create({
+          data: {
+            referrerId: referrer.id,
+            referredUserId: user.id
+          }
+        });
+
+        // Award points to referrer (e.g., 50 points)
+        const pointsToAdd = 50;
+        await prisma.user.update({
+          where: { id: referrer.id },
+          data: {
+            points: {
+              increment: pointsToAdd
+            }
+          }
+        });
+
+        // Check for referral badge
+        await handleReferralBadge(referrer.id);
+
+        // Check for points badge
+        const updatedReferrer = await prisma.user.findUnique({
+          where: { id: referrer.id }
+        });
+        
+        if (updatedReferrer) {
+          await handlePointsBadge(referrer.id, updatedReferrer.points);
+        }
+      }
+    }
 
     // Generate JWT
     const token = jwt.sign(
