@@ -365,7 +365,15 @@ const AddItemsPage = () => {
           {/* Existing Items List */}
           <div>
             <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-2xl font-bold mb-6">Existing Items</h2>
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold">Existing Items</h2>
+                <Link 
+                  href={`/organizer/add-items/${saleId}`} 
+                  className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                >
+                  Refresh
+                </Link>
+              </div>
               
               {itemsLoading ? (
                 <p>Loading items...</p>
@@ -375,7 +383,15 @@ const AddItemsPage = () => {
                 <div className="space-y-4">
                   {items.map((item) => (
                     <div key={item.id} className="border rounded-lg p-4">
-                      <h3 className="font-bold text-lg">{item.title}</h3>
+                      <div className="flex justify-between">
+                        <h3 className="font-bold text-lg">{item.title}</h3>
+                        <Link 
+                          href={`/organizer/edit-item/${item.id}`} 
+                          className="text-blue-600 hover:text-blue-800 text-sm"
+                        >
+                          Edit
+                        </Link>
+                      </div>
                       <p className="text-gray-600 text-sm mt-1">
                         {item.description?.substring(0, 100)}{item.description && item.description.length > 100 ? '...' : ''}
                       </p>
