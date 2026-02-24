@@ -149,28 +149,40 @@ export const webhookHandler = async (req: Request, res: Response) => {
   switch (event.type) {
     case 'payment_intent.succeeded':
       const paymentIntent = event.data.object;
-      // Update purchase status to PAID
-      await prisma.purchase.update({
-        where: { stripePaymentIntentId: paymentIntent.id },
-        data: { status: 'PAID' }
+      // Find purchase by stripePaymentIntentId and update status to PAID
+      const purchase = await prisma.purchase.findUnique({
+        where: { stripePaymentIntentId: paymentIntent.id }
       });
       
-      // Update item status to SOLD
-      const metadata = paymentIntent.metadata;
-      if (metadata.itemId) {
-        await prisma.item.update({
-          where: { id: metadata.itemId },
-          data: { status: 'SOLD' }
+      if (purchase) {
+        await prisma.purchase.update({
+          where: { id: purchase.id },
+          data: { status: 'PAID' }
         });
+        
+        // Update item status to SOLD
+        const metadata = paymentIntent.metadata;
+        if (metadata.itemId) {
+          await prisma.item.update({
+            where: { id: metadata.itemId },
+            data: { status: 'SOLD' }
+          });
+        }
       }
       break;
     case 'payment_intent.payment_failed':
       const paymentFailedIntent = event.data.object;
-      // Update purchase status to FAILED
-      await prisma.purchase.update({
-        where: { stripePaymentIntentId: paymentFailedIntent.id },
-        data: { status: 'REFUNDED' }
+      // Find purchase by stripePaymentIntentId and update status to FAILED
+      const failedPurchase = await prisma.purchase.findUnique({
+        where: { stripePaymentIntentId: paymentFailedIntent.id }
       });
+      
+      if (failedPurchase) {
+        await prisma.purchase.update({
+          where: { id: failedPurchase.id },
+          data: { status: 'REFUNDED' }
+        });
+      }
       break;
     default:
       console.log(`Unhandled event type ${event.type}`);
