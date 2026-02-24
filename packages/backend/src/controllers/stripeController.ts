@@ -95,9 +95,15 @@ export const createPaymentIntent = async (req: AuthRequest, res: Response) => {
       return res.status(400).json({ message: 'Organizer has not set up payment processing' });
     }
 
+    // Ensure we have a valid price value
+    const price = item.price || item.auctionStartPrice || 0;
+    if (typeof price !== 'number') {
+      throw new Error('Invalid price value');
+    }
+
     // Create a PaymentIntent with automatic confirmation
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round((item.price || item.auctionStartPrice || 0) * 100), // Convert to cents
+      amount: Math.round(price * 100), // Convert to cents
       currency: 'usd',
       metadata: {
         itemId: item.id,
@@ -115,7 +121,7 @@ export const createPaymentIntent = async (req: AuthRequest, res: Response) => {
         userId: req.user.id,
         itemId: item.id,
         saleId: item.sale.id,
-        amount: item.price || item.auctionStartPrice || 0,
+        amount: price,
         stripePaymentIntentId: paymentIntent.id,
         status: 'PENDING'
       }
@@ -149,12 +155,13 @@ export const webhookHandler = async (req: Request, res: Response) => {
   switch (event.type) {
     case 'payment_intent.succeeded':
       const paymentIntent = event.data.object;
-      // Find purchase by stripePaymentIntentId and update status to PAID
+      // Find purchase by stripePaymentIntentId
       const purchase = await prisma.purchase.findUnique({
         where: { stripePaymentIntentId: paymentIntent.id }
       });
       
       if (purchase) {
+        // Update purchase status to PAID using the purchase ID
         await prisma.purchase.update({
           where: { id: purchase.id },
           data: { status: 'PAID' }
@@ -172,12 +179,13 @@ export const webhookHandler = async (req: Request, res: Response) => {
       break;
     case 'payment_intent.payment_failed':
       const paymentFailedIntent = event.data.object;
-      // Find purchase by stripePaymentIntentId and update status to FAILED
+      // Find purchase by stripePaymentIntentId
       const failedPurchase = await prisma.purchase.findUnique({
         where: { stripePaymentIntentId: paymentFailedIntent.id }
       });
       
       if (failedPurchase) {
+        // Update purchase status to FAILED using the purchase ID
         await prisma.purchase.update({
           where: { id: failedPurchase.id },
           data: { status: 'REFUNDED' }
