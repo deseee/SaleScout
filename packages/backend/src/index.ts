@@ -68,4 +68,10 @@ app.get('/', (req, res) => {
   res.json({ message: 'Estate Sale Marketplace API' });
 });
 
-// Run auction end
+// Run auction end job
+endAuctions();
+setInterval(endAuctions, 60000); // Run every minute
+
+app.listen(port, '0.0.0.0', () => {
+  console.log(`🚀 Server running on port ${port}`);
+});
