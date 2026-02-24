@@ -5,7 +5,8 @@ import {
   createSale, 
   updateSale, 
   deleteSale,
-  searchSales
+  searchSales,
+  generateQRCode
 } from '../controllers/saleController';
 import { authenticate } from '../middleware/auth';
 
@@ -20,5 +21,6 @@ router.get('/:id', getSale);
 router.post('/', authenticate, createSale);
 router.put('/:id', authenticate, updateSale);
 router.delete('/:id', authenticate, deleteSale);
+router.post('/:id/generate-qr', authenticate, generateQRCode);
 
 export default router;

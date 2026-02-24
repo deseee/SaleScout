@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
+import QRCode from 'qrcode';
 
 const prisma = new PrismaClient();
 
@@ -403,5 +404,49 @@ export const searchSales = async (req: Request, res: Response) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error while searching sales' });
+  }
+};
+
+// Generate QR code for sale
+export const generateQRCode = async (req: AuthRequest, res: Response) => {
+  try {
+    // Verify user is organizer or admin
+    if (!req.user || (req.user.role !== 'ORGANIZER' && req.user.role !== 'ADMIN')) {
+      return res.status(403).json({ message: 'Access denied. Organizer access required.' });
+    }
+
+    const { id } = req.params;
+    
+    // Check if sale exists and belongs to organizer (unless admin)
+    const existingSale = await prisma.sale.findUnique({
+      where: { id }
+    });
+    
+    if (!existingSale) {
+      return res.status(404).json({ message: 'Sale not found' });
+    }
+    
+    if (req.user.role !== 'ADMIN') {
+      const organizerProfile = await prisma.organizer.findUnique({
+        where: { userId: req.user.id }
+      });
+      
+      if (!organizerProfile || existingSale.organizerId !== organizerProfile.id) {
+        return res.status(403).json({ message: 'Access denied. You can only generate QR codes for your own sales.' });
+      }
+    }
+    
+    // Generate QR code with UTM tracking
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const saleUrl = `${frontendUrl}/sales/${id}?utm_source=qr`;
+    
+    // Generate QR code as SVG
+    const qrCodeSvg = await QRCode.toString(saleUrl, { type: 'svg' });
+    
+    res.setHeader('Content-Type', 'image/svg+xml');
+    res.send(qrCodeSvg);
+  } catch (error) {
+    console.error('Error generating QR code:', error);
+    res.status(500).json({ message: 'Server error while generating QR code' });
   }
 };

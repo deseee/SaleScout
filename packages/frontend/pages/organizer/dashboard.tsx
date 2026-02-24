@@ -30,6 +30,9 @@ const OrganizerDashboard = () => {
   const queryClient = useQueryClient();
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus | null>(null);
   const [paymentStatusLoading, setPaymentStatusLoading] = useState(true);
+  const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
+  const [showQRModal, setShowQRModal] = useState(false);
+  const [qrCodeUrl, setQrCodeUrl] = useState('');
 
   // Fetch organizer's sales
   const { data: sales, isLoading, isError } = useQuery({
@@ -86,6 +89,28 @@ const OrganizerDashboard = () => {
     }
   };
 
+  const handleGenerateQR = async (sale: Sale) => {
+    try {
+      setSelectedSale(sale);
+      const response = await api.post(`/sales/${sale.id}/generate-qr`, {}, { responseType: 'blob' });
+      const imageUrl = URL.createObjectURL(response.data);
+      setQrCodeUrl(imageUrl);
+      setShowQRModal(true);
+    } catch (error) {
+      console.error('Error generating QR code:', error);
+      alert('Failed to generate QR code. Please try again.');
+    }
+  };
+
+  const handleDownloadQR = () => {
+    const link = document.createElement('a');
+    link.href = qrCodeUrl;
+    link.download = `qr-code-${selectedSale?.title.replace(/\s+/g, '-').toLowerCase()}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   if (isLoading) return <div className="min-h-screen flex items-center justify-center">Loading dashboard...</div>;
   if (isError) return <div className="min-h-screen flex items-center justify-center">Error loading dashboard</div>;
 
@@ -95,6 +120,57 @@ const OrganizerDashboard = () => {
         <title>Organizer Dashboard - SaleScout</title>
         <meta name="description" content="Manage your estate sales" />
       </Head>
+
+      {/* QR Code Modal */}
+      {showQRModal && selectedSale && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold">QR Code Sign</h3>
+              <button 
+                onClick={() => setShowQRModal(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            <div className="text-center mb-6">
+              <p className="mb-4">Scan this QR code to access the sale page directly</p>
+              <div className="border-2 border-gray-300 rounded-lg p-4 inline-block">
+                <img src={qrCodeUrl} alt="QR Code" className="w-48 h-48 mx-auto" />
+              </div>
+              <p className="mt-4 text-sm text-gray-600">Sale: {selectedSale.title}</p>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={handleDownloadQR}
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+              >
+                Download PNG
+              </button>
+              <button
+                onClick={() => window.print()}
+                className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
+              >
+                Print
+              </button>
+            </div>
+            
+            <div className="mt-4 text-sm text-gray-500">
+              <p>Instructions:</p>
+              <ul className="list-disc pl-5 mt-2">
+                <li>Print this QR code and place it at your sale location</li>
+                <li>Visitors can scan it with their phone camera to access the sale page</li>
+                <li>You can track scan activity in your analytics</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
 
       <main className="container mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-8">
@@ -258,6 +334,12 @@ const OrganizerDashboard = () => {
                         <Link href={`/organizer/edit-sale/${sale.id}`} className="text-blue-600 hover:text-blue-900 mr-3">
                           Edit
                         </Link>
+                        <button 
+                          onClick={() => handleGenerateQR(sale)}
+                          className="text-purple-600 hover:text-purple-900 mr-3"
+                        >
+                          QR Sign
+                        </button>
                         <Link href={`/organizer/add-items/${sale.id}`} className="text-green-600 hover:text-green-900">
                           Add Items
                         </Link>
