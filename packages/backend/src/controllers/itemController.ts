@@ -14,6 +14,9 @@ const itemQuerySchema = z.object({
   saleId: z.string().optional()
 });
 
+// Custom datetime validation to accept datetime-local format
+const datetimeLocalSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/, 'Invalid datetime format');
+
 const itemCreateSchema = z.object({
   saleId: z.string(),
   title: z.string().min(1),
@@ -21,7 +24,7 @@ const itemCreateSchema = z.object({
   price: z.number().optional(),
   auctionStartPrice: z.number().optional(),
   bidIncrement: z.number().optional(),
-  auctionEndTime: z.string().datetime().optional(),
+  auctionEndTime: datetimeLocalSchema.optional(),
   photoUrls: z.array(z.string()).optional(),
   status: z.enum(['AVAILABLE', 'SOLD', 'RESERVED', 'AUCTION_ENDED']).optional().default('AVAILABLE')
 });

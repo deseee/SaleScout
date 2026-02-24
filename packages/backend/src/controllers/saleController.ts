@@ -9,6 +9,9 @@ interface AuthRequest extends Request {
   user?: any;
 }
 
+// Custom datetime validation to accept datetime-local format
+const datetimeLocalSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/, 'Invalid datetime format');
+
 // Validation schemas
 const saleQuerySchema = z.object({
   city: z.string().optional(),
@@ -24,8 +27,8 @@ const saleQuerySchema = z.object({
 const saleCreateSchema = z.object({
   title: z.string().min(1),
   description: z.string().optional(),
-  startDate: z.string().datetime(),
-  endDate: z.string().datetime(),
+  startDate: datetimeLocalSchema,
+  endDate: datetimeLocalSchema,
   address: z.string().min(1),
   city: z.string().min(1),
   state: z.string().min(2).max(2),
