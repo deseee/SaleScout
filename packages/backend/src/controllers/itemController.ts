@@ -33,6 +33,25 @@ const bidCreateSchema = z.object({
   amount: z.number().positive()
 });
 
+// Helper function to convert Decimal values to numbers
+const convertDecimalsToNumbers = (obj: any) => {
+  if (!obj) return obj;
+  
+  const converted: any = {};
+  for (const key in obj) {
+    if (obj[key] && typeof obj[key] === 'object' && 'toNumber' in obj[key]) {
+      converted[key] = obj[key].toNumber();
+    } else if (Array.isArray(obj[key])) {
+      converted[key] = obj[key].map((item: any) => 
+        typeof item === 'object' ? convertDecimalsToNumbers(item) : item
+      );
+    } else {
+      converted[key] = obj[key];
+    }
+  }
+  return converted;
+};
+
 export const listItems = async (req: Request, res: Response) => {
   try {
     const query = itemQuerySchema.parse(req.query);
@@ -50,7 +69,10 @@ export const listItems = async (req: Request, res: Response) => {
       }
     });
     
-    res.json(items);
+    // Convert Decimal values to numbers
+    const convertedItems = items.map(item => convertDecimalsToNumbers(item));
+    
+    res.json(convertedItems);
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ 
@@ -101,7 +123,15 @@ export const getItem = async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'Item not found' });
     }
     
-    res.json(item);
+    // Convert Decimal values to numbers
+    const convertedItem = convertDecimalsToNumbers(item);
+    
+    // Also convert Decimal values in bids
+    if (convertedItem.bids) {
+      convertedItem.bids = convertedItem.bids.map(bid => convertDecimalsToNumbers(bid));
+    }
+    
+    res.json(convertedItem);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error while fetching item' });
@@ -141,7 +171,10 @@ export const createItem = async (req: AuthRequest, res: Response) => {
       data: itemData
     });
     
-    res.status(201).json(item);
+    // Convert Decimal values to numbers
+    const convertedItem = convertDecimalsToNumbers(item);
+    
+    res.status(201).json(convertedItem);
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ 
@@ -193,7 +226,10 @@ export const updateItem = async (req: AuthRequest, res: Response) => {
       data: itemData
     });
     
-    res.json(item);
+    // Convert Decimal values to numbers
+    const convertedItem = convertDecimalsToNumbers(item);
+    
+    res.json(convertedItem);
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ 
@@ -301,7 +337,7 @@ export const placeBid = async (req: AuthRequest, res: Response) => {
     // Calculate minimum bid amount
     let minBidAmount = item.auctionStartPrice;
     if (item.bids.length > 0) {
-      minBidAmount = item.bids[0].amount.plus(item.bidIncrement || 1);
+      minBidAmount = item.bids[0].amount + (item.bidIncrement || 1);
     }
 
     if (amount < minBidAmount) {
@@ -327,7 +363,10 @@ export const placeBid = async (req: AuthRequest, res: Response) => {
       }
     });
 
-    res.status(201).json(bid);
+    // Convert Decimal values to numbers
+    const convertedBid = convertDecimalsToNumbers(bid);
+    
+    res.status(201).json(convertedBid);
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ 
@@ -369,7 +408,10 @@ export const getItemBids = async (req: Request, res: Response) => {
       }
     });
 
-    res.json(bids);
+    // Convert Decimal values to numbers
+    const convertedBids = bids.map(bid => convertDecimalsToNumbers(bid));
+    
+    res.json(convertedBids);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error while fetching bids' });

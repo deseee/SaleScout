@@ -39,6 +39,25 @@ const saleCreateSchema = z.object({
 
 const saleUpdateSchema = saleCreateSchema.partial();
 
+// Helper function to convert Decimal values to numbers
+const convertDecimalsToNumbers = (obj: any) => {
+  if (!obj) return obj;
+  
+  const converted: any = {};
+  for (const key in obj) {
+    if (obj[key] && typeof obj[key] === 'object' && 'toNumber' in obj[key]) {
+      converted[key] = obj[key].toNumber();
+    } else if (Array.isArray(obj[key])) {
+      converted[key] = obj[key].map((item: any) => 
+        typeof item === 'object' ? convertDecimalsToNumbers(item) : item
+      );
+    } else {
+      converted[key] = obj[key];
+    }
+  }
+  return converted;
+};
+
 export const listSales = async (req: Request, res: Response) => {
   try {
     // Validate query parameters
@@ -108,11 +127,14 @@ export const listSales = async (req: Request, res: Response) => {
       }
     });
     
+    // Convert Decimal values to numbers
+    const convertedSales = sales.map(sale => convertDecimalsToNumbers(sale));
+    
     // Get total count for pagination
     const total = await prisma.sale.count({ where });
     
     res.json({
-      sales,
+      sales: convertedSales,
       pagination: {
         page,
         limit,
@@ -154,8 +176,10 @@ export const getSale = async (req: Request, res: Response) => {
             price: true,
             auctionStartPrice: true,
             currentBid: true,
+            bidIncrement: true,
             status: true,
-            photoUrls: true
+            photoUrls: true,
+            auctionEndTime: true
           }
         }
       }
@@ -165,7 +189,15 @@ export const getSale = async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'Sale not found' });
     }
     
-    res.json(sale);
+    // Convert Decimal values to numbers
+    const convertedSale = convertDecimalsToNumbers(sale);
+    
+    // Also convert Decimal values in items
+    if (convertedSale.items) {
+      convertedSale.items = convertedSale.items.map(item => convertDecimalsToNumbers(item));
+    }
+    
+    res.json(convertedSale);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error while fetching sale' });
@@ -208,7 +240,10 @@ export const createSale = async (req: AuthRequest, res: Response) => {
       }
     });
     
-    res.status(201).json(sale);
+    // Convert Decimal values to numbers
+    const convertedSale = convertDecimalsToNumbers(sale);
+    
+    res.status(201).json(convertedSale);
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ 
@@ -257,7 +292,10 @@ export const updateSale = async (req: AuthRequest, res: Response) => {
       data: saleData
     });
     
-    res.json(sale);
+    // Convert Decimal values to numbers
+    const convertedSale = convertDecimalsToNumbers(sale);
+    
+    res.json(convertedSale);
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ 
@@ -355,7 +393,10 @@ export const searchSales = async (req: Request, res: Response) => {
       take: 20
     });
     
-    res.json(sales);
+    // Convert Decimal values to numbers
+    const convertedSales = sales.map(sale => convertDecimalsToNumbers(sale));
+    
+    res.json(convertedSales);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error while searching sales' });

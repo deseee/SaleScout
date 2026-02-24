@@ -50,6 +50,13 @@ interface Bid {
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
+// Helper function to safely format prices
+const formatPrice = (value: number | string | null | undefined): string => {
+  if (value === null || value === undefined) return 'N/A';
+  const num = typeof value === 'string' ? parseFloat(value) : value;
+  return isNaN(num) ? 'N/A' : `$${num.toFixed(2)}`;
+};
+
 const SaleDetailPage = () => {
   const router = useRouter();
   const { id } = router.query;
@@ -320,7 +327,7 @@ const SaleDetailPage = () => {
                           <div>
                             <span className="text-sm text-gray-600">Current Bid:</span>
                             <span className="font-bold text-blue-600 ml-1">
-                              ${item.currentBid ? item.currentBid.toFixed(2) : item.auctionStartPrice.toFixed(2)}
+                              {formatPrice(item.currentBid || item.auctionStartPrice)}
                             </span>
                           </div>
                           {item.auctionEndTime && (
@@ -332,7 +339,7 @@ const SaleDetailPage = () => {
                         
                         <div className="mb-2">
                           <span className="text-sm text-gray-600">
-                            Minimum bid: ${(item.currentBid ? item.currentBid + (item.bidIncrement || 1) : item.auctionStartPrice).toFixed(2)}
+                            Minimum bid: {formatPrice((item.currentBid || item.auctionStartPrice) + (item.bidIncrement || 1))}
                           </span>
                         </div>
                         
@@ -341,7 +348,7 @@ const SaleDetailPage = () => {
                             <input
                               type="number"
                               step="0.01"
-                              min={item.currentBid ? item.currentBid + (item.bidIncrement || 1) : item.auctionStartPrice}
+                              min={(item.currentBid || item.auctionStartPrice) + (item.bidIncrement || 1)}
                               value={bidAmounts[item.id] || ''}
                               onChange={(e) => handleBidAmountChange(item.id, e.target.value)}
                               className="flex-grow px-2 py-1 border border-gray-300 rounded-l text-sm"
@@ -372,11 +379,11 @@ const SaleDetailPage = () => {
                       /* Regular sale item */
                       <div className="flex justify-between items-center">
                         <span className="font-bold text-blue-600">
-                          {item.price ? `$${item.price}` : 'Price not set'}
+                          {formatPrice(item.price)}
                         </span>
                         {item.currentBid && (
                           <span className="text-sm bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
-                            Current bid: ${item.currentBid}
+                            Current bid: {formatPrice(item.currentBid)}
                           </span>
                         )}
                       </div>
