@@ -13,10 +13,10 @@ interface Purchase {
   item: {
     title: string;
     photoUrls: string[];
-  };
+  } | null;
   sale: {
     title: string;
-  };
+  } | null;
 }
 
 interface Favorite {
@@ -133,7 +133,7 @@ const ShopperDashboard = () => {
                     <tr key={purchase.id}>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
-                          {purchase.item.photoUrls.length > 0 ? (
+                          {purchase.item?.photoUrls && purchase.item.photoUrls.length > 0 ? (
                             <img 
                               src={purchase.item.photoUrls[0]} 
                               alt={purchase.item.title} 
@@ -143,12 +143,14 @@ const ShopperDashboard = () => {
                             <div className="bg-gray-200 border-2 border-dashed rounded-xl w-10 h-10" />
                           )}
                           <div className="ml-4">
-                            <div className="text-sm font-medium text-gray-900">{purchase.item.title}</div>
+                            <div className="text-sm font-medium text-gray-900">
+                              {purchase.item?.title || 'Unknown Item'}
+                            </div>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {purchase.sale.title}
+                        {purchase.sale?.title || 'Unknown Sale'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         ${purchase.amount.toFixed(2)}
