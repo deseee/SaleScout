@@ -101,7 +101,7 @@ model Purchase {
   saleId               String?
   sale                 Sale?        @relation(fields: [saleId], references: [id])
   amount               Decimal
-  stripePaymentIntentId String?
+  stripePaymentIntentId String?      @unique
   status               PurchaseStatus @default(PENDING)
   createdAt            DateTime     @default(now())
   updatedAt            DateTime     @updatedAt
