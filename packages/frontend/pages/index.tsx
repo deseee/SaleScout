@@ -57,11 +57,11 @@ const HomePage = () => {
     }
   }, []);
 
-  if (isLoading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  if (isLoading) return <div className="min-h-screen flex items-center justify-center bg-gray-50">Loading...</div>;
   
   if (isError) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-red-600 mb-4">Error Loading Sales</h2>
           <p className="text-gray-700 mb-4">There was a problem loading the sales data.</p>
@@ -86,7 +86,7 @@ const HomePage = () => {
       <main className="container mx-auto px-4 py-8">
         <section className="mb-12 text-center">
           <h1 className="text-4xl md:text-5xl font-bold text-blue-600 mb-4">Discover Amazing Deals</h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+          <p className="text-xl text-gray-700 max-w-2xl mx-auto">
             Find estate sales, garage sales, and auctions near you with SaleScout
           </p>
         </section>
@@ -94,63 +94,7 @@ const HomePage = () => {
         {/* Map Section */}
         <section className="mb-12">
           <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-2xl font-bold mb-4">Sales Map</h2>
+            <h2 className="text-2xl font-bold mb-4 text-gray-900">Sales Map</h2>
             <div className="h-96 bg-gray-200 rounded-lg flex items-center justify-center">
               {userLocation ? (
-                <p className="text-gray-600">
-                  Map would show here with your location at ({userLocation.lat.toFixed(4)}, {userLocation.lng.toFixed(4)})
-                </p>
-              ) : (
-                <p className="text-gray-600">Enable location to see nearby sales</p>
-              )}
-            </div>
-          </div>
-        </section>
-
-        {/* Upcoming Sales */}
-        <section>
-          <h2 className="text-2xl font-bold mb-6">Upcoming Sales</h2>
-          {sales && sales.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {sales.map((sale) => (
-                <Link href={`/sales/${sale.id}`} key={sale.id}>
-                  <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
-                    {sale.photoUrls.length > 0 ? (
-                      <img 
-                        src={sale.photoUrls[0]} 
-                        alt={sale.title} 
-                        className="w-full h-48 object-cover"
-                      />
-                    ) : (
-                      <div className="bg-gray-200 h-48 flex items-center justify-center">
-                        <span className="text-gray-500">No image</span>
-                      </div>
-                    )}
-                    <div className="p-4">
-                      <h3 className="text-xl font-bold mb-2">{sale.title}</h3>
-                      <p className="text-gray-600 mb-2">{sale.description}</p>
-                      <div className="flex justify-between text-sm text-gray-500">
-                        <span>{new Date(sale.startDate).toLocaleDateString()}</span>
-                        <span>{sale.city}, {sale.state}</span>
-                      </div>
-                      <div className="mt-3 text-blue-600 font-medium">
-                        Organized by: {sale.organizer.businessName}
-                      </div>
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          ) : (
-            <div className="bg-white rounded-lg shadow-md p-8 text-center">
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">No Sales Found</h3>
-              <p className="text-gray-600">Check back later for upcoming estate sales in your area.</p>
-            </div>
-          )}
-        </section>
-      </main>
-    </div>
-  );
-};
-
-export default HomePage;
+                <p className="text-gray-6

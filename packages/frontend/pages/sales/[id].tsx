@@ -60,7 +60,7 @@ const formatPrice = (value: number | string | null | undefined): string => {
 
 // Helper function to format time remaining
 const formatTimeRemaining = (endTime: string | null | undefined): string => {
-  if (!endTime) return '';
+  if (!endTime) return 'No end time';
   
   const end = new Date(endTime);
   const now = new Date();
@@ -134,7 +134,7 @@ const SaleDetailPage = () => {
         // Refresh the page to show updated item status
         window.location.reload();
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Payment error:', err);
       alert('Payment failed. Please try again.');
     }
@@ -166,9 +166,9 @@ const SaleDetailPage = () => {
     setBidAmounts(prev => ({ ...prev, [itemId]: value }));
   };
 
-  if (isLoading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
-  if (isError) return <div className="min-h-screen flex items-center justify-center">Error loading sale</div>;
-  if (!sale) return <div className="min-h-screen flex items-center justify-center">Sale not found</div>;
+  if (isLoading) return <div className="min-h-screen flex items-center justify-center bg-gray-50">Loading...</div>;
+  if (isError) return <div className="min-h-screen flex items-center justify-center bg-gray-50">Error loading sale</div>;
+  if (!sale) return <div className="min-h-screen flex items-center justify-center bg-gray-50">Sale not found</div>;
 
   // Check if user is organizer or admin
   const isOrganizer = user?.role === 'ORGANIZER' || user?.role === 'ADMIN';
@@ -183,7 +183,7 @@ const SaleDetailPage = () => {
       <main className="container mx-auto px-4 py-8">
         {/* Back Button */}
         <Link href="/" className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-6">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
             <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
           </svg>
           Back to Home
@@ -195,16 +195,16 @@ const SaleDetailPage = () => {
             <div>
               <h1 className="text-3xl font-bold text-gray-900 mb-2">{sale.title}</h1>
               <div className="flex items-center text-gray-600 mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1 text-gray-600" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
                 </svg>
-                <span>{sale.address}, {sale.city}, {sale.state} {sale.zip}</span>
+                <span className="text-gray-600">{sale.address}, {sale.city}, {sale.state} {sale.zip}</span>
               </div>
               <div className="flex items-center text-gray-600">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1 text-gray-600" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
                 </svg>
-                <span>{new Date(sale.startDate).toLocaleDateString()} - {new Date(sale.endDate).toLocaleDateString()}</span>
+                <span className="text-gray-600">{new Date(sale.startDate).toLocaleDateString()} - {new Date(sale.endDate).toLocaleDateString()}</span>
               </div>
             </div>
             <div className="mt-4 md:mt-0">
@@ -216,7 +216,7 @@ const SaleDetailPage = () => {
 
           {sale.description && (
             <div className="mt-6">
-              <h2 className="text-xl font-semibold mb-2">Description</h2>
+              <h2 className="text-xl font-semibold mb-2 text-gray-900">Description</h2>
               <p className="text-gray-700">{sale.description}</p>
             </div>
           )}
@@ -227,7 +227,7 @@ const SaleDetailPage = () => {
                 href={`/organizer/edit-sale/${sale.id}`}
                 className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded inline-flex items-center"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1 text-white" viewBox="0 0 20 20" fill="currentColor">
                   <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
                 </svg>
                 Edit Sale Details
@@ -236,7 +236,7 @@ const SaleDetailPage = () => {
                 href={`/organizer/add-items/${sale.id}`}
                 className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded inline-flex items-center"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1 text-white" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
                 </svg>
                 Add Items
@@ -247,7 +247,7 @@ const SaleDetailPage = () => {
 
         {/* Map Section */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-          <h2 className="text-2xl font-bold mb-4">Location</h2>
+          <h2 className="text-2xl font-bold mb-4 text-gray-900">Location</h2>
           <div className="h-96 bg-gray-200 rounded-lg flex items-center justify-center">
             <p className="text-gray-600">
               Map showing location at ({sale.lat}, {sale.lng})
@@ -258,7 +258,7 @@ const SaleDetailPage = () => {
         {/* Items Section */}
         <div className="bg-white rounded-lg shadow-md p-6">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold">
+            <h2 className="text-2xl font-bold text-gray-900">
               {sale.isAuctionSale ? 'Auction Items' : 'Items for Sale'}
             </h2>
             {isOrganizer && sale.items.length > 0 && (
@@ -266,7 +266,7 @@ const SaleDetailPage = () => {
                 href={`/organizer/add-items/${sale.id}`}
                 className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded inline-flex items-center"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1 text-white" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
                 </svg>
                 Add More Items
@@ -282,7 +282,7 @@ const SaleDetailPage = () => {
                   href={`/organizer/add-items/${sale.id}`}
                   className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded inline-flex items-center"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1 text-white" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
                   </svg>
                   Add Your First Item
@@ -292,20 +292,22 @@ const SaleDetailPage = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {sale.items.map((item) => (
-                <div key={item.id} className="border rounded-lg overflow-hidden">
-                  {item.photoUrls.length > 0 ? (
-                    <img 
-                      src={item.photoUrls[0]} 
-                      alt={item.title} 
-                      className="w-full h-48 object-cover"
-                    />
-                  ) : (
-                    <div className="bg-gray-200 h-48 flex items-center justify-center">
-                      <span className="text-gray-500">No image</span>
-                    </div>
-                  )}
+                <div key={item.id} className="border rounded-lg overflow-hidden bg-white">
+                  <Link href={`/items/${item.id}`} className="block">
+                    {item.photoUrls.length > 0 ? (
+                      <img 
+                        src={item.photoUrls[0]} 
+                        alt={item.title} 
+                        className="w-full h-48 object-cover"
+                      />
+                    ) : (
+                      <div className="bg-gray-200 h-48 flex items-center justify-center">
+                        <span className="text-gray-500">No image</span>
+                      </div>
+                    )}
+                  </Link>
                   <div className="p-4">
-                    <h3 className="font-bold text-lg mb-2">{item.title}</h3>
+                    <h3 className="font-bold text-lg mb-2 text-gray-900">{item.title}</h3>
                     <p className="text-gray-600 text-sm mb-3 line-clamp-2">{item.description}</p>
                     
                     {/* Auction-specific UI */}
@@ -339,7 +341,7 @@ const SaleDetailPage = () => {
                               min={(item.currentBid || item.auctionStartPrice) + (item.bidIncrement || 1)}
                               value={bidAmounts[item.id] || ''}
                               onChange={(e) => handleBidAmountChange(item.id, e.target.value)}
-                              className="flex-grow px-2 py-1 border border-gray-300 rounded-l text-sm"
+                              className="flex-grow px-2 py-1 border border-gray-300 rounded-l text-sm text-gray-900"
                               placeholder="Enter bid amount"
                             />
                             <button
@@ -352,7 +354,7 @@ const SaleDetailPage = () => {
                         )}
                         
                         {item.status === 'AUCTION_ENDED' && (
-                          <div className="text-sm text-center py-2 bg-gray-100 rounded">
+                          <div className="text-sm text-center py-2 bg-gray-100 rounded text-gray-600">
                             Auction ended
                           </div>
                         )}
