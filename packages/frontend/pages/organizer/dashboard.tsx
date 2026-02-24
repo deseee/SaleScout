@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
-import { useQuery } from '@tanstack/react-query';
+import { useRouter } from 'next/router';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../../lib/api'; // Use the api client with auth header support
 
 interface Sale {
@@ -17,7 +18,19 @@ interface Sale {
   }[];
 }
 
+interface PaymentStatus {
+  onboarded: boolean;
+  needsSetup: boolean;
+  chargesEnabled: boolean;
+  detailsSubmitted: boolean;
+}
+
 const OrganizerDashboard = () => {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const [paymentStatus, setPaymentStatus] = useState<PaymentStatus | null>(null);
+  const [paymentStatusLoading, setPaymentStatusLoading] = useState(true);
+
   // Fetch organizer's sales
   const { data: sales, isLoading, isError } = useQuery({
     queryKey: ['organizer-sales'],
@@ -36,6 +49,32 @@ const OrganizerDashboard = () => {
         : [];
     },
   });
+
+  // Fetch payment status
+  const fetchPaymentStatus = async () => {
+    setPaymentStatusLoading(true);
+    try {
+      const response = await api.get('/stripe/account-status');
+      setPaymentStatus(response.data);
+      
+      // Show success message if returned from Stripe onboarding
+      if (router.query.success === 'true') {
+        alert('Payment setup completed successfully!');
+        // Remove query param from URL
+        router.replace('/organizer/dashboard', undefined, { shallow: true });
+      }
+    } catch (error) {
+      console.error('Error fetching payment status:', error);
+      setPaymentStatus(null);
+    } finally {
+      setPaymentStatusLoading(false);
+    }
+  };
+
+  // Fetch payment status on mount and when query params change
+  useEffect(() => {
+    fetchPaymentStatus();
+  }, [router.query]);
 
   const handleSetupPayments = async () => {
     try {
@@ -61,19 +100,63 @@ const OrganizerDashboard = () => {
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Organizer Dashboard</h1>
           <div className="flex space-x-4">
-            <button 
-              onClick={handleSetupPayments}
-              className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded inline-flex items-center"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
-                <path fillRule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clipRule="evenodd" />
-              </svg>
-              Setup Payments
-            </button>
+            {/* Payment Setup Section */}
+            <div className="bg-white rounded-lg shadow-md p-4">
+              <h2 className="text-lg font-bold mb-2">Payment Processing</h2>
+              
+              {paymentStatusLoading ? (
+                <div className="flex items-center">
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span className="text-sm">Loading payment status...</span>
+                </div>
+              ) : paymentStatus?.onboarded ? (
+                <div className="flex flex-col sm:flex-row sm:items-center">
+                  <div className="mb-2 sm:mb-0">
+                    <p className="text-green-600 font-medium text-sm">✓ Payments Enabled</p>
+                    <p className="text-gray-600 text-xs mt-1">Customers can purchase items</p>
+                  </div>
+                  <button
+                    onClick={handleSetupPayments}
+                    className="ml-0 sm:ml-3 mt-2 sm:mt-0 bg-green-600 hover:bg-green-700 text-white text-sm font-bold py-1 px-3 rounded"
+                  >
+                    Manage Account
+                  </button>
+                </div>
+              ) : paymentStatus?.needsSetup ? (
+                <div className="flex flex-col sm:flex-row sm:items-center">
+                  <div className="mb-2 sm:mb-0">
+                    <p className="text-gray-700 font-medium text-sm">Payment Setup Required</p>
+                    <p className="text-gray-600 text-xs mt-1">Enable payments to receive money</p>
+                  </div>
+                  <button
+                    onClick={handleSetupPayments}
+                    className="ml-0 sm:ml-3 mt-2 sm:mt-0 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold py-1 px-3 rounded"
+                  >
+                    Setup Payments
+                  </button>
+                </div>
+              ) : (
+                <div className="flex flex-col sm:flex-row sm:items-center">
+                  <div className="mb-2 sm:mb-0">
+                    <p className="text-yellow-600 font-medium text-sm">⚠ Setup Incomplete</p>
+                    <p className="text-gray-600 text-xs mt-1">Finish Stripe onboarding</p>
+                  </div>
+                  <button
+                    onClick={handleSetupPayments}
+                    className="ml-0 sm:ml-3 mt-2 sm:mt-0 bg-yellow-500 hover:bg-yellow-600 text-white text-sm font-bold py-1 px-3 rounded"
+                  >
+                    Continue Setup
+                  </button>
+                </div>
+              )}
+            </div>
+
             <Link 
               href="/organizer/create-sale" 
-              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded inline-flex items-center"
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded inline-flex items-center self-center"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
