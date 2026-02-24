@@ -6,11 +6,11 @@ import { useAuth } from './AuthContext';
 const Layout = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
   const { user, logout } = useAuth();
-  const [isMounted, setIsMounted] = useState(false);
+  const [isClient, setIsClient] = useState(false);
   
   // Only access localStorage on the client side
   useEffect(() => {
-    setIsMounted(true);
+    setIsClient(true);
   }, []);
   
   const handleLogout = () => {
@@ -19,7 +19,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   };
 
   // Render simplified version until mounted
-  if (!isMounted) {
+  if (!isClient) {
     return (
       <div className="min-h-screen flex flex-col">
         {/* Header */}
