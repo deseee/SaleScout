@@ -145,8 +145,22 @@ export const createItem = async (req: AuthRequest, res: Response) => {
       return res.status(403).json({ message: 'Access denied. Organizer access required.' });
     }
     
+    // Log the incoming request body for debugging
+    console.log('Incoming request body for item creation:', req.body);
+    
     // Validate request body
-    const itemData = itemCreateSchema.parse(req.body);
+    const validationResult = itemCreateSchema.safeParse(req.body);
+    if (!validationResult.success) {
+      console.error('Request body:', req.body);
+      console.error('Validation error details:', validationResult.error.errors);
+      return res.status(400).json({ 
+        message: 'Validation error', 
+        errors: validationResult.error.errors 
+      });
+    }
+    
+    const itemData = validationResult.data;
+    console.log('Item validated with data:', itemData);
     
     // Check if sale exists and belongs to organizer (unless admin)
     const sale = await prisma.sale.findUnique({
@@ -176,12 +190,6 @@ export const createItem = async (req: AuthRequest, res: Response) => {
     
     res.status(201).json(convertedItem);
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ 
-        message: 'Validation error', 
-        errors: error.errors 
-      });
-    }
     console.error(error);
     res.status(500).json({ message: 'Server error while creating item' });
   }
@@ -196,8 +204,22 @@ export const updateItem = async (req: AuthRequest, res: Response) => {
     
     const { id } = req.params;
     
+    // Log the incoming request body for debugging
+    console.log('Incoming request body for item update:', req.body);
+    
     // Validate request body
-    const itemData = itemUpdateSchema.parse(req.body);
+    const validationResult = itemUpdateSchema.safeParse(req.body);
+    if (!validationResult.success) {
+      console.error('Request body:', req.body);
+      console.error('Validation error details:', validationResult.error.errors);
+      return res.status(400).json({ 
+        message: 'Validation error', 
+        errors: validationResult.error.errors 
+      });
+    }
+    
+    const itemData = validationResult.data;
+    console.log('Item update validated with data:', itemData);
     
     // Check if item exists and belongs to organizer (unless admin)
     const existingItem = await prisma.item.findUnique({
@@ -231,12 +253,6 @@ export const updateItem = async (req: AuthRequest, res: Response) => {
     
     res.json(convertedItem);
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ 
-        message: 'Validation error', 
-        errors: error.errors 
-      });
-    }
     console.error(error);
     res.status(500).json({ message: 'Server error while updating item' });
   }

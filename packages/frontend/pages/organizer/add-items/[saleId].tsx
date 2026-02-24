@@ -27,8 +27,10 @@ type ItemFormData = z.infer<typeof itemSchema>;
 const toISOStringFromDatetimeLocal = (value: string): string | undefined => {
   if (!value) return undefined;
   const date = new Date(value);
-  if (isNaN(date.getTime())) return undefined;
-  // Ensure the output includes seconds and 'Z' (UTC)
+  if (isNaN(date.getTime())) {
+    console.error('Invalid date value:', value);
+    return undefined;
+  }
   return date.toISOString(); // e.g., "2026-02-26T10:00:00.000Z"
 };
 
@@ -149,6 +151,9 @@ const AddItemsPage = () => {
           delete itemData[key];
         }
       });
+
+      // Debug logging
+      console.log('Sending item data to backend:', JSON.stringify(itemData, null, 2));
 
       await api.post('/items', itemData);
       
