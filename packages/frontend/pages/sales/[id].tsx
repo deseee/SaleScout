@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../../lib/api'; // Use the local API client instead of raw axios
 import { loadStripe } from '@stripe/stripe-js';
 
@@ -31,10 +31,21 @@ interface Sale {
     price: number;
     auctionStartPrice: number;
     currentBid: number;
+    bidIncrement: number;
+    auctionEndTime: string;
     status: string;
     photoUrls: string[];
   }[];
   isAuctionSale: boolean;
+}
+
+interface Bid {
+  id: string;
+  amount: number;
+  user: {
+    name: string;
+  };
+  createdAt: string;
 }
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
@@ -42,8 +53,10 @@ const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
 const SaleDetailPage = () => {
   const router = useRouter();
   const { id } = router.query;
+  const queryClient = useQueryClient();
   const [token, setToken] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [bidAmounts, setBidAmounts] = useState<{[key: string]: string}>({});
 
   // Get token and user role from localStorage
   React.useEffect(() => {
@@ -59,6 +72,17 @@ const SaleDetailPage = () => {
       }
     }
   }, []);
+
+  // Poll for updates every 10 seconds for auction items
+  useEffect(() => {
+    if (!id) return;
+    
+    const interval = setInterval(() => {
+      queryClient.invalidateQueries({ queryKey: ['sale', id] });
+    }, 10000);
+    
+    return () => clearInterval(interval);
+  }, [id, queryClient]);
 
   const { data: sale, isLoading, isError } = useQuery({
     queryKey: ['sale', id],
@@ -96,6 +120,54 @@ const SaleDetailPage = () => {
     } catch (err) {
       console.error('Payment error:', err);
       alert('Payment failed. Please try again.');
+    }
+  };
+
+  const handlePlaceBid = async (itemId: string) => {
+    try {
+      const amount = parseFloat(bidAmounts[itemId]);
+      if (isNaN(amount) || amount <= 0) {
+        alert('Please enter a valid bid amount');
+        return;
+      }
+
+      await api.post(`/items/${itemId}/bid`, { amount });
+      alert('Bid placed successfully!');
+      
+      // Reset bid amount field
+      setBidAmounts(prev => ({ ...prev, [itemId]: '' }));
+      
+      // Refresh the sale data
+      queryClient.invalidateQueries({ queryKey: ['sale', id] });
+    } catch (err: any) {
+      console.error('Bid error:', err);
+      alert(err.response?.data?.message || 'Failed to place bid. Please try again.');
+    }
+  };
+
+  const handleBidAmountChange = (itemId: string, value: string) => {
+    setBidAmounts(prev => ({ ...prev, [itemId]: value }));
+  };
+
+  const formatTimeRemaining = (endTime: string) => {
+    const end = new Date(endTime);
+    const now = new Date();
+    const diff = end.getTime() - now.getTime();
+    
+    if (diff <= 0) {
+      return 'Ended';
+    }
+    
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    
+    if (days > 0) {
+      return `${days}d ${hours}h`;
+    } else if (hours > 0) {
+      return `${hours}h ${minutes}m`;
+    } else {
+      return `${minutes}m`;
     }
   };
 
@@ -191,7 +263,9 @@ const SaleDetailPage = () => {
         {/* Items Section */}
         <div className="bg-white rounded-lg shadow-md p-6">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold">Items for Sale</h2>
+            <h2 className="text-2xl font-bold">
+              {sale.isAuctionSale ? 'Auction Items' : 'Items for Sale'}
+            </h2>
             {isOrganizer && sale.items.length > 0 && (
               <Link 
                 href={`/organizer/add-items/${sale.id}`}
@@ -238,25 +312,84 @@ const SaleDetailPage = () => {
                   <div className="p-4">
                     <h3 className="font-bold text-lg mb-2">{item.title}</h3>
                     <p className="text-gray-600 text-sm mb-3 line-clamp-2">{item.description}</p>
-                    <div className="flex justify-between items-center">
-                      <span className="font-bold text-blue-600">
-                        {item.price ? `$${item.price}` : 
-                         item.auctionStartPrice ? `Starting at $${item.auctionStartPrice}` : 
-                         'Price not set'}
-                      </span>
-                      {item.currentBid && (
-                        <span className="text-sm bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
-                          Current bid: ${item.currentBid}
+                    
+                    {/* Auction-specific UI */}
+                    {sale.isAuctionSale && item.auctionStartPrice ? (
+                      <div>
+                        <div className="flex justify-between items-center mb-2">
+                          <div>
+                            <span className="text-sm text-gray-600">Current Bid:</span>
+                            <span className="font-bold text-blue-600 ml-1">
+                              ${item.currentBid ? item.currentBid.toFixed(2) : item.auctionStartPrice.toFixed(2)}
+                            </span>
+                          </div>
+                          {item.auctionEndTime && (
+                            <div className="text-sm bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
+                              {formatTimeRemaining(item.auctionEndTime)} left
+                            </div>
+                          )}
+                        </div>
+                        
+                        <div className="mb-2">
+                          <span className="text-sm text-gray-600">
+                            Minimum bid: ${(item.currentBid ? item.currentBid + (item.bidIncrement || 1) : item.auctionStartPrice).toFixed(2)}
+                          </span>
+                        </div>
+                        
+                        {!isOrganizer && item.status === 'AVAILABLE' && item.auctionEndTime && new Date() < new Date(item.auctionEndTime) && (
+                          <div className="flex mb-2">
+                            <input
+                              type="number"
+                              step="0.01"
+                              min={item.currentBid ? item.currentBid + (item.bidIncrement || 1) : item.auctionStartPrice}
+                              value={bidAmounts[item.id] || ''}
+                              onChange={(e) => handleBidAmountChange(item.id, e.target.value)}
+                              className="flex-grow px-2 py-1 border border-gray-300 rounded-l text-sm"
+                              placeholder="Enter bid amount"
+                            />
+                            <button
+                              onClick={() => handlePlaceBid(item.id)}
+                              className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-1 rounded-r"
+                            >
+                              Bid
+                            </button>
+                          </div>
+                        )}
+                        
+                        {item.status === 'AUCTION_ENDED' && (
+                          <div className="text-sm text-center py-2 bg-gray-100 rounded">
+                            Auction ended
+                          </div>
+                        )}
+                        
+                        {item.status === 'SOLD' && (
+                          <div className="text-sm text-center py-2 bg-green-100 text-green-800 rounded">
+                            Item sold
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      /* Regular sale item */
+                      <div className="flex justify-between items-center">
+                        <span className="font-bold text-blue-600">
+                          {item.price ? `$${item.price}` : 'Price not set'}
                         </span>
-                      )}
-                    </div>
+                        {item.currentBid && (
+                          <span className="text-sm bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
+                            Current bid: ${item.currentBid}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                    
                     <div className="mt-2 flex justify-between items-center">
                       <span className={`px-2 py-1 rounded text-xs ${
                         item.status === 'AVAILABLE' ? 'bg-green-100 text-green-800' :
                         item.status === 'SOLD' ? 'bg-red-100 text-red-800' :
+                        item.status === 'AUCTION_ENDED' ? 'bg-gray-100 text-gray-800' :
                         'bg-gray-100 text-gray-800'
                       }`}>
-                        {item.status}
+                        {item.status.replace(/_/g, ' ')}
                       </span>
                       {isOrganizer && (
                         <Link 
@@ -266,7 +399,7 @@ const SaleDetailPage = () => {
                           Edit
                         </Link>
                       )}
-                      {!isOrganizer && item.status === 'AVAILABLE' && (
+                      {!isOrganizer && !sale.isAuctionSale && item.status === 'AVAILABLE' && (
                         <button
                           onClick={() => handleBuyNow(item.id)}
                           className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-1 rounded"

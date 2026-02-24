@@ -12,6 +12,9 @@ import saleRoutes from './routes/sales';
 import itemRoutes from './routes/items';
 import stripeRoutes from './routes/stripe';
 
+// Import jobs
+import { endAuctions } from './jobs/auctionJob';
+
 // Initialize dotenv
 dotenv.config();
 
@@ -55,6 +58,9 @@ app.get('/', (req, res) => {
   res.json({ message: 'Estate Sale Marketplace API' });
 });
 
+// Run auction end job every minute for demo purposes
+setInterval(endAuctions, 60000);
+
 // Graceful shutdown
 process.on('SIGINT', async () => {
   await prisma.$disconnect();
@@ -64,4 +70,7 @@ process.on('SIGINT', async () => {
 // Start server
 app.listen(port, '0.0.0.0', () => {
   console.log(`Backend server running on port ${port}`);
+  
+  // Run auction job once on startup
+  endAuctions();
 });

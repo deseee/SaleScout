@@ -28,6 +28,11 @@ const itemCreateSchema = z.object({
 
 const itemUpdateSchema = itemCreateSchema.partial();
 
+const bidCreateSchema = z.object({
+  itemId: z.string(),
+  amount: z.number().positive()
+});
+
 export const listItems = async (req: Request, res: Response) => {
   try {
     const query = itemQuerySchema.parse(req.query);
@@ -76,6 +81,7 @@ export const getItem = async (req: Request, res: Response) => {
         },
         bids: {
           select: {
+            id: true,
             amount: true,
             user: {
               select: {
@@ -245,5 +251,127 @@ export const deleteItem = async (req: AuthRequest, res: Response) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error while deleting item' });
+  }
+};
+
+// Place a bid on an item
+export const placeBid = async (req: AuthRequest, res: Response) => {
+  try {
+    // Verify user is authenticated
+    if (!req.user) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+
+    const { id } = req.params;
+    const { amount } = req.body;
+
+    // Validate request body
+    const bidData = bidCreateSchema.parse({ itemId: id, amount });
+
+    // Check if item exists and is an auction item
+    const item = await prisma.item.findUnique({
+      where: { id },
+      include: {
+        bids: {
+          orderBy: {
+            amount: 'desc'
+          },
+          take: 1
+        }
+      }
+    });
+
+    if (!item) {
+      return res.status(404).json({ message: 'Item not found' });
+    }
+
+    if (!item.auctionStartPrice) {
+      return res.status(400).json({ message: 'This item is not an auction item' });
+    }
+
+    if (item.status === 'AUCTION_ENDED' || item.status === 'SOLD') {
+      return res.status(400).json({ message: 'Auction has ended for this item' });
+    }
+
+    // Check if auction has ended
+    if (item.auctionEndTime && new Date() > new Date(item.auctionEndTime)) {
+      return res.status(400).json({ message: 'Auction has already ended' });
+    }
+
+    // Calculate minimum bid amount
+    let minBidAmount = item.auctionStartPrice;
+    if (item.bids.length > 0) {
+      minBidAmount = item.bids[0].amount + (item.bidIncrement || 1);
+    }
+
+    if (amount < minBidAmount) {
+      return res.status(400).json({ 
+        message: `Bid amount must be at least $${minBidAmount.toFixed(2)}`,
+        minBidAmount
+      });
+    }
+
+    // Create the bid
+    const bid = await prisma.bid.create({
+      data: {
+        itemId: id,
+        userId: req.user.id,
+        amount: bidData.amount
+      },
+      include: {
+        user: {
+          select: {
+            name: true
+          }
+        }
+      }
+    });
+
+    res.status(201).json(bid);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ 
+        message: 'Validation error', 
+        errors: error.errors 
+      });
+    }
+    console.error(error);
+    res.status(500).json({ message: 'Server error while placing bid' });
+  }
+};
+
+// Get bids for an item
+export const getItemBids = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    // Check if item exists
+    const item = await prisma.item.findUnique({
+      where: { id }
+    });
+
+    if (!item) {
+      return res.status(404).json({ message: 'Item not found' });
+    }
+
+    // Get all bids for this item ordered by amount descending
+    const bids = await prisma.bid.findMany({
+      where: { itemId: id },
+      include: {
+        user: {
+          select: {
+            name: true
+          }
+        }
+      },
+      orderBy: {
+        amount: 'desc'
+      }
+    });
+
+    res.json(bids);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error while fetching bids' });
   }
 };
