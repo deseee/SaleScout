@@ -11,8 +11,11 @@ interface AuthRequest extends Request {
   user?: any;
 }
 
-// Custom datetime validation to accept datetime-local format
-const datetimeLocalSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/, 'Invalid datetime format');
+// Updated datetime validation to accept ISO 8601 format with optional milliseconds and timezone
+const iso8601DatetimeSchema = z.string().regex(
+  /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:\d{2})?$/,
+  'Invalid datetime format. Expected ISO 8601 format.'
+);
 
 // Validation schemas
 const saleQuerySchema = z.object({
@@ -29,8 +32,8 @@ const saleQuerySchema = z.object({
 const saleCreateSchema = z.object({
   title: z.string().min(1),
   description: z.string().optional(),
-  startDate: datetimeLocalSchema,
-  endDate: datetimeLocalSchema,
+  startDate: iso8601DatetimeSchema,
+  endDate: iso8601DatetimeSchema,
   address: z.string().min(1),
   city: z.string().min(1),
   state: z.string().min(2).max(2),
