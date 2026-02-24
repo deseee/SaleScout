@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import api from '../lib/api'; // Use local API client
+import api from '../lib/api';
+import { useAuth } from '../components/AuthContext';
 
 const LoginPage = () => {
   const router = useRouter();
+  const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -22,11 +24,15 @@ const LoginPage = () => {
         password,
       });
 
-      // Store token in localStorage
-      localStorage.setItem('token', response.data.token);
+      // Store token in context and localStorage
+      login(response.data.token);
       
-      // Redirect to home page
-      router.push('/');
+      // Redirect based on user role
+      if (response.data.user.role === 'ORGANIZER') {
+        router.push('/organizer/dashboard');
+      } else {
+        router.push('/');
+      }
     } catch (err: any) {
       setError(err.response?.data?.message || 'An error occurred during login');
     } finally {

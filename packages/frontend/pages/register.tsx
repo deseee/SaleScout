@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import api from '../lib/api'; // Use local API client
+import api from '../lib/api';
+import { useAuth } from '../components/AuthContext';
 
 const RegisterPage = () => {
   const router = useRouter();
+  const { login } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -30,11 +32,15 @@ const RegisterPage = () => {
     try {
       const response = await api.post('/auth/register', formData);
 
-      // Store token in localStorage
-      localStorage.setItem('token', response.data.token);
+      // Store token in context and localStorage
+      login(response.data.token);
       
-      // Redirect to home page
-      router.push('/');
+      // Redirect based on user role
+      if (response.data.user.role === 'ORGANIZER') {
+        router.push('/organizer/dashboard');
+      } else {
+        router.push('/');
+      }
     } catch (err: any) {
       setError(err.response?.data?.message || 'An error occurred during registration');
     } finally {
@@ -43,10 +49,7 @@ const RegisterPage = () => {
   };
 
   return (
-    // Add suppressHydrationWarning to temporarily bypass mismatches that may come from layout/auth context.
-    // Root cause likely in _app.tsx or a header component using client‑only data (e.g., localStorage).
-    // Remove this after fixing the underlying layout issue.
-    <div suppressHydrationWarning className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <Head>
         <title>Register - SaleScout</title>
         <meta name="description" content="Create a SaleScout account" />

@@ -1,0 +1,84 @@
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import api from '../lib/api';
+
+interface User {
+  id: string;
+  email: string;
+  name: string;
+  role: string;
+  points: number;
+}
+
+interface AuthContextType {
+  user: User | null;
+  login: (token: string) => void;
+  logout: () => void;
+  isLoading: boolean;
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      api.defaults.headers.Authorization = `Bearer ${token}`;
+      // Decode token to get user info (in a real app, you'd verify with backend)
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        setUser({
+          id: payload.id,
+          email: payload.email,
+          name: payload.name,
+          role: payload.role,
+          points: payload.points || 0
+        });
+      } catch (e) {
+        console.error('Failed to decode token', e);
+        localStorage.removeItem('token');
+      }
+    }
+    setIsLoading(false);
+  }, []);
+
+  const login = (token: string) => {
+    localStorage.setItem('token', token);
+    api.defaults.headers.Authorization = `Bearer ${token}`;
+    // Decode token to get user info
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      setUser({
+        id: payload.id,
+        email: payload.email,
+        name: payload.name,
+        role: payload.role,
+        points: payload.points || 0
+      });
+    } catch (e) {
+      console.error('Failed to decode token', e);
+    }
+  };
+
+  const logout = () => {
+    localStorage.removeItem('token');
+    delete api.defaults.headers.Authorization;
+    setUser(null);
+  };
+
+  return (
+    <AuthContext.Provider value={{ user, login, logout, isLoading }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};

@@ -1,34 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
+import { useAuth } from './AuthContext';
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
-  const [token, setToken] = useState<string | null>(null);
-  const [userName, setUserName] = useState<string | null>(null);
+  const { user, logout } = useAuth();
   const [isMounted, setIsMounted] = useState(false);
   
   // Only access localStorage on the client side
   useEffect(() => {
     setIsMounted(true);
-    if (typeof window !== 'undefined') {
-      const storedToken = localStorage.getItem('token');
-      setToken(storedToken);
-      
-      // In a real app, you would decode the JWT to get the user name
-      // For now, we'll just show a generic name if logged in
-      if (storedToken) {
-        setUserName('User');
-      }
-    }
   }, []);
   
   const handleLogout = () => {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('token');
-    }
-    setToken(null);
-    setUserName(null);
+    logout();
     router.push('/login');
   };
 
@@ -129,12 +115,19 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                 Contact
               </Link>
               
-              {token ? (
+              {user ? (
                 <div className="flex items-center space-x-4">
-                  <span className="text-gray-700">Hi, {userName}</span>
-                  <Link href="/organizer/dashboard" className="text-gray-700 hover:text-blue-600">
-                    Dashboard
-                  </Link>
+                  <span className="text-gray-700">Hi, {user.name}</span>
+                  {user.role === 'ORGANIZER' && (
+                    <Link href="/organizer/dashboard" className="text-gray-700 hover:text-blue-600">
+                      Dashboard
+                    </Link>
+                  )}
+                  {user.role === 'USER' && (
+                    <Link href="/shopper/dashboard" className="text-gray-700 hover:text-blue-600">
+                      Profile
+                    </Link>
+                  )}
                   <button 
                     onClick={handleLogout}
                     className="text-gray-700 hover:text-blue-600"
@@ -181,8 +174,12 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                 <li><Link href="/" className="text-gray-400 hover:text-white">Home</Link></li>
                 <li><Link href="/about" className="text-gray-400 hover:text-white">About</Link></li>
                 <li><Link href="/contact" className="text-gray-400 hover:text-white">Contact</Link></li>
-                <li><Link href="/organizer/dashboard" className="text-gray-400 hover:text-white">Dashboard</Link></li>
-                <li><Link href="/organizer/create-sale" className="text-gray-400 hover:text-white">Create Sale</Link></li>
+                {user?.role === 'ORGANIZER' && (
+                  <li><Link href="/organizer/dashboard" className="text-gray-400 hover:text-white">Dashboard</Link></li>
+                )}
+                {user?.role === 'ORGANIZER' && (
+                  <li><Link href="/organizer/create-sale" className="text-gray-400 hover:text-white">Create Sale</Link></li>
+                )}
               </ul>
             </div>
             <div>
