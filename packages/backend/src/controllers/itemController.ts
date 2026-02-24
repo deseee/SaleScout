@@ -301,7 +301,7 @@ export const placeBid = async (req: AuthRequest, res: Response) => {
     // Calculate minimum bid amount
     let minBidAmount = item.auctionStartPrice;
     if (item.bids.length > 0) {
-      minBidAmount = item.bids[0].amount + (item.bidIncrement || 1);
+      minBidAmount = item.bids[0].amount.plus(item.bidIncrement || 1);
     }
 
     if (amount < minBidAmount) {
