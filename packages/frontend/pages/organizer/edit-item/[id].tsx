@@ -26,14 +26,12 @@ const formatDateForInput = (dateStr: string | null | undefined): string => {
 };
 
 // Helper function to convert datetime-local value to ISO string
-const toISODateString = (value: string): string | undefined => {
+const toISOStringFromDatetimeLocal = (value: string): string | undefined => {
   if (!value) return undefined;
-  
   const date = new Date(value);
-  // Check if date is valid
   if (isNaN(date.getTime())) return undefined;
-  
-  return date.toISOString();
+  // Ensure the output includes seconds and 'Z' (UTC)
+  return date.toISOString(); // e.g., "2026-02-26T10:00:00.000Z"
 };
 
 const EditItemPage = () => {
@@ -133,7 +131,7 @@ const EditItemPage = () => {
           itemData.bidIncrement = parseFloat(formData.bidIncrement);
         }
         // Convert datetime-local string to ISO string for Prisma, only if provided and valid
-        const isoDate = toISODateString(formData.auctionEndTime);
+        const isoDate = toISOStringFromDatetimeLocal(formData.auctionEndTime);
         if (isoDate) {
           itemData.auctionEndTime = isoDate;
         }
