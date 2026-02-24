@@ -58,6 +58,31 @@ const formatPrice = (value: number | string | null | undefined): string => {
   return isNaN(num) ? 'N/A' : `$${num.toFixed(2)}`;
 };
 
+// Helper function to format time remaining
+const formatTimeRemaining = (endTime: string | null | undefined): string => {
+  if (!endTime) return '';
+  
+  const end = new Date(endTime);
+  const now = new Date();
+  const diff = end.getTime() - now.getTime();
+  
+  if (diff <= 0) {
+    return 'Ended';
+  }
+  
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+  
+  if (days > 0) {
+    return `${days}d ${hours}h`;
+  } else if (hours > 0) {
+    return `${hours}h ${minutes}m`;
+  } else {
+    return `${minutes}m`;
+  }
+};
+
 const SaleDetailPage = () => {
   const router = useRouter();
   const { id } = router.query;
@@ -139,28 +164,6 @@ const SaleDetailPage = () => {
 
   const handleBidAmountChange = (itemId: string, value: string) => {
     setBidAmounts(prev => ({ ...prev, [itemId]: value }));
-  };
-
-  const formatTimeRemaining = (endTime: string) => {
-    const end = new Date(endTime);
-    const now = new Date();
-    const diff = end.getTime() - now.getTime();
-    
-    if (diff <= 0) {
-      return 'Ended';
-    }
-    
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    
-    if (days > 0) {
-      return `${days}d ${hours}h`;
-    } else if (hours > 0) {
-      return `${hours}h ${minutes}m`;
-    } else {
-      return `${minutes}m`;
-    }
   };
 
   if (isLoading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
@@ -328,7 +331,7 @@ const SaleDetailPage = () => {
                           </span>
                         </div>
                         
-                        {!isOrganizer && user && item.status === 'AVAILABLE' && item.auctionEndTime && new Date() < new Date(item.auctionEndTime) && (
+                        {!isOrganizer && user && item.status === 'AVAILABLE' && item.auctionEndTime && new Date(item.auctionEndTime) > new Date() && (
                           <div className="flex mb-2">
                             <input
                               type="number"
