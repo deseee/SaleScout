@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Bid } from '@prisma/client';
 import { z } from 'zod';
 
 const prisma = new PrismaClient();
@@ -33,7 +33,7 @@ const bidCreateSchema = z.object({
   amount: z.number().positive()
 });
 
-// Helper function to convert Decimal values to numbers
+// Helper function to convert Decimal values to numbers recursively
 const convertDecimalsToNumbers = (obj: any) => {
   if (!obj) return obj;
   
@@ -45,6 +45,8 @@ const convertDecimalsToNumbers = (obj: any) => {
       converted[key] = obj[key].map((item: any) => 
         typeof item === 'object' ? convertDecimalsToNumbers(item) : item
       );
+    } else if (obj[key] && typeof obj[key] === 'object') {
+      converted[key] = convertDecimalsToNumbers(obj[key]);
     } else {
       converted[key] = obj[key];
     }
@@ -123,13 +125,8 @@ export const getItem = async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'Item not found' });
     }
     
-    // Convert Decimal values to numbers
+    // Convert Decimal values to numbers (recursively handles nested objects)
     const convertedItem = convertDecimalsToNumbers(item);
-    
-    // Also convert Decimal values in bids
-    if (convertedItem.bids) {
-      convertedItem.bids = convertedItem.bids.map(bid => convertDecimalsToNumbers(bid));
-    }
     
     res.json(convertedItem);
   } catch (error) {
@@ -334,16 +331,23 @@ export const placeBid = async (req: AuthRequest, res: Response) => {
       return res.status(400).json({ message: 'Auction has already ended' });
     }
 
-    // Calculate minimum bid amount
-    let minBidAmount = item.auctionStartPrice;
+    // Calculate minimum bid amount using Decimal's plus method
+    let minBidAmount;
     if (item.bids.length > 0) {
-      minBidAmount = item.bids[0].amount + (item.bidIncrement || 1);
+      // item.bids[0].amount is Decimal, use .plus() instead of +
+      minBidAmount = item.bids[0].amount.plus(item.bidIncrement || 1);
+    } else {
+      minBidAmount = item.auctionStartPrice;
     }
 
-    if (amount < minBidAmount) {
+    // Convert amount to number for comparison (minBidAmount is Decimal)
+    const amountNumber = Number(amount);
+    const minBidNumber = minBidAmount.toNumber();
+
+    if (amountNumber < minBidNumber) {
       return res.status(400).json({ 
-        message: `Bid amount must be at least $${minBidAmount.toFixed(2)}`,
-        minBidAmount
+        message: `Bid amount must be at least $${minBidNumber.toFixed(2)}`,
+        minBidAmount: minBidNumber
       });
     }
 
@@ -409,7 +413,7 @@ export const getItemBids = async (req: Request, res: Response) => {
     });
 
     // Convert Decimal values to numbers
-    const convertedBids = bids.map(bid => convertDecimalsToNumbers(bid));
+    const convertedBids = bids.map((bid: Bid) => convertDecimalsToNumbers(bid));
     
     res.json(convertedBids);
   } catch (error) {

@@ -39,18 +39,23 @@ const saleCreateSchema = z.object({
 
 const saleUpdateSchema = saleCreateSchema.partial();
 
-// Helper function to convert Decimal values to numbers
+// Helper function to convert Decimal values to numbers recursively
 const convertDecimalsToNumbers = (obj: any) => {
   if (!obj) return obj;
   
   const converted: any = {};
   for (const key in obj) {
     if (obj[key] && typeof obj[key] === 'object' && 'toNumber' in obj[key]) {
+      // Convert Decimal to number
       converted[key] = obj[key].toNumber();
     } else if (Array.isArray(obj[key])) {
+      // Recursively process arrays
       converted[key] = obj[key].map((item: any) => 
         typeof item === 'object' ? convertDecimalsToNumbers(item) : item
       );
+    } else if (obj[key] && typeof obj[key] === 'object') {
+      // Recursively process nested objects
+      converted[key] = convertDecimalsToNumbers(obj[key]);
     } else {
       converted[key] = obj[key];
     }
@@ -189,13 +194,8 @@ export const getSale = async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'Sale not found' });
     }
     
-    // Convert Decimal values to numbers
+    // Convert Decimal values to numbers (recursively handles nested items)
     const convertedSale = convertDecimalsToNumbers(sale);
-    
-    // Also convert Decimal values in items
-    if (convertedSale.items) {
-      convertedSale.items = convertedSale.items.map(item => convertDecimalsToNumbers(item));
-    }
     
     res.json(convertedSale);
   } catch (error) {
