@@ -1,8 +1,17 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
+// Check for required environment variables
+if (!process.env.STRIPE_SECRET_KEY) {
+  console.error('❌ STRIPE_SECRET_KEY is not set in environment variables. Check your .env file.');
+  process.exit(1);
+}
+console.log('✅ Stripe secret key found.');
+
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
-import dotenv from 'dotenv';
 import { PrismaClient } from '@prisma/client';
 import bodyParser from 'body-parser';
 
@@ -14,9 +23,6 @@ import stripeRoutes from './routes/stripe';
 
 // Import jobs
 import { endAuctions } from './jobs/auctionJob';
-
-// Initialize dotenv
-dotenv.config();
 
 // Initialize Prisma Client
 const prisma = new PrismaClient();

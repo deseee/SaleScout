@@ -57,7 +57,15 @@ export const createConnectAccount = async (req: AuthRequest, res: Response) => {
 
     res.json({ url: accountLink.url });
   } catch (error) {
-    console.error('Stripe Connect account creation error:', error);
+    console.error('Stripe Connect account creation error details:', {
+      message: error.message,
+      type: error.type,
+      stack: error.stack,
+      env: {
+        hasStripeKey: !!process.env.STRIPE_SECRET_KEY,
+        nodeEnv: process.env.NODE_ENV,
+      }
+    });
     res.status(500).json({ message: 'Failed to create Stripe Connect account' });
   }
 };
