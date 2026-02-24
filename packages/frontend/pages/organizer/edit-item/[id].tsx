@@ -25,6 +25,17 @@ const formatDateForInput = (dateStr: string | null | undefined): string => {
   return date.toISOString().slice(0, 16);
 };
 
+// Helper function to convert datetime-local value to ISO string
+const toISODateString = (value: string): string | undefined => {
+  if (!value) return undefined;
+  
+  const date = new Date(value);
+  // Check if date is valid
+  if (isNaN(date.getTime())) return undefined;
+  
+  return date.toISOString();
+};
+
 const EditItemPage = () => {
   const router = useRouter();
   const { id } = router.query;
@@ -121,11 +132,12 @@ const EditItemPage = () => {
         if (formData.bidIncrement) {
           itemData.bidIncrement = parseFloat(formData.bidIncrement);
         }
-        // Convert datetime-local string to ISO string for Prisma, only if provided
-        if (formData.auctionEndTime) {
-          itemData.auctionEndTime = new Date(formData.auctionEndTime).toISOString();
+        // Convert datetime-local string to ISO string for Prisma, only if provided and valid
+        const isoDate = toISODateString(formData.auctionEndTime);
+        if (isoDate) {
+          itemData.auctionEndTime = isoDate;
         }
-        // If auctionEndTime is empty, do NOT send the field at all (omit it)
+        // If auctionEndTime is empty or invalid, do NOT send the field at all (omit it)
       } else {
         if (formData.price) {
           itemData.price = parseFloat(formData.price);

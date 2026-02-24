@@ -23,6 +23,17 @@ const itemSchema = z.object({
 
 type ItemFormData = z.infer<typeof itemSchema>;
 
+// Helper function to convert datetime-local value to ISO string
+const toISODateString = (value: string): string | undefined => {
+  if (!value) return undefined;
+  
+  const date = new Date(value);
+  // Check if date is valid
+  if (isNaN(date.getTime())) return undefined;
+  
+  return date.toISOString();
+};
+
 interface Sale {
   id: string;
   title: string;
@@ -122,11 +133,12 @@ const AddItemsPage = () => {
         if (data.bidIncrement) {
           itemData.bidIncrement = parseFloat(data.bidIncrement);
         }
-        // Convert datetime-local string to ISO string for Prisma, only if provided
-        if (data.auctionEndTime) {
-          itemData.auctionEndTime = new Date(data.auctionEndTime).toISOString();
+        // Convert datetime-local string to ISO string for Prisma, only if provided and valid
+        const isoDate = toISODateString(data.auctionEndTime);
+        if (isoDate) {
+          itemData.auctionEndTime = isoDate;
         }
-        // If auctionEndTime is empty, do NOT send the field at all (omit it)
+        // If auctionEndTime is empty or invalid, do NOT send the field at all (omit it)
       } else {
         if (data.price) {
           itemData.price = parseFloat(data.price);
