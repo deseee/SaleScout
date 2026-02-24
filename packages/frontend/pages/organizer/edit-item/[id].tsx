@@ -16,6 +16,15 @@ interface ItemFormData {
   isAuctionItem: boolean;
 }
 
+// Helper to safely parse date for datetime-local input
+const formatDateForInput = (dateStr: string | null | undefined): string => {
+  if (!dateStr) return '';
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) return '';
+  // datetime-local expects local time string in YYYY-MM-DDTHH:MM format
+  return date.toISOString().slice(0, 16);
+};
+
 const EditItemPage = () => {
   const router = useRouter();
   const { id } = router.query;
@@ -54,7 +63,7 @@ const EditItemPage = () => {
         price: item.price ? item.price.toString() : '',
         auctionStartPrice: item.auctionStartPrice ? item.auctionStartPrice.toString() : '',
         bidIncrement: item.bidIncrement ? item.bidIncrement.toString() : '1',
-        auctionEndTime: item.auctionEndTime ? new Date(item.auctionEndTime).toISOString().slice(0, 16) : '',
+        auctionEndTime: formatDateForInput(item.auctionEndTime),
         status: item.status,
         isAuctionItem: !!item.auctionStartPrice,
       });
@@ -96,8 +105,8 @@ const EditItemPage = () => {
     setSuccess('');
 
     try {
-      // Prepare item data
-      const itemData: any = {
+      // Prepare base item data
+      const itemData: Record<string, any> = {
         title: formData.title,
         description: formData.description,
         status: formData.status,
@@ -106,12 +115,29 @@ const EditItemPage = () => {
 
       // Add price or auction info based on item type
       if (formData.isAuctionItem) {
-        itemData.auctionStartPrice = parseFloat(formData.auctionStartPrice) || 0;
-        itemData.bidIncrement = parseFloat(formData.bidIncrement) || 1;
-        itemData.auctionEndTime = formData.auctionEndTime || null;
+        if (formData.auctionStartPrice) {
+          itemData.auctionStartPrice = parseFloat(formData.auctionStartPrice);
+        }
+        if (formData.bidIncrement) {
+          itemData.bidIncrement = parseFloat(formData.bidIncrement);
+        }
+        // Convert datetime-local string to ISO string for Prisma, only if provided
+        if (formData.auctionEndTime) {
+          itemData.auctionEndTime = new Date(formData.auctionEndTime).toISOString();
+        }
+        // If auctionEndTime is empty, do NOT send the field at all (omit it)
       } else {
-        itemData.price = parseFloat(formData.price) || 0;
+        if (formData.price) {
+          itemData.price = parseFloat(formData.price);
+        }
       }
+
+      // Remove undefined or null values to avoid Prisma validation issues
+      Object.keys(itemData).forEach(key => {
+        if (itemData[key] === undefined || itemData[key] === null) {
+          delete itemData[key];
+        }
+      });
 
       // Update item
       const response = await api.put(`/items/${id}`, itemData);

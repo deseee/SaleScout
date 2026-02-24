@@ -104,7 +104,8 @@ const AddItemsPage = () => {
 
   const onSubmit = async (data: ItemFormData) => {
     try {
-      const itemData: any = {
+      // Build base item data
+      const itemData: Record<string, any> = {
         saleId: saleId as string,
         title: data.title,
         description: data.description || '',
@@ -112,13 +113,32 @@ const AddItemsPage = () => {
         photoUrls: photoUrls,
       };
 
+      // Handle auction vs fixed price
       if (data.isAuctionItem) {
-        itemData.auctionStartPrice = data.auctionStartPrice ? parseFloat(data.auctionStartPrice) : 0;
-        itemData.bidIncrement = data.bidIncrement ? parseFloat(data.bidIncrement) : 1;
-        itemData.auctionEndTime = data.auctionEndTime || null;
+        // Only send auction fields if they have values (backend may require them)
+        if (data.auctionStartPrice) {
+          itemData.auctionStartPrice = parseFloat(data.auctionStartPrice);
+        }
+        if (data.bidIncrement) {
+          itemData.bidIncrement = parseFloat(data.bidIncrement);
+        }
+        // Convert datetime-local string to ISO string for Prisma, only if provided
+        if (data.auctionEndTime) {
+          itemData.auctionEndTime = new Date(data.auctionEndTime).toISOString();
+        }
+        // If auctionEndTime is empty, do NOT send the field at all (omit it)
       } else {
-        itemData.price = data.price ? parseFloat(data.price) : 0;
+        if (data.price) {
+          itemData.price = parseFloat(data.price);
+        }
       }
+
+      // Remove undefined or null values to avoid Prisma validation issues
+      Object.keys(itemData).forEach(key => {
+        if (itemData[key] === undefined || itemData[key] === null) {
+          delete itemData[key];
+        }
+      });
 
       await api.post('/items', itemData);
       
