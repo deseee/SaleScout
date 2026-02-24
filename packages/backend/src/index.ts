@@ -20,6 +20,8 @@ import authRoutes from './routes/auth';
 import saleRoutes from './routes/sales';
 import itemRoutes from './routes/items';
 import stripeRoutes from './routes/stripe';
+import favoriteRoutes from './routes/favorites';
+import userRoutes from './routes/users';
 
 // Import jobs
 import { endAuctions } from './jobs/auctionJob';
@@ -58,25 +60,12 @@ app.use('/api/auth', authRoutes);
 app.use('/api/sales', saleRoutes);
 app.use('/api/items', itemRoutes);
 app.use('/api/stripe', stripeRoutes);
+app.use('/api/favorites', favoriteRoutes);
+app.use('/api/users', userRoutes);
 
 // Health check endpoint
 app.get('/', (req, res) => {
   res.json({ message: 'Estate Sale Marketplace API' });
 });
 
-// Run auction end job every minute for demo purposes
-setInterval(endAuctions, 60000);
-
-// Graceful shutdown
-process.on('SIGINT', async () => {
-  await prisma.$disconnect();
-  process.exit(0);
-});
-
-// Start server
-app.listen(port, '0.0.0.0', () => {
-  console.log(`Backend server running on port ${port}`);
-  
-  // Run auction job once on startup
-  endAuctions();
-});
+// Run auction end
