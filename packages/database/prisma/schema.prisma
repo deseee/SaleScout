@@ -26,6 +26,8 @@ model User {
   bids             Bid[]
   lineEntries      LineEntry[]
   subscribedSales  SaleSubscriber[]  @relation("SubscribedSales")
+  Referral         Referral[]        @relation("referrals")
+  referredUsers    Referral[]        @relation("referred")
 }
 
 model Organizer {
@@ -176,7 +178,7 @@ model SaleSubscriber {
   saleId    String
   sale      Sale     @relation(fields: [saleId], references: [id])
   userId    String?
-  user      User?    @relation(fields: [userId], references: [id], name: "SubscribedSales")
+  user      User?    @relation("UserSubscriptions", fields: [userId], references: [id])
   phone     String?  // for non-registered users
   email     String?  // for email digests
   createdAt DateTime @default(now())
