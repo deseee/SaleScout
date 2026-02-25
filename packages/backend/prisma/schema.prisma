@@ -1,0 +1,129 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String     @id @default(cuid())
+  email         String     @unique
+  password      String
+  name          String
+  role          String     @default("USER") // USER, ORGANIZER, ADMIN
+  points        Int        @default(0)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  organizer     Organizer?
+  purchases     Purchase[]
+  favorites     Favorite[]
+  bids          Bid[]
+  subscriptions SaleSubscriber[]
+}
+
+model Organizer {
+  id           String   @id @default(cuid())
+  businessName String
+  phone        String
+  address      String
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id])
+  sales        Sale[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Sale {
+  id          String     @id @default(cuid())
+  title       String
+  description String?
+  startDate   DateTime
+  endDate     DateTime
+  address     String
+  city        String
+  state       String
+  zip         String
+  lat         Float
+  lng         Float
+  photoUrls   String[]
+  tags        String[]
+  status      String     @default("DRAFT") // DRAFT, PUBLISHED, ENDED
+  organizerId String
+  organizer   Organizer  @relation(fields: [organizerId], references: [id])
+  items       Item[]
+  favorites   Favorite[]
+  subscribers SaleSubscriber[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model Item {
+  id               String    @id @default(cuid())
+  title            String
+  description      String?
+  price            Float?
+  auctionStartPrice Float?
+  currentBid       Float?
+  bidIncrement     Float?    @default(1)
+  auctionEndTime   DateTime?
+  status           String    @default("AVAILABLE") // AVAILABLE, SOLD, RESERVED, AUCTION_ENDED
+  photoUrls        String[]
+  saleId           String
+  sale             Sale      @relation(fields: [saleId], references: [id])
+  bids             Bid[]
+  purchases        Purchase[]
+  favorites        Favorite[]
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+}
+
+model Favorite {
+  id     String   @id @default(cuid())
+  userId String
+  user   User     @relation(fields: [userId], references: [id])
+  saleId String?
+  sale   Sale?    @relation(fields: [saleId], references: [id])
+  itemId String?
+  item   Item?    @relation(fields: [itemId], references: [id])
+  @@unique([userId, saleId])
+  @@unique([userId, itemId])
+}
+
+model Bid {
+  id     String   @id @default(cuid())
+  amount Float
+  userId String
+  user   User     @relation(fields: [userId], references: [id])
+  itemId String
+  item   Item     @relation(fields: [itemId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model Purchase {
+  id     String   @id @default(cuid())
+  amount Float
+  status String   @default("PENDING") // PENDING, PAID, REFUNDED
+  userId String
+  user   User     @relation(fields: [userId], references: [id])
+  itemId String
+  item   Item     @relation(fields: [itemId], references: [id])
+  saleId String
+  sale   Sale     @relation(fields: [saleId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SaleSubscriber {
+  userId String
+  user   User     @relation(fields: [userId], references: [id])
+  saleId String
+  sale   Sale     @relation(fields: [saleId], references: [id])
+  phone  String?
+  email  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@id([userId, saleId])
+}

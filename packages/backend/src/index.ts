@@ -1,77 +1,44 @@
-import dotenv from 'dotenv';
-dotenv.config();
-
-// Check for required environment variables
-if (!process.env.STRIPE_SECRET_KEY) {
-  console.error('❌ STRIPE_SECRET_KEY is not set in environment variables. Check your .env file.');
-  process.exit(1);
-}
-console.log('✅ Stripe secret key found.');
-
 import express from 'express';
 import cors from 'cors';
-import helmet from 'helmet';
-import morgan from 'morgan';
-import { PrismaClient } from '@prisma/client';
-import bodyParser from 'body-parser';
-
-// Import routes
+import dotenv from 'dotenv';
 import authRoutes from './routes/auth';
 import saleRoutes from './routes/sales';
 import itemRoutes from './routes/items';
-import stripeRoutes from './routes/stripe';
 import favoriteRoutes from './routes/favorites';
 import userRoutes from './routes/users';
+import stripeRoutes from './routes/stripe';
+import notificationRoutes from './routes/notifications';
+import { authenticateToken } from './middleware/auth';
+import './jobs/auctionJob';
+import './jobs/notificationJob';
 
-// Import jobs
-import { endAuctions } from './jobs/auctionJob';
-
-// Initialize Prisma Client
-const prisma = new PrismaClient();
+dotenv.config();
 
 const app = express();
-const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 5000;
+const PORT = process.env.PORT || 3001;
 
-// Configure CORS options - more permissive for development
-const corsOptions = {
-  origin: process.env.NODE_ENV === 'production' 
-    ? [
-        'http://localhost:3000', 
-        'http://127.0.0.1:3000'
-      ]
-    : '*', // Allow all origins in development
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization'],
-  exposedHeaders: ['Authorization']
-};
-
-// Middleware
-app.use(helmet());
-app.use(morgan('combined'));
+app.use(cors());
 app.use(express.json());
-app.use(cors(corsOptions));
 
-// Stripe webhook needs raw body
-app.use('/api/stripe/webhook', bodyParser.raw({ type: 'application/json' }));
+// Health check endpoint
+app.get('/', (req, res) => {
+  res.json({ message: 'SaleScout API is running!' });
+});
 
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/sales', saleRoutes);
 app.use('/api/items', itemRoutes);
-app.use('/api/stripe', stripeRoutes);
 app.use('/api/favorites', favoriteRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/stripe', stripeRoutes);
+app.use('/api/notifications', notificationRoutes);
 
-// Health check endpoint
-app.get('/', (req, res) => {
-  res.json({ message: 'Estate Sale Marketplace API' });
+// Protected route example
+app.get('/api/protected', authenticateToken, (req, res) => {
+  res.json({ message: 'This is a protected route', user: (req as any).user });
 });
 
-// Run auction end job
-endAuctions();
-setInterval(endAuctions, 60000); // Run every minute
-
-app.listen(port, '0.0.0.0', () => {
-  console.log(`🚀 Server running on port ${port}`);
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
 });
