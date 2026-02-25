@@ -87,7 +87,7 @@ router.get('/me/points', authenticate, async (req: AuthRequest, res: Response) =
     const user = await prisma.user.findUnique({
       where: { id: req.user.id },
       include: {
-        userBadges: { include: { badge: true } }
+        UserBadge: { include: { badge: true } }
       }
     });
 
@@ -97,14 +97,12 @@ router.get('/me/points', authenticate, async (req: AuthRequest, res: Response) =
 
     res.json({
       points: user.points,
-      badges: user.userBadges.map(ub => ub.badge)
+      badges: user.UserBadge ? user.UserBadge.map(ub => ub.badge) : []
     });
   } catch (error) {
     console.error('Error fetching user points:', error);
     res.status(500).json({ message: 'Server error while fetching points' });
   }
 });
-
-include: { UserBadge: { include: { badge: true } } }
 
 export default router;
