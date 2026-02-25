@@ -139,7 +139,7 @@ export const sendSMSUpdate = async (req: AuthRequest, res: Response) => {
     }
 
     if (sale.organizerId !== organizerId) {
-      return res.status(403).3json({ message: 'Not authorized to send updates for this sale' });
+      return res.status(403).json({ message: 'Not authorized to send updates for this sale' });
     }
 
     // Get subscribers with phone numbers
@@ -246,7 +246,7 @@ export const sendWeeklyDigest = async () => {
     const results = [];
     for (const subscriber of subscribers) {
       try {
-        const data = await resend.emails.send({
+        const { data, error } = await resend.emails.send({
           from: 'SaleScout <notifications@salescout.app>',
           to: subscriber.email!,
           subject: 'Upcoming Weekend Estate Sales',
@@ -261,7 +261,13 @@ export const sendWeeklyDigest = async () => {
             </p>
           `
         });
-        results.push({ email: subscriber.email, success: true, id: data.id });
+        
+        if (error) {
+          console.error('Resend error:', error);
+          results.push({ email: subscriber.email, success: false, error: error.message });
+        } else {
+          results.push({ email: subscriber.email, success: true, id: data?.id });
+        }
       } catch (error) {
         console.error(`Failed to send email to ${subscriber.email}:`, error);
         results.push({ email: subscriber.email, success: false, error: (error as Error).message });
