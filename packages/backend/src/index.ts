@@ -8,7 +8,7 @@ import favoriteRoutes from './routes/favorites';
 import userRoutes from './routes/users';
 import stripeRoutes from './routes/stripe';
 import notificationRoutes from './routes/notifications';
-import { authenticateToken } from './middleware/auth';
+import { authenticate } from './middleware/auth';
 import './jobs/auctionJob';
 import './jobs/notificationJob';
 
@@ -35,7 +35,7 @@ app.use('/api/stripe', stripeRoutes);
 app.use('/api/notifications', notificationRoutes);
 
 // Protected route example
-app.get('/api/protected', authenticateToken, (req, res) => {
+app.get('/api/protected', authenticate, (req, res) => {
   res.json({ message: 'This is a protected route', user: (req as any).user });
 });
 
