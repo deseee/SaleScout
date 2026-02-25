@@ -114,7 +114,7 @@ export const getUserProfile = async (req: AuthRequest, res: Response) => {
     const user = await prisma.user.findUnique({
       where: { id: req.user.id },
       include: {
-        userBadges: {
+        UserBadge: {
           include: {
             badge: true
           }
@@ -150,7 +150,7 @@ export const getLeaderboard = async (req: Request, res: Response) => {
         id: true,
         name: true,
         points: true,
-        userBadges: {
+        UserBadge: {
           include: {
             badge: {
               select: {
