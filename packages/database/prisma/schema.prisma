@@ -8,29 +8,24 @@ datasource db {
 }
 
 model User {
-  id              String      @id @default(cuid())
-  email           String      @unique
-  name            String?
-  password        String?     // Make password optional initially
-  role            Role        @default(USER)
-  phone           String?     // Added for SMS notifications
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
-  organizerProfile Organizer? 
-  purchases       Purchase[]
-  favorites       Favorite[]
-  reviews         Review[]
-  bids            Bid[]
-  points          Int         @default(0)
-  referralCode    String?      @unique
-  referredBy      String?
-  badges          UserBadge[]
-  referrals       Referral[]  @relation("referrals")
-  referredUsers   Referral[]  @relation("referred")
-  subscriptions   SaleSubscriber[] @relation("UserSubscriptions")
-  affiliateLinks  AffiliateLink[]
-  lineEntries     LineEntry[]
-  subscribedSales SaleSubscriber[] @relation("SubscribedSales")
+  id               String            @id @default(cuid())
+  email            String            @unique
+  password         String?
+  name             String?
+  role             Role              @default(USER)
+  phone            String?           // add this
+  referralCode     String?           @unique
+  referredBy       String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  points           Int               @default(0)
+  organizerProfile Organizer?
+  purchases        Purchase[]
+  favorites        Favorite[]
+  reviews          Review[]
+  bids             Bid[]
+  lineEntries      LineEntry[]
+  subscribedSales  SaleSubscriber[]  @relation("SubscribedSales")
 }
 
 model Organizer {
@@ -47,33 +42,30 @@ model Organizer {
 }
 
 model Sale {
-  id             String      @id @default(cuid())
-  organizerId    String
-  organizer      Organizer   @relation(fields: [organizerId], references: [id])
-  title          String
-  description    String?
-  startDate      DateTime
-  endDate        DateTime
-  address        String
-  city           String
-  state          String
-  zip            String
-  lat            Float?
-  lng            Float?
-  status         SaleStatus  @default(DRAFT)
-  photoUrls      String[]
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
-  items          Item[]
-  favorites      Favorite[]
-  reviews        Review[]
-  purchases      Purchase[]
-  isAuctionSale  Boolean     @default(false)
-  tags           String[]
-  earlyAccess    Boolean     @default(false)
-  subscribers    SaleSubscriber[] @relation("SubscribedSales")
-  affiliateLinks AffiliateLink[]
-  lineEntries    LineEntry[]
+  id            String       @id @default(cuid())
+  organizerId   String
+  organizer     Organizer    @relation(fields: [organizerId], references: [id])
+  title         String
+  description   String?
+  startDate     DateTime
+  endDate       DateTime
+  address       String
+  city          String
+  state         String
+  zip           String
+  lat           Float?
+  lng           Float?
+  status        SaleStatus   @default(DRAFT)
+  photoUrls     String[]
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  items         Item[]
+  favorites     Favorite[]
+  reviews       Review[]
+  isAuctionSale Boolean      @default(false)
+  tags          String[]
+  lineEntries   LineEntry[]
+  subscribers   SaleSubscriber[]
 }
 
 model Item {
@@ -182,9 +174,9 @@ model Referral {
 model SaleSubscriber {
   id        String   @id @default(cuid())
   saleId    String
-  sale      Sale     @relation("SubscribedSales", fields: [saleId], references: [id])
+  sale      Sale     @relation(fields: [saleId], references: [id])
   userId    String?
-  user      User?    @relation("UserSubscriptions", fields: [userId], references: [id])
+  user      User?    @relation(fields: [userId], references: [id], name: "SubscribedSales")
   phone     String?  // for non-registered users
   email     String?  // for email digests
   createdAt DateTime @default(now())
@@ -195,19 +187,19 @@ model SaleSubscriber {
 }
 
 model LineEntry {
-  id        String   @id @default(cuid())
-  saleId    String
-  sale      Sale     @relation(fields: [saleId], references: [id])
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  position  Int
-  status    String   @default("WAITING") // WAITING, NOTIFIED, ENTERED, CANCELLED
+  id         String   @id @default(cuid())
+  saleId     String
+  sale       Sale     @relation(fields: [saleId], references: [id])
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  position   Int
+  status     String   @default("WAITING") // WAITING, NOTIFIED, ENTERED, CANCELLED
   notifiedAt DateTime?
-  enteredAt DateTime?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  enteredAt  DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
-  @@unique([saleId, userId]) // one entry per user per sale
+  @@unique([saleId, userId])
 }
 
 model AffiliateLink {
