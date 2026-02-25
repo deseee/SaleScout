@@ -117,6 +117,12 @@ const ShopperDashboard = () => {
     );
   }
 
+  // Helper function to format currency
+  const formatCurrency = (amount: number | string): string => {
+    const num = typeof amount === 'string' ? parseFloat(amount) : amount;
+    return isNaN(num) ? '$0.00' : `$${num.toFixed(2)}`;
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Head>
@@ -280,7 +286,7 @@ const ShopperDashboard = () => {
                               {purchase.sale?.title || 'Unknown Sale'}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                              ${purchase.amount.toFixed(2)}
+                              {formatCurrency(purchase.amount)}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
@@ -416,7 +422,7 @@ const ShopperDashboard = () => {
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                              ${bid.amount.toFixed(2)}
+                              {formatCurrency(bid.amount)}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
