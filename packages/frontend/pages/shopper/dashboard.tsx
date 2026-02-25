@@ -29,7 +29,7 @@ interface Favorite {
     city: string;
     state: string;
     photoUrls: string[];
-  };
+  } | null;
 }
 
 const ShopperDashboard = () => {
@@ -191,37 +191,40 @@ const ShopperDashboard = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {favorites.map((favorite) => (
-                <Link 
-                  href={`/sales/${favorite.sale.id}`} 
-                  key={favorite.sale.id}
-                  className="border rounded-lg overflow-hidden hover:shadow-lg transition-shadow"
-                >
-                  <div className="relative">
-                    {favorite.sale.photoUrls.length > 0 ? (
-                      <img 
-                        src={favorite.sale.photoUrls[0]} 
-                        alt={favorite.sale.title} 
-                        className="w-full h-48 object-cover"
-                      />
-                    ) : (
-                      <div className="bg-gray-200 h-48 flex items-center justify-center">
-                        <span className="text-gray-500">No image</span>
+              {favorites
+                .filter(favorite => favorite.sale) // Filter out favorites with null sale
+                .map((favorite) => (
+                  <Link 
+                    href={`/sales/${favorite.sale!.id}`} 
+                    key={favorite.sale!.id}
+                    className="border rounded-lg overflow-hidden hover:shadow-lg transition-shadow"
+                  >
+                    <div className="relative">
+                      {favorite.sale!.photoUrls.length > 0 ? (
+                        <img 
+                          src={favorite.sale!.photoUrls[0]} 
+                          alt={favorite.sale!.title} 
+                          className="w-full h-48 object-cover"
+                        />
+                      ) : (
+                        <div className="bg-gray-200 h-48 flex items-center justify-center">
+                          <span className="text-gray-500">No image</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-4">
+                      <h3 className="text-lg font-bold mb-2">{favorite.sale!.title}</h3>
+                      <div className="flex justify-between text-sm text-gray-500 mb-2">
+                        <span>{new Date(favorite.sale!.startDate).toLocaleDateString()}</span>
+                        <span>{favorite.sale!.city}, {favorite.sale!.state}</span>
                       </div>
-                    )}
-                  </div>
-                  <div className="p-4">
-                    <h3 className="text-lg font-bold mb-2">{favorite.sale.title}</h3>
-                    <div className="flex justify-between text-sm text-gray-500 mb-2">
-                      <span>{new Date(favorite.sale.startDate).toLocaleDateString()}</span>
-                      <span>{favorite.sale.city}, {favorite.sale.state}</span>
+                      <div className="text-sm text-gray-600">
+                        {new Date(favorite.sale!.endDate) > new Date() ? 'Ongoing' : 'Ended'}
+                      </div>
                     </div>
-                    <div className="text-sm text-gray-600">
-                      {new Date(favorite.sale.endDate) > new Date() ? 'Ongoing' : 'Ended'}
-                    </div>
-                  </div>
-                </Link>
-              ))}
+                  </Link>
+                ))
+              }
             </div>
           )}
         </div>
