@@ -62,8 +62,8 @@ const convertDecimalsToNumbers = (obj: any) => {
       converted[key] = obj[key].map((item: any) => 
         typeof item === 'object' ? convertDecimalsToNumbers(item) : item
       );
-    } else if (obj[key] && typeof obj[key] === 'object') {
-      // Recursively process nested objects
+    } else if (obj[key] && typeof obj[key] === 'object' && !(obj[key] instanceof Date)) {
+      // Recursively process nested objects, but don't convert Date objects
       converted[key] = convertDecimalsToNumbers(obj[key]);
     } else {
       converted[key] = obj[key];
@@ -203,8 +203,14 @@ export const getSale = async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'Sale not found' });
     }
     
+    // Log the raw sale data for debugging
+    console.log('Raw sale data:', JSON.stringify(sale, null, 2));
+    
     // Convert Decimal values to numbers (recursively handles nested items)
     const convertedSale = convertDecimalsToNumbers(sale);
+    
+    // Log the converted sale data for debugging
+    console.log('Converted sale data:', JSON.stringify(convertedSale, null, 2));
     
     res.json(convertedSale);
   } catch (error) {
