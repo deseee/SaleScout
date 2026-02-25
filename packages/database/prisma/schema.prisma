@@ -8,26 +8,26 @@ datasource db {
 }
 
 model User {
-  id               String            @id @default(cuid())
-  email            String            @unique
-  password         String?
-  name             String?
-  role             Role              @default(USER)
-  phone            String?           // add this
-  referralCode     String?           @unique
-  referredBy       String?
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
-  points           Int               @default(0)
+  id              String      @id @default(cuid())
+  email           String      @unique
+  password        String?
+  name            String?
+  role            Role        @default(USER)
+  phone           String?     // add this
+  referralCode    String?     @unique
+  referredBy      String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  points          Int         @default(0)
   organizerProfile Organizer?
-  purchases        Purchase[]
-  favorites        Favorite[]
-  reviews          Review[]
-  bids             Bid[]
-  lineEntries      LineEntry[]
-  subscribedSales  SaleSubscriber[]  @relation("SubscribedSales")
-  Referral         Referral[]        @relation("referrals")
-  referredUsers    Referral[]        @relation("referred")
+  purchases       Purchase[]
+  favorites       Favorite[]
+  reviews         Review[]
+  bids            Bid[]
+  lineEntries     LineEntry[]
+  subscriptions   SaleSubscriber[] @relation("UserSubscriptions")
+  Referral        Referral[]  @relation("referrals")
+  referredUsers   Referral[]  @relation("referred")
 }
 
 model Organizer {
@@ -67,7 +67,7 @@ model Sale {
   isAuctionSale Boolean      @default(false)
   tags          String[]
   lineEntries   LineEntry[]
-  subscribers   SaleSubscriber[]
+  subscribers   SaleSubscriber[] @relation("SaleSubscribers")
 }
 
 model Item {
@@ -109,7 +109,7 @@ model Purchase {
   saleId               String?
   sale                 Sale?        @relation(fields: [saleId], references: [id])
   amount               Decimal
-  stripePaymentIntentId String?      @unique
+  stripePaymentIntentId String?     @unique
   status               PurchaseStatus @default(PENDING)
   createdAt            DateTime     @default(now())
   updatedAt            DateTime     @updatedAt
@@ -176,16 +176,16 @@ model Referral {
 model SaleSubscriber {
   id        String   @id @default(cuid())
   saleId    String
-  sale      Sale     @relation(fields: [saleId], references: [id])
+  sale      Sale     @relation("SaleSubscribers", fields: [saleId], references: [id])
   userId    String?
-  user      User?    @relation("UserSubscriptions", fields: [userId], references: [id])
+  user      User?    @relation("UserSubscriptions", fields: [userId], references: [id], map: "SaleSubscriber_userId_fkey_unique")
   phone     String?  // for non-registered users
   email     String?  // for email digests
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([saleId, userId])
-  @@unique([saleId, phone])
+  @@unique([saleId, userId], map: "SaleSubscriber_saleId_userId_unique")
+  @@unique([saleId, phone], map: "SaleSubscriber_saleId_phone_unique")
 }
 
 model LineEntry {
