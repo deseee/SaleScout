@@ -499,4 +499,93 @@ const SaleDetailPage = () => {
                           )}
                         </div>
                         
-                        <div className
+                        <div className="mb-2">
+                          <span className="text-sm text-gray-600">
+                            Minimum bid: {formatPrice((item.currentBid || item.auctionStartPrice) + (item.bidIncrement || 1))}
+                          </span>
+                        </div>
+                        
+                        {!isOrganizer && user && item.status === 'AVAILABLE' && item.auctionEndTime && new Date(item.auctionEndTime) > new Date() && (
+                          <div className="flex mb-2">
+                            <input
+                              type="number"
+                              step="0.01"
+                              min={(item.currentBid || item.auctionStartPrice) + (item.bidIncrement || 1)}
+                              value={bidAmounts[item.id] || ''}
+                              onChange={(e) => handleBidAmountChange(item.id, e.target.value)}
+                              className="flex-grow px-2 py-1 border border-gray-300 rounded-l text-sm text-gray-900"
+                              placeholder="Enter bid amount"
+                            />
+                            <button
+                              onClick={() => handlePlaceBid(item.id)}
+                              className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-1 rounded-r"
+                            >
+                              Bid
+                            </button>
+                          </div>
+                        )}
+                        
+                        {item.status === 'AUCTION_ENDED' && (
+                          <div className="text-sm text-center py-2 bg-gray-100 rounded text-gray-600">
+                            Auction ended
+                          </div>
+                        )}
+                        
+                        {item.status === 'SOLD' && (
+                          <div className="text-sm text-center py-2 bg-green-100 text-green-800 rounded">
+                            Item sold
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      /* Regular sale item */
+                      <div className="flex justify-between items-center">
+                        <span className="font-bold text-blue-600">
+                          {formatPrice(item.price)}
+                        </span>
+                        {item.currentBid && (
+                          <span className="text-sm bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
+                            Current bid: {formatPrice(item.currentBid)}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                    
+                    <div className="mt-2 flex justify-between items-center">
+                      <span className={`px-2 py-1 rounded text-xs ${
+                        item.status === 'AVAILABLE' ? 'bg-green-100 text-green-800' :
+                        item.status === 'SOLD' ? 'bg-red-100 text-red-800' :
+                        item.status === 'AUCTION_ENDED' ? 'bg-gray-100 text-gray-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {item.status.replace(/_/g, ' ')}
+                      </span>
+                      {isOrganizer && (
+                        <Link 
+                          href={`/organizer/edit-item/${item.id}`}
+                          className="text-blue-600 hover:text-blue-800 text-sm"
+                        >
+                          Edit
+                        </Link>
+                      )}
+                      {!isOrganizer && user && !sale.isAuctionSale && item.status === 'AVAILABLE' && (
+                        <button
+                          onClick={() => handleBuyNow(item.id)}
+                          className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-1 rounded"
+                        >
+                          Buy Now
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </main>
+    </div>
+  );
+};
+
+export default SaleDetailPage;
