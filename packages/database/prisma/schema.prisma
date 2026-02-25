@@ -182,9 +182,9 @@ model Referral {
 model SaleSubscriber {
   id        String   @id @default(cuid())
   saleId    String
-  sale      Sale     @relation("SubscribedSales", fields: [saleId], references: [id])
+  sale      Sale     @relation(fields: [saleId], references: [id])
   userId    String?
-  user      User?    @relation("UserSubscriptions", fields: [userId], references: [id])
+  user      User?    @relation("SubscribedSales", fields: [userId], references: [id])
   phone     String?  // for non-registered users
   email     String?  // for email digests
   createdAt DateTime @default(now())
