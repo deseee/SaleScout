@@ -139,7 +139,7 @@ export const sendSMSUpdate = async (req: AuthRequest, res: Response) => {
     }
 
     if (sale.organizerId !== organizerId) {
-      return res.status(403).json({ message: 'Not authorized to send updates for this sale' });
+      return res.status(403).3json({ message: 'Not authorized to send updates for this sale' });
     }
 
     // Get subscribers with phone numbers
@@ -268,7 +268,7 @@ export const sendWeeklyDigest = async () => {
       }
     }
 
-    console.log(`Weekly digest sent to ${results.filter(r => r.success).1} of ${results.length} recipients`);
+    console.log(`Weekly digest sent to ${results.filter(r => r.success).length} of ${results.length} recipients`);
     return results;
   } catch (error) {
     console.error('Error sending weekly digest:', error);

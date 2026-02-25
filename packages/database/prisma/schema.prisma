@@ -26,6 +26,7 @@ model User {
   badges          UserBadge[]
   referrals       Referral[]  @relation("referrer")
   referredUsers   Referral[]  @relation("referred")
+  subscriptions   SaleSubscriber[]
 }
 
 model Organizer {
@@ -66,6 +67,7 @@ model Sale {
   isAuctionSale  Boolean     @default(false)
   tags           String[]
   earlyAccess    Boolean     @default(false)
+  subscribers    SaleSubscriber[]
 }
 
 model Item {
@@ -139,14 +141,14 @@ model Review {
 }
 
 model Badge {
-  id          String     @id @default(cuid())
+  id          String   @id @default(cuid())
   name        String
   description String
   iconUrl     String?
-  criteria    Json       // e.g., {type: "sales_visited", count: 5}
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  userBadges  UserBadge[]
+  criteria    Json     // e.g., { "type": "sales_visited", "count": 5 }
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  users       UserBadge[]
 }
 
 model UserBadge {
@@ -161,14 +163,28 @@ model UserBadge {
 }
 
 model Referral {
-  id              String   @id @default(cuid())
-  referrerId      String
-  referrer        User     @relation("referrer", fields: [referrerId], references: [id])
-  referredUserId  String
-  referredUser    User     @relation("referred", fields: [referredUserId], references: [id])
-  createdAt       DateTime @default(now())
+  id             String   @id @default(cuid())
+  referrerId     String
+  referrer       User     @relation("referrer", fields: [referrerId], references: [id])
+  referredUserId String
+  referredUser   User     @relation("referred", fields: [referredUserId], references: [id])
+  createdAt      DateTime @default(now())
 
   @@unique([referrerId, referredUserId])
+}
+
+model SaleSubscriber {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  saleId    String
+  sale      Sale     @relation(fields: [saleId], references: [id])
+  phone     String?
+  email     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, saleId])
 }
 
 enum Role {
