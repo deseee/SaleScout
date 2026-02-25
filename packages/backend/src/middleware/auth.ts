@@ -5,7 +5,7 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 // Extend Express Request type
-interface AuthRequest extends Request {
+export interface AuthRequest extends Request {
   user?: any;
 }
 
