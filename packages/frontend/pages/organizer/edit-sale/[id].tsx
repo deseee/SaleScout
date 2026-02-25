@@ -17,6 +17,14 @@ interface SaleFormData {
   isAuctionSale: boolean;
 }
 
+// Helper to safely parse date for datetime-local input
+const formatDateForInput = (dateStr: string | null | undefined): string => {
+  if (!dateStr) return '';
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) return '';
+  return date.toISOString().slice(0, 16);
+};
+
 const EditSalePage = () => {
   const router = useRouter();
   const { id } = router.query;
@@ -52,8 +60,8 @@ const EditSalePage = () => {
       setFormData({
         title: sale.title,
         description: sale.description || '',
-        startDate: sale.startDate ? new Date(sale.startDate).toISOString().slice(0, 16) : '',
-        endDate: sale.endDate ? new Date(sale.endDate).toISOString().slice(0, 16) : '',
+        startDate: formatDateForInput(sale.startDate),
+        endDate: formatDateForInput(sale.endDate),
         address: sale.address,
         city: sale.city,
         state: sale.state,

@@ -24,13 +24,29 @@ export const createConnectAccount = async (req: AuthRequest, res: Response) => {
       return res.status(404).json({ message: 'Organizer profile not found' });
     }
 
+    // If organizer already has a Stripe Connect ID
     if (organizer.stripeConnectId) {
-      // If they already have an account, return a new login link
-      const loginLink = await stripe.accounts.createLoginLink(organizer.stripeConnectId);
-      return res.json({ url: loginLink.url });
+      try {
+        // First, try to create a login link (works only if account is fully onboarded)
+        const loginLink = await stripe.accounts.createLoginLink(organizer.stripeConnectId);
+        return res.json({ url: loginLink.url });
+      } catch (loginError: any) {
+        // If login link fails because onboarding is incomplete, create a new account link
+        if (loginError.message?.includes('not completed onboarding')) {
+          const accountLink = await stripe.accountLinks.create({
+            account: organizer.stripeConnectId,
+            refresh_url: `${process.env.FRONTEND_URL}/organizer/dashboard`,
+            return_url: `${process.env.FRONTEND_URL}/organizer/dashboard`,
+            type: 'account_onboarding',
+          });
+          return res.json({ url: accountLink.url });
+        }
+        // Re-throw other errors
+        throw loginError;
+      }
     }
 
-    // Create a new Stripe Connect Express account
+    // No existing Stripe account: create a new one
     const account = await stripe.accounts.create({
       type: 'express',
       email: req.user.email,
@@ -56,11 +72,28 @@ export const createConnectAccount = async (req: AuthRequest, res: Response) => {
     });
 
     res.json({ url: accountLink.url });
-  } catch (error) {
+  } catch (error: unknown) {
+    // Safely extract error information
+    let message = 'Unknown error';
+    let type = undefined;
+    let stack = undefined;
+
+    if (error instanceof Error) {
+      message = error.message;
+      stack = error.stack;
+      type = (error as any).type;
+    } else if (typeof error === 'string') {
+      message = error;
+    } else if (error && typeof error === 'object') {
+      message = String(error);
+      type = (error as any).type;
+      stack = (error as any).stack;
+    }
+
     console.error('Stripe Connect account creation error details:', {
-      message: error.message,
-      type: error.type,
-      stack: error.stack,
+      message,
+      type,
+      stack,
       env: {
         hasStripeKey: !!process.env.STRIPE_SECRET_KEY,
         nodeEnv: process.env.NODE_ENV,
@@ -139,7 +172,7 @@ export const createPaymentIntent = async (req: AuthRequest, res: Response) => {
       clientSecret: paymentIntent.client_secret,
       purchaseId: purchase.id
     });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Payment Intent creation error:', error);
     res.status(500).json({ message: 'Failed to create payment intent' });
   }

@@ -21,7 +21,7 @@ model User {
   reviews         Review[]
   bids            Bid[]
   points          Int         @default(0)
-  referralCode    String      @unique
+  referralCode    String?      @unique
   referredBy      String?
   badges          UserBadge[]
   referrals       Referral[]  @relation("referrer")
