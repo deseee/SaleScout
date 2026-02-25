@@ -29,6 +29,8 @@ model User {
   referredUsers   Referral[]  @relation("referred")
   subscriptions   SaleSubscriber[]
   affiliateLinks  AffiliateLink[]
+  lineEntries     LineEntry[]
+  subscribedSales SaleSubscriber[]
 }
 
 model Organizer {
@@ -71,6 +73,7 @@ model Sale {
   earlyAccess    Boolean     @default(false)
   subscribers    SaleSubscriber[]
   affiliateLinks AffiliateLink[]
+  lineEntries    LineEntry[]
 }
 
 model Item {
