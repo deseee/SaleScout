@@ -55,9 +55,9 @@ export const subscribeToSale = async (req: AuthRequest, res: Response) => {
     // Create or update subscription
     const subscription = await prisma.saleSubscriber.upsert({
       where: {
-        userId_saleId: {
-          userId,
-          saleId
+        saleId_userId: {
+          saleId,
+          userId
         }
       },
       update: {
@@ -94,9 +94,9 @@ export const unsubscribeFromSale = async (req: AuthRequest, res: Response) => {
 
     await prisma.saleSubscriber.delete({
       where: {
-        userId_saleId: {
-          userId,
-          saleId
+        saleId_userId: {
+          saleId,
+          userId
         }
       }
     });
