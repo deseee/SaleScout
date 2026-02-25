@@ -1,325 +1,265 @@
 import { Request, Response } from 'express';
-import { PrismaClient, Bid } from '@prisma/client';
-import { z } from 'zod';
+import { Parser } from 'csv-parse';
+import { Readable } from 'stream';
+import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-// Extend Express Request type to include user property
 interface AuthRequest extends Request {
   user?: any;
 }
 
-// Validation schemas
-const itemQuerySchema = z.object({
-  saleId: z.string().optional()
-});
-
-// Updated datetime validation to accept ISO 8601 format with optional milliseconds and timezone
-const iso8601DatetimeSchema = z.string().regex(
-  /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})?$/,
-  'Invalid datetime format. Expected ISO 8601 format.'
-);
-
-const itemCreateSchema = z.object({
-  saleId: z.string(),
-  title: z.string().min(1),
-  description: z.string().optional(),
-  price: z.number().optional(),
-  auctionStartPrice: z.number().optional(),
-  bidIncrement: z.number().optional(),
-  auctionEndTime: iso8601DatetimeSchema.optional(),
-  photoUrls: z.array(z.string()).optional(),
-  status: z.enum(['AVAILABLE', 'SOLD', 'RESERVED', 'AUCTION_ENDED']).optional().default('AVAILABLE')
-});
-
-const itemUpdateSchema = itemCreateSchema.partial();
-
-const bidCreateSchema = z.object({
-  itemId: z.string(),
-  amount: z.number().positive()
-});
-
-// Helper function to convert Decimal values to numbers recursively
-const convertDecimalsToNumbers = (obj: any) => {
-  if (!obj) return obj;
-  
-  const converted: any = {};
-  for (const key in obj) {
-    if (obj[key] && typeof obj[key] === 'object' && 'toNumber' in obj[key]) {
-      converted[key] = obj[key].toNumber();
-    } else if (Array.isArray(obj[key])) {
-      converted[key] = obj[key].map((item: any) => 
-        typeof item === 'object' ? convertDecimalsToNumbers(item) : item
-      );
-    } else if (obj[key] && typeof obj[key] === 'object' && !(obj[key] instanceof Date)) {
-      // Recursively process nested objects, but don't convert Date objects
-      converted[key] = convertDecimalsToNumbers(obj[key]);
-    } else {
-      converted[key] = obj[key];
-    }
-  }
-  return converted;
+// Helper function to convert string to number safely
+const toNumber = (value: string | undefined | null): number | null => {
+  if (!value) return null;
+  const num = parseFloat(value);
+  return isNaN(num) ? null : num;
 };
 
-export const listItems = async (req: Request, res: Response) => {
+// Bulk import items from CSV
+export const importItemsFromCSV = async (req: AuthRequest, res: Response) => {
   try {
-    const query = itemQuerySchema.parse(req.query);
-    
-    const items = await prisma.item.findMany({
-      where: {
-        saleId: query.saleId
-      },
-      include: {
-        sale: {
-          select: {
-            title: true
-          }
-        }
-      }
-    });
-    
-    // Convert Decimal values to numbers
-    const convertedItems = items.map(item => convertDecimalsToNumbers(item));
-    
-    res.json(convertedItems);
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ 
-        message: 'Validation error', 
-        errors: error.errors 
-      });
+    const { saleId } = req.params;
+    const file = req.file;
+
+    if (!file) {
+      return res.status(400).json({ message: 'No file uploaded' });
     }
-    console.error(error);
-    res.status(500).json({ message: 'Server error while fetching items' });
+
+    if (!req.user || req.user.role !== 'ORGANIZER') {
+      return res.status(403).json({ message: 'Access denied. Organizer access required.' });
+    }
+
+    // Check if sale exists and belongs to organizer
+    const sale = await prisma.sale.findUnique({
+      where: { id: saleId },
+      include: { organizer: true }
+    });
+
+    if (!sale) {
+      return res.status(404).json({ message: 'Sale not found' });
+    }
+
+    if (sale.organizer.userId !== req.user.id) {
+      return res.status(403).json({ message: 'Access denied. Not your sale.' });
+    }
+
+    // Parse CSV
+    const records: any[] = [];
+    const parser = Readable.from(file.buffer).pipe(
+      Parser({
+        columns: true,
+        skip_empty_lines: true
+      })
+    );
+
+    for await (const record of parser) {
+      records.push(record);
+    }
+
+    // Validate and transform records
+    const itemsToCreate = records.map(record => {
+      // Validate required fields
+      if (!record.title) {
+        throw new Error('Missing required field: title');
+      }
+
+      return {
+        saleId,
+        title: record.title,
+        description: record.description || '',
+        price: toNumber(record.price),
+        auctionStartPrice: toNumber(record.auctionStartPrice),
+        bidIncrement: toNumber(record.bidIncrement),
+        auctionEndTime: record.auctionEndTime ? new Date(record.auctionEndTime) : null,
+        status: record.status || 'AVAILABLE',
+        photoUrls: record.photoUrls ? record.photoUrls.split(',').map((url: string) => url.trim()) : []
+      };
+    });
+
+    // Create items in database
+    const createdItems = await prisma.item.createMany({
+      data: itemsToCreate,
+      skipDuplicates: false
+    });
+
+    res.json({
+      message: `Successfully imported ${createdItems.count} items`,
+      itemCount: createdItems.count
+    });
+  } catch (error: any) {
+    console.error('CSV import error:', error);
+    res.status(500).json({ 
+      message: 'Failed to import items from CSV', 
+      error: error.message 
+    });
   }
 };
 
-export const getItem = async (req: Request, res: Response) => {
+// Other existing controller functions...
+export const getItemById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    
     const item = await prisma.item.findUnique({
       where: { id },
       include: {
         sale: {
           select: {
             title: true,
-            address: true,
-            city: true,
-            state: true,
-            zip: true
-          }
-        },
-        bids: {
-          select: {
-            id: true,
-            amount: true,
-            user: {
-              select: {
-                name: true
-              }
-            },
-            createdAt: true
-          },
-          orderBy: {
-            amount: 'desc'
+            id: true
           }
         }
       }
     });
-    
+
     if (!item) {
       return res.status(404).json({ message: 'Item not found' });
     }
-    
-    // Log the raw item data for debugging
-    console.log('Raw item data:', JSON.stringify(item, null, 2));
-    
-    // Convert Decimal values to numbers (recursively handles nested objects)
-    const convertedItem = convertDecimalsToNumbers(item);
-    
-    // Log the converted item data for debugging
-    console.log('Converted item data:', JSON.stringify(convertedItem, null, 2));
-    
-    res.json(convertedItem);
+
+    res.json(item);
   } catch (error) {
-    console.error(error);
+    console.error('Error fetching item:', error);
     res.status(500).json({ message: 'Server error while fetching item' });
+  }
+};
+
+export const getItemsBySaleId = async (req: Request, res: Response) => {
+  try {
+    const { saleId } = req.query;
+    const items = await prisma.item.findMany({
+      where: { saleId: saleId as string },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    res.json(items);
+  } catch (error) {
+    console.error('Error fetching items:', error);
+    res.status(500).json({ message: 'Server error while fetching items' });
   }
 };
 
 export const createItem = async (req: AuthRequest, res: Response) => {
   try {
-    // Verify user is organizer or admin
-    if (!req.user || (req.user.role !== 'ORGANIZER' && req.user.role !== 'ADMIN')) {
+    if (!req.user || req.user.role !== 'ORGANIZER') {
       return res.status(403).json({ message: 'Access denied. Organizer access required.' });
     }
-    
-    // Log the incoming request body for debugging
-    console.log('Incoming request body for item creation:', req.body);
-    
-    // Validate request body
-    const validationResult = itemCreateSchema.safeParse(req.body);
-    if (!validationResult.success) {
-      console.error('Request body:', req.body);
-      console.error('Validation error details:', validationResult.error.errors);
-      return res.status(400).json({ 
-        message: 'Validation error', 
-        errors: validationResult.error.errors 
-      });
-    }
-    
-    const itemData = validationResult.data;
-    console.log('Item validated with data:', itemData);
-    
-    // Check if sale exists and belongs to organizer (unless admin)
+
+    const { saleId, title, description, price, auctionStartPrice, bidIncrement, auctionEndTime, status, photoUrls } = req.body;
+
+    // Check if sale exists and belongs to organizer
     const sale = await prisma.sale.findUnique({
-      where: { id: itemData.saleId }
+      where: { id: saleId },
+      include: { organizer: true }
     });
-    
+
     if (!sale) {
       return res.status(404).json({ message: 'Sale not found' });
     }
-    
-    if (req.user.role !== 'ADMIN') {
-      const organizerProfile = await prisma.organizer.findUnique({
-        where: { userId: req.user.id }
-      });
-      
-      if (!organizerProfile || sale.organizerId !== organizerProfile.id) {
-        return res.status(403).json({ message: 'Access denied. You can only create items for your own sales.' });
-      }
+
+    if (sale.organizer.userId !== req.user.id) {
+      return res.status(403).json({ message: 'Access denied. Not your sale.' });
     }
-    
+
     const item = await prisma.item.create({
-      data: itemData
+      data: {
+        saleId,
+        title,
+        description: description || '',
+        price: price ? parseFloat(price) : null,
+        auctionStartPrice: auctionStartPrice ? parseFloat(auctionStartPrice) : null,
+        bidIncrement: bidIncrement ? parseFloat(bidIncrement) : null,
+        auctionEndTime: auctionEndTime ? new Date(auctionEndTime) : null,
+        status,
+        photoUrls: photoUrls || []
+      }
     });
-    
-    // Convert Decimal values to numbers
-    const convertedItem = convertDecimalsToNumbers(item);
-    
-    res.status(201).json(convertedItem);
+
+    res.status(201).json(item);
   } catch (error) {
-    console.error(error);
+    console.error('Error creating item:', error);
     res.status(500).json({ message: 'Server error while creating item' });
   }
 };
 
 export const updateItem = async (req: AuthRequest, res: Response) => {
   try {
-    // Verify user is organizer or admin
-    if (!req.user || (req.user.role !== 'ORGANIZER' && req.user.role !== 'ADMIN')) {
+    if (!req.user || req.user.role !== 'ORGANIZER') {
       return res.status(403).json({ message: 'Access denied. Organizer access required.' });
     }
-    
+
     const { id } = req.params;
-    
-    // Log the incoming request body for debugging
-    console.log('Incoming request body for item update:', req.body);
-    
-    // Validate request body
-    const validationResult = itemUpdateSchema.safeParse(req.body);
-    if (!validationResult.success) {
-      console.error('Request body:', req.body);
-      console.error('Validation error details:', validationResult.error.errors);
-      return res.status(400).json({ 
-        message: 'Validation error', 
-        errors: validationResult.error.errors 
-      });
-    }
-    
-    const itemData = validationResult.data;
-    console.log('Item update validated with data:', itemData);
-    
-    // Check if item exists and belongs to organizer (unless admin)
-    const existingItem = await prisma.item.findUnique({
+    const { title, description, price, auctionStartPrice, bidIncrement, auctionEndTime, status, photoUrls } = req.body;
+
+    // Check if item exists and belongs to organizer's sale
+    const item = await prisma.item.findUnique({
       where: { id },
-      include: {
-        sale: true
-      }
+      include: { sale: { include: { organizer: true } } }
     });
-    
-    if (!existingItem) {
+
+    if (!item) {
       return res.status(404).json({ message: 'Item not found' });
     }
-    
-    if (req.user.role !== 'ADMIN') {
-      const organizerProfile = await prisma.organizer.findUnique({
-        where: { userId: req.user.id }
-      });
-      
-      if (!organizerProfile || existingItem.sale.organizerId !== organizerProfile.id) {
-        return res.status(403).json({ message: 'Access denied. You can only update items from your own sales.' });
-      }
+
+    if (item.sale.organizer.userId !== req.user.id) {
+      return res.status(403).json({ message: 'Access denied. Not your item.' });
     }
-    
-    const item = await prisma.item.update({
+
+    const updatedItem = await prisma.item.update({
       where: { id },
-      data: itemData
+      data: {
+        title,
+        description: description || '',
+        price: price !== undefined ? (price ? parseFloat(price) : null) : undefined,
+        auctionStartPrice: auctionStartPrice !== undefined ? (auctionStartPrice ? parseFloat(auctionStartPrice) : null) : undefined,
+        bidIncrement: bidIncrement !== undefined ? (bidIncrement ? parseFloat(bidIncrement) : null) : undefined,
+        auctionEndTime: auctionEndTime ? new Date(auctionEndTime) : null,
+        status,
+        photoUrls: photoUrls || undefined
+      }
     });
-    
-    // Convert Decimal values to numbers
-    const convertedItem = convertDecimalsToNumbers(item);
-    
-    res.json(convertedItem);
+
+    res.json(updatedItem);
   } catch (error) {
-    console.error(error);
+    console.error('Error updating item:', error);
     res.status(500).json({ message: 'Server error while updating item' });
   }
 };
 
 export const deleteItem = async (req: AuthRequest, res: Response) => {
   try {
-    // Verify user is organizer or admin
-    if (!req.user || (req.user.role !== 'ORGANIZER' && req.user.role !== 'ADMIN')) {
-      return res.status(403).json({ message: 'Access denied. Organizer/Admin access required.' });
+    if (!req.user || req.user.role !== 'ORGANIZER') {
+      return res.status(403).json({ message: 'Access denied. Organizer access required.' });
     }
-    
+
     const { id } = req.params;
-    
-    // Check if item exists and belongs to organizer (unless admin)
-    const existingItem = await prisma.item.findUnique({
+
+    // Check if item exists and belongs to organizer's sale
+    const item = await prisma.item.findUnique({
       where: { id },
-      include: {
-        sale: true
-      }
+      include: { sale: { include: { organizer: true } } }
     });
-    
-    if (!existingItem) {
+
+    if (!item) {
       return res.status(404).json({ message: 'Item not found' });
     }
-    
-    if (req.user.role !== 'ADMIN') {
-      const organizerProfile = await prisma.organizer.findUnique({
-        where: { userId: req.user.id }
-      });
-      
-      if (!organizerProfile || existingItem.sale.organizerId !== organizerProfile.id) {
-        return res.status(403).json({ message: 'Access denied. You can only delete items from your own sales.' });
-      }
+
+    if (item.sale.organizer.userId !== req.user.id) {
+      return res.status(403).json({ message: 'Access denied. Not your item.' });
     }
-    
-    // Delete related bids first (cascade delete)
-    await prisma.bid.deleteMany({
-      where: { itemId: id }
-    });
-    
-    // Delete the item
+
     await prisma.item.delete({
       where: { id }
     });
-    
+
     res.json({ message: 'Item deleted successfully' });
   } catch (error) {
-    console.error(error);
+    console.error('Error deleting item:', error);
     res.status(500).json({ message: 'Server error while deleting item' });
   }
 };
 
-// Place a bid on an item
 export const placeBid = async (req: AuthRequest, res: Response) => {
   try {
-    // Verify user is authenticated
     if (!req.user) {
       return res.status(401).json({ message: 'Authentication required' });
     }
@@ -327,20 +267,15 @@ export const placeBid = async (req: AuthRequest, res: Response) => {
     const { id } = req.params;
     const { amount } = req.body;
 
-    // Validate request body
-    const bidData = bidCreateSchema.parse({ itemId: id, amount });
+    // Validate bid amount
+    const bidAmount = parseFloat(amount);
+    if (isNaN(bidAmount) || bidAmount <= 0) {
+      return res.status(400).json({ message: 'Invalid bid amount' });
+    }
 
-    // Check if item exists and is an auction item
+    // Check if item exists and is part of an auction
     const item = await prisma.item.findUnique({
       where: { id },
-      include: {
-        bids: {
-          orderBy: {
-            amount: 'desc'
-          },
-          take: 1
-        }
-      }
     });
 
     if (!item) {
@@ -348,105 +283,40 @@ export const placeBid = async (req: AuthRequest, res: Response) => {
     }
 
     if (!item.auctionStartPrice) {
-      return res.status(400).json({ message: 'This item is not an auction item' });
-    }
-
-    if (item.status === 'AUCTION_ENDED' || item.status === 'SOLD') {
-      return res.status(400).json({ message: 'Auction has ended for this item' });
+      return res.status(400).json({ message: 'Item is not part of an auction' });
     }
 
     // Check if auction has ended
-    if (item.auctionEndTime && new Date() > new Date(item.auctionEndTime)) {
-      return res.status(400).json({ message: 'Auction has already ended' });
+    if (item.auctionEndTime && new Date() > item.auctionEndTime) {
+      return res.status(400).json({ message: 'Auction has ended' });
     }
 
-    // Calculate minimum bid amount using Decimal's plus method
-    let minBidAmount;
-    if (item.bids.length > 0) {
-      // item.bids[0].amount is Decimal, use .plus() instead of +
-      minBidAmount = item.bids[0].amount.plus(item.bidIncrement || 1);
-    } else {
-      minBidAmount = item.auctionStartPrice;
-    }
-
-    // Convert amount to number for comparison (minBidAmount is Decimal)
-    const amountNumber = Number(amount);
-    const minBidNumber = minBidAmount.toNumber();
-
-    if (amountNumber < minBidNumber) {
+    // Check if bid meets minimum requirement
+    const minBid = item.currentBid ? item.currentBid + (item.bidIncrement || 1) : item.auctionStartPrice;
+    if (bidAmount < minBid) {
       return res.status(400).json({ 
-        message: `Bid amount must be at least $${minBidNumber.toFixed(2)}`,
-        minBidAmount: minBidNumber
+        message: `Bid must be at least $${minBid.toFixed(2)}` 
       });
     }
 
-    // Create the bid
+    // Create bid record
     const bid = await prisma.bid.create({
       data: {
         itemId: id,
         userId: req.user.id,
-        amount: bidData.amount
-      },
-      include: {
-        user: {
-          select: {
-            name: true
-          }
-        }
+        amount: bidAmount
       }
     });
 
-    // Convert Decimal values to numbers
-    const convertedBid = convertDecimalsToNumbers(bid);
-    
-    res.status(201).json(convertedBid);
+    // Update item's current bid
+    await prisma.item.update({
+      where: { id },
+      data: { currentBid: bidAmount }
+    });
+
+    res.status(201).json(bid);
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ 
-        message: 'Validation error', 
-        errors: error.errors 
-      });
-    }
-    console.error(error);
+    console.error('Error placing bid:', error);
     res.status(500).json({ message: 'Server error while placing bid' });
-  }
-};
-
-// Get bids for an item
-export const getItemBids = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-
-    // Check if item exists
-    const item = await prisma.item.findUnique({
-      where: { id }
-    });
-
-    if (!item) {
-      return res.status(404).json({ message: 'Item not found' });
-    }
-
-    // Get all bids for this item ordered by amount descending
-    const bids = await prisma.bid.findMany({
-      where: { itemId: id },
-      include: {
-        user: {
-          select: {
-            name: true
-          }
-        }
-      },
-      orderBy: {
-        amount: 'desc'
-      }
-    });
-
-    // Convert Decimal values to numbers
-    const convertedBids = bids.map((bid: Bid) => convertDecimalsToNumbers(bid));
-    
-    res.json(convertedBids);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error while fetching bids' });
   }
 };

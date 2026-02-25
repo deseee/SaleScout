@@ -1,26 +1,27 @@
 import { Router } from 'express';
+import multer from 'multer';
 import { 
-  listItems, 
-  getItem, 
+  getItemById, 
+  getItemsBySaleId, 
   createItem, 
   updateItem, 
-  deleteItem,
+  deleteItem, 
   placeBid,
-  getItemBids
+  importItemsFromCSV
 } from '../controllers/itemController';
 import { authenticate } from '../middleware/auth';
 
 const router = Router();
+const upload = multer({ storage: multer.memoryStorage() });
 
-// Public routes
-router.get('/', listItems);
-router.get('/:id', getItem);
-router.get('/:id/bids', getItemBids);
-
-// Protected routes
+router.get('/:id', getItemById);
+router.get('/', getItemsBySaleId);
 router.post('/', authenticate, createItem);
 router.put('/:id', authenticate, updateItem);
 router.delete('/:id', authenticate, deleteItem);
 router.post('/:id/bid', authenticate, placeBid);
+
+// CSV import endpoint
+router.post('/:saleId/import-items', authenticate, upload.single('csv'), importItemsFromCSV);
 
 export default router;
