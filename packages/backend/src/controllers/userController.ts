@@ -207,6 +207,16 @@ export const awardBadge = async (userId: string, badgeCriteriaType: string, coun
           });
 
           console.log(`Awarded badge "${badge.name}" to user ${userId}`);
+          
+          // Create notification for user
+          await prisma.notification.create({
+            data: {
+              userId,
+              title: 'New Badge Earned!',
+              message: `Congratulations! You've earned the "${badge.name}" badge.`,
+              type: 'BADGE'
+            }
+          });
         }
       }
     }
@@ -267,5 +277,55 @@ export const handlePointsBadge = async (userId: string, points: number) => {
     await awardBadge(userId, 'points_earned', points);
   } catch (error) {
     console.error('Error handling points badge:', error);
+  }
+};
+
+// Call this function when a user checks in early
+export const handleEarlyBirdBadge = async (userId: string, checkInTime: Date) => {
+  try {
+    // Check if check-in time is before 9 AM
+    const hour = checkInTime.getHours();
+    if (hour < 9) {
+      // Count early check-ins
+      const earlyCheckIns = await prisma.lineEntry.count({
+        where: {
+          userId,
+          enteredAt: {
+            not: null,
+            lte: new Date(checkInTime.setHours(9, 0, 0, 0)) // Before 9 AM
+          }
+        }
+      });
+      
+      // Award badge based on early check-in count
+      await awardBadge(userId, 'early_check_ins', earlyCheckIns);
+    }
+  } catch (error) {
+    console.error('Error handling early bird badge:', error);
+  }
+};
+
+// Call this function when a user visits sales in different cities
+export const handleExplorerBadge = async (userId: string, city: string) => {
+  try {
+    // Get distinct cities user has visited
+    const visitedCities = await prisma.sale.findMany({
+      where: {
+        lineEntries: {
+          some: {
+            userId
+          }
+        }
+      },
+      select: {
+        city: true
+      },
+      distinct: ['city']
+    });
+
+    // Award badge based on number of cities visited
+    await awardBadge(userId, 'cities_visited', visitedCities.length);
+  } catch (error) {
+    console.error('Error handling explorer badge:', error);
   }
 };

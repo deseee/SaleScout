@@ -24,6 +24,8 @@ model User {
   userBadges    UserBadge[]
   referredBy    String?
   referralCode  String?    @unique
+  lineEntries   LineEntry[]
+  referredUsers Referral[]
 }
 
 model Organizer {
@@ -61,6 +63,7 @@ model Sale {
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
   earlyAccess Boolean    @default(false)
+  lineEntries LineEntry[]
 }
 
 model Item {
@@ -153,4 +156,31 @@ model UserBadge {
   awardedAt DateTime @default(now())
 
   @@unique([userId, badgeId])
+}
+
+model Referral {
+  id             String   @id @default(cuid())
+  referrerId     String
+  referrer       User     @relation(fields: [referrerId], references: [id])
+  referredUserId String
+  referredUser   User     @relation(fields: [referredUserId], references: [id])
+  createdAt      DateTime @default(now())
+
+  @@unique([referrerId, referredUserId])
+}
+
+model LineEntry {
+  id         String   @id @default(cuid())
+  saleId     String
+  sale       Sale     @relation(fields: [saleId], references: [id])
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  position   Int
+  status     String   @default("WAITING") // WAITING, NOTIFIED, ENTERED, CANCELLED
+  notifiedAt DateTime?
+  enteredAt  DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([saleId, userId])
 }
