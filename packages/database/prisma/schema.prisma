@@ -24,9 +24,10 @@ model User {
   referralCode    String?      @unique
   referredBy      String?
   badges          UserBadge[]
-  referrals       Referral[]  @relation("referrer")
+  referrals       Referral[]  @relation("referrals")
   referredUsers   Referral[]  @relation("referred")
   subscriptions   SaleSubscriber[]
+  affiliateLinks  AffiliateLink[]
 }
 
 model Organizer {
@@ -68,6 +69,7 @@ model Sale {
   tags           String[]
   earlyAccess    Boolean     @default(false)
   subscribers    SaleSubscriber[]
+  affiliateLinks AffiliateLink[]
 }
 
 model Item {
@@ -165,7 +167,7 @@ model UserBadge {
 model Referral {
   id             String   @id @default(cuid())
   referrerId     String
-  referrer       User     @relation("referrer", fields: [referrerId], references: [id])
+  referrer       User     @relation("referrals", fields: [referrerId], references: [id])
   referredUserId String
   referredUser   User     @relation("referred", fields: [referredUserId], references: [id])
   createdAt      DateTime @default(now())
@@ -187,10 +189,22 @@ model SaleSubscriber {
   @@unique([userId, saleId])
 }
 
+model AffiliateLink {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  saleId    String
+  sale      Sale     @relation(fields: [saleId], references: [id])
+  clicks    Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 enum Role {
   USER
   ORGANIZER
   ADMIN
+  CREATOR
 }
 
 enum SaleStatus {

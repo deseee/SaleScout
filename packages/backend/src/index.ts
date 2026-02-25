@@ -10,6 +10,7 @@ import favoriteRoutes from './routes/favorites';
 import userRoutes from './routes/users';
 import stripeRoutes from './routes/stripe';
 import notificationRoutes from './routes/notifications';
+import affiliateRoutes from './routes/affiliate';
 import { authenticate } from './middleware/auth';
 import { PrismaClient } from '@prisma/client';
 import './jobs/auctionJob';
@@ -36,6 +37,7 @@ app.use('/api/favorites', favoriteRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/stripe', stripeRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/affiliate', affiliateRoutes);
 
 // Protected route example
 app.get('/api/protected', authenticate, (req, res) => {
