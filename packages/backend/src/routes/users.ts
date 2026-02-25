@@ -105,4 +105,6 @@ router.get('/me/points', authenticate, async (req: AuthRequest, res: Response) =
   }
 });
 
+include: { UserBadge: { include: { badge: true } } }
+
 export default router;
