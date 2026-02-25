@@ -8,26 +8,28 @@ datasource db {
 }
 
 model User {
-  id              String      @id @default(cuid())
-  email           String      @unique
-  password        String?
-  name            String?
-  role            Role        @default(USER)
-  phone           String?     // add this
-  referralCode    String?     @unique
-  referredBy      String?
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
-  points          Int         @default(0)
+  id               String           @id @default(cuid())
+  email            String           @unique
+  password         String?
+  name             String?
+  role             Role             @default(USER)
+  phone            String? // add this
+  referralCode     String?          @unique
+  referredBy       String?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  points           Int              @default(0)
   organizerProfile Organizer?
-  purchases       Purchase[]
-  favorites       Favorite[]
-  reviews         Review[]
-  bids            Bid[]
-  lineEntries     LineEntry[]
-  subscriptions   SaleSubscriber[] @relation("UserSubscriptions")
-  Referral        Referral[]  @relation("referrals")
-  referredUsers   Referral[]  @relation("referred")
+  purchases        Purchase[]
+  favorites        Favorite[]
+  reviews          Review[]
+  bids             Bid[]
+  lineEntries      LineEntry[]
+  subscriptions    SaleSubscriber[] @relation("UserSubscriptions")
+  Referral         Referral[]       @relation("referrals")
+  referredUsers    Referral[]       @relation("referred")
+  UserBadge        UserBadge[]
+  AffiliateLink    AffiliateLink[]
 }
 
 model Organizer {
@@ -44,9 +46,9 @@ model Organizer {
 }
 
 model Sale {
-  id            String       @id @default(cuid())
+  id            String           @id @default(cuid())
   organizerId   String
-  organizer     Organizer    @relation(fields: [organizerId], references: [id])
+  organizer     Organizer        @relation(fields: [organizerId], references: [id])
   title         String
   description   String?
   startDate     DateTime
@@ -57,37 +59,39 @@ model Sale {
   zip           String
   lat           Float?
   lng           Float?
-  status        SaleStatus   @default(DRAFT)
+  status        SaleStatus       @default(DRAFT)
   photoUrls     String[]
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
   items         Item[]
   favorites     Favorite[]
   reviews       Review[]
-  isAuctionSale Boolean      @default(false)
+  isAuctionSale Boolean          @default(false)
   tags          String[]
   lineEntries   LineEntry[]
   subscribers   SaleSubscriber[] @relation("SaleSubscribers")
+  Purchase      Purchase[]
+  AffiliateLink AffiliateLink[]
 }
 
 model Item {
-  id               String      @id @default(cuid())
-  saleId           String
-  sale             Sale        @relation(fields: [saleId], references: [id])
-  title            String
-  description      String?
-  price            Decimal?
+  id                String     @id @default(cuid())
+  saleId            String
+  sale              Sale       @relation(fields: [saleId], references: [id])
+  title             String
+  description       String?
+  price             Decimal?
   auctionStartPrice Decimal?
-  currentBid       Decimal?
-  bidIncrement     Decimal?
-  auctionEndTime   DateTime?
-  status           ItemStatus  @default(AVAILABLE)
-  photoUrls        String[]
-  createdAt        DateTime    @default(now())
-  updatedAt        DateTime    @updatedAt
-  bids             Bid[]
-  purchases        Purchase[]
-  favorites        Favorite[]
+  currentBid        Decimal?
+  bidIncrement      Decimal?
+  auctionEndTime    DateTime?
+  status            ItemStatus @default(AVAILABLE)
+  photoUrls         String[]
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+  bids              Bid[]
+  purchases         Purchase[]
+  favorites         Favorite[]
 }
 
 model Bid {
@@ -101,18 +105,18 @@ model Bid {
 }
 
 model Purchase {
-  id                   String       @id @default(cuid())
-  userId               String
-  user                 User         @relation(fields: [userId], references: [id])
-  itemId               String?
-  item                 Item?        @relation(fields: [itemId], references: [id])
-  saleId               String?
-  sale                 Sale?        @relation(fields: [saleId], references: [id])
-  amount               Decimal
-  stripePaymentIntentId String?     @unique
-  status               PurchaseStatus @default(PENDING)
-  createdAt            DateTime     @default(now())
-  updatedAt            DateTime     @updatedAt
+  id                    String         @id @default(cuid())
+  userId                String
+  user                  User           @relation(fields: [userId], references: [id])
+  itemId                String?
+  item                  Item?          @relation(fields: [itemId], references: [id])
+  saleId                String?
+  sale                  Sale?          @relation(fields: [saleId], references: [id])
+  amount                Decimal
+  stripePaymentIntentId String?        @unique
+  status                PurchaseStatus @default(PENDING)
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
 }
 
 model Favorite {
@@ -141,13 +145,13 @@ model Review {
 }
 
 model Badge {
-  id          String   @id @default(cuid())
+  id          String      @id @default(cuid())
   name        String
   description String
   iconUrl     String?
-  criteria    Json     // e.g., { "type": "sales_visited", "count": 5 }
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  criteria    Json // e.g., { "type": "sales_visited", "count": 5 }
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
   users       UserBadge[]
 }
 
@@ -179,8 +183,8 @@ model SaleSubscriber {
   sale      Sale     @relation("SaleSubscribers", fields: [saleId], references: [id])
   userId    String?
   user      User?    @relation("UserSubscriptions", fields: [userId], references: [id], map: "SaleSubscriber_userId_fkey_unique")
-  phone     String?  // for non-registered users
-  email     String?  // for email digests
+  phone     String? // for non-registered users
+  email     String? // for email digests
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -189,17 +193,17 @@ model SaleSubscriber {
 }
 
 model LineEntry {
-  id         String   @id @default(cuid())
+  id         String    @id @default(cuid())
   saleId     String
-  sale       Sale     @relation(fields: [saleId], references: [id])
+  sale       Sale      @relation(fields: [saleId], references: [id])
   userId     String
-  user       User     @relation(fields: [userId], references: [id])
+  user       User      @relation(fields: [userId], references: [id])
   position   Int
-  status     String   @default("WAITING") // WAITING, NOTIFIED, ENTERED, CANCELLED
+  status     String    @default("WAITING") // WAITING, NOTIFIED, ENTERED, CANCELLED
   notifiedAt DateTime?
   enteredAt  DateTime?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 
   @@unique([saleId, userId])
 }
