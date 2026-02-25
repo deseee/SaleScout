@@ -136,10 +136,19 @@ export const createPaymentIntent = async (req: AuthRequest, res: Response) => {
       return res.status(400).json({ message: 'Organizer has not set up payment processing' });
     }
 
-    // Ensure we have a valid price value
-    const price = item.price || item.auctionStartPrice || 0;
-    if (typeof price !== 'number') {
-      throw new Error('Invalid price value');
+    // Ensure we have a valid price value and convert to number
+    let price: number;
+    if (item.price !== null && item.price !== undefined) {
+      price = typeof item.price === 'number' ? item.price : parseFloat(item.price.toString());
+    } else if (item.auctionStartPrice !== null && item.auctionStartPrice !== undefined) {
+      price = typeof item.auctionStartPrice === 'number' ? item.auctionStartPrice : parseFloat(item.auctionStartPrice.toString());
+    } else {
+      price = 0;
+    }
+
+    // Validate price is a valid number
+    if (isNaN(price) || price <= 0) {
+      return res.status(400).json({ message: 'Invalid price value' });
     }
 
     // Create a PaymentIntent with automatic confirmation
