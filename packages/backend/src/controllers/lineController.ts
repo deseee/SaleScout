@@ -1,18 +1,9 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import twilio from 'twilio';
-import { 
-  createLineEntries, 
-  getNextInLine, 
-  updateLineEntryStatus,
-  getLineEntriesForSale
-} from '../models/LineEntry';
+import { AuthRequest } from '../middleware/auth';
 
 const prisma = new PrismaClient();
-
-interface AuthRequest extends Request {
-  user?: any;
-}
 
 // Initialize Twilio client
 const twilioClient = twilio(
@@ -24,7 +15,7 @@ const twilioClient = twilio(
 export const startLine = async (req: AuthRequest, res: Response) => {
   try {
     const { saleId } = req.params;
-    const organizerId = req.user.organizerProfile?.id;
+    const organizerId = req.user?.organizerProfile?.id;
 
     if (!saleId) {
       return res.status(400).json({ message: 'Sale ID is required' });
@@ -43,35 +34,61 @@ export const startLine = async (req: AuthRequest, res: Response) => {
       return res.status(403).json({ message: 'Not authorized to manage this sale' });
     }
 
-    // Create line entries for all subscribers
-    const lineEntries = await createLineEntries(saleId);
+    // Get all subscribers for this sale
+    const subscribers = await prisma.saleSubscriber.findMany({
+      where: { 
+        saleId,
+        phone: { not: null }
+      },
+      include: { user: true }
+    });
 
-    // Send SMS to each subscriber with their position
-    const messages = [];
-    for (const entry of lineEntries) {
+    // Create line entries for each subscriber
+    const lineEntries = [];
+    for (let i = 0; i < subscribers.length; i++) {
+      const subscriber = subscribers[i];
+      
+      // Skip if already in line
+      const existingEntry = await prisma.lineEntry.findUnique({
+        where: {
+          saleId_userId: {
+            saleId,
+            userId: subscriber.userId || ''
+          }
+        }
+      });
+      
+      if (existingEntry) continue;
+      
+      const entry = await prisma.lineEntry.create({
+        data: {
+          saleId,
+          userId: subscriber.userId || '',
+          position: i + 1,
+          status: 'WAITING'
+        }
+      });
+      
+      lineEntries.push(entry);
+      
+      // Send SMS notification
       try {
-        const user = await prisma.user.findUnique({
-          where: { id: entry.userId }
-        });
-
-        if (user?.phone) {
-          const message = await twilioClient.messages.create({
+        const phoneNumber = subscriber.phone || (subscriber.user?.phone ?? '');
+        if (phoneNumber) {
+          await twilioClient.messages.create({
             body: `You're in line for ${sale.title}. Your position is ${entry.position}. Reply STOP to unsubscribe.`,
             from: process.env.TWILIO_PHONE_NUMBER,
-            to: user.phone
+            to: phoneNumber
           });
-          messages.push({ userId: entry.userId, success: true, messageId: message.sid });
         }
       } catch (error) {
-        console.error(`Failed to send SMS to user ${entry.userId}:`, error);
-        messages.push({ userId: entry.userId, success: false, error: (error as Error).message });
+        console.error(`Failed to send SMS to ${subscriber.phone}:`, error);
       }
     }
 
     res.json({
       message: 'Line started successfully',
-      lineEntries,
-      messages
+      lineEntries
     });
   } catch (error) {
     console.error('Error starting line:', error);
@@ -83,7 +100,7 @@ export const startLine = async (req: AuthRequest, res: Response) => {
 export const callNext = async (req: AuthRequest, res: Response) => {
   try {
     const { saleId } = req.params;
-    const organizerId = req.user.organizerProfile?.id;
+    const organizerId = req.user?.organizerProfile?.id;
 
     if (!saleId) {
       return res.status(400).json({ message: 'Sale ID is required' });
@@ -103,30 +120,47 @@ export const callNext = async (req: AuthRequest, res: Response) => {
     }
 
     // Get next person in line
-    const nextEntry = await getNextInLine(saleId);
+    const nextEntry = await prisma.lineEntry.findFirst({
+      where: {
+        saleId,
+        status: 'WAITING'
+      },
+      orderBy: {
+        position: 'asc'
+      },
+      include: {
+        user: true
+      }
+    });
 
     if (!nextEntry) {
       return res.status(404).json({ message: 'No one is waiting in line' });
     }
 
-    // Update their status to CALLED
-    const updatedEntry = await updateLineEntryStatus(nextEntry.id, 'CALLED');
-
-    // Send SMS notification
-    const user = await prisma.user.findUnique({
-      where: { id: updatedEntry.userId }
+    // Update their status to NOTIFIED
+    const updatedEntry = await prisma.lineEntry.update({
+      where: { id: nextEntry.id },
+      data: { 
+        status: 'NOTIFIED',
+        notifiedAt: new Date()
+      }
     });
 
-    if (user?.phone) {
-      try {
+    // Send SMS notification
+    try {
+      const user = await prisma.user.findUnique({
+        where: { id: updatedEntry.userId }
+      });
+
+      if (user?.phone) {
         await twilioClient.messages.create({
           body: `You're next in line for ${sale.title}! Please proceed to the check-in desk.`,
           from: process.env.TWILIO_PHONE_NUMBER,
           to: user.phone
         });
-      } catch (error) {
-        console.error(`Failed to send SMS to user ${updatedEntry.userId}:`, error);
       }
+    } catch (error) {
+      console.error(`Failed to send SMS to user ${updatedEntry.userId}:`, error);
     }
 
     res.json({
@@ -143,7 +177,7 @@ export const callNext = async (req: AuthRequest, res: Response) => {
 export const getLineStatus = async (req: AuthRequest, res: Response) => {
   try {
     const { saleId } = req.params;
-    const organizerId = req.user.organizerProfile?.id;
+    const organizerId = req.user?.organizerProfile?.id;
 
     if (!saleId) {
       return res.status(400).json({ message: 'Sale ID is required' });
@@ -163,7 +197,18 @@ export const getLineStatus = async (req: AuthRequest, res: Response) => {
     }
 
     // Get all line entries for this sale
-    const lineEntries = await getLineEntriesForSale(saleId);
+    const lineEntries = await prisma.lineEntry.findMany({
+      where: { saleId },
+      include: { 
+        user: {
+          select: {
+            name: true,
+            phone: true
+          }
+        }
+      },
+      orderBy: { position: 'asc' }
+    });
 
     res.json(lineEntries);
   } catch (error) {
@@ -172,11 +217,11 @@ export const getLineStatus = async (req: AuthRequest, res: Response) => {
   }
 };
 
-// Mark person as served
-export const markAsServed = async (req: AuthRequest, res: Response) => {
+// Mark person as entered
+export const markAsEntered = async (req: AuthRequest, res: Response) => {
   try {
     const { lineEntryId } = req.params;
-    const organizerId = req.user.organizerProfile?.id;
+    const organizerId = req.user?.organizerProfile?.id;
 
     if (!lineEntryId) {
       return res.status(400).json({ message: 'Line entry ID is required' });
@@ -197,15 +242,21 @@ export const markAsServed = async (req: AuthRequest, res: Response) => {
       return res.status(403).json({ message: 'Not authorized to manage this sale' });
     }
 
-    // Update status to SERVED
-    const updatedEntry = await updateLineEntryStatus(lineEntryId, 'SERVED');
+    // Update status to ENTERED
+    const updatedEntry = await prisma.lineEntry.update({
+      where: { id: lineEntryId },
+      data: { 
+        status: 'ENTERED',
+        enteredAt: new Date()
+      }
+    });
 
     res.json({
-      message: 'Person marked as served',
+      message: 'Person marked as entered',
       lineEntry: updatedEntry
     });
   } catch (error) {
-    console.error('Error marking as served:', error);
-    res.status(500).json({ message: 'Failed to mark person as served' });
+    console.error('Error marking as entered:', error);
+    res.status(500).json({ message: 'Failed to mark person as entered' });
   }
 };

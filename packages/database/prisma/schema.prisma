@@ -13,6 +13,7 @@ model User {
   name            String?
   password        String?     // Make password optional initially
   role            Role        @default(USER)
+  phone           String?     // Added for SMS notifications
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
   organizerProfile Organizer? 
@@ -177,16 +178,33 @@ model Referral {
 
 model SaleSubscriber {
   id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
   saleId    String
   sale      Sale     @relation(fields: [saleId], references: [id])
-  phone     String?
-  email     String?
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  phone     String?  // for non-registered users
+  email     String?  // for email digests
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([userId, saleId])
+  @@unique([saleId, userId])
+  @@unique([saleId, phone])
+}
+
+model LineEntry {
+  id        String   @id @default(cuid())
+  saleId    String
+  sale      Sale     @relation(fields: [saleId], references: [id])
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  position  Int
+  status    String   @default("WAITING") // WAITING, NOTIFIED, ENTERED, CANCELLED
+  notifiedAt DateTime?
+  enteredAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([saleId, userId]) // one entry per user per sale
 }
 
 model AffiliateLink {
