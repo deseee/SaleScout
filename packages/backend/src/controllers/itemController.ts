@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { Parser } from 'csv-parse';
+import { parse } from 'csv-parse';
 import { Readable } from 'stream';
 import { PrismaClient } from '@prisma/client';
 
@@ -47,7 +47,7 @@ export const importItemsFromCSV = async (req: AuthRequest, res: Response) => {
     // Parse CSV
     const records: any[] = [];
     const parser = Readable.from(file.buffer).pipe(
-      Parser({
+      parse({
         columns: true,
         skip_empty_lines: true
       })
@@ -292,7 +292,13 @@ export const placeBid = async (req: AuthRequest, res: Response) => {
     }
 
     // Check if bid meets minimum requirement
-    const minBid = item.currentBid ? item.currentBid + (item.bidIncrement || 1) : item.auctionStartPrice;
+    let minBid;
+    if (item.currentBid) {
+      minBid = item.currentBid + (item.bidIncrement || 1);
+    } else {
+      minBid = item.auctionStartPrice;
+    }
+    
     if (bidAmount < minBid) {
       return res.status(400).json({ 
         message: `Bid must be at least $${minBid.toFixed(2)}` 
