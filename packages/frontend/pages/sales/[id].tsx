@@ -370,3 +370,133 @@ const SaleDetailPage = () => {
             <SaleSubscription 
               saleId={sale.id} 
               userEmail={user.email}
+            />
+          )}
+
+          {isOrganizer && (
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Link 
+                href={`/organizer/edit-sale/${sale.id}`}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded inline-flex items-center"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1 text-white" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                </svg>
+                Edit Sale Details
+              </Link>
+              <Link 
+                href={`/organizer/add-items/${sale.id}`}
+                className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded inline-flex items-center"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1 text-white" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+                </svg>
+                Add Items
+              </Link>
+              <button 
+                onClick={() => setIsImportModalOpen(true)}
+                className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded inline-flex items-center"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+                Import Items
+              </button>
+              <Link 
+                href={`/organizer/send-update/${sale.id}`}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded inline-flex items-center"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1 text-white" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
+                </svg>
+                Send Update
+              </Link>
+            </div>
+          )}
+        </div>
+
+        {/* Map Section */}
+        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+          <h2 className="text-2xl font-bold mb-4 text-gray-900">Location</h2>
+          <div className="h-96 bg-gray-200 rounded-lg flex items-center justify-center">
+            <p className="text-gray-600">
+              Map showing location at ({sale.lat}, {sale.lng})
+            </p>
+          </div>
+        </div>
+
+        {/* Items Section */}
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold text-gray-900">
+              {sale.isAuctionSale ? 'Auction Items' : 'Items for Sale'}
+            </h2>
+            {isOrganizer && sale.items.length > 0 && (
+              <div className="flex space-x-2">
+                <Link 
+                  href={`/organizer/add-items/${sale.id}`}
+                  className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded inline-flex items-center"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1 text-white" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+                  </svg>
+                  Add More Items
+                </Link>
+              </div>
+            )}
+          </div>
+
+          {sale.items.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-gray-600 mb-4">No items listed for this sale yet.</p>
+              {isOrganizer && (
+                <Link 
+                  href={`/organizer/add-items/${sale.id}`}
+                  className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded inline-flex items-center"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1 text-white" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+                  </svg>
+                  Add Your First Item
+                </Link>
+              )}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {sale.items.map((item) => (
+                <div key={item.id} className="border rounded-lg overflow-hidden bg-white">
+                  <Link href={`/items/${item.id}`} className="block">
+                    {item.photoUrls.length > 0 ? (
+                      <img 
+                        src={item.photoUrls[0]} 
+                        alt={item.title} 
+                        className="w-full h-48 object-cover"
+                      />
+                    ) : (
+                      <div className="bg-gray-200 h-48 flex items-center justify-center">
+                        <span className="text-gray-500">No image</span>
+                      </div>
+                    )}
+                  </Link>
+                  <div className="p-4">
+                    <h3 className="font-bold text-lg mb-2 text-gray-900">{item.title}</h3>
+                    <p className="text-gray-600 text-sm mb-3 line-clamp-2">{item.description}</p>
+                    
+                    {/* Auction-specific UI */}
+                    {sale.isAuctionSale && item.auctionStartPrice ? (
+                      <div>
+                        <div className="flex justify-between items-center mb-2">
+                          <div>
+                            <span className="text-sm text-gray-600">Current Bid:</span>
+                            <span className="font-bold text-blue-600 ml-1">
+                              {formatPrice(item.currentBid || item.auctionStartPrice)}
+                            </span>
+                          </div>
+                          {item.auctionEndTime && (
+                            <div className="text-sm bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
+                              {formatTimeRemaining(item.auctionEndTime)} left
+                            </div>
+                          )}
+                        </div>
+                        
+                        <div className
