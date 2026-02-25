@@ -54,7 +54,9 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                 </>
               ) : user ? (
                 <div className="flex items-center space-x-4">
-                  <span className="text-gray-700">Hi, {user.name}</span>
+                  <span className="text-gray-700">
+                    Hi, {user.name || user.email || 'User'}
+                  </span>
                   {user.role === 'ORGANIZER' && (
                     <Link href="/organizer/dashboard" className="text-gray-700 hover:text-blue-600">
                       Dashboard

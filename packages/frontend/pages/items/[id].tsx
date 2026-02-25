@@ -73,6 +73,14 @@ const formatTimeRemaining = (endTime: string | null | undefined): string => {
   }
 };
 
+// Helper function to get minimum next bid
+const getMinimumNextBid = (item: any): number => {
+  if (item.currentBid) {
+    return item.currentBid + (item.bidIncrement || 1);
+  }
+  return item.auctionStartPrice || item.price || 0;
+};
+
 const ItemDetailPage = () => {
   const router = useRouter();
   const { id } = router.query;
@@ -195,17 +203,9 @@ const ItemDetailPage = () => {
     }
   };
 
-  const getMinimumBid = () => {
-    if (!item) return 0;
-    if (item.currentBid) {
-      return item.currentBid + (item.bidIncrement || 1);
-    }
-    return item.auctionStartPrice || 0;
-  };
-
   useEffect(() => {
     if (item && item.auctionStartPrice) {
-      setBidAmount(getMinimumBid().toString());
+      setBidAmount(getMinimumNextBid(item).toString());
     }
   }, [item]);
 
@@ -247,7 +247,11 @@ const ItemDetailPage = () => {
                 </div>
               ) : (
                 <div className="bg-gray-200 h-96 flex items-center justify-center rounded-lg">
-                  <span className="text-gray-500">No image available</span>
+                  <img 
+                    src="/images/placeholder.svg" 
+                    alt="Placeholder" 
+                    className="w-16 h-16 text-gray-400"
+                  />
                 </div>
               )}
               
@@ -313,7 +317,7 @@ const ItemDetailPage = () => {
                   
                   <div className="mb-4">
                     <span className="text-sm text-gray-600">
-                      Minimum bid: {formatPrice(getMinimumBid())}
+                      Minimum bid: {formatPrice(getMinimumNextBid(item))}
                     </span>
                   </div>
                   
@@ -323,7 +327,7 @@ const ItemDetailPage = () => {
                         <input
                           type="number"
                           step="0.01"
-                          min={getMinimumBid()}
+                          min={getMinimumNextBid(item)}
                           value={bidAmount}
                           onChange={(e) => setBidAmount(e.target.value)}
                           className="flex-grow px-3 py-2 border border-gray-300 rounded-l text-gray-900"
@@ -337,7 +341,7 @@ const ItemDetailPage = () => {
                         </button>
                       </div>
                       <button
-                        onClick={() => setBidAmount(getMinimumBid().toString())}
+                        onClick={() => setBidAmount(getMinimumNextBid(item).toString())}
                         className="text-sm text-blue-600 hover:text-blue-800"
                       >
                         Set to minimum bid
