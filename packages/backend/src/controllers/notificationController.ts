@@ -1,18 +1,32 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../index';
 import twilio from 'twilio';
 import { Resend } from 'resend';
 
-const prisma = new PrismaClient();
+// Lazy-loaded Twilio client
+let _twilioClient: any = null;
+const getTwilioClient = () => {
+  if (!_twilioClient) {
+    const accountSid = process.env.TWILIO_ACCOUNT_SID;
+    const authToken = process.env.TWILIO_AUTH_TOKEN;
+    if (accountSid && authToken) {
+      _twilioClient = twilio(accountSid, authToken);
+      console.log('✅ Twilio client initialized');
+    } else {
+      console.warn('⚠️ Twilio credentials missing - SMS features will be disabled');
+    }
+  }
+  return _twilioClient;
+};
 
-// Initialize Twilio client
-const twilioClient = twilio(
-  process.env.TWILIO_ACCOUNT_SID,
-  process.env.TWILIO_AUTH_TOKEN
-);
-
-// Initialize Resend client
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Lazy-loaded Resend client
+let _resend: any = null;
+const getResendClient = () => {
+  if (!_resend && process.env.RESEND_API_KEY) {
+    _resend = new Resend(process.env.RESEND_API_KEY);
+  }
+  return _resend;
+};
 
 interface AuthRequest extends Request {
   user?: any;
@@ -142,6 +156,12 @@ export const sendSMSUpdate = async (req: AuthRequest, res: Response) => {
       return res.status(403).json({ message: 'Not authorized to send updates for this sale' });
     }
 
+    // Get Twilio client
+    const twilioClient = getTwilioClient();
+    if (!twilioClient || !process.env.TWILIO_PHONE_NUMBER) {
+      return res.status(503).json({ error: 'SMS service not configured' });
+    }
+
     // Get subscribers with phone numbers
     const subscribers = await prisma.saleSubscriber.findMany({
       where: {
@@ -185,6 +205,13 @@ export const sendSMSUpdate = async (req: AuthRequest, res: Response) => {
 // Send weekly digest email
 export const sendWeeklyDigest = async () => {
   try {
+    // Get Resend client
+    const resendClient = getResendClient();
+    if (!resendClient) {
+      console.warn('Email service not configured - skipping weekly digest');
+      return;
+    }
+
     // Find sales happening this weekend
     const now = new Date();
     const weekendStart = new Date(now);
@@ -246,8 +273,8 @@ export const sendWeeklyDigest = async () => {
     const results = [];
     for (const subscriber of subscribers) {
       try {
-        const { data, error } = await resend.emails.send({
-          from: 'SaleScout <notifications@salescout.app>',
+        const { data, error } = await resendClient.emails.send({
+          from: process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev',
           to: subscriber.email!,
           subject: 'Upcoming Weekend Estate Sales',
           html: `

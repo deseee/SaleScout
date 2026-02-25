@@ -1,6 +1,8 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import authRoutes from './routes/auth';
 import saleRoutes from './routes/sales';
 import itemRoutes from './routes/items';
@@ -9,10 +11,11 @@ import userRoutes from './routes/users';
 import stripeRoutes from './routes/stripe';
 import notificationRoutes from './routes/notifications';
 import { authenticate } from './middleware/auth';
+import { PrismaClient } from '@prisma/client';
 import './jobs/auctionJob';
 import './jobs/notificationJob';
 
-dotenv.config();
+export const prisma = new PrismaClient();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
