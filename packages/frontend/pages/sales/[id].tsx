@@ -191,11 +191,84 @@ const SaleDetailPage = () => {
     }
   };
 
+  // Generate JSON-LD for schema.org structured data
+  const generateJsonLd = () => {
+    if (!sale) return null;
+
+    const eventData = {
+      "@context": "https://schema.org",
+      "@type": "Event",
+      "name": sale.title,
+      "startDate": sale.startDate,
+      "endDate": sale.endDate,
+      "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+      "eventStatus": "https://schema.org/EventScheduled",
+      "location": {
+        "@type": "Place",
+        "name": sale.title,
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": sale.address,
+          "addressLocality": sale.city,
+          "addressRegion": sale.state,
+          "postalCode": sale.zip,
+          "addressCountry": "US"
+        }
+      },
+      "description": sale.description,
+      "organizer": {
+        "@type": "Organization",
+        "name": sale.organizer.businessName,
+        "telephone": sale.organizer.phone
+      },
+      "offers": sale.items.map(item => ({
+        "@type": "Offer",
+        "name": item.title,
+        "price": item.price || item.auctionStartPrice || 0,
+        "priceCurrency": "USD",
+        "availability": item.status === "AVAILABLE" 
+          ? "https://schema.org/InStock" 
+          : item.status === "SOLD" 
+            ? "https://schema.org/SoldOut" 
+            : "https://schema.org/PreOrder"
+      }))
+    };
+
+    return JSON.stringify(eventData);
+  };
+
+  const jsonLd = generateJsonLd();
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Head>
         <title>{sale.title} - SaleScout</title>
         <meta name="description" content={sale.description} />
+        
+        {/* Open Graph Meta Tags */}
+        <meta property="og:title" content={sale.title} />
+        <meta property="og:description" content={sale.description} />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={`https://salescout.app/sales/${sale.id}`} />
+        {sale.photoUrls && sale.photoUrls.length > 0 && (
+          <meta property="og:image" content={sale.photoUrls[0]} />
+        )}
+        
+        {/* Twitter Card Meta Tags */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={sale.title} />
+        <meta name="twitter:description" content={sale.description} />
+        {sale.photoUrls && sale.photoUrls.length > 0 && (
+          <meta name="twitter:image" content={sale.photoUrls[0]} />
+        )}
+        
+        {/* JSON-LD Structured Data */}
+        {jsonLd && (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: jsonLd }}
+          />
+        )}
       </Head>
 
       <main className="container mx-auto px-4 py-8">
