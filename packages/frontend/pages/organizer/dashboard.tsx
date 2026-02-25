@@ -25,6 +25,16 @@ interface PaymentStatus {
   detailsSubmitted: boolean;
 }
 
+interface LineEntry {
+  id: string;
+  position: number;
+  status: 'WAITING' | 'CALLED' | 'SERVED' | 'CANCELLED';
+  user: {
+    name: string;
+    phone: string;
+  };
+}
+
 const OrganizerDashboard = () => {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -33,6 +43,9 @@ const OrganizerDashboard = () => {
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
   const [showQRModal, setShowQRModal] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState('');
+  const [activeTab, setActiveTab] = useState('sales');
+  const [lineEntries, setLineEntries] = useState<LineEntry[]>([]);
+  const [currentLineEntry, setCurrentLineEntry] = useState<LineEntry | null>(null);
 
   // Fetch organizer's sales
   const { data: sales, isLoading, isError } = useQuery({
@@ -109,6 +122,54 @@ const OrganizerDashboard = () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  // Start line for a sale
+  const startLine = async (saleId: string) => {
+    try {
+      const response = await api.post(`/lines/${saleId}/start`);
+      alert('Line started successfully! SMS notifications sent.');
+      queryClient.invalidateQueries({ queryKey: ['line-status', saleId] });
+    } catch (error) {
+      console.error('Error starting line:', error);
+      alert('Failed to start line. Please try again.');
+    }
+  };
+
+  // Call next person in line
+  const callNext = async (saleId: string) => {
+    try {
+      const response = await api.post(`/lines/${saleId}/next`);
+      alert('Next person called successfully!');
+      queryClient.invalidateQueries({ queryKey: ['line-status', saleId] });
+    } catch (error) {
+      console.error('Error calling next person:', error);
+      alert('Failed to call next person. Please try again.');
+    }
+  };
+
+  // Mark person as served
+  const markAsServed = async (lineEntryId: string) => {
+    try {
+      await api.post(`/lines/entry/${lineEntryId}/served`);
+      alert('Person marked as served!');
+      queryClient.invalidateQueries({ queryKey: ['line-status', selectedSale?.id] });
+    } catch (error) {
+      console.error('Error marking as served:', error);
+      alert('Failed to mark person as served. Please try again.');
+    }
+  };
+
+  // Fetch line status
+  const fetchLineStatus = async (saleId: string) => {
+    try {
+      const response = await api.get(`/lines/${saleId}/status`);
+      setLineEntries(response.data);
+      const calledEntry = response.data.find((entry: LineEntry) => entry.status === 'CALLED');
+      setCurrentLineEntry(calledEntry || null);
+    } catch (error) {
+      console.error('Error fetching line status:', error);
+    }
   };
 
   if (isLoading) return <div className="min-h-screen flex items-center justify-center">Loading dashboard...</div>;
@@ -242,118 +303,203 @@ const OrganizerDashboard = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Total Sales</h3>
-            <p className="text-3xl font-bold text-blue-600">{sales?.length || 0}</p>
-          </div>
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Active Sales</h3>
-            <p className="text-3xl font-bold text-green-600">
-              {sales?.filter(sale => sale.status === 'PUBLISHED').length || 0}
-            </p>
-          </div>
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Total Items</h3>
-            <p className="text-3xl font-bold text-purple-600">
-              {sales?.reduce((total, sale) => total + (sale.items?.length || 0), 0) || 0}
-            </p>
-          </div>
+        {/* Tabs */}
+        <div className="mb-6 border-b border-gray-200">
+          <nav className="-mb-px flex space-x-8">
+            <button
+              onClick={() => setActiveTab('sales')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'sales'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Sales
+            </button>
+            <button
+              onClick={() => setActiveTab('line')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'line'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Line Management
+            </button>
+          </nav>
         </div>
 
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-2xl font-bold mb-6">Your Sales</h2>
-          {sales?.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-gray-600 mb-4">You haven't created any sales yet.</p>
-              <Link 
-                href="/organizer/create-sale" 
-                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded inline-flex items-center"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
-                </svg>
-                Create Your First Sale
-              </Link>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Title
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Dates
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Location
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Items
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {sales.map((sale) => (
-                    <tr key={sale.id}>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">{sale.title}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-500">
-                          {new Date(sale.startDate).toLocaleDateString()} - {new Date(sale.endDate).toLocaleDateString()}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {sale.city}, {sale.state}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          sale.status === 'PUBLISHED' ? 'bg-green-100 text-green-800' :
-                          sale.status === 'DRAFT' ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-gray-100 text-gray-800'
-                        }`}>
-                          {sale.status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {sale.items?.length || 0}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <Link href={`/sales/${sale.id}`} className="text-blue-600 hover:text-blue-900 mr-3">
-                          View
-                        </Link>
-                        <Link href={`/organizer/edit-sale/${sale.id}`} className="text-blue-600 hover:text-blue-900 mr-3">
-                          Edit
-                        </Link>
-                        <button 
-                          onClick={() => handleGenerateQR(sale)}
-                          className="text-purple-600 hover:text-purple-900 mr-3"
-                        >
-                          QR Sign
-                        </button>
-                        <Link href={`/organizer/add-items/${sale.id}`} className="text-green-600 hover:text-green-900">
-                          Add Items
-                        </Link>
-                      </td>
-                    </tr>
+        {/* Line Management Tab */}
+        {activeTab === 'line' && (
+          <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 className="text-2xl font-bold mb-6">Line Management</h2>
+            
+            {sales && sales.length > 0 ? (
+              <div className="mb-6">
+                <label htmlFor="sale-select" className="block text-sm font-medium text-gray-700 mb-2">
+                  Select Sale
+                </label>
+                <select
+                  id="sale-select"
+                  className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+                  onChange={(e) => {
+                    const sale = sales.find(s => s.id === e.target.value);
+                    if (sale) {
+                      setSelectedSale(sale);
+                      fetchLineStatus(sale.id);
+                    }
+                  }}
+                  value={selectedSale?.id || ''}
+                >
+                  <option value="">Choose a sale</option>
+                  {sales.map(sale => (
+                    <option key={sale.id} value={sale.id}>
+                      {sale.title} ({new Date(sale.startDate).toLocaleDateString()})
+                    </option>
                   ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      </main>
-    </div>
-  );
-};
+                </select>
+              </div>
+            ) : null}
 
-export default OrganizerDashboard;
+            {selectedSale ? (
+              <div>
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-xl font-semibold">Current Line for {selectedSale.title}</h3>
+                  <div className="space-x-2">
+                    <button
+                      onClick={() => startLine(selectedSale.id)}
+                      className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+                    >
+                      Start Line
+                    </button>
+                    <button
+                      onClick={() => callNext(selectedSale.id)}
+                      className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                    >
+                      Call Next
+                    </button>
+                    <button
+                      onClick={() => fetchLineStatus(selectedSale.id)}
+                      className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
+                    >
+                      Refresh
+                    </button>
+                  </div>
+                </div>
+
+                {currentLineEntry && (
+                  <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+                    <div className="flex items-center">
+                      <div className="flex-shrink-0">
+                        <svg className="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                      <div className="ml-3">
+                        <p className="text-sm text-yellow-700">
+                          <span className="font-bold">Currently Called:</span> {currentLineEntry.user.name} (Position #{currentLineEntry.position})
+                          <button
+                            onClick={() => markAsServed(currentLineEntry.id)}
+                            className="ml-4 bg-green-600 hover:bg-green-700 text-white text-xs font-bold py-1 px-2 rounded"
+                          >
+                            Mark as Served
+                          </button>
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {lineEntries.length > 0 ? (
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Position
+                          </th>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Name
+                          </th>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Phone
+                          </th>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Status
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {lineEntries.map((entry) => (
+                          <tr key={entry.id} className={entry.status === 'CALLED' ? 'bg-yellow-50' : ''}>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                              #{entry.position}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {entry.user.name}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {entry.user.phone}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                entry.status === 'WAITING' ? 'bg-blue-100 text-blue-800' :
+                                entry.status === 'CALLED' ? 'bg-yellow-100 text-yellow-800' :
+                                entry.status === 'SERVED' ? 'bg-green-100 text-green-800' :
+                                'bg-gray-100 text-gray-800'
+                              }`}>
+                                {entry.status}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-gray-600">No line entries yet. Start the line to begin managing visitors.</p>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-gray-600">Select a sale to manage its line</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Sales Tab */}
+        {activeTab === 'sales' && (
+          <div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Total Sales</h3>
+                <p className="text-3xl font-bold text-blue-600">{sales?.length || 0}</p>
+              </div>
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Active Sales</h3>
+                <p className="text-3xl font-bold text-green-600">
+                  {sales?.filter(sale => sale.status === 'PUBLISHED').length || 0}
+                </p>
+              </div>
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Total Items</h3>
+                <p className="text-3xl font-bold text-purple-600">
+                  {sales?.reduce((total, sale) => total + (sale.items?.length || 0), 0) || 0}
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <h2 className="text-2xl font-bold mb-6">Your Sales</h2>
+              {sales?.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-600 mb-4">You haven't created any sales yet.</p>
+                  <Link 
+                    href="/organizer/create-sale" 
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded inline-flex items-center"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
