@@ -1,15 +1,17 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import { 
   getPurchases, 
   getFavorites, 
   getUserProfile,
-  getLeaderboard,
-  handlePurchaseBadge,
-  handleFavoriteBadge,
-  handleReferralBadge,
-  handlePointsBadge
+  getLeaderboard
 } from '../controllers/userController';
 import { authenticate } from '../middleware/auth';
+import { prisma } from '../index';
+
+// Extend Express Request type
+interface AuthRequest extends Request {
+  user?: any;
+}
 
 const router = Router();
 
@@ -19,7 +21,7 @@ router.get('/me', authenticate, getUserProfile);
 router.get('/leaderboard', getLeaderboard);
 
 // New endpoints for profile enhancements
-router.get('/me/bids', authenticate, async (req, res) => {
+router.get('/me/bids', authenticate, async (req: AuthRequest, res: Response) => {
   try {
     const bids = await prisma.bid.findMany({
       where: {
@@ -39,7 +41,7 @@ router.get('/me/bids', authenticate, async (req, res) => {
     });
 
     // Add bid status logic here (WINNING, LOSING, etc.)
-    const bidsWithStatus = bids.map(bid => {
+    const bidsWithStatus = bids.map((bid: any) => {
       // Simplified status logic - in a real app, you'd compare with current highest bid
       return {
         ...bid,
@@ -54,7 +56,7 @@ router.get('/me/bids', authenticate, async (req, res) => {
   }
 });
 
-router.get('/me/referrals', authenticate, async (req, res) => {
+router.get('/me/referrals', authenticate, async (req: AuthRequest, res: Response) => {
   try {
     const referrals = await prisma.referral.findMany({
       where: {
@@ -80,7 +82,7 @@ router.get('/me/referrals', authenticate, async (req, res) => {
   }
 });
 
-router.get('/me/points', authenticate, async (req, res) => {
+router.get('/me/points', authenticate, async (req: AuthRequest, res: Response) => {
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.user.id },
@@ -99,7 +101,7 @@ router.get('/me/points', authenticate, async (req, res) => {
 
     res.json({
       points: user.points,
-      badges: user.badges.map(ub => ub.badge)
+      badges: user.badges.map((ub: any) => ub.badge)
     });
   } catch (error) {
     console.error('Error fetching user points:', error);
