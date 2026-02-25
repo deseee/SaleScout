@@ -6,6 +6,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../../lib/api';
 import { loadStripe } from '@stripe/stripe-js';
 import { useAuth } from '../../components/AuthContext';
+import { formatDistanceToNow, parseISO } from 'date-fns';
 
 interface Item {
   id: string;
@@ -46,25 +47,29 @@ const formatPrice = (value: number | string | null | undefined): string => {
 const formatTimeRemaining = (endTime: string | null | undefined): string => {
   if (!endTime) return 'No end time';
   
-  const end = new Date(endTime);
-  const now = new Date();
-  const diff = end.getTime() - now.getTime();
-  
-  if (diff <= 0) {
-    return 'Ended';
-  }
-  
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-  const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-  
-  if (days > 0) {
-    return `${days}d ${hours}h ${minutes}m`;
-  } else if (hours > 0) {
-    return `${hours}h ${minutes}m ${seconds}s`;
-  } else {
-    return `${minutes}m ${seconds}s`;
+  try {
+    const end = new Date(endTime);
+    const now = new Date();
+    const diff = end.getTime() - now.getTime();
+    
+    if (diff <= 0) {
+      return 'Ended';
+    }
+    
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+    
+    if (days > 0) {
+      return `${days}d ${hours}h ${minutes}m`;
+    } else if (hours > 0) {
+      return `${hours}h ${minutes}m ${seconds}s`;
+    } else {
+      return `${minutes}m ${seconds}s`;
+    }
+  } catch (error) {
+    return 'No end time';
   }
 };
 

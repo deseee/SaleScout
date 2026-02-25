@@ -3,6 +3,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import api from '../lib/api';
+import { format } from 'date-fns';
 
 interface Sale {
   id: string;
@@ -56,6 +57,18 @@ const HomePage = () => {
       );
     }
   }, []);
+
+  // Format dates safely for sale cards
+  const formatSaleDate = (dateString: string | null | undefined): string => {
+    if (!dateString) return 'TBA';
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return 'Invalid Date';
+      return format(date, 'MMM d, yyyy');
+    } catch (error) {
+      return 'Invalid Date';
+    }
+  };
 
   if (isLoading) return <div className="min-h-screen flex items-center justify-center bg-gray-50">Loading...</div>;
   
@@ -129,7 +142,7 @@ const HomePage = () => {
                       <p className="text-gray-600 mb-2">{sale.description}</p>
                       <div className="flex justify-between items-center mt-4">
                         <span className="text-sm text-gray-500">
-                          {new Date(sale.startDate).toLocaleDateString()} - {new Date(sale.endDate).toLocaleDateString()}
+                          {formatSaleDate(sale.startDate)} - {formatSaleDate(sale.endDate)}
                         </span>
                         <span className="text-sm font-medium text-blue-600">
                           {sale.organizer.businessName}

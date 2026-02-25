@@ -6,6 +6,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../../lib/api';
 import { loadStripe } from '@stripe/stripe-js';
 import { useAuth } from '../../components/AuthContext';
+import { format, parseISO } from 'date-fns';
 
 interface Sale {
   id: string;
@@ -62,24 +63,28 @@ const formatPrice = (value: number | string | null | undefined): string => {
 const formatTimeRemaining = (endTime: string | null | undefined): string => {
   if (!endTime) return 'No end time';
   
-  const end = new Date(endTime);
-  const now = new Date();
-  const diff = end.getTime() - now.getTime();
-  
-  if (diff <= 0) {
-    return 'Ended';
-  }
-  
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-  
-  if (days > 0) {
-    return `${days}d ${hours}h`;
-  } else if (hours > 0) {
-    return `${hours}h ${minutes}m`;
-  } else {
-    return `${minutes}m`;
+  try {
+    const end = new Date(endTime);
+    const now = new Date();
+    const diff = end.getTime() - now.getTime();
+    
+    if (diff <= 0) {
+      return 'Ended';
+    }
+    
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    
+    if (days > 0) {
+      return `${days}d ${hours}h`;
+    } else if (hours > 0) {
+      return `${hours}h ${minutes}m`;
+    } else {
+      return `${minutes}m`;
+    }
+  } catch (error) {
+    return 'No end time';
   }
 };
 
@@ -173,6 +178,18 @@ const SaleDetailPage = () => {
   // Check if user is organizer or admin
   const isOrganizer = user?.role === 'ORGANIZER' || user?.role === 'ADMIN';
 
+  // Format dates safely
+  const formatSaleDate = (dateString: string | null | undefined): string => {
+    if (!dateString) return 'TBA';
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return 'Invalid Date';
+      return format(date, 'MMMM d, yyyy h:mm a');
+    } catch (error) {
+      return 'Invalid Date';
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Head>
@@ -205,8 +222,7 @@ const SaleDetailPage = () => {
                   <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
                 </svg>
                 <span className="text-gray-600">
-                  {sale.startDate ? new Date(sale.startDate).toLocaleDateString() : 'Invalid Date'} - 
-                  {sale.endDate ? new Date(sale.endDate).toLocaleDateString() : 'Invalid Date'}
+                  {formatSaleDate(sale.startDate)} - {formatSaleDate(sale.endDate)}
                 </span>
               </div>
             </div>
