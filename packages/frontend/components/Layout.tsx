@@ -62,10 +62,15 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                       Dashboard
                     </Link>
                   )}
-                  {user.role === 'USER' && (
-                    <Link href="/shopper/dashboard" className="text-gray-700 hover:text-blue-600">
-                      Profile
-                    </Link>
+                  {(user.role === 'USER' || user.role === 'ADMIN') && (
+                    <>
+                      <Link href="/shopper/dashboard" className="text-gray-700 hover:text-blue-600">
+                        Profile
+                      </Link>
+                      <Link href="/referral-dashboard" className="text-gray-700 hover:text-blue-600">
+                        Referrals
+                      </Link>
+                    </>
                   )}
                   <button 
                     onClick={handleLogout}

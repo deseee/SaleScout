@@ -9,6 +9,7 @@ import { useAuth } from '../../components/AuthContext';
 import { format, parseISO } from 'date-fns';
 import SaleSubscription from '../../components/SaleSubscription';
 import CSVImportModal from '../../components/CSVImportModal';
+import SaleShareButton from '../../components/SaleShareButton';
 
 interface Sale {
   id: string;
@@ -270,6 +271,14 @@ const SaleDetailPage = () => {
           <meta name="twitter:image" content={sale.photoUrls[0]} />
         )}
         
+        {/* Dynamic OG Image */}
+        <meta 
+          property="og:image" 
+          content={`/api/og?title=${encodeURIComponent(sale.title)}&date=${encodeURIComponent(
+            `${format(new Date(sale.startDate), 'MMM d')} - ${format(new Date(sale.endDate), 'MMM d, yyyy')}`
+          )}&location=${encodeURIComponent(`${sale.city}, ${sale.state}`)}`} 
+        />
+        
         {/* JSON-LD Structured Data */}
         {jsonLd && (
           <script
@@ -316,9 +325,35 @@ const SaleDetailPage = () => {
                 </span>
               </div>
             </div>
-            <div className="mt-4 md:mt-0">
-              <div className="bg-blue-100 text-blue-800 px-4 py-2 rounded-lg">
+            <div className="mt-4 md:mt-0 flex flex-col items-end">
+              <div className="bg-blue-100 text-blue-800 px-4 py-2 rounded-lg mb-3">
                 Organized by: {sale.organizer.businessName}
+              </div>
+              <div className="flex space-x-2">
+                {/* Share Button */}
+                <SaleShareButton 
+                  saleId={sale.id}
+                  saleTitle={sale.title}
+                  saleDate={`${format(new Date(sale.startDate), 'MMM d')} - ${format(new Date(sale.endDate), 'MMM d, yyyy')}`}
+                  saleLocation={`${sale.city}, ${sale.state}`}
+                  userId={user?.id}
+                />
+                
+                {/* Post to Nextdoor Button */}
+                <button 
+                  onClick={() => {
+                    const postText = `Check out this estate sale on SaleScout!\n\n${sale.title}\n${sale.address}, ${sale.city}, ${sale.state}\n${format(new Date(sale.startDate), 'MMM d, yyyy h:mm a')} - ${format(new Date(sale.endDate), 'MMM d, yyyy h:mm a')}\n\n${window.location.origin}/sales/${sale.id}`;
+                    navigator.clipboard.writeText(postText);
+                    alert('Post text copied to clipboard! Paste it into Nextdoor.');
+                  }}
+                  className="flex items-center bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 3 3 0 004.242 0l3-3a3 3 0 00-4.242-4.242l-3 3a3 3 0 000 4.242 1 1 0 101.414-1.414 1 1 0 010-1.414l3-3z" clipRule="evenodd" />
+                    <path fillRule="evenodd" d="M14.586 10.586a2 2 0 012.828 0 3 3 0 010 4.242l-3 3a3 3 0 01-4.242 0 1 1 0 101.414 1.414 1 1 0 001.414 0l3-3a1 1 0 000-1.414 1 1 0 00-1.414 0l-3 3a1 1 0 101.414 1.414 3 3 0 010-4.242 1 1 0 000-1.414z" clipRule="evenodd" />
+                  </svg>
+                  Post to Nextdoor
+                </button>
               </div>
             </div>
           </div>
@@ -335,72 +370,3 @@ const SaleDetailPage = () => {
             <SaleSubscription 
               saleId={sale.id} 
               userEmail={user.email}
-            />
-          )}
-
-          {isOrganizer && (
-            <div className="mt-6 flex flex-wrap gap-3">
-              <Link 
-                href={`/organizer/edit-sale/${sale.id}`}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded inline-flex items-center"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1 text-white" viewBox="0 0 20 20" fill="currentColor">
-                  <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                </svg>
-                Edit Sale Details
-              </Link>
-              <Link 
-                href={`/organizer/add-items/${sale.id}`}
-                className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded inline-flex items-center"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1 text-white" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
-                </svg>
-                Add Items
-              </Link>
-              <button 
-                onClick={() => setIsImportModalOpen(true)}
-                className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded inline-flex items-center"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                </svg>
-                Import Items
-              </button>
-              <Link 
-                href={`/organizer/send-update/${sale.id}`}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded inline-flex items-center"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1 text-white" viewBox="0 0 20 20" fill="currentColor">
-                  <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
-                </svg>
-                Send Update
-              </Link>
-            </div>
-          )}
-        </div>
-
-        {/* Map Section */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-          <h2 className="text-2xl font-bold mb-4 text-gray-900">Location</h2>
-          <div className="h-96 bg-gray-200 rounded-lg flex items-center justify-center">
-            <p className="text-gray-600">
-              Map showing location at ({sale.lat}, {sale.lng})
-            </p>
-          </div>
-        </div>
-
-        {/* Items Section */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">
-              {sale.isAuctionSale ? 'Auction Items' : 'Items for Sale'}
-            </h2>
-            {isOrganizer && sale.items.length > 0 && (
-              <div className="flex space-x-2">
-                <Link 
-                  href={`/organizer/add-items/${sale.id}`}
-                  className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded inline-flex items-center"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1 text-white" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1
