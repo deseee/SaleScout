@@ -6,11 +6,16 @@ import { handleEarlyBirdBadge, handleExplorerBadge } from './userController';
 
 const prisma = new PrismaClient();
 
-// Initialize Twilio client
-const twilioClient = twilio(
-  process.env.TWILIO_ACCOUNT_SID,
-  process.env.TWILIO_AUTH_TOKEN
-);
+// Initialize Twilio client only if credentials are available
+let twilioClient: ReturnType<typeof twilio> | null = null;
+if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN) {
+  twilioClient = twilio(
+    process.env.TWILIO_ACCOUNT_SID,
+    process.env.TWILIO_AUTH_TOKEN
+  );
+} else {
+  console.warn('Twilio credentials not found - SMS features will be disabled');
+}
 
 // Start line for a sale
 export const startLine = async (req: AuthRequest, res: Response) => {
@@ -58,22 +63,26 @@ export const startLine = async (req: AuthRequest, res: Response) => {
       lineEntries.push(entry);
     }
 
-    // Send SMS notifications to subscribers
+    // Send SMS notifications to subscribers (if Twilio is configured)
     const results = [];
-    for (const subscriber of subscribers) {
-      if (subscriber.phone) {
-        try {
-          const message = await twilioClient.messages.create({
-            body: `The line for ${sale.title} is now open. You are position #${lineEntries.find(e => e.userId === subscriber.userId)?.position}.`,
-            from: process.env.TWILIO_PHONE_NUMBER,
-            to: subscriber.phone
-          });
-          results.push({ phone: subscriber.phone, success: true, sid: message.sid });
-        } catch (error) {
-          console.error(`Failed to send SMS to ${subscriber.phone}:`, error);
-          results.push({ phone: subscriber.phone, success: false, error: (error as Error).message });
+    if (twilioClient) {
+      for (const subscriber of subscribers) {
+        if (subscriber.phone) {
+          try {
+            const message = await twilioClient.messages.create({
+              body: `The line for ${sale.title} is now open. You are position #${lineEntries.find(e => e.userId === subscriber.userId)?.position}.`,
+              from: process.env.TWILIO_PHONE_NUMBER,
+              to: subscriber.phone
+            });
+            results.push({ phone: subscriber.phone, success: true, sid: message.sid });
+          } catch (error) {
+            console.error(`Failed to send SMS to ${subscriber.phone}:`, error);
+            results.push({ phone: subscriber.phone, success: false, error: (error as Error).message });
+          }
         }
       }
+    } else {
+      console.log('Twilio not configured - skipping SMS notifications');
     }
 
     res.json({
@@ -143,17 +152,19 @@ export const callNext = async (req: AuthRequest, res: Response) => {
       }
     });
 
-    // Send SMS notification
-    const subscriber = nextEntry.user.subscriptions[0];
-    if (subscriber?.phone) {
-      try {
-        await twilioClient.messages.create({
-          body: `You are next in line for ${sale.title}! Please prepare to enter.`,
-          from: process.env.TWILIO_PHONE_NUMBER,
-          to: subscriber.phone
-        });
-      } catch (error) {
-        console.error(`Failed to send SMS to ${subscriber.phone}:`, error);
+    // Send SMS notification (if Twilio is configured)
+    if (twilioClient) {
+      const subscriber = nextEntry.user.subscriptions[0];
+      if (subscriber?.phone) {
+        try {
+          await twilioClient.messages.create({
+            body: `You are next in line for ${sale.title}! Please prepare to enter.`,
+            from: process.env.TWILIO_PHONE_NUMBER,
+            to: subscriber.phone
+          });
+        } catch (error) {
+          console.error(`Failed to send SMS to ${subscriber.phone}:`, error);
+        }
       }
     }
 
