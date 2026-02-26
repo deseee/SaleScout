@@ -114,7 +114,7 @@ export const getUserProfile = async (req: AuthRequest, res: Response) => {
     const user = await prisma.user.findUnique({
       where: { id: req.user.id },
       include: {
-        UserBadge: {
+        userBadges: {          // ✅ FIXED: use 'userBadges' not 'UserBadge'
           include: {
             badge: true
           }
@@ -150,7 +150,7 @@ export const getLeaderboard = async (req: Request, res: Response) => {
         id: true,
         name: true,
         points: true,
-        UserBadge: {
+        userBadges: {          // ✅ FIXED: use 'userBadges' not 'UserBadge'
           include: {
             badge: {
               select: {
@@ -208,15 +208,16 @@ export const awardBadge = async (userId: string, badgeCriteriaType: string, coun
 
           console.log(`Awarded badge "${badge.name}" to user ${userId}`);
           
+          // TODO: Implement notification system when ready
           // Create notification for user
-          await prisma.notification.create({
-            data: {
-              userId,
-              title: 'New Badge Earned!',
-              message: `Congratulations! You've earned the "${badge.name}" badge.`,
-              type: 'BADGE'
-            }
-          });
+          // await prisma.notification.create({
+          //   data: {
+          //     userId,
+          //     title: 'New Badge Earned!',
+          //     message: `Congratulations! You've earned the "${badge.name}" badge.`,
+          //     type: 'BADGE'
+          //   }
+          // });
         }
       }
     }
@@ -306,14 +307,15 @@ export const handleEarlyBirdBadge = async (userId: string, checkInTime: Date) =>
 };
 
 // Call this function when a user visits sales in different cities
-export const handleExplorerBadge = async (userId: string, city: string) => {
+export const handleExplorerBadge = async (userId: string) => {
   try {
     // Get distinct cities user has visited
     const visitedCities = await prisma.sale.findMany({
       where: {
         lineEntries: {
           some: {
-            userId
+            userId,
+            status: 'ENTERED'
           }
         }
       },
