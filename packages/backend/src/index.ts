@@ -1,5 +1,9 @@
 import dotenv from 'dotenv';
-dotenv.config({ path: "./packages/backend/.env" });
+import path from 'path';
+
+// Load environment variables from the correct path
+const envPath = path.resolve(__dirname, '../.env');
+dotenv.config({ path: envPath });
 
 import express from 'express';
 import cors from 'cors';
