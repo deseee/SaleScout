@@ -65,9 +65,9 @@ export const subscribeToSale = async (req: AuthRequest, res: Response) => {
     // Create or update subscription
     const subscription = await prisma.saleSubscriber.upsert({
       where: {
-        saleId_userId: {
-          saleId,
-          userId
+        userId_saleId: {
+          userId,
+          saleId
         }
       },
       update: {
@@ -104,9 +104,9 @@ export const unsubscribeFromSale = async (req: AuthRequest, res: Response) => {
 
     await prisma.saleSubscriber.delete({
       where: {
-        saleId_userId: {
-          saleId,
-          userId
+        userId_saleId: {
+          userId,
+          saleId
         }
       }
     });
@@ -316,47 +316,5 @@ export const sendWeeklyDigest = async () => {
   } catch (error) {
     console.error('Error sending weekly digest:', error);
     throw error;
-  }
-};
-
-// Get user notifications
-export const getUserNotifications = async (req: AuthRequest, res: Response) => {
-  try {
-    const userId = req.user.id;
-    
-    const notifications = await prisma.notification.findMany({
-      where: { userId },
-      orderBy: { createdAt: 'desc' },
-      take: 20
-    });
-    
-    res.json(notifications);
-  } catch (error) {
-    console.error('Error fetching notifications:', error);
-    res.status(500).json({ message: 'Failed to fetch notifications' });
-  }
-};
-
-// Mark notification as read
-export const markNotificationAsRead = async (req: AuthRequest, res: Response) => {
-  try {
-    const { id } = req.params;
-    const userId = req.user.id;
-    
-    const notification = await prisma.notification.update({
-      where: { 
-        id,
-        userId 
-      },
-      data: { 
-        read: true,
-        readAt: new Date()
-      }
-    });
-    
-    res.json(notification);
-  } catch (error) {
-    console.error('Error marking notification as read:', error);
-    res.status(500).json({ message: 'Failed to mark notification as read' });
   }
 };
