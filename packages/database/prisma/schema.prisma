@@ -172,7 +172,7 @@ model Review {
   user      User     @relation(fields: [userId], references: [id])
   saleId    String
   sale      Sale     @relation(fields: [saleId], references: [id])
-  rating    Integer
+  rating    Int
   comment   String?
   createdAt DateTime @default(now())
 }
