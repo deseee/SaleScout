@@ -27,6 +27,7 @@ model User {
   referredUsers Referral[]  @relation("ReferrerToReferred")
   referredBy    Referral?   @relation("ReferredToReferrer")
   lineEntries   LineEntry[]
+  reviews       Review[]
 }
 
 model Organizer {
@@ -181,7 +182,7 @@ model Referral {
   id             String   @id @default(cuid())
   referrerId     String
   referrer       User     @relation("ReferrerToReferred", fields: [referrerId], references: [id])
-  referredUserId String
+  referredUserId String   @unique
   referredUser   User     @relation("ReferredToReferrer", fields: [referredUserId], references: [id])
   createdAt      DateTime @default(now())
 
