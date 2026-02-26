@@ -1,8 +1,9 @@
 import dotenv from 'dotenv';
 import path from 'path';
 
-// Load environment variables from the correct path
+// Load environment variables from the correct path - now using absolute path resolution
 const envPath = path.resolve(__dirname, '../.env');
+console.log('Loading .env from:', envPath);
 dotenv.config({ path: envPath });
 
 import express from 'express';
@@ -52,4 +53,10 @@ app.get('/api/protected', authenticate, (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
+  
+  // Log environment variables status for debugging
+  console.log('Environment variables status:');
+  console.log('- STRIPE_SECRET_KEY:', process.env.STRIPE_SECRET_KEY ? '✅ Present' : '❌ Missing');
+  console.log('- TWILIO_ACCOUNT_SID:', process.env.TWILIO_ACCOUNT_SID ? '✅ Present' : '❌ Missing');
+  console.log('- TWILIO_AUTH_TOKEN:', process.env.TWILIO_AUTH_TOKEN ? '✅ Present' : '❌ Missing');
 });
