@@ -1,5 +1,5 @@
 import express from 'express';
-import { authenticateToken } from '../middleware/auth';
+import { authenticate } from '../middleware/auth';
 import {
   subscribeToSale,
   unsubscribeFromSale,
@@ -10,11 +10,11 @@ import {
 const router = express.Router();
 
 // Subscription management
-router.post('/subscribe', authenticateToken, subscribeToSale);
-router.delete('/unsubscribe/:saleId', authenticateToken, unsubscribeFromSale);
-router.get('/subscriptions', authenticateToken, getUserSubscriptions);
+router.post('/subscribe', authenticate, subscribeToSale);
+router.delete('/unsubscribe/:saleId', authenticate, unsubscribeFromSale);
+router.get('/subscriptions', authenticate, getUserSubscriptions);
 
 // SMS updates
-router.post('/send-sms', authenticateToken, sendSMSUpdate);
+router.post('/send-sms', authenticate, sendSMSUpdate);
 
 export default router;
