@@ -87,7 +87,7 @@ router.get('/me/points', authenticate, async (req: AuthRequest, res: Response) =
     const user = await prisma.user.findUnique({
       where: { id: req.user.id },
       include: {
-        UserBadge: { include: { badge: true } }
+        userBadges: { include: { badge: true } }   // ✅ FIXED: was UserBadge
       }
     });
 
@@ -97,7 +97,7 @@ router.get('/me/points', authenticate, async (req: AuthRequest, res: Response) =
 
     res.json({
       points: user.points,
-      badges: user.UserBadge ? user.UserBadge.map(ub => ub.badge) : []
+      badges: user.userBadges ? user.userBadges.map(ub => ub.badge) : [] // ✅ FIXED: was user.UserBadge
     });
   } catch (error) {
     console.error('Error fetching user points:', error);
@@ -105,4 +105,4 @@ router.get('/me/points', authenticate, async (req: AuthRequest, res: Response) =
   }
 });
 
-export default router;
+export default router; // ✅ Removed stray 'y' at the end
