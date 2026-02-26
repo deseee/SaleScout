@@ -1,8 +1,9 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
-import stripe from '../utils/stripe';
+import { getStripe } from '../utils/stripe';
 
 const prisma = new PrismaClient();
+const stripe = getStripe();
 
 interface AuthRequest extends Request {
   user?: any;

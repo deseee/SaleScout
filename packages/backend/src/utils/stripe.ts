@@ -1,14 +1,18 @@
 import Stripe from 'stripe';
 
-console.log('Initializing Stripe with key:', process.env.STRIPE_SECRET_KEY ? '✅ Key present' : '❌ Key missing');
+let stripe: Stripe | null = null;
 
-// Check if STRIPE_SECRET_KEY is defined
-if (!process.env.STRIPE_SECRET_KEY) {
-  console.warn('STRIPE_SECRET_KEY is not defined in environment variables');
-  // In production, you might want to throw an error instead:
-  // throw new Error('STRIPE_SECRET_KEY must be defined in environment variables');
-}
+export const getStripe = (): Stripe => {
+  if (!stripe) {
+    console.log('Initializing Stripe with key:', process.env.STRIPE_SECRET_KEY ? '✅ Key present' : '❌ Key missing');
+    
+    if (!process.env.STRIPE_SECRET_KEY) {
+      console.warn('STRIPE_SECRET_KEY is not defined in environment variables');
+    }
+    
+    stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder_missing_key');
+  }
+  return stripe;
+};
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder_missing_key');
-
-export default stripe;
+export default getStripe;
