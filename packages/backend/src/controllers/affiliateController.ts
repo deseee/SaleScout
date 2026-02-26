@@ -1,8 +1,6 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../index';
 import { AuthRequest } from '../middleware/auth';
-
-const prisma = new PrismaClient();
 
 // Generate affiliate link for a sale
 export const generateAffiliateLink = async (req: AuthRequest, res: Response) => {

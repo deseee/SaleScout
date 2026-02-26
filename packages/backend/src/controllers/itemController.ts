@@ -1,9 +1,7 @@
 import { Request, Response } from 'express';
 import { parse } from 'csv-parse';
 import { Readable } from 'stream';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from '../index';
 
 interface AuthRequest extends Request {
   user?: any;

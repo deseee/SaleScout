@@ -1,10 +1,8 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../index';
 import twilio from 'twilio';
 import { AuthRequest } from '../middleware/auth';
 import { handleEarlyBirdBadge, handleExplorerBadge } from './userController';
-
-const prisma = new PrismaClient();
 
 // Initialize Twilio client only if credentials are available
 let twilioClient: ReturnType<typeof twilio> | null = null;

@@ -1,11 +1,9 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../index';
 import { v4 as uuidv4 } from 'uuid';
 import { handleReferralBadge, handlePointsBadge } from './userController';
-
-const prisma = new PrismaClient();
 
 export const register = async (req: Request, res: Response) => {
   try {

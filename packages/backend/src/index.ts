@@ -50,7 +50,19 @@ import { PrismaClient } from '@prisma/client';
 import './jobs/auctionJob';
 import './jobs/notificationJob';
 
-export const prisma = new PrismaClient();
+// Create a single Prisma instance with connection pooling configuration
+export const prisma = new PrismaClient({
+  datasources: {
+    db: {
+      url: process.env.DATABASE_URL,
+    },
+  },
+  // Configure connection pool settings to prevent too many connections
+  transactionOptions: {
+    maxWait: 5000, // 5 seconds
+    timeout: 10000, // 10 seconds
+  },
+});
 
 const app = express();
 const PORT = parseInt(process.env.PORT || '3001', 10);
@@ -79,6 +91,19 @@ app.get('/api/protected', authenticate, (req, res) => {
   res.json({ message: 'This is a protected route', user: (req as any).user });
 });
 
+// Graceful shutdown
+process.on('SIGINT', async () => {
+  console.log('Shutting down gracefully...');
+  await prisma.$disconnect();
+  process.exit(0);
+});
+
+process.on('SIGTERM', async () => {
+  console.log('Shutting down gracefully...');
+  await prisma.$disconnect();
+  process.exit(0);
+});
+
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server is running on port ${PORT}`);
   
@@ -87,4 +112,5 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log('- STRIPE_SECRET_KEY:', process.env.STRIPE_SECRET_KEY ? '✅ Present' : '❌ Missing');
   console.log('- TWILIO_ACCOUNT_SID:', process.env.TWILIO_ACCOUNT_SID ? '✅ Present' : '❌ Missing');
   console.log('- TWILIO_AUTH_TOKEN:', process.env.TWILIO_AUTH_TOKEN ? '✅ Present' : '❌ Missing');
+  console.log('- DATABASE_URL:', process.env.DATABASE_URL ? '✅ Present' : '❌ Missing');
 });
