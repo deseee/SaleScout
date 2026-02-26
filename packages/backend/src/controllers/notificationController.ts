@@ -311,7 +311,7 @@ export const sendWeeklyDigest = async () => {
       }
     }
 
-    console.log(`Weekly digest sent to ${results.filter(r => r.success).1} of ${results.length} recipients`);
+    console.log(`Weekly digest sent to ${results.filter(r => r.success).length} of ${results.length} recipients`);
     return results;
   } catch (error) {
     console.error('Error sending weekly digest:', error);
