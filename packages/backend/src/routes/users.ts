@@ -6,7 +6,9 @@ import {
   getLeaderboard
 } from '../controllers/userController';
 import { authenticate } from '../middleware/auth';
-import { prisma } from '../index';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
 
 // Extend Express Request type
 interface AuthRequest extends Request {
@@ -87,7 +89,11 @@ router.get('/me/points', authenticate, async (req: AuthRequest, res: Response) =
     const user = await prisma.user.findUnique({
       where: { id: req.user.id },
       include: {
-        userBadges: { include: { badge: true } }   // ✅ FIXED: was UserBadge
+        userBadges: { 
+          include: { 
+            badge: true 
+          } 
+        }
       }
     });
 
@@ -97,7 +103,7 @@ router.get('/me/points', authenticate, async (req: AuthRequest, res: Response) =
 
     res.json({
       points: user.points,
-      badges: user.userBadges ? user.userBadges.map(ub => ub.badge) : [] // ✅ FIXED: was user.UserBadge
+      badges: user.userBadges ? user.userBadges.map(ub => ub.badge) : []
     });
   } catch (error) {
     console.error('Error fetching user points:', error);
@@ -105,4 +111,4 @@ router.get('/me/points', authenticate, async (req: AuthRequest, res: Response) =
   }
 });
 
-export default router; // ✅ Removed stray 'y' at the end
+export default router;
