@@ -14,6 +14,7 @@ model User {
   name          String
   role          String     @default("USER") // USER, ORGANIZER, ADMIN
   points        Int        @default(0)
+  phone         String?
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
   referralCode  String     @unique
@@ -57,6 +58,7 @@ model Sale {
   tags          String[]
   status        String     @default("DRAFT") // DRAFT, PUBLISHED, ENDED
   isAuctionSale Boolean    @default(false)
+  earlyAccess   Boolean    @default(false)
   organizerId   String
   organizer     Organizer  @relation(fields: [organizerId], references: [id])
   items         Item[]
@@ -64,6 +66,8 @@ model Sale {
   subscribers   SaleSubscriber[]
   affiliateLink AffiliateLink?
   lineEntries   LineEntry[]
+  purchases     Purchase[]
+  reviews       Review[]
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
 }
@@ -160,6 +164,17 @@ model UserBadge {
   awardedAt DateTime @default(now())
 
   @@unique([userId, badgeId])
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  saleId    String
+  sale      Sale     @relation(fields: [saleId], references: [id])
+  rating    Integer
+  comment   String?
+  createdAt DateTime @default(now())
 }
 
 model Referral {
