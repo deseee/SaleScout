@@ -8,14 +8,25 @@ const prisma = new PrismaClient();
 
 // Initialize Twilio client only if credentials are available
 let twilioClient: ReturnType<typeof twilio> | null = null;
-if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN) {
-  twilioClient = twilio(
-    process.env.TWILIO_ACCOUNT_SID,
-    process.env.TWILIO_AUTH_TOKEN
-  );
-} else {
-  console.warn('Twilio credentials not found - SMS features will be disabled');
-}
+const initTwilio = () => {
+  if (!twilioClient && process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN) {
+    try {
+      twilioClient = twilio(
+        process.env.TWILIO_ACCOUNT_SID,
+        process.env.TWILIO_AUTH_TOKEN
+      );
+      console.log('✅ Twilio client initialized for line controller');
+    } catch (error) {
+      console.warn('⚠️ Failed to initialize Twilio client for line controller:', error);
+      twilioClient = null;
+    }
+  } else if (!twilioClient) {
+    console.warn('Twilio credentials not found - SMS features will be disabled');
+  }
+};
+
+// Initialize Twilio when module loads
+initTwilio();
 
 // Start line for a sale
 export const startLine = async (req: AuthRequest, res: Response) => {
@@ -65,7 +76,7 @@ export const startLine = async (req: AuthRequest, res: Response) => {
 
     // Send SMS notifications to subscribers (if Twilio is configured)
     const results = [];
-    if (twilioClient) {
+    if (twilioClient && process.env.TWILIO_PHONE_NUMBER) {
       for (const subscriber of subscribers) {
         if (subscriber.phone) {
           try {
@@ -153,7 +164,7 @@ export const callNext = async (req: AuthRequest, res: Response) => {
     });
 
     // Send SMS notification (if Twilio is configured)
-    if (twilioClient) {
+    if (twilioClient && process.env.TWILIO_PHONE_NUMBER) {
       const subscriber = nextEntry.user.subscriptions[0];
       if (subscriber?.phone) {
         try {

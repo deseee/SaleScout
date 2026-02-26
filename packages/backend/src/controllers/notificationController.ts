@@ -10,8 +10,13 @@ const getTwilioClient = () => {
     const accountSid = process.env.TWILIO_ACCOUNT_SID;
     const authToken = process.env.TWILIO_AUTH_TOKEN;
     if (accountSid && authToken) {
-      _twilioClient = twilio(accountSid, authToken);
-      console.log('✅ Twilio client initialized');
+      try {
+        _twilioClient = twilio(accountSid, authToken);
+        console.log('✅ Twilio client initialized');
+      } catch (error) {
+        console.warn('⚠️ Failed to initialize Twilio client:', error);
+        _twilioClient = null;
+      }
     } else {
       console.warn('⚠️ Twilio credentials missing - SMS features will be disabled');
     }
@@ -23,7 +28,12 @@ const getTwilioClient = () => {
 let _resend: any = null;
 const getResendClient = () => {
   if (!_resend && process.env.RESEND_API_KEY) {
-    _resend = new Resend(process.env.RESEND_API_KEY);
+    try {
+      _resend = new Resend(process.env.RESEND_API_KEY);
+    } catch (error) {
+      console.warn('⚠️ Failed to initialize Resend client:', error);
+      _resend = null;
+    }
   }
   return _resend;
 };
@@ -265,7 +275,7 @@ export const sendWeeklyDigest = async () => {
         <h3>${sale.title}</h3>
         <p><strong>Organizer:</strong> ${sale.organizer.businessName}</p>
         <p><strong>Dates:</strong> ${sale.startDate.toLocaleDateString()} - ${sale.endDate.toLocaleDateString()}</p>
-        <p><a href="${process.env.FRONTEND_URL}/sales/${sale.id}">View Sale Details</a></p>
+        <p><a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/sales/${sale.id}">View Sale Details</a></p>
       </div>
     `).join('');
 
@@ -284,7 +294,7 @@ export const sendWeeklyDigest = async () => {
             <hr>
             <p style="font-size: 12px; color: #666;">
               You're receiving this email because you opted in to SaleScout notifications. 
-              <a href="${process.env.FRONTEND_URL}/unsubscribe">Unsubscribe</a>
+              <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/unsubscribe">Unsubscribe</a>
             </p>
           `
         });
@@ -301,7 +311,7 @@ export const sendWeeklyDigest = async () => {
       }
     }
 
-    console.log(`Weekly digest sent to ${results.filter(r => r.success).length} of ${results.length} recipients`);
+    console.log(`Weekly digest sent to ${results.filter(r => r.success).1} of ${results.length} recipients`);
     return results;
   } catch (error) {
     console.error('Error sending weekly digest:', error);

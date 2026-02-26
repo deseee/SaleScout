@@ -1,10 +1,38 @@
 import dotenv from 'dotenv';
 import path from 'path';
 
-// Load environment variables from the correct path - now using absolute path resolution
-const envPath = path.resolve(__dirname, '../.env');
-console.log('Loading .env from:', envPath);
-dotenv.config({ path: envPath });
+// Try multiple paths to load .env file
+const possiblePaths = [
+  path.resolve(__dirname, '../.env'),
+  path.resolve(__dirname, '../../.env'),
+  path.resolve(__dirname, '.env'),
+  path.resolve(process.cwd(), '.env'),
+  path.resolve(process.cwd(), 'packages/backend/.env')
+];
+
+let envLoaded = false;
+for (const envPath of possiblePaths) {
+  try {
+    const result = dotenv.config({ path: envPath });
+    if (result.parsed) {
+      console.log('✅ Loaded .env from:', envPath);
+      envLoaded = true;
+      break;
+    }
+  } catch (error) {
+    // Continue to next path
+  }
+}
+
+if (!envLoaded) {
+  console.warn('⚠️  No .env file loaded, checking environment variables directly');
+  // Check if critical env vars are set
+  if (process.env.STRIPE_SECRET_KEY) {
+    console.log('✅ STRIPE_SECRET_KEY found in environment');
+  } else {
+    console.log('❌ STRIPE_SECRET_KEY not found in environment');
+  }
+}
 
 import express from 'express';
 import cors from 'cors';
@@ -51,7 +79,7 @@ app.get('/api/protected', authenticate, (req, res) => {
   res.json({ message: 'This is a protected route', user: (req as any).user });
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server is running on port ${PORT}`);
   
   // Log environment variables status for debugging
