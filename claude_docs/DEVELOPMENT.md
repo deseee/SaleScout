@@ -1,4 +1,4 @@
-# SaleScout — Development Guide
+# FindA.Sale — Development Guide
 
 ## Prerequisites
 

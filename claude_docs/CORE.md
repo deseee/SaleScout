@@ -19,17 +19,32 @@ Avoid stale documentation.
 
 ---
 
-## 2. Execution Loop
+## 2. Session Init
+
+At the start of every session, before any task work:
+
+1. Load `context.md` — filetree, Docker status, last session summary
+2. Load `claude_docs/STATE.md` — current sprint and blockers
+3. Skim `claude_docs/session-log.md` — last 1–2 entries for recent decisions
+
+Skip silently if Patrick has already given a task and context was loaded this session.
+Do not narrate the load unless asked.
+
+---
+
+## 3. Execution Loop
 
 For non-trivial work:
 
 Survey → Plan → Execute → Verify → Report
 
+During Survey: check `context.md` filetree before using any file-location tool (Glob, find, ls).
+
 Do not skip verification.
 
 ---
 
-## 3. Diff-Only Rule
+## 4. Diff-Only Rule
 
 When modifying code:
 - Output only changed files
@@ -38,7 +53,7 @@ When modifying code:
 
 ---
 
-## 4. Auto Compression Protocol
+## 5. Auto Compression Protocol
 
 Trigger compression when:
 - Response > ~700 tokens
@@ -56,7 +71,7 @@ Replace narrative history with structured summary.
 
 ---
 
-## 5. Duplication Guard
+## 6. Duplication Guard
 
 If detecting:
 - Repeated documentation across layers
@@ -69,7 +84,7 @@ No silent duplication.
 
 ---
 
-## 6. Authority Order
+## 7. Authority Order
 
 User  
 → CORE.md  
@@ -83,7 +98,7 @@ Higher layer prevails.
 
 ---
 
-## 7. Self-Healing Skills
+## 8. Self-Healing Skills
 
 Before debugging recurring errors, check:
 `claude_docs/self_healing_skills.md`
@@ -92,9 +107,14 @@ Covers: SSR crashes, JWT payload staleness, unwired frontend stubs, missing Pris
 relation fields, unhandled async failures, unprotected routes, unbounded queries,
 missing env vars, Docker/pnpm monorepo startup failures (nodemon not found).
 
+After fixing any bug:
+- Check if the pattern exists in `self_healing_skills.md`
+- If not, and the pattern has been seen ≥2 times OR is structurally certain to recur,
+  add a new entry immediately — do not wait for session wrap
+
 ---
 
-## 8. Proactive Health Scanning
+## 9. Proactive Health Scanning
 
 Before production deploys or after large sprints, run the health-scout skill.
 Recent scan results: `claude_docs/health-reports/` (newest file = latest report).

@@ -2,11 +2,11 @@
 
 ## ✅ Seed Script Complete
 
-The new high-volume seed script has been successfully created and tested. It populates the SaleScout database with realistic test data for local development, QA, and stakeholder demos.
+The new high-volume seed script has been successfully created and tested. It populates the FindA.Sale database with realistic test data for local development, QA, and stakeholder demos.
 
 ### Location
 - **File**: `packages/database/prisma/seed.ts`
-- **Run Command** (inside Docker): `docker exec salescout-backend-1 sh -c "cd /app && npx tsx packages/database/prisma/seed.ts"`
+- **Run Command** (inside Docker): `docker exec findasale-backend-1 sh -c "cd /app && npx tsx packages/database/prisma/seed.ts"`
 
 ### Data Generated
 

@@ -1,4 +1,4 @@
-# ROADMAP – SaleScout Development Workflow
+# ROADMAP – FindA.Sale Development Workflow
 
 **Last Updated:** 2026-03-02
 **Status:** Production-ready MVP. Reorganized for development flow (not timeline-based).
@@ -53,7 +53,7 @@ These are **developer experience, testing, and operational items** that should b
 
 ### ~~Test Data Seeding Script~~ ✅ Complete (verified 2026-03-02)
 - **Location:** `packages/database/prisma/seed.ts`
-- **Run command:** `docker exec salescout-backend-1 sh -c "cd /app && npx tsx packages/database/prisma/seed.ts"`
+- **Run command:** `docker exec findasale-backend-1 sh -c "cd /app && npx tsx packages/database/prisma/seed.ts"`
 - **Data:** 100 users, 10 organizers, 25 sales, 300 items, 50 purchases, 60 subscribers + badges, referrals, line entries, affiliate links
 - **Note:** Seed does NOT run automatically on `docker compose up` — run manually when needed
 - See `claude_docs/SEED_SUMMARY.md` for full details
@@ -680,7 +680,7 @@ Validate pilot metrics before rolling out to multi-metro expansion
   - [ ] Organizer: "Export sales data every Friday" → CSV to email
   - [ ] Includes: revenue, fees, unsold items, shopper demographics
 - [ ] Zapier integration:
-  - [ ] Connect SaleScout to Mailchimp, QuickBooks, Google Sheets
+  - [ ] Connect FindA.Sale to Mailchimp, QuickBooks, Google Sheets
   - [ ] Trigger: new sale created → add event to Google Calendar
 - [ ] SMS line management (capacity, ETA, queue status):
   - [ ] Organizer sets line capacity

@@ -1,13 +1,17 @@
 # Dynamic Project Context
-*Generated at 2026-03-02T17:07:11.769Z*
+*Generated at 2026-03-03T11:37:25.626Z*
 
 ## Git Status
-- **Branch:** main
-- **Commit:** f35ddc0
-- **Remote:** https://github.com/deseee/SaleScout.git
+- **Branch:** (run git locally)
+- **Commit:** (run git locally)
+- **Remote:** (run git locally)
 
 ## Last Session
-No recent session found in log.
+### 2026-03-03
+**Worked on:** Full SaleScout → FindA.Sale rebrand. Grep audit across entire codebase producing `claude_docs/rebrand-audit.md`. Executed all changes: ~50 frontend page titles/meta/OG/body, manifest.json, _document.tsx, Layout.tsx footer/nav, InstallPrompt localStorage key, next-sitemap.config.js, next.config.js comment, all backend email subjects/from-address fallbacks/body copy/iCal/PDF/User-Agent/Cloudinary folder path (`salescout/` → `findasale/`), docker-compose.yml (added `name: findasale`, renamed postgres user/password/DB to `findasale`), root package.json. Fixed malformed DATABASE_URL in packages/database/.env (`postgres://postgresql://` double-scheme bug, also updated credentials to `findasale`). Updated DEVELOPMENT.md, ROADMAP.md, SEED_SUMMARY.md container name references.
+**Decisions:** Brand is `FindA.Sale` (display), `finda.sale` (domain/email), `findasale` (identifiers/slugs). Docker compose project name set to `findasale` — new container names will be `findasale-backend-1` etc. after next `docker compose down -v && docker compose up`. Cloudinary: existing images stay under `salescout/` folder (URLs in DB still valid), new uploads go to `findasale/`.
+**Next up:** (1) Docker volume wipe to apply postgres credential rename: `docker compose down -v` then `docker compose up`. (2) Rename GitHub repo → update git remote. (3) Rename Vercel project. (4) Update Stripe business name. (5) Set up `@finda.sale` sending domain in Resend, update `RESEND_FROM_EMAIL`. (6) Rewrite `about.tsx` and `terms.tsx` body copy. (7) Decide on Cloudinary `salescout/` folder migration.
+**Blockers:** None — wrap applied manually next session due to Cowork workspace going stale mid-session when project folder was renamed.
 
 ## Health Status
 Last scan: 2026-03-02
@@ -16,14 +20,14 @@ SaleScout's overall health is **YELLOW** with one critical issue requiring immed
 ## Docker
 ```
 NAMES                      STATUS
-salescout-backend-1        Up 2 hours
-salescout-frontend-1       Up 2 hours
-salescout-image-tagger-1   Up 2 hours
-salescout-postgres-1       Up 2 hours (healthy)
+salescout-backend-1        Up About an hour
+salescout-image-tagger-1   Up About an hour
+salescout-frontend-1       Up About an hour
+salescout-postgres-1       Up About an hour (healthy)
 ```
 
 ## Signals
-✓ Env: no drift detected
+⚠ Env drift — in .env.example but missing from .env: HF_TOKEN
 ✓ TODOs: none found
 
 ## Project File Tree
@@ -33,6 +37,7 @@ salescout-postgres-1       Up 2 hours (healthy)
 ├── .gitignore
 ├── CLAUDE.md
 ├── README.md
+├── Session Wrap — 2026-03-03.txt
 ├── ai-config/
 │   └── global-instructions.md
 ├── claude_docs/
@@ -45,13 +50,22 @@ salescout-postgres-1       Up 2 hours (healthy)
 │   ├── SEED_SUMMARY.md
 │   ├── STACK.md
 │   ├── STATE.md
+│   ├── changelog-tracker/
+│   │   └── .gitkeep
+│   ├── competitor-intel/
+│   │   └── .gitkeep
 │   ├── health-reports/
 │   │   ├── .gitkeep
 │   │   ├── 2026-03-01.md
 │   │   └── 2026-03-02.md
+│   ├── monthly-digests/
+│   │   └── .gitkeep
+│   ├── rebrand-audit.md
 │   ├── self_healing_skills.md
 │   ├── session-log.md
-│   └── test_write
+│   ├── test_write
+│   └── ux-spotchecks/
+│       └── .gitkeep
 ├── docker-compose.yml
 ├── next
 ├── package.json
@@ -101,7 +115,10 @@ salescout-postgres-1       Up 2 hours (healthy)
 │   │   │           └── test_tagger_simple.py
 │   │   ├── src/
 │   │   │   ├── __tests__/
-│   │   │   │   └── emailReminders.e2e.ts
+│   │   │   │   ├── emailReminders.e2e.ts
+│   │   │   │   ├── stripe.e2e.ts
+│   │   │   │   └── weeklyDigest.e2e.ts
+│   │   │   ├── _triggerDigest.ts
 │   │   │   ├── controllers/
 │   │   │   │   ├── affiliateController.ts
 │   │   │   │   ├── authController.ts
@@ -109,6 +126,7 @@ salescout-postgres-1       Up 2 hours (healthy)
 │   │   │   │   ├── geocodeController.ts
 │   │   │   │   ├── itemController.ts
 │   │   │   │   ├── lineController.ts
+│   │   │   │   ├── marketingKitController.ts
 │   │   │   │   ├── notificationController.ts
 │   │   │   │   ├── saleController.ts
 │   │   │   │   ├── stripeController.ts
@@ -151,7 +169,7 @@ salescout-postgres-1       Up 2 hours (healthy)
 │   │   ├── package-lock.json
 │   │   ├── package.json
 │   │   ├── prisma/
-│   │   │   ├── migrations/ (13 migrations)
+│   │   │   ├── migrations/ (14 migrations)
 │   │   │   ├── schema.prisma
 │   │   │   └── seed.ts
 │   │   └── tsconfig.json
@@ -212,6 +230,8 @@ salescout-postgres-1       Up 2 hours (healthy)
 │   │   │   │   ├── edit-item/
 │   │   │   │   │   └── [id].tsx
 │   │   │   │   ├── edit-sale/
+│   │   │   │   │   └── [id].tsx
+│   │   │   │   ├── line-queue/
 │   │   │   │   │   └── [id].tsx
 │   │   │   │   ├── send-update/
 │   │   │   │   │   └── [saleId].tsx

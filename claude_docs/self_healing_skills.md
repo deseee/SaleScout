@@ -317,5 +317,46 @@ docker compose logs backend | Select-String "nodemon|Error|started"
 
 **Confidence:** High (observed instance, fixed)
 
+---
+
+## Skill 10: Circular Dependency via index.ts Prisma Import
+
+**Name:** TDZ Crash — Controller Imports prisma from index.ts
+**Trigger:** Backend crashes on startup or first request with `ReferenceError: Cannot access '<functionName>' before initialization`
+**Environment:** Backend (Express + Prisma), any new controller file
+
+**Pattern:**
+`index.ts` is the Express entry point — it loads all routes, which import all controllers. If a controller does `import { prisma } from '../index'`, a circular dependency forms: `index.ts` → routes → controller → `index.ts`. This puts named exports from the controller in the Temporal Dead Zone (TDZ) when the routes file first tries to import them, causing an unrecoverable initialization crash.
+
+**Known instance:** `notificationController.ts` line 2 used `import { prisma } from '../index'` — crash: `Cannot access 'subscribeToSale' before initialization` (fixed 2026-03-02).
+
+**Steps:**
+1. Replace `import { prisma } from '../index'` at the top of any controller with a local PrismaClient:
+   ```ts
+   import { PrismaClient } from '@prisma/client';
+   const prisma = new PrismaClient();
+   ```
+2. This is the pattern already used in `stripeController.ts` — follow it consistently.
+3. After the fix, restart the backend container and confirm no startup errors:
+   ```powershell
+   docker compose restart backend
+   docker compose logs backend | Select-String "Error|started"
+   ```
+
+**Edge Cases:**
+- Multiple PrismaClient instances are fine in development — Prisma handles connection pooling.
+- The pattern applies to any module that `index.ts` transitively loads. When in doubt, use a local `new PrismaClient()` rather than importing from `index.ts`.
+- Symptom can also manifest as a hang (no response) if the error is swallowed by a route-level try/catch.
+
+**Test Command:**
+```bash
+grep -rn "from '../index'" packages/backend/src/controllers/ --include="*.ts"
+```
+Any hit is a potential circular dependency — audit each one.
+
+**Confidence:** High (observed instance, fixed; structurally certain to recur as new controllers are added)
+
+---
+
 Last Updated: 2026-03-02
 Source: Patterns derived from STATE.md (Phases 2–5), RECOVERY.md documented fixes, and health-scout proactive analysis (2026-03-01).

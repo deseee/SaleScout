@@ -93,7 +93,9 @@ Prepare for scale to additional metros.
 
 ## Pending Manual Action
 
-- **Production domain not yet chosen** — once decided, add `ALLOWED_ORIGINS=https://yourdomain.com` to `packages/backend/.env`. Default `http://localhost:3000` covers local dev only.
+- **Backend hosting not yet chosen** — domain `finda.sale` registered, frontend live on Vercel. Backend needs Railway/Render/Fly.io for `api.finda.sale`. Currently bridged via ngrok (static domain: `pamelia-unweathered-arabesquely.ngrok-free.dev`, runs as Docker service automatically).
+- **finda.sale DNS** — not yet pointed at Vercel. Set nameservers at Spaceship: `ns1.vercel-dns.com` / `ns2.vercel-dns.com`.
+- **Vercel preview URL** — add `*.vercel.app` deploy URL to `ALLOWED_ORIGINS` in root `.env` so Vercel frontend can reach the ngrok backend before DNS goes live.
 
 ---
 
@@ -164,6 +166,14 @@ Prepare for scale to additional metros.
 - **Dependency fix** — Moved `nodemon` and `tsx` from devDependencies to dependencies in `packages/backend/package.json` so they are present in production Docker image (required for live reload in containerized dev environment).
 - **Updated dev-environment skill** — Added diagnosis section with correct root cause analysis and `--no-cache` rebuild guidance for Docker compose troubleshooting.
 - **Backend is now stable** — `docker compose up` succeeds; backend starts, watches for changes, reloads on file modification.
+
+---
+
+### Beta-Blocker Burn-Down (2026-03-02)
+- **#1 alt text — closed.** Audited all 27 image tags. Fixed 3 non-descriptive `preview-${i}` alts in organizer photo upload flows (`create-sale.tsx`, `add-items.tsx`, `add-items/[saleId].tsx`).
+- **#2 email digest E2E — closed.** `packages/backend/src/__tests__/weeklyDigest.e2e.ts` — 12 tests. Manual trigger (`_triggerDigest.ts`) ran against Docker backend after circular-dep fix; digest executed. Resend dashboard verification deferred as non-blocking — test coverage sufficient for launch.
+- **#3 Stripe E2E — closed (verified 2026-03-02).** `packages/backend/src/__tests__/stripe.e2e.ts` — 17 tests covering Connect onboarding, regular 5% fee, auction 7% fee, webhook succeeded/failed, invalid signature, unhandled events. Manual payment verified: $265.75 charged, $13.29 fee (5% ✓), transfer to connected account confirmed in Stripe dashboard.
+- **#4 production domain — closed (2026-03-03).** Domain: finda.sale. ngrok bridge: pamelia-unweathered-arabesquely.ngrok-free.dev. All 4 beta-blockers closed.
 
 ---
 
@@ -260,5 +270,89 @@ See ROADMAP.md for full phase breakdown, success metrics, and decision gates.
 
 ---
 
-Last Updated: 2026-03-02 (session 16 — Schema.org SEO complete (Phase 13), RAM++ tagger swap implemented (requires HF_TOKEN + container rebuild), creator dashboard fully populated (Phase 9).)
-Status: Backend stable. SEO markup live. Creator dashboard live. RAM++ ready to activate with HF_TOKEN. Next: Phase 10 (QR sign generator) or beta launch.
+### Session 18 – GitHub MCP Workflow Setup (verified 2026-03-02)
+- Defined GitHub MCP integration strategy: issues for roadmap tracking, feature branches + PR-to-main as deploy gate, beta-blocker label as launch checklist
+- Resolved fine-grained PAT permissions issue; documented Claude desktop config path: `C:\Users\desee\AppData\Local\Packages\Claude_pzs8sxrjxfjjc\LocalCache\Roaming\Claude\claude_desktop_config.json`
+- Created 4 beta-blocker issues (#1 alt text, #2 email digest E2E, #3 Stripe E2E, #4 production domain)
+- Created 4 Phase 10 issues (#5 QR sign generator, #6 scan analytics, #7 virtual line E2E, #8 SMS line updates)
+- Created branch `phase-10/qr-sign-generator` off main — ready to work
+
+---
+
+### Phase 10 – QR Sign, Analytics, Virtual Line, iCal (in progress 2026-03-02)
+
+**Issue #5 — QR Marketing Kit PDF (complete)**
+- New dependency: `pdfkit@^0.15.0` added to `packages/backend/package.json` (requires Docker rebuild)
+- Created `packages/backend/src/controllers/marketingKitController.ts`: `POST /api/sales/:id/generate-marketing-kit` (auth: organizer owner)
+  - Generates QR code PNG buffer (UTM URL: `?utm_source=qr_sign&utm_medium=print&utm_campaign=[saleId]`)
+  - Returns PDF (LETTER size) with blue header, sale title, location, dates, QR image, organizer name
+  - pdfkit lazy-loaded via `require('pdfkit')` inside handler to prevent startup crash before Docker rebuild
+- Frontend: "Download Marketing Kit" button (orange) added to organizer action row on sale detail page
+  - Blob download via `api.post(..., { responseType: 'blob' })` with progress state
+
+**Issue #7 + #8 — Virtual Line Bug Fixes + Shopper Endpoints (complete)**
+- Fixed: `req.user?.organizerProfile?.id` was always undefined (auth middleware never attached it)
+  - All organizer checks now use `getOrganizerForSale()` helper that queries Prisma directly
+- Fixed: incorrect status values `CALLED`/`SERVED` → `NOTIFIED`/`ENTERED` (schema-correct)
+- Added `sendSMS()` helper wrapping Twilio (no-op if unconfigured)
+- New organizer endpoint: `POST /lines/:saleId/broadcast` — SMS position update to all WAITING people
+- New shopper endpoints: `POST /lines/:saleId/join`, `GET /lines/:saleId/my-position`, `DELETE /lines/:saleId/leave`
+- Routes file updated with all new endpoints
+
+**Issue #6 — QR Scan Analytics (complete)**
+- Schema: added `qrScanCount Int @default(0)` to Sale model
+- Migration: `packages/database/prisma/migrations/20260302000001_add_qr_scan_count/migration.sql`
+- New public endpoint: `POST /api/sales/:id/track-scan` — increments counter, returns 204
+- Frontend: fires track-scan when `utm_source=qr_sign` in URL (useEffect, non-fatal)
+- Analytics endpoint (`GET /organizers/me/analytics`): now includes `qrScanCount` per sale
+- Dashboard analytics table: added "QR Scans" column + total row
+
+**Phase 11 prep — iCal / Add to Calendar (complete)**
+- `generateIcal` added to `saleController.ts`: public `GET /api/sales/:id/calendar.ics`, returns RFC 5545 `.ics` text/calendar
+- Route registered in `routes/sales.ts` (public, no auth)
+- Frontend: "Add to Calendar" button (teal) added to sale detail page header — direct `<a href>` to backend `.ics` endpoint, visible to all users
+
+**Organizer Line Queue Management Page (complete)**
+- Created `packages/frontend/pages/organizer/line-queue/[id].tsx`
+  - Real-time status board (auto-polls every 5 s)
+  - Stats row: Waiting / Notified / Entered / Cancelled counts
+  - Actions: Start/Reset Line, Call Next, Broadcast Positions
+  - Queue table: position, name, phone, status badge, Mark Entered button (NOTIFIED rows only)
+  - Cancelled entries shown in collapsed `<details>` section
+- "Manage Queue" button (yellow) added to organizer action row on sale detail page
+
+**Docker rebuild + migration: complete (2026-03-02)**
+- pdfkit installed in container ✓
+- qrScanCount migration applied ✓
+
+---
+
+### Dev Environment Skill Fix (2026-03-02)
+Two bugs found in the dev-environment skill and corrected:
+- **Missing `pnpm install` step** — rebuild table said "changed `package.json` → `docker compose build`" but omitted the required `pnpm install` on Windows first. Dockerfile uses `--frozen-lockfile`, so lockfile must be updated before Docker can build. Pitfall #8 added.
+- **Wrong Prisma working directory** — all Prisma `docker exec` commands used `cd /app` (workspace root). Schema is at `packages/database/prisma/schema.prisma` — Prisma CLI needs `cd /app/packages/database`. All example commands corrected. Pitfall #9 added.
+- `ai-config/dev-environment.skill` updated and live.
+
+---
+
+### Session 20 — Workflow & Automation (2026-03-02)
+- CORE.md: added mandatory Session Init (Section 2), filetree-first rule (Section 3), bug-capture hook (Section 8)
+- context-maintenance skill: added Step 3 self-healing pattern capture to session end protocol
+- health-scout skill: added Self-Healing Candidates section to report format
+- 4 scheduled research tasks created: competitor-monitor (Mon), changelog-tracker (Tue), ux-spotcheck (Wed), monthly-digest (1st of month)
+- 4 intel directories created: claude_docs/competitor-intel/, changelog-tracker/, ux-spotchecks/, monthly-digests/
+- 7 GitHub issues created (#9–#15): route planner, color-coded favorites, re-engagement emails, PWA install prompt, pre-registration, bulk pricing, granular notifications
+- Pending: reinstall context-maintenance.skill + health-scout.skill from ai-config/ via Cowork; create GitHub milestones manually
+
+---
+
+### SaleScout → FindA.Sale Rebrand (2026-03-03)
+- **SaleScout → FindA.Sale rebrand** — full codebase audit and execution complete (2026-03-03).
+  All in-code, config, and doc references replaced. Remaining: external services (GitHub, Vercel, Stripe, Resend), Docker volume wipe, about/terms copy rewrite.
+
+### Known Seed Bugs (2026-03-02)
+- `packages/database/prisma/seed.ts` creates all 100 users with `role: 'USER'`, creates Organizer profiles for users 1–10 but never sets `User.role = 'ORGANIZER'`. Workaround: run `_fixRoles.ts` after seeding. Fix: add `role: 'ORGANIZER'` to `prisma.user.create()` calls for organizer users in seed.
+- Seed assigns fake `stripeConnectId: 'acct_test_${uuid}'` placeholder — rejected by real Stripe API with 403 PermissionError. Workaround: null out `stripeConnectId` via temp script. Fix: remove fake stripeConnectId from seed (let it be null on fresh start).
+
+Last Updated: 2026-03-03 (session 24 — SaleScout → FindA.Sale rebrand complete)
+Status: All 4 beta-blockers closed. Rebrand complete in codebase. Frontend live on Vercel. Backend running locally via ngrok bridge. Pending: Docker volume wipe, GitHub/Vercel/Stripe/Resend renames, DNS cutover, backend hosting.
