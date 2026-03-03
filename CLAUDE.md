@@ -59,7 +59,25 @@ No API formatting outside backend.
 
 ---
 
-## 5. Context Discipline
+## 5. MCP Tool Awareness (Session-Critical)
+
+At session start, Claude must check which MCP tools are active. They are injected
+at session start and not visible in any file — missing them causes wasted fallbacks.
+
+**GitHub MCP (`mcp__github__*`):**
+If active, use `mcp__github__push_files` to push changes directly to GitHub.
+Never write "push from PowerShell" in session wrap notes when the GitHub MCP is
+available. The VM cannot run `git push` (no HTTPS auth), but the MCP bypasses
+this entirely. This applies at every session wrap — push all changed files.
+
+Repo: `deseee/findasale` — Branch: `main`
+
+**Other MCPs:** Note any active connectors (Slack, Notion, etc.) in the session
+start announcement so Patrick knows what's available without having to ask.
+
+---
+
+## 6. Context Discipline
 
 Do not restate:
 - Tech stack

@@ -358,28 +358,33 @@ Any hit is a potential circular dependency — audit each one.
 
 ---
 
-## Skill 11: GitHub Already Connected — Skip Manual Push Instructions
+## Skill 11: Use GitHub MCP for Pushes — Never Default to Manual PowerShell Instructions
 
-**Name:** Unnecessary Manual Git Push Instructions
-**Trigger:** Claude needs to push code to GitHub at session start or during a work batch
-**Environment:** Cowork + GitHub MCP
+**Name:** GitHub MCP Available — Use It
+**Trigger:** Any time Claude needs to push, commit, or sync files to GitHub — especially at session wrap
+**Environment:** Cowork + GitHub MCP (mcp__github__* tools)
 
 **Pattern:**
-Claude defaults to providing `git push` PowerShell instructions for Patrick to run manually, not realising the GitHub MCP is already connected and Claude can commit/push directly via bash tools. This wastes time and interrupts flow.
+Claude defaults to writing "push from PowerShell before next session" in session wrap notes, not realising the GitHub MCP is active and can push files directly to GitHub without any local git auth. The VM cannot run `git push` (HTTPS requires Windows credentials), but `mcp__github__push_files` bypasses this entirely and works every time.
 
-**Known instance:** Session 25 — Claude gave Patrick a full manual `git add / git commit / git push` script before being told GitHub was already connected (2026-03-03).
+**Known instance:** Session 25 — Claude gave Patrick a full manual push script (2026-03-03). Session 28 wrap — Claude wrote "push from PowerShell" in notes despite GitHub MCP being active (2026-03-03).
 
 **Steps:**
-1. At session start, check git remote: `cd $PROJECT_ROOT && git remote -v`
-2. If remote is `https://github.com/...` — attempt `git push` directly via Bash tool first.
-3. If push fails with auth error (HTTPS credential prompt), THEN tell Patrick to run `git push origin main` in PowerShell — his Windows credential store handles auth there.
-4. Never present a full manual git staging script before attempting the push yourself.
+1. At session start AND session wrap: check whether `mcp__github__*` tools are listed in the active session tools. They are injected at session start and visible in the system context.
+2. If GitHub MCP is active → use `mcp__github__push_files` to push all changed files directly. Determine owner/repo from `git remote get-url origin` or from context.md (deseee/findasale, branch: main).
+3. If GitHub MCP is NOT active → attempt `git push` via Bash. If that fails with auth error → THEN tell Patrick to push from PowerShell.
+4. Never write "push from PowerShell" in session wrap notes when MCP is available.
+5. At session wrap, always push: session-log.md, STATE.md, context.md, next-session-prompt.md, .last-wrap, and any source files changed during the session.
 
 **Edge Cases:**
-- The VM uses HTTPS remotes which require credentials not available in the VM — push will fail with `fatal: could not read Username`. This is expected; fall back to asking Patrick to push from PowerShell.
-- Commits can always be made from the VM. Only the push requires Windows auth.
+- `mcp__github__push_files` pushes file contents directly to GitHub — it does not use local git state. If files were modified in the VM but not yet staged/committed locally, MCP can still push them.
+- MCP tools require knowing the current file SHA for updates to existing files — use `mcp__github__get_file_contents` to get the SHA before updating if needed.
+- Always commit with a meaningful message describing what changed, not just "session wrap".
 
-**Confidence:** High (observed, structurally certain to recur)
+**Test:**
+Check active tools at session start. If `mcp__github__push_files` appears in the tool list, GitHub MCP is live.
+
+**Confidence:** High (observed twice, structurally certain to recur every session wrap)
 
 ---
 
@@ -407,6 +412,40 @@ curl -s "https://dns.google/resolve?name=resend._domainkey.finda.sale&type=TXT"
 ```
 
 **Confidence:** High (observed, structurally certain to recur for any new DNS record)
+
+---
+
+## Skill 13: next.config.js Not Bind-Mounted — Requires Frontend Rebuild
+
+**Name:** Config File Change Not Reflected in Docker Frontend
+**Trigger:** Changes to `next.config.js` (CSP headers, Workbox rules, image domains, redirects) are not taking effect on `localhost:3000` even after the file is saved
+**Environment:** Docker Compose, Next.js frontend container
+
+**Pattern:**
+The Docker frontend container bind-mounts `pages/`, `components/`, `styles/`, `lib/`, and `public/` — but NOT `next.config.js` (package root). Changes to `next.config.js` are baked into the image at build time. Hot reload will never pick them up; only a full `docker compose build --no-cache frontend` will.
+
+**Known instance:** Session 27 — CSP `img-src` updated to add `fastly.picsum.photos`. finda.sale (Vercel, rebuilt from GitHub) showed images immediately. localhost:3000 (Docker, old image) showed no images — old CSP still active in the running container (2026-03-03).
+
+**Steps:**
+1. After any `next.config.js` change, rebuild the frontend image:
+   ```powershell
+   docker compose build --no-cache frontend
+   docker compose up -d
+   ```
+2. `--no-cache` is required — Docker layer cache will silently reuse the old build.
+3. Hard-refresh `localhost:3000` after the container restarts.
+
+**Edge Cases:**
+- Same applies to any file at the package root that is not in the bind-mounted subdirectories: `next.config.js`, `tsconfig.json`, `tailwind.config.js`, `postcss.config.js`.
+- Changes to `packages/frontend/pages/`, `components/`, `styles/`, `lib/`, `public/` are bind-mounted and hot-reload without rebuild.
+
+**Test Command:**
+```bash
+# Confirm CSP header reflects new values
+curl -sI http://localhost:3000 | grep -i "content-security-policy"
+```
+
+**Confidence:** High (observed instance; structurally certain to recur on any next.config.js change)
 
 ---
 
