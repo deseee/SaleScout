@@ -158,17 +158,104 @@ Health scout fixes applied first (auth.ts token log, index.ts env-var gating).
 
 ---
 
-## Recommended Fix Order
+---
+
+## Part 2: PWA, SEO, Payments, Error Handling, Performance
+
+_(Appended same session — covers areas not in Part 1)_
+
+### CRITICAL — Stripe Payment Safety
+
+**C5. Missing idempotency key on payment intent creation**
+- **File:** `packages/backend/src/controllers/stripeController.ts:214-227`
+- **Issue:** No `idempotencyKey` on `stripe.paymentIntents.create()`. Network retry creates duplicate charges.
+
+**C6. Payment amount not re-validated server-side**
+- **File:** `packages/backend/src/controllers/stripeController.ts:204-207`
+- **Issue:** Amount derived from item.price, but crafted request could manipulate. Must re-fetch price from DB.
+
+**C7. Refund endpoint missing organizer permission check**
+- **File:** `packages/backend/src/controllers/stripeController.ts` (createRefund)
+- **Issue:** Any authenticated user can trigger refund. Must verify purchase belongs to caller's organizer profile.
+
+### HIGH — Payment & Infrastructure
+
+**H8. No global Express error handler**
+- **File:** `packages/backend/src/index.ts`
+- **Issue:** Missing `(err, req, res, next)` middleware. Uncaught async exception crashes server.
+
+**H9. Webhook handler doesn't guard missing STRIPE_WEBHOOK_SECRET**
+- **File:** `packages/backend/src/controllers/stripeController.ts:257`
+- **Issue:** `endpointSecret!` assertion. If env var missing, signature verification fails with unclear error.
+
+**H10. Email reminders missing unsubscribe link (CAN-SPAM)**
+- **File:** `packages/backend/src/services/emailReminderService.ts:80-82`
+- **Issue:** No one-click unsubscribe. Required by CAN-SPAM and Gmail sender guidelines.
+
+**H11. Resend domain verification still pending**
+- **File:** STATE.md
+- **Issue:** If not verified, emails flagged as spam or rejected. Must confirm DNS records in Resend dashboard.
+
+### MEDIUM — Error Handling & Performance
+
+**M13. Multiple PrismaClient instances across controllers**
+- **Files:** Various controllers create `new PrismaClient()` instead of importing shared instance from index.ts.
+- **Fix:** Import `{ prisma }` from `../index` everywhere.
+
+**M14. JWT expiry not handled in frontend**
+- **File:** `packages/frontend/components/AuthContext.tsx`
+- **Issue:** When JWT expires mid-session, API returns 401 but auth state not cleared. User left in limbo.
+
+**M15. Sale status transition not enforced (can skip DRAFT→PUBLISHED)**
+- **File:** `packages/backend/src/controllers/saleController.ts` (PATCH status)
+- **Issue:** Any valid status accepted. Organizer can set ENDED without ever publishing.
+
+**M16. Platform fee uses floating-point math (rounding errors)**
+- **File:** `packages/backend/src/controllers/stripeController.ts:211`
+- **Fix:** Convert to cents first, then calculate fee.
+
+**M17. Email retry logic missing on Resend failures**
+- **File:** `packages/backend/src/services/emailReminderService.ts:129-144`
+- **Issue:** Failed sends silently lost. No retry queue.
+
+**M18. No transaction support for multi-step DB operations**
+- **Files:** stripeController.ts, authController.ts
+- **Issue:** User+organizer creation not atomic. Failure mid-sequence creates orphaned records.
+
+**M19. 3D Secure / SCA flow incomplete**
+- **File:** `packages/frontend/components/CheckoutModal.tsx:37-44`
+- **Issue:** `redirect: 'if_required'` doesn't cleanly handle return URL after 3DS redirect.
+
+### LOW — SEO & PWA Polish
+
+**L10. Service worker update toast has no reload button**
+**L11. City landing pages missing dynamic meta descriptions**
+**L12. iCal endpoint doesn't validate both startDate and endDate present**
+**L13. React Query staleTime 60s may be too aggressive for active marketplace**
+**L14. Email reminder job runs hourly even with no upcoming sales**
+
+---
+
+## Combined Recommended Fix Order
 
 | Priority | Issue | Est. Time | Impact |
 |----------|-------|-----------|--------|
 | 1 | C1 — Role validation | 5 min | Security: prevents admin escalation |
-| 2 | C2 — AuthContext referralCode | 5 min | Unblocks referral feature |
-| 3 | C3 — getSale category/condition | 5 min | Unblocks item filters on sale page |
-| 4 | C4 — AffiliateLink schema | 20 min | Unblocks creator dashboard |
-| 5 | H1 — Organizer badges in getSale | 5 min | Trust signals on sale page |
-| 6 | H3 — Email trim/lowercase | 5 min | Prevents duplicate accounts |
-| 7 | H4 — Weekend filter fix | 10 min | Correct homepage filtering |
-| 8 | H2 — Photo upload partial success | 15 min | Better organizer upload UX |
-| 9 | H7 — CSV sanitization | 15 min | Prevents injection |
-| 10 | M1-M12 | 2-3 hours | Polish for beta launch |
+| 2 | C5 — Stripe idempotency key | 5 min | Prevents duplicate charges |
+| 3 | C6 — Server-side price validation | 10 min | Prevents charge manipulation |
+| 4 | C7 — Refund auth check | 5 min | Prevents unauthorized refunds |
+| 5 | C2 — AuthContext referralCode | 5 min | Unblocks referral feature |
+| 6 | C3 — getSale category/condition | 5 min | Unblocks item filters |
+| 7 | C4 — AffiliateLink schema | 20 min | Unblocks creator dashboard |
+| 8 | H8 — Global error handler | 10 min | Prevents server crashes |
+| 9 | H9 — Webhook secret guard | 5 min | Prevents unclear failures |
+| 10 | H10 — Email unsubscribe link | 15 min | CAN-SPAM compliance |
+| 11 | H3 — Email trim/lowercase | 5 min | Prevents duplicate accounts |
+| 12 | H1 — Organizer badges in getSale | 5 min | Trust signals |
+| 13 | H4 — Weekend filter fix | 10 min | Correct homepage filtering |
+| 14 | H2 — Photo upload partial success | 15 min | Better organizer UX |
+| 15 | H7 — CSV sanitization | 15 min | Prevents injection |
+| 16 | M1-M19 | 4-6 hours | Polish + hardening |
+
+**Total estimate:** ~2 hours for all CRITICAL, ~3 hours for all HIGH, ~5 hours for MEDIUM.
+Full audit: 7 critical, 11 high, 19 medium, 14 low across 51 findings.
