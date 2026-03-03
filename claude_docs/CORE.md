@@ -124,7 +124,7 @@ After fixing any bug:
 
 Before production deploys or after large sprints, run the health-scout skill.
 Recent scan results: `claude_docs/health-reports/` (newest file = latest report).
-Weekly scan runs automatically Sunday 11pm via `salescout-health-scout` task.
+Weekly scan runs automatically Sunday 11pm via `salescout-health-scout` task (legacy task ID — cannot be renamed, description updated to FindA.Sale).
 
 ---
 
