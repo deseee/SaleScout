@@ -1,29 +1,25 @@
 # Dynamic Project Context
-*Generated at 2026-03-03T17:30:08.907Z*
+*Generated at 2026-03-03T23:38:31.157Z*
 
 ## Git Status
 - **Branch:** main
-- **Commit:** cc6a3f2
+- **Commit:** 3afc297
 - **Remote:** https://github.com/deseee/findasale.git
 
 ## Last Session
 ### 2026-03-03
-**Worked on:** CSP fix for ngrok API calls (connect-src now derives origin from NEXT_PUBLIC_API_URL at build time, committed acec537). Session self-awareness improvements: update-context.js emits ## Environment section (GitHub auth, ngrok URL, CLI tools); CORE.md got edit transparency rule; context-maintenance skill updated with capabilities inventory, dirty-session detection (.last-wrap), breakpoint wraps, two-tier memory, next-session-prompt.md handoff doc. Post-commit hook (.git/hooks/post-commit) auto-regenerates context.md on every commit. All 9 salescout-* scheduled tasks replaced with 8 findasale-* equivalents. backend/.env updated to local Docker postgres URL. All remaining salescout/SaleScout references removed from skills (dev-environment, health-scout, findasale-deploy) and project docs (CLAUDE.md, SECURITY.md, STATE.md, session-log.md, self_healing_skills.md). Three skill files repackaged and ready to install.
-**Decisions:** Historical session-log entries with SaleScout references preserved as accurate records of the rebrand. findasale-deploy replaces salescout-deploy — old skill must be uninstalled after new one is installed.
-**Next up:** (1) Install dev-environment.skill, health-scout.skill, findasale-deploy.skill via Cowork skill manager. (2) Uninstall salescout-deploy. (3) Verify ngrok up: `docker logs findasale-ngrok-1`. (4) Set NEXT_PUBLIC_API_URL in Vercel env vars + redeploy to fix "Error Loading Sales". (5) Check Resend domain verification. (6) Decide on permanent backend host (Railway/Render/Fly.io).
-**Blockers:** 3 skill files waiting to be installed. NEXT_PUBLIC_API_URL not baked into Vercel build — finda.sale shows "Error Loading Sales" until redeployed.
+**Worked on:** Fixed all 7 critical audit findings: C1 role whitelist, C2 referralCode in JWT/AuthContext, C3 category+condition in getSale, C4 AffiliateLink userId + schema, C5 Stripe idempotency key, C6/C7 verified clean. Fixed cascading schema drift (SaleSubscriber composite PK mismatch, Favorite.updatedAt not in DB). Ran migrate reset --force to fix migration drift, fixed seed.ts (missing AffiliateLink userId), regenerated Prisma client. Smoke-tested C1/C2/C3 via Claude in Chrome fetch API — all pass. Added RECOVERY.md entries 12–16. Also discovered: `docker exec` JSON POST via curl silently fails on Windows PowerShell (req.body={}); Claude in Chrome is the correct tool for API smoke tests. Learned: Chrome extension must be connected at session start.
+**Decisions:** Use Claude in Chrome (browser fetch) for all API smoke tests — never curl through docker exec sh -c on Windows. Schema.prisma must match migration SQL exactly; always verify with grep on migration files before editing. Prisma client must be regenerated after any schema change AND container restarted to pick it up.
+**Next up:** Fix H1-H11 (high severity findings). Also explore Docker-from-VM workarounds — investigate MCP Docker connector or TCP socket approach so Claude can run docker commands without Patrick copy-pasting from PowerShell.
+**Blockers:** None. All C1-C7 fixes pushed to GitHub. DB seeded and healthy.
 
 ## Health Status
-Last scan: 2026-03-02
-SaleScout's overall health is **YELLOW** with one critical issue requiring immediate attention and several medium-priority UI improvements. The codebase demonstrates solid security fundamentals (proper CORS configuration, rate limiting, helmet middleware, bcrypt password hashing) but has accessibility gaps in image components and missing alt text attributes. No hardcoded secrets were found in production code, and CORS is properly restricted to known origins. The primary concern is a cluster of missing alt text attributes across image components affecting user accessibility and SEO. Secondary concerns include cosmetic console.error statements that could be refined and the absence of defined Prisma query limits on findMany operations.
+Last scan: 2026-03-03
+FindA.Sale is in **GREEN** status — no critical blockers found. The codebase has strong fundamentals: all routes use proper auth middleware, CORS is restricted, no hardcoded secrets, all Prisma `findMany` calls are paginated, and SSR-sensitive browser globals are properly guarded in `useEffect`/`onClick` handlers. One high-severity finding (password reset token logged to console) needs fixing before real user traffic arrives. Two medium items are cleanup-grade. This is the healthiest scan to date.
 
 ## Docker
 ```
-NAMES                      STATUS
-salescout-backend-1        Up About an hour
-salescout-image-tagger-1   Up About an hour
-salescout-frontend-1       Up About an hour
-salescout-postgres-1       Up About an hour (healthy)
+Docker status unavailable — run update-context.js locally (Windows) to capture container state
 ```
 
 ## Environment
@@ -46,6 +42,7 @@ salescout-postgres-1       Up About an hour (healthy)
 ├── ai-config/
 │   └── global-instructions.md
 ├── claude_docs/
+│   ├── .last-wrap
 │   ├── CORE.md
 │   ├── DEVELOPMENT.md
 │   ├── OPS.md
@@ -55,6 +52,7 @@ salescout-postgres-1       Up About an hour (healthy)
 │   ├── SEED_SUMMARY.md
 │   ├── STACK.md
 │   ├── STATE.md
+│   ├── audit-remaining-areas-2026-03-03.md
 │   ├── changelog-tracker/
 │   │   └── .gitkeep
 │   ├── competitor-intel/
@@ -62,14 +60,20 @@ salescout-postgres-1       Up About an hour (healthy)
 │   ├── health-reports/
 │   │   ├── .gitkeep
 │   │   ├── 2026-03-01.md
-│   │   └── 2026-03-02.md
+│   │   ├── 2026-03-02.md
+│   │   └── 2026-03-03.md
 │   ├── monthly-digests/
 │   │   └── .gitkeep
+│   ├── next-session-prompt.md
+│   ├── pre-beta-audit-2026-03-03.md
 │   ├── rebrand-audit.md
 │   ├── self_healing_skills.md
 │   ├── session-log.md
 │   ├── test_write
-│   └── ux-spotchecks/
+│   ├── ux-spotchecks/
+│   │   └── .gitkeep
+│   ├── workflow-audit-2026-03-03.md
+│   └── workflow-retrospectives/
 │       └── .gitkeep
 ├── docker-compose.yml
 ├── next

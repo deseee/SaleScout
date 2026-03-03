@@ -179,7 +179,24 @@ Prepare for scale to additional metros.
 
 ## In Progress
 
-_None._
+### Pre-Beta Audit Fix Sprint (started 2026-03-03)
+- Full audit complete: `claude_docs/pre-beta-audit-2026-03-03.md` — 51 findings (7C, 11H, 19M, 14L)
+- Health scout fixes applied: auth.ts token log redacted, index.ts env-var logs gated
+- **C1-C7 all fixed and smoke-tested (verified 2026-03-03)** — see Completed below
+- **Next:** Fix H1-H11 (high severity findings from pre-beta-audit-2026-03-03.md)
+
+### Pre-Beta Audit C1-C7 Completed (verified 2026-03-03)
+- C1: Role whitelist in authController.ts — `safeRole` prevents ADMIN self-assignment
+- C2: referralCode decoded from JWT in AuthContext.tsx — both useEffect and login() calls updated
+- C3: getSale includes category + condition on items select
+- C4: AffiliateLink schema — added userId, composite @@unique([userId, saleId]), Sale→affiliateLinks one-to-many
+- C5: Stripe idempotency key — `pi-${itemId}-${req.user.id}` passed to paymentIntents.create
+- C6: Verified clean — price always from DB, only itemId from req.body
+- C7: Verified already implemented — createRefund checks organizer ownership
+- Schema drift also fixed: SaleSubscriber (@@id→@id, userId nullable), Favorite (removed updatedAt not in DB)
+- DB reset via migrate reset --force, seed fixed (AffiliateLink userId, SaleSubscriber/Favorite Prisma client regenerated), all passing
+- Smoke tests via Claude in Chrome: login ✓, role whitelist ✓, category/condition on items ✓
+- RECOVERY.md updated: entries 12–16 (migration drift, psql quoting, npx version, curl quoting, schema drift)
 
 ---
 
@@ -322,8 +339,8 @@ See ROADMAP.md for full phase breakdown, success metrics, and decision gates.
 - "Manage Queue" button (yellow) added to organizer action row on sale detail page
 
 **Docker rebuild + migration: complete (2026-03-02)**
-- pdfkit installed in container ✓
-- qrScanCount migration applied ✓
+- pdfkit installed in container
+- qrScanCount migration applied
 
 ---
 
@@ -370,8 +387,8 @@ Two bugs found in the dev-environment skill and corrected:
 ---
 
 ### Seed Bug Fixes (2026-03-03)
-- ✅ Fixed: organizer users 0–9 now seeded with `role: 'ORGANIZER'` (was always `'USER'`).
-- ✅ Fixed: `stripeConnectId` now always `null` in seed — organizers go through real Stripe Connect onboarding. Fake `acct_test_*` IDs removed.
+- Fixed: organizer users 0–9 now seeded with `role: 'ORGANIZER'` (was always `'USER'`).
+- Fixed: `stripeConnectId` now always `null` in seed — organizers go through real Stripe Connect onboarding. Fake `acct_test_*` IDs removed.
 
 ### Session 27 – Image Loading, CORS & Backend Fixes (2026-03-03)
 - **Seed updated** — `seed.ts` now uses direct `fastly.picsum.photos` HMAC-signed URLs (no redirect). Eliminates Service Worker redirect-interception issue. Commit: c813d57.
@@ -388,5 +405,5 @@ Status: finda.sale fully operational with images. localhost needs frontend Docke
 ---
 
 ### Seed Bug Fixes (2026-03-03)
-- ✅ Fixed: organizer users 0–9 now seeded with `role: 'ORGANIZER'` (was always `'USER'`).
-- ✅ Fixed: `stripeConnectId` now always `null` in seed — organizers go through real Stripe Connect onboarding. Fake `acct_test_*` IDs removed.
+- Fixed: organizer users 0–9 now seeded with `role: 'ORGANIZER'` (was always `'USER'`).
+- Fixed: `stripeConnectId` now always `null` in seed — organizers go through real Stripe Connect onboarding. Fake `acct_test_*` IDs removed.
