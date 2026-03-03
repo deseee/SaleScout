@@ -142,7 +142,7 @@ curl -s http://localhost:3001/api/sales | jq '.[0].organizer'
 **Pattern:**
 An unhandled promise rejection causes the Express server to silently fail on that request — the client hangs or gets a 500 with no useful message. In Node 18+, unhandled rejections can crash the process.
 
-**Known instance:** Not yet observed in SaleScout — added proactively from pattern analysis.
+**Known instance:** Not yet observed in FindA.Sale — added proactively from pattern analysis.
 
 **Steps:**
 1. Wrap all async controller code in try/catch:
@@ -247,7 +247,7 @@ grep -rn "findMany(" packages/backend/src/controllers/ --include="*.ts" | grep -
 **Pattern:**
 Code reads `process.env.MY_NEW_VAR` which is `undefined` at runtime. The error surfaces as a confusing downstream failure — e.g. a Stripe call with `undefined` key, or a Resend email with no `FROM` address.
 
-**Known instance:** Not yet observed in SaleScout — added proactively.
+**Known instance:** Not yet observed in FindA.Sale — added proactively.
 
 **Steps:**
 1. Every new `process.env.*` reference must be added to `packages/backend/.env.example` with a descriptive placeholder.
@@ -358,5 +358,57 @@ Any hit is a potential circular dependency — audit each one.
 
 ---
 
-Last Updated: 2026-03-02
+## Skill 11: GitHub Already Connected — Skip Manual Push Instructions
+
+**Name:** Unnecessary Manual Git Push Instructions
+**Trigger:** Claude needs to push code to GitHub at session start or during a work batch
+**Environment:** Cowork + GitHub MCP
+
+**Pattern:**
+Claude defaults to providing `git push` PowerShell instructions for Patrick to run manually, not realising the GitHub MCP is already connected and Claude can commit/push directly via bash tools. This wastes time and interrupts flow.
+
+**Known instance:** Session 25 — Claude gave Patrick a full manual `git add / git commit / git push` script before being told GitHub was already connected (2026-03-03).
+
+**Steps:**
+1. At session start, check git remote: `cd $PROJECT_ROOT && git remote -v`
+2. If remote is `https://github.com/...` — attempt `git push` directly via Bash tool first.
+3. If push fails with auth error (HTTPS credential prompt), THEN tell Patrick to run `git push origin main` in PowerShell — his Windows credential store handles auth there.
+4. Never present a full manual git staging script before attempting the push yourself.
+
+**Edge Cases:**
+- The VM uses HTTPS remotes which require credentials not available in the VM — push will fail with `fatal: could not read Username`. This is expected; fall back to asking Patrick to push from PowerShell.
+- Commits can always be made from the VM. Only the push requires Windows auth.
+
+**Confidence:** High (observed, structurally certain to recur)
+
+---
+
+## Skill 12: DNS Records Must Go in Active Nameserver Provider
+
+**Name:** DNS Records Added to Wrong Provider (Inactive)
+**Trigger:** Patrick adds DNS records at a registrar but they show as "inactive" or don't propagate
+**Environment:** Spaceship (registrar) + Vercel (DNS/nameserver provider)
+
+**Pattern:**
+finda.sale uses Vercel nameservers. Any DNS records (Resend DKIM/SPF/MX/DMARC, A records, etc.) must be added in **Vercel's DNS panel** (team settings → Domains → finda.sale → DNS Records), NOT in Spaceship. Records added in Spaceship are dormant when Vercel nameservers are active.
+
+**Known instance:** Session 25 — Patrick added all 4 Resend records in Spaceship. They showed "inactive" and didn't resolve because Vercel nameservers were active. Records had to be re-added in Vercel DNS panel (2026-03-03).
+
+**Steps:**
+1. Before adding any DNS record, confirm which provider holds the active nameservers: `curl -s "https://dns.google/resolve?name=finda.sale&type=NS"` — look for `vercel-dns.com` entries.
+2. If Vercel nameservers: add records at `vercel.com/[team]/settings/domains` → click domain → DNS Records.
+3. If Spaceship nameservers: add records in Spaceship Advanced DNS panel.
+4. Never add records in both — the inactive provider's records are silently ignored.
+
+**Verification:**
+```bash
+curl -s "https://dns.google/resolve?name=resend._domainkey.finda.sale&type=TXT"
+# Status: 0 = resolving. Status: 2 = not found/refused.
+```
+
+**Confidence:** High (observed, structurally certain to recur for any new DNS record)
+
+---
+
+Last Updated: 2026-03-03
 Source: Patterns derived from STATE.md (Phases 2–5), RECOVERY.md documented fixes, and health-scout proactive analysis (2026-03-01).

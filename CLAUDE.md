@@ -1,4 +1,4 @@
-# Project Execution Contract – SaleScout
+# Project Execution Contract – FindA.Sale
 
 Scope: Entire monorepo
 
@@ -17,7 +17,7 @@ Package-level files must not redefine behavior or architecture.
 
 ## 1. Project Purpose
 
-SaleScout is a PWA for estate sale operators.
+FindA.Sale is a PWA for estate sale operators.
 
 Primary goals:
 - Reduce manual work

@@ -1,4 +1,4 @@
-# Session Log — SaleScout
+# Session Log — FindA.Sale
 
 Cross-session memory for Claude. Updated at every session end.
 Read this at session start to understand recent context without loading extra files.
@@ -7,6 +7,18 @@ Keep only the 5 most recent sessions. Delete older entries — git history and S
 ---
 
 ## Recent Sessions
+
+### 2026-03-03 (session 26 — Dev Tooling & Full Rebrand Completion)
+**Worked on:** CSP fix for ngrok API calls (connect-src now derives origin from NEXT_PUBLIC_API_URL at build time, committed acec537). Session self-awareness improvements: update-context.js emits ## Environment section (GitHub auth, ngrok URL, CLI tools); CORE.md got edit transparency rule; context-maintenance skill updated with capabilities inventory, dirty-session detection (.last-wrap), breakpoint wraps, two-tier memory, next-session-prompt.md handoff doc. Post-commit hook (.git/hooks/post-commit) auto-regenerates context.md on every commit. All 9 salescout-* scheduled tasks replaced with 8 findasale-* equivalents. backend/.env updated to local Docker postgres URL. All remaining salescout/SaleScout references removed from skills (dev-environment, health-scout, findasale-deploy) and project docs (CLAUDE.md, SECURITY.md, STATE.md, session-log.md, self_healing_skills.md). Three skill files repackaged and ready to install.
+**Decisions:** Historical session-log entries with SaleScout references preserved as accurate records of the rebrand. findasale-deploy replaces salescout-deploy — old skill must be uninstalled after new one is installed.
+**Next up:** (1) Install dev-environment.skill, health-scout.skill, findasale-deploy.skill via Cowork skill manager. (2) Uninstall salescout-deploy. (3) Verify ngrok up: `docker logs findasale-ngrok-1`. (4) Set NEXT_PUBLIC_API_URL in Vercel env vars + redeploy to fix "Error Loading Sales". (5) Check Resend domain verification. (6) Decide on permanent backend host (Railway/Render/Fly.io).
+**Blockers:** 3 skill files waiting to be installed. NEXT_PUBLIC_API_URL not baked into Vercel build — finda.sale shows "Error Loading Sales" until redeployed.
+
+### 2026-03-03 (session 25 — Rebrand Deployed, DNS Live, finda.sale Loading)
+**Worked on:** Completed and deployed the full rebrand. Remaining docs cleaned (EMAIL_SMS_REMINDERS.md, test fixtures). about.tsx/terms.tsx rewritten. 84-file commit pushed to GitHub (deseee/findasale). DNS wired: Vercel nameservers confirmed in Spaceship, A record + 4 Resend records added in Vercel DNS panel. finda.sale resolving to Vercel (216.198.79.1). Docker rebuilt with findasale credentials, database re-seeded. CORS fixed (added finda.sale/findasale.vercel.app to ALLOWED_ORIGINS). ngrok --domain flag fixed to --url. API confirmed live through tunnel (GET /api/sales → 200). finda.sale loading FindA.Sale branding.
+**Decisions:** DNS managed in Vercel (not Spaceship) — Spaceship records are inactive/dormant. NEXT_PUBLIC_API_URL must be set in Vercel env vars and project redeployed to bake in (NEXT_PUBLIC_ vars are build-time). Stale fallback build artifacts (public/fallback-*.js) will clear on next `next build` — no manual action needed. context-maintenance skill path still references `/mnt/SaleScout` — needs update to `/mnt/FindaSale`.
+**Next up:** (1) After reboot: verify ngrok tunnel is up (`docker logs findasale-ngrok-1`), then confirm Resend domain records verified at resend.com. (2) Set `NEXT_PUBLIC_API_URL=https://pamelia-unweathered-arabesquely.ngrok-free.dev/api` in Vercel env vars + redeploy. (3) Verify finda.sale loads sales after redeploy. (4) Decide on permanent backend host (Railway/Render/Fly.io).
+**Blockers:** NEXT_PUBLIC_API_URL not yet baked into Vercel production build — finda.sale shows "Error Loading Sales" until redeployed with correct env var.
 
 ### 2026-03-03 (session 24 — SaleScout → FindA.Sale Rebrand)
 **Worked on:** Full SaleScout → FindA.Sale rebrand. Grep audit across entire codebase producing `claude_docs/rebrand-audit.md`. Executed all changes: ~50 frontend page titles/meta/OG/body, manifest.json, _document.tsx, Layout.tsx footer/nav, InstallPrompt localStorage key, next-sitemap.config.js, next.config.js comment, all backend email subjects/from-address fallbacks/body copy/iCal/PDF/User-Agent/Cloudinary folder path (`salescout/` → `findasale/`), docker-compose.yml (added `name: findasale`, renamed postgres user/password/DB to `findasale`), root package.json. Fixed malformed DATABASE_URL in packages/database/.env (`postgres://postgresql://` double-scheme bug, also updated credentials to `findasale`). Updated DEVELOPMENT.md, ROADMAP.md, SEED_SUMMARY.md container name references.
@@ -31,11 +43,5 @@ Keep only the 5 most recent sessions. Delete older entries — git history and S
 **Decisions:** Issue #2 left open — one manual step deferred: trigger digest on staging + verify in Resend dashboard before launch. No new self-healing patterns captured.
 **Next up:** Beta-blocker #3 (Stripe E2E) — write E2E test for Stripe Connect Express onboarding + fee capture flow. Then #4 (production domain + ALLOWED_ORIGINS).
 **Blockers:** Issue #2 requires staging verification before close. Patrick triggers manually next time staging is active.
-
-### 2026-03-02 (session 20 — Workflow & Automation)
-**Worked on:** Fixed 3 behavioral gaps in CORE.md (mandatory session init, filetree-first rule before Glob/find, bug-capture hook for self_healing_skills.md). Updated context-maintenance skill (Step 3: capture self-healing patterns at session end) and health-scout skill (Self-Healing Candidates section in report). Created 4 scheduled research tasks: salescout-competitor-monitor (Mon 8am), salescout-changelog-tracker (Tue 8am), salescout-ux-spotcheck (Wed 9am), salescout-monthly-digest (1st of month 9am). Created 4 intel directories in claude_docs/ (competitor-intel/, changelog-tracker/, ux-spotchecks/, monthly-digests/). Created 7 GitHub issues #9–#15 for post-beta product opportunities (route planner, color-coded favorites, re-engagement emails, PWA install prompt, pre-registration/online signup, bulk pricing, granular notifications). Updated context-maintenance.skill and health-scout.skill in ai-config/ — need reinstall via Cowork skill manager to take effect.
-**Decisions:** STATE.md compression deferred to a future maintenance session (target: before it hits 500 lines). UX spot-check task does code-file review, not live app interaction — catches static issues only. GitHub milestones (Phase 11 Growth & Retention, Phase 12 Organizer Tools) need manual creation in GitHub UI (no MCP tool for milestones, gh CLI not in VM).
-**Next up:** Clear beta-blocker issues — #1 alt text (quick), #2 email digest E2E, #3 Stripe E2E, #4 production domain. After beta: start post-beta features from issues #9–#15, prioritizing #14 (bulk pricing) and #13 (pre-registration) for organizer value, and #11 (re-engagement emails) for retention.
-**Blockers:** Reinstall context-maintenance.skill and health-scout.skill from ai-config/ via Cowork skill manager. Create GitHub milestones manually.
 
 

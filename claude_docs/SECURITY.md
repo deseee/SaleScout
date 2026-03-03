@@ -22,8 +22,8 @@ Cowork must not operate outside granted folder.
 Before allowing file modification:
 
 PowerShell:
-Copy-Item -Path "C:\Users\$env:USERNAME\SaleScout" `
--Destination "C:\Users\$env:USERNAME\SaleScout-backup-$(Get-Date -Format yyyy-MM-dd)" `
+Copy-Item -Path "C:\Users\$env:USERNAME\FindaSale" `
+-Destination "C:\Users\$env:USERNAME\FindaSale-backup-$(Get-Date -Format yyyy-MM-dd)" `
 -Recurse
 
 Rules:

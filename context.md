@@ -1,17 +1,17 @@
 # Dynamic Project Context
-*Generated at 2026-03-03T11:37:25.626Z*
+*Generated at 2026-03-03T17:30:08.907Z*
 
 ## Git Status
-- **Branch:** (run git locally)
-- **Commit:** (run git locally)
-- **Remote:** (run git locally)
+- **Branch:** main
+- **Commit:** cc6a3f2
+- **Remote:** https://github.com/deseee/findasale.git
 
 ## Last Session
 ### 2026-03-03
-**Worked on:** Full SaleScout → FindA.Sale rebrand. Grep audit across entire codebase producing `claude_docs/rebrand-audit.md`. Executed all changes: ~50 frontend page titles/meta/OG/body, manifest.json, _document.tsx, Layout.tsx footer/nav, InstallPrompt localStorage key, next-sitemap.config.js, next.config.js comment, all backend email subjects/from-address fallbacks/body copy/iCal/PDF/User-Agent/Cloudinary folder path (`salescout/` → `findasale/`), docker-compose.yml (added `name: findasale`, renamed postgres user/password/DB to `findasale`), root package.json. Fixed malformed DATABASE_URL in packages/database/.env (`postgres://postgresql://` double-scheme bug, also updated credentials to `findasale`). Updated DEVELOPMENT.md, ROADMAP.md, SEED_SUMMARY.md container name references.
-**Decisions:** Brand is `FindA.Sale` (display), `finda.sale` (domain/email), `findasale` (identifiers/slugs). Docker compose project name set to `findasale` — new container names will be `findasale-backend-1` etc. after next `docker compose down -v && docker compose up`. Cloudinary: existing images stay under `salescout/` folder (URLs in DB still valid), new uploads go to `findasale/`.
-**Next up:** (1) Docker volume wipe to apply postgres credential rename: `docker compose down -v` then `docker compose up`. (2) Rename GitHub repo → update git remote. (3) Rename Vercel project. (4) Update Stripe business name. (5) Set up `@finda.sale` sending domain in Resend, update `RESEND_FROM_EMAIL`. (6) Rewrite `about.tsx` and `terms.tsx` body copy. (7) Decide on Cloudinary `salescout/` folder migration.
-**Blockers:** None — wrap applied manually next session due to Cowork workspace going stale mid-session when project folder was renamed.
+**Worked on:** CSP fix for ngrok API calls (connect-src now derives origin from NEXT_PUBLIC_API_URL at build time, committed acec537). Session self-awareness improvements: update-context.js emits ## Environment section (GitHub auth, ngrok URL, CLI tools); CORE.md got edit transparency rule; context-maintenance skill updated with capabilities inventory, dirty-session detection (.last-wrap), breakpoint wraps, two-tier memory, next-session-prompt.md handoff doc. Post-commit hook (.git/hooks/post-commit) auto-regenerates context.md on every commit. All 9 salescout-* scheduled tasks replaced with 8 findasale-* equivalents. backend/.env updated to local Docker postgres URL. All remaining salescout/SaleScout references removed from skills (dev-environment, health-scout, findasale-deploy) and project docs (CLAUDE.md, SECURITY.md, STATE.md, session-log.md, self_healing_skills.md). Three skill files repackaged and ready to install.
+**Decisions:** Historical session-log entries with SaleScout references preserved as accurate records of the rebrand. findasale-deploy replaces salescout-deploy — old skill must be uninstalled after new one is installed.
+**Next up:** (1) Install dev-environment.skill, health-scout.skill, findasale-deploy.skill via Cowork skill manager. (2) Uninstall salescout-deploy. (3) Verify ngrok up: `docker logs findasale-ngrok-1`. (4) Set NEXT_PUBLIC_API_URL in Vercel env vars + redeploy to fix "Error Loading Sales". (5) Check Resend domain verification. (6) Decide on permanent backend host (Railway/Render/Fly.io).
+**Blockers:** 3 skill files waiting to be installed. NEXT_PUBLIC_API_URL not baked into Vercel build — finda.sale shows "Error Loading Sales" until redeployed.
 
 ## Health Status
 Last scan: 2026-03-02
@@ -25,6 +25,11 @@ salescout-image-tagger-1   Up About an hour
 salescout-frontend-1       Up About an hour
 salescout-postgres-1       Up About an hour (healthy)
 ```
+
+## Environment
+- GitHub: ✗ not authenticated (gh auth login to fix)
+- ngrok tunnel: unknown (check Docker Desktop logs for findasale-ngrok-1)
+- CLI tools: node
 
 ## Signals
 ⚠ Env drift — in .env.example but missing from .env: HF_TOKEN

@@ -94,8 +94,9 @@ Prepare for scale to additional metros.
 ## Pending Manual Action
 
 - **Backend hosting not yet chosen** — domain `finda.sale` registered, frontend live on Vercel. Backend needs Railway/Render/Fly.io for `api.finda.sale`. Currently bridged via ngrok (static domain: `pamelia-unweathered-arabesquely.ngrok-free.dev`, runs as Docker service automatically).
-- **finda.sale DNS** — not yet pointed at Vercel. Set nameservers at Spaceship: `ns1.vercel-dns.com` / `ns2.vercel-dns.com`.
-- **Vercel preview URL** — add `*.vercel.app` deploy URL to `ALLOWED_ORIGINS` in root `.env` so Vercel frontend can reach the ngrok backend before DNS goes live.
+- **Resend domain verification** — records added in Vercel DNS, awaiting Resend to confirm all 4 records active. Check Resend → Domains → finda.sale and hit Verify after reboot.
+- **NEXT_PUBLIC_API_URL in Vercel** — must be set to `https://pamelia-unweathered-arabesquely.ngrok-free.dev/api` in Vercel project environment variables, then redeploy to bake it in.
+- **Backend hosting** — still local via ngrok. Needs Railway/Render/Fly.io for permanent `api.finda.sale` endpoint.
 
 ---
 
@@ -133,7 +134,7 @@ Prepare for scale to additional metros.
 
 ### Phase 9 – Dev Tooling & AI Photo Workflow (verified 2026-03-02)
 - **DB seed complete** — `packages/database/prisma/seed.ts` fully rewritten: 100 users (90 shoppers/10 organizers), 10 organizers (Grand Rapids businesses), 25 sales with varied statuses/dates, 300 items across 12 categories/5 conditions, 50 purchases, 60 subscribers, 80 sale favorites, 100 item favorites, 30 reviews, 40 user badges, 15 referrals, 20 line entries, 10 affiliate links. Idempotent (clears all tables before re-seeding).
-- **Docker seed decoupled** — Seed no longer runs automatically on `docker compose up`. Seed is preserved at `packages/database/prisma/seed.ts` and can be run manually: `docker exec salescout-backend-1 sh -c "cd /app && npx tsx packages/database/prisma/seed.ts"`. Docker command now runs only `prisma db push && prisma generate && nodemon`.
+- **Docker seed decoupled** — Seed no longer runs automatically on `docker compose up`. Seed is preserved at `packages/database/prisma/seed.ts` and can be run manually: `docker exec findasale-backend-1 sh -c "cd /app && npx tsx packages/database/prisma/seed.ts"`. Docker command now runs only `prisma db push && prisma generate && nodemon`.
 - **Cross-platform Prisma** — `binaryTargets = ["native", "windows", "debian-openssl-3.0.x"]` added to schema.prisma for Windows + Docker Linux compatibility.
 - **Homepage status filter** — `saleController.ts` `listSales` now defaults `status: 'PUBLISHED'`; DRAFT/ENDED sales no longer appear on homepage.
 - **dev-environment skill** — Created at `.skills/skills/dev-environment/SKILL.md`; captures Windows 10/Docker/PowerShell env, Ollama models, AIDER, rebuild vs restart rules.
@@ -346,13 +347,32 @@ Two bugs found in the dev-environment skill and corrected:
 
 ---
 
-### SaleScout → FindA.Sale Rebrand (2026-03-03)
-- **SaleScout → FindA.Sale rebrand** — full codebase audit and execution complete (2026-03-03).
-  All in-code, config, and doc references replaced. Remaining: external services (GitHub, Vercel, Stripe, Resend), Docker volume wipe, about/terms copy rewrite.
+### SaleScout → FindA.Sale Rebrand + DNS + Deployment (2026-03-03)
+- Full codebase rebrand complete: all frontend pages, backend, docker-compose, package.json, docs.
+- about.tsx fully rewritten with fresh narrative. terms.tsx rewritten with marketplace-style language (Etsy/eBay patterns).
+- Remaining docs/artifacts cleaned: EMAIL_SMS_REMINDERS.md, test fixtures (@findasale.test).
+- Committed and pushed to GitHub (deseee/findasale.git, 84 files, branch: main).
+- finda.sale DNS: Vercel nameservers confirmed active in Spaceship. A record + 4 Resend DNS records added in Vercel DNS panel (A @ 216.198.79.1, DKIM, MX send, SPF send, DMARC _dmarc). DNS resolving correctly (Google DNS confirmed).
+- Resend domain: records added in Vercel DNS, status pending/verifying.
+- Docker: volume wiped (`docker compose down -v`), rebuilt with findasale credentials. Containers now named `findasale-*`. Database re-seeded.
+- CORS fix: `ALLOWED_ORIGINS` default updated to include `https://finda.sale,https://www.finda.sale,https://findasale.vercel.app`.
+- ngrok: `--domain` flag deprecated, fixed to `--url` in docker-compose.yml.
+- finda.sale live on Vercel and loading FindA.Sale branding. API connectivity via ngrok confirmed (GET /api/sales returns 200 through tunnel).
+
+### Session 26 — Dev Tooling & Full Rebrand Completion (2026-03-03)
+- **CSP fix** — `next.config.js` `connect-src` now derives `apiOrigin` from `NEXT_PUBLIC_API_URL` at build time; ngrok URL no longer blocked by browser CSP. Committed: acec537.
+- **Session self-awareness** — `update-context.js` now emits `## Environment` section (GitHub auth status, ngrok tunnel URL from Docker logs, CLI tools). `CORE.md` Section 4: edit transparency rule added. `context-maintenance` skill updated with capabilities inventory, dirty-session detection (`.last-wrap`), breakpoint wraps, two-tier memory system, next-session-prompt.md handoff doc. Committed: f7e130e.
+- **Post-commit hook** — `.git/hooks/post-commit` auto-regenerates `context.md` after every commit.
+- **Scheduled tasks renamed** — 8 new `findasale-*` tasks created (replacing 9 `salescout-*` tasks, now disabled): context, session-wrap, health-scout, competitor-monitor, changelog-tracker, ux-spotcheck, monthly-digest, beta-monitor.
+- **Skills repackaged** — `dev-environment`, `health-scout`, `salescout-deploy→findasale-deploy` all updated: trigger text, DB connection strings, container names, project paths. `.skill` files in FindaSale/ root ready to install.
+- **Full salescout wipe** — Zero remaining salescout/SaleScout references in active docs or skills. CLAUDE.md, SECURITY.md, STATE.md, session-log.md, self_healing_skills.md all updated. Historical log entries preserved as accurate records.
+- **Pending:** Install 3 `.skill` files via Cowork skill manager; uninstall `salescout-deploy`.
+
+---
 
 ### Known Seed Bugs (2026-03-02)
 - `packages/database/prisma/seed.ts` creates all 100 users with `role: 'USER'`, creates Organizer profiles for users 1–10 but never sets `User.role = 'ORGANIZER'`. Workaround: run `_fixRoles.ts` after seeding. Fix: add `role: 'ORGANIZER'` to `prisma.user.create()` calls for organizer users in seed.
 - Seed assigns fake `stripeConnectId: 'acct_test_${uuid}'` placeholder — rejected by real Stripe API with 403 PermissionError. Workaround: null out `stripeConnectId` via temp script. Fix: remove fake stripeConnectId from seed (let it be null on fresh start).
 
-Last Updated: 2026-03-03 (session 24 — SaleScout → FindA.Sale rebrand complete)
-Status: All 4 beta-blockers closed. Rebrand complete in codebase. Frontend live on Vercel. Backend running locally via ngrok bridge. Pending: Docker volume wipe, GitHub/Vercel/Stripe/Resend renames, DNS cutover, backend hosting.
+Last Updated: 2026-03-03 (session 25 — rebrand deployed, DNS live, finda.sale loading)
+Status: Rebrand fully deployed. finda.sale live with FindA.Sale branding. DNS resolving. Pending: Resend domain verification, NEXT_PUBLIC_API_URL Vercel env + redeploy, backend hosting decision.
