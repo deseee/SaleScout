@@ -154,6 +154,59 @@ Fix:
 
 ---
 
+## 12. Migration Drift (DB out of sync with migration files)
+
+Symptom:
+- `prisma db push` says "Added the required column X" for a column that already exists in migration files
+- `prisma migrate deploy` applies 0 migrations but DB is missing columns
+
+Cause: DB was created or modified via `db push` or manual SQL at some point, bypassing the migration history. The `_prisma_migrations` table may show migrations as "applied" that never actually ran, or columns exist in migration files but not in the DB.
+
+Fix (local dev only — wipes all data):
+```powershell
+docker exec findasale-backend-1 sh -c "cd /app/packages/database && npx prisma migrate reset --force"
+docker exec findasale-backend-1 sh -c "cd /app && npx tsx packages/database/prisma/seed.ts"
+```
+
+Prevention: Never use `db push` on the running dev DB. Always use `migrate dev` (interactive) or `migrate deploy` (CI/startup).
+
+---
+
+## 13. PowerShell quoting with docker exec + psql
+
+Symptom:
+- `\"` inside a double-quoted string → Docker receives literal backslash: `DELETE FROM " AffiliateLink\;"`
+- `'DELETE FROM "AffiliateLink";'` single-quoted → PowerShell strips inner double quotes → psql sees `DELETE FROM AffiliateLink;` → relation not found (case mismatch)
+
+Fix — assign SQL to a variable first:
+```powershell
+$sql = 'DELETE FROM "AffiliateLink";'
+docker exec findasale-postgres-1 psql -U findasale -d findasale -c $sql
+```
+
+Or use PowerShell backtick escaping inside double quotes:
+```powershell
+docker exec findasale-postgres-1 psql -U findasale -d findasale -c "DELETE FROM `"AffiliateLink`";"
+```
+
+---
+
+## 14. npx prisma picks up wrong version (v7 instead of project's v5)
+
+Symptom:
+- `npx --yes prisma migrate dev` → `Error: The datasource property 'url' is no longer supported`
+- Prisma CLI Version shows 7.x but project uses 5.x
+
+Cause: `npx --yes prisma` fetches the latest published version from npm, ignoring the project's lockfile.
+
+Fix: Prisma only lives inside Docker on this machine. Never run `npx prisma` from Windows for this project. All Prisma commands must go through Docker:
+```powershell
+docker exec findasale-backend-1 sh -c "cd /app/packages/database && npx prisma <command>"
+```
+The container has the correct version (5.22.0) locked in its node_modules.
+
+---
+
 ## Recovery Principle
 
 Never panic.
