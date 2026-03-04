@@ -8,6 +8,12 @@ Keep only the 5 most recent sessions. Delete older entries — git history and S
 
 ## Recent Sessions
 
+### 2026-03-04 (session 41 — 7-Test Workflow Stress Test)
+**Worked on:** Ran all 7 stress tests from next-session-prompt.md to validate guardrails added in sessions 39–40. Tests covered: diff-only gate (CORE §4), session init protocol (CORE §2), MCP push batching (CORE §10), authority hierarchy conflict (CORE §7), Docker command safety (dev-environment skill), dead code detection (context.md accuracy), stale fact detection (polling vs Socket.io). All 7 passed. context.md regenerated locally — stale `contexts/` directory entry now removed.
+**Decisions:** Sonnet is sufficient for Sprint A (Phase 12 auction completion — mechanical, 3-4 file edits). Opus recommended for Sprint B (Phase 24+25 design system — cross-cutting visual overhaul). Sprint A goes next via Sonnet.
+**Next up:** Sprint A — Phase 12 auction completion: organizer auction toggle + Stripe 7% webhook.
+**Blockers:** None. Guardrails verified. context.md fresh.
+
 ### 2026-03-04 (session 40 — Deep Workflow Audit + Tool Tree + Doc Fixes)
 **Worked on:** Deep audit of MCP connectors, doc system logic, power user workflow tips, and tool bugs. Found and fixed 9 issues: CORE.md Section 2 missing MCP check steps (HIGH), CORE.md Section 7 missing Skills in authority hierarchy (MEDIUM), duplicate ToastContext files (HIGH — `contexts/` is dead code, `components/` is canonical), RECOVERY.md stale Socket.io entry replaced with polling note, SECURITY.md timestamp updated post-rebrand, STATE.md stale "In Progress" cleared + backend hosting wording clarified, self_healing_skills.md structural ordering fixed (Skills 17–19 were out of order), context.md GitHub false negative fixed (CLI vs MCP distinction), update-context.js updated with Tool & Skill Tree section. Also completed session 39 context wrap (session-log trim, next-session-prompt, .last-wrap, context.md regen). Research on MCP push_files token limits led to CORE.md Section 10 upgrade (create_or_update_file preference, MAX_MCP_OUTPUT_TOKENS). Diff-only violation root cause diagnosed; added conversation-defaults Rule 3, Self-Healing Skill 19, strengthened CORE.md Section 4.
 **Decisions:** conversation-defaults Rule 3 (announce file mod approach) is the active enforcement checkpoint for diff-only rule. Skills now have explicit position in authority hierarchy (between CORE.md and Root CLAUDE.md). Dead code `contexts/ToastContext.tsx` flagged for deletion.
@@ -31,11 +37,4 @@ Keep only the 5 most recent sessions. Delete older entries — git history and S
 **Decisions:** sessionStorage over cookies for affiliate attribution (no cookie-parser). Polling over Socket.io for auction UI (not installed; sufficient for MVP). Lazy require('web-push') so server starts without package.
 **Next up:** Run `prisma migrate deploy` in Docker (both migrations 000001 + 000002 pending). Generate VAPID keys, add to .env files. Docker rebuild backend. Then smoke-test push subscriptions.
 **Blockers:** Migrations not yet applied — need `docker exec findasale-backend-1 sh -c "cd /app/packages/database && npx prisma migrate deploy"`. VAPID keys not yet generated — `npx web-push generate-vapid-keys`.
-
-### 2026-03-04 (session 35 — Bug Burn-Down + Component Drift Fixes)
-**Worked on:** Component drift spot-check on SaleCard/CheckoutModal/Layout — found and fixed stale shared `Sale` type, nested anchor invalid HTML in SaleCard, and mobile-only nav array duplication in Layout. Fixed homepage index.tsx and city/[city].tsx to use `<SaleCard>` instead of inline JSX. Burned down remaining open bugs: removed password reset token from console log (HIGH), added 3D Secure redirect handling in purchases.tsx, reduced React Query staleTime 60s→20s. All 4 fixes pushed in 3 commits. Verified M-series ST1/ST2/E1/E2 and Vercel/Stripe rebrand items already closed (confirmed by Patrick). Session wrap queued next session as research-only: sample code for Phase 12 auctions, Phase 9 creator dashboard, Phase 11 push notifications.
-**Decisions:** All audit findings are now closed. Feature sprint is the next move. Next session is research-only — sample code from open source before building.
-**Next up:** Research session — find Socket.io auction patterns, creator referral analytics patterns, and PWA push notification patterns before coding Phase 12/9/11.
-**Blockers:** None. All fixes on GitHub main. Vercel should be clean.
-
 
