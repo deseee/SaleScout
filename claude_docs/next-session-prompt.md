@@ -1,34 +1,42 @@
 # Next Session Resume Prompt
-*Written: 2026-03-04T00:00:00Z*
+*Written: 2026-03-04T14:49:00Z*
 *Session ended: normally*
 
 ## Resume From
-Audit `claude_docs/ROADMAP.md` — Phases 9, 11, and 12 are now complete; the roadmap has stale statuses, missing completions, and likely outdated priorities. Reconcile against STATE.md and propose a revised sprint order before any new feature work begins.
+Build Phase 12 completion — organizer auction toggle + Stripe 7% webhook for auction wins. This is the primary revenue unlock.
 
 ## What Was In Progress
 Nothing. Clean session end.
 
 ## What Was Completed This Session
-- Vercel build fix: `Uint8Array<ArrayBuffer>` type annotation in `usePushSubscription.ts`
-- DB migrations 000001 (affiliate conversions) + 000002 (push subscriptions) applied in Docker. 000002 needed `prisma migrate resolve --applied` — table already existed from prior `db push`
-- VAPID keys generated + wired into root `.env`, `docker-compose.yml` (backend + frontend services), `packages/frontend/.env.local`, Vercel env vars
-- `uploadController.ts` rewritten — stale version missing `upload` multer export and wrong handler names (`uploadSalePhotos`, `uploadItemPhoto`, `analyzePhotoWithAI`); was causing backend crash loop
-- `docker-compose.yml` fixed — added `hooks/` bind mount to frontend; added VAPID env vars to both backend + frontend services
-- Backend rebuilt `--no-cache` with web-push installed
-- Push notifications confirmed working on Vercel (SW=1, prompt appeared, one-prompt-per-browser is by design)
-- `next.config.js` fixed — removed Stripe `NetworkOnly` SW rule + excluded `*.stripe.com` from pages catch-all; fixes `clover/stripe.js` `no-response` crash on organizer dashboard
-- Self-healing skills 17 (SW third-party blocking) + 18 (missing bind mount) added to `self_healing_skills.md`
+- ROADMAP.md audit: reconciled all stale statuses against STATE.md
+  - Phase 9 (Creator Growth Platform) marked ✅ complete
+  - Phase 11 (PWA Push Notifications) marked ✅ complete
+  - Phase 12 status updated: partial (auction UI done, organizer toggle + Stripe 7% webhook still needed)
+  - GitHub MCP marked as connected (was stale "Not yet connected")
+  - Creator dashboard, affiliate tracking, push notifications all reflected as done in parity tables
+  - Deferred section updated: push notifications removed, Socket.io bidding status clarified
+  - Dependency Map rewritten with recommended sprint order
+- ROADMAP.md pushed to GitHub (commit 3e984f7)
+- STATE.md pushed to GitHub for the first time — was empty blob on remote (commit 0436a98)
+- STATE.md updated: Next Strategic Move + Pending Actions + Growth section all reconciled
+
+## Phase 12 Remaining Work (next sprint)
+The auction UI is live but the revenue path is not wired. Specifically:
+
+1. **Organizer flow** — toggle item as auction, set reserve price
+   - Backend: PATCH /api/items/:id to accept `isAuction: boolean` + `reservePrice: number`
+   - Frontend: toggle + reserve price field in edit-item/[id].tsx and add-items.tsx
+   - Schema: `isAuction Boolean @default(false)` + `reservePrice Float?` on Item (check if already exists)
+
+2. **Stripe webhook for auction wins** — when `auctionJob.ts` ends an auction:
+   - If highBid >= reservePrice: create Stripe PaymentIntent at 7% platform fee
+   - Send push + email to winner
+   - Mark item as SOLD, record Purchase
+
+3. **E2E test** for full auction lifecycle (open → bid → close → payment → notify)
 
 ## Environment Notes
-- All changes on GitHub main. Vercel redeploying with Stripe SW fix — confirm `clover/stripe.js` error is gone after deploy completes.
-- Docker running cleanly. No pending migrations. No pending rebuilds.
-- Push subscription row should be in DB for the first `finda.sale` user who accepted the prompt.
-
-## Roadmap Audit Instructions
-Read `claude_docs/ROADMAP.md` in full, then cross-reference against STATE.md Completed sections. For each roadmap item:
-1. Mark complete if STATE.md shows it verified
-2. Flag stale if description contradicts current code
-3. Identify the logical next 1–3 sprints given current app state (post-9/11/12)
-4. Check whether deferred items (Socket.io live bidding, multi-metro, OAuth) should be re-prioritised
-
-Key completed phases to reconcile in ROADMAP.md: Phase 9 (affiliate + creator dashboard), Phase 11 (PWA push), Phase 12 (auction launch + countdown + cron fix).
+- All changes on GitHub main. Docker running cleanly. No pending migrations.
+- Vercel: push notifications live. Stripe SW fix deployed (clover/stripe.js should no longer error).
+- Before Phase 12 work: check if `isAuction`/`reservePrice` already exist on Item schema in `packages/database/prisma/schema.prisma`
