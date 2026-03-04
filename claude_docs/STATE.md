@@ -94,7 +94,7 @@ Prepare for scale to additional metros.
 ## Pending Manual Action
 
 - **Backend hosting not yet chosen** — domain `finda.sale` registered, frontend live on Vercel. Backend needs Railway/Render/Fly.io for `api.finda.sale`. Currently bridged via ngrok (static domain: `pamelia-unweathered-arabesquely.ngrok-free.dev`, runs as Docker service automatically).
-- **Resend domain verification** — records added in Vercel DNS, awaiting Resend to confirm all 4 records active. Check Resend → Domains → finda.sale and hit Verify after reboot.
+- **Resend domain verification** — ✅ Verified (confirmed 2026-03-04).
 - **localhost:3000 images** — `next.config.js` is not bind-mounted; Docker frontend container still has old CSP without `fastly.picsum.photos`. Fix: `docker compose build --no-cache frontend && docker compose up -d`.
 
 ---
@@ -179,13 +179,11 @@ Prepare for scale to additional metros.
 
 ## In Progress
 
-### Pre-Beta Audit Fix Sprint (started 2026-03-03)
-- Full audit complete: `claude_docs/pre-beta-audit-2026-03-03.md` — 51 findings (7C, 11H, 19M, 14L)
-- Health scout fixes applied: auth.ts token log redacted, index.ts env-var logs gated
-- **C1-C7 all fixed and smoke-tested (verified 2026-03-03)** — see Completed below
-- **Next:** Fix H1-H11 (high severity findings from pre-beta-audit-2026-03-03.md)
+None. All C1-C7 and H1-H11 fixes complete and pushed.
 
-### Pre-Beta Audit C1-C7 Completed (verified 2026-03-03)
+### Pre-Beta Audit — All Fixes Complete (verified 2026-03-04)
+
+**C1-C7 (verified 2026-03-03):**
 - C1: Role whitelist in authController.ts — `safeRole` prevents ADMIN self-assignment
 - C2: referralCode decoded from JWT in AuthContext.tsx — both useEffect and login() calls updated
 - C3: getSale includes category + condition on items select
@@ -194,9 +192,23 @@ Prepare for scale to additional metros.
 - C6: Verified clean — price always from DB, only itemId from req.body
 - C7: Verified already implemented — createRefund checks organizer ownership
 - Schema drift also fixed: SaleSubscriber (@@id→@id, userId nullable), Favorite (removed updatedAt not in DB)
-- DB reset via migrate reset --force, seed fixed (AffiliateLink userId, SaleSubscriber/Favorite Prisma client regenerated), all passing
-- Smoke tests via Claude in Chrome: login ✓, role whitelist ✓, category/condition on items ✓
-- RECOVERY.md updated: entries 12–16 (migration drift, psql quoting, npx version, curl quoting, schema drift)
+- DB reset via migrate reset --force, seed fixed, Prisma client regenerated. Smoke tests via Claude in Chrome: all pass.
+- RECOVERY.md entries 12–16 added.
+
+**H1-H11 (verified 2026-03-04):**
+- H1: getSale — expanded organizer select to include badges/rating; separate review query for avgRating
+- H2: uploadController — switched Promise.all → Promise.allSettled; partial batch success with `partialErrors`
+- H3: authController — email.trim().toLowerCase() + name.trim() on register + login
+- H4: Weekend filter — fixed Saturday/Sunday edge case in homepage date filter
+- H5: Organizer dashboard — mobile card views for all 3 tables (sales, analytics, line entries)
+- H6: lazy loading — `loading="lazy"` added to all 16 frontend files with img tags
+- H7: CSV import — Zod schema per-row validation with rowErrors collection; rejects empty parse batch
+- H8: Global Express error handler — added after all routes in index.ts
+- H9: Stripe webhook — STRIPE_WEBHOOK_SECRET guard before constructEvent
+- H10: CAN-SPAM unsubscribe — one-click unsubscribe link in reminder emails, public backend endpoint, new /unsubscribe frontend page
+- H11: Resend domain verification — confirmed verified in Resend dashboard (no code change needed)
+- Track B: Docker-from-VM gap — all 5 options tested (MCP registry, TCP 2375/2376, SSH, relay); accepted gap documented in RECOVERY.md entry 17
+- All 27 changed files pushed to GitHub via MCP (deseee/findasale, main)
 
 ---
 
@@ -339,8 +351,8 @@ See ROADMAP.md for full phase breakdown, success metrics, and decision gates.
 - "Manage Queue" button (yellow) added to organizer action row on sale detail page
 
 **Docker rebuild + migration: complete (2026-03-02)**
-- pdfkit installed in container
-- qrScanCount migration applied
+- pdfkit installed in container ✓
+- qrScanCount migration applied ✓
 
 ---
 
@@ -387,8 +399,8 @@ Two bugs found in the dev-environment skill and corrected:
 ---
 
 ### Seed Bug Fixes (2026-03-03)
-- Fixed: organizer users 0–9 now seeded with `role: 'ORGANIZER'` (was always `'USER'`).
-- Fixed: `stripeConnectId` now always `null` in seed — organizers go through real Stripe Connect onboarding. Fake `acct_test_*` IDs removed.
+- ✅ Fixed: organizer users 0–9 now seeded with `role: 'ORGANIZER'` (was always `'USER'`).
+- ✅ Fixed: `stripeConnectId` now always `null` in seed — organizers go through real Stripe Connect onboarding. Fake `acct_test_*` IDs removed.
 
 ### Session 27 – Image Loading, CORS & Backend Fixes (2026-03-03)
 - **Seed updated** — `seed.ts` now uses direct `fastly.picsum.photos` HMAC-signed URLs (no redirect). Eliminates Service Worker redirect-interception issue. Commit: c813d57.
@@ -399,11 +411,11 @@ Two bugs found in the dev-environment skill and corrected:
 - **Trust proxy** — `app.set('trust proxy', 1)` added to Express; silences rate-limiter `X-Forwarded-For` validation error from ngrok. Commit: 28fa3e0.
 - **finda.sale images confirmed working**. localhost:3000 images still broken — root cause: `next.config.js` not bind-mounted, frontend container has old CSP. Fix: frontend rebuild.
 
-Last Updated: 2026-03-03 (session 27 — image loading fixed on production, CORS + proxy fixes)
-Status: finda.sale fully operational with images. localhost needs frontend Docker rebuild for image parity.
+Last Updated: 2026-03-04 (session 31 — H1-H11 pre-beta audit fixes complete + Track B Docker gap documented)
+Status: All C1-C7 and H1-H11 audit findings resolved. Resend verified. Ready to begin M1-M19 (medium severity) or move to beta.
 
 ---
 
 ### Seed Bug Fixes (2026-03-03)
-- Fixed: organizer users 0–9 now seeded with `role: 'ORGANIZER'` (was always `'USER'`).
-- Fixed: `stripeConnectId` now always `null` in seed — organizers go through real Stripe Connect onboarding. Fake `acct_test_*` IDs removed.
+- ✅ Fixed: organizer users 0–9 now seeded with `role: 'ORGANIZER'` (was always `'USER'`).
+- ✅ Fixed: `stripeConnectId` now always `null` in seed — organizers go through real Stripe Connect onboarding. Fake `acct_test_*` IDs removed.

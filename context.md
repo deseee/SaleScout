@@ -1,17 +1,17 @@
 # Dynamic Project Context
-*Generated at 2026-03-03T23:38:31.157Z*
+*Generated at 2026-03-04T00:19:19.448Z*
 
 ## Git Status
-- **Branch:** main
-- **Commit:** 3afc297
-- **Remote:** https://github.com/deseee/findasale.git
+- **Branch:** (run git locally)
+- **Commit:** (run git locally)
+- **Remote:** (run git locally)
 
 ## Last Session
-### 2026-03-03
-**Worked on:** Fixed all 7 critical audit findings: C1 role whitelist, C2 referralCode in JWT/AuthContext, C3 category+condition in getSale, C4 AffiliateLink userId + schema, C5 Stripe idempotency key, C6/C7 verified clean. Fixed cascading schema drift (SaleSubscriber composite PK mismatch, Favorite.updatedAt not in DB). Ran migrate reset --force to fix migration drift, fixed seed.ts (missing AffiliateLink userId), regenerated Prisma client. Smoke-tested C1/C2/C3 via Claude in Chrome fetch API — all pass. Added RECOVERY.md entries 12–16. Also discovered: `docker exec` JSON POST via curl silently fails on Windows PowerShell (req.body={}); Claude in Chrome is the correct tool for API smoke tests. Learned: Chrome extension must be connected at session start.
-**Decisions:** Use Claude in Chrome (browser fetch) for all API smoke tests — never curl through docker exec sh -c on Windows. Schema.prisma must match migration SQL exactly; always verify with grep on migration files before editing. Prisma client must be regenerated after any schema change AND container restarted to pick it up.
-**Next up:** Fix H1-H11 (high severity findings). Also explore Docker-from-VM workarounds — investigate MCP Docker connector or TCP socket approach so Claude can run docker commands without Patrick copy-pasting from PowerShell.
-**Blockers:** None. All C1-C7 fixes pushed to GitHub. DB seeded and healthy.
+### 2026-03-04
+**Worked on:** Fixed all 11 high-severity pre-beta audit findings. H1: organizer badges/rating in getSale. H2: Promise.allSettled for partial upload success. H3: email/name normalization on auth. H4: weekend filter Saturday edge case. H5: mobile card views for 3 dashboard tables. H6: loading="lazy" on 16 frontend files (Python script introduced JSX arrow-operator bug in SaleCard.tsx — caught and fixed). H7: Zod CSV row validation. H8: global Express error handler. H9: Stripe webhook secret guard. H10: CAN-SPAM one-click unsubscribe (email link + backend endpoint + /unsubscribe page). H11: Resend domain — already verified, no action needed. Track B: tested all 5 Docker-from-VM options (MCP registry ✗, TCP 2375/2376 ✗, SSH ✗, relay ✗) — accepted gap, documented in RECOVERY.md entry 17. All 27 changed files pushed to GitHub via MCP.
+**Decisions:** Docker-from-VM gap is permanent unless Patrick manually enables TCP socket in Docker Desktop settings. Working pattern remains copy-paste PowerShell. Python lazy-load scripts that use regex on JSX must be reviewed for arrow-operator splits before committing.
+**Next up:** Activate fixes in Docker (`docker compose restart backend`, then `docker compose build --no-cache frontend && docker compose up -d`). Then begin M1-M19 medium findings or move to real-user beta.
+**Blockers:** None. All fixes pushed. Docker restart/rebuild required to activate on localhost.
 
 ## Health Status
 Last scan: 2026-03-03
@@ -260,7 +260,8 @@ Docker status unavailable — run update-context.js locally (Windows) to capture
 │   │   │   ├── shopper/
 │   │   │   │   ├── dashboard.tsx
 │   │   │   │   └── purchases.tsx
-│   │   │   └── terms.tsx
+│   │   │   ├── terms.tsx
+│   │   │   └── unsubscribe.tsx
 │   │   ├── postcss.config.js
 │   │   ├── public/
 │   │   │   ├── fallback-OI8nXpndPrduP2yucmXrX.js
