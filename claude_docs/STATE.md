@@ -179,7 +179,33 @@ Prepare for scale to additional metros.
 
 ## In Progress
 
-None. All C1-C7 and H1-H11 fixes complete and pushed.
+None.
+
+### Session 33 — E-Series, PF1, S1 Audit Fixes + Vercel Build Fix (verified 2026-03-04)
+
+**Audit findings closed (from audit-remaining-areas-2026-03-03.md):**
+- **E4 (AuthRequest deduplication):** Removed locally-defined `interface AuthRequest` from 11 files; all now import from `middleware/auth.ts` single source of truth. `Request` preserved in express imports for files with public endpoints.
+- **E5 (Frontend validation errors):** `frontend/lib/api.ts` response interceptor now detects `400 + errors[]` (Zod shape) and attaches `error.validationMessage` with per-field dot-path messages joined by ` • `.
+- **E6 (Offline page error boundary):** `pages/offline.tsx` wrapped in React class `OfflineErrorBoundary`; page content extracted to `OfflineContent` function component.
+- **PF1 (Duplicate count query):** `listSales` now uses `Promise.all([findMany, count])` for parallel DB queries instead of serial round-trips.
+- **S1 (JSON-LD category/condition):** `pages/sales/[id].tsx` adds `category` and `itemCondition` (schema.org OfferItemCondition URL) to each item offer in JSON-LD. `conditionMap` handles NEW/LIKE_NEW/GOOD/FAIR/POOR.
+
+**Latent bug caught and fixed:**
+- `notificationController.ts` used `req: Request` in `unsubscribeByEmail` but only imported `Response` from express. Fixed by adding `Request` to import before push.
+
+**routes/users.ts cleanup:** Removed stray `new PrismaClient()` instance; now uses `import { prisma } from '../lib/prisma'` shared singleton.
+
+**GitHub commits (5 batches of ≤3 files each, per CORE.md Section 10):**
+- Batch 1 (saleController, stripeController, favoriteController): `cc81f566`
+- Batch 2 (itemController, marketingKitController, notificationController): `f2c80a68`
+- Batch 3 (stripeStatusController, userController, routes/auth): `f3adc9fb`
+- Batch 4 (routes/organizers, routes/users, frontend/lib/api): `7ce0c8fd`
+- Batch 5 (pages/offline, pages/sales/[id]): `0c281044`
+
+**Vercel build fix (same session):**
+- `InstallPrompt.tsx` had old GitHub version calling `await deferredPrompt.prompt()` twice and destructuring `outcome` from the return (TypeScript error: `Property 'outcome' does not exist on type 'void'`). Fixed by pushing local rewrite that correctly uses `deferredPrompt.userChoice` for outcome. Commit: `b873fdc1`.
+
+**All remaining M-series audit findings closed. Vercel build unblocked.**
 
 ### Pre-Beta Audit — All Fixes Complete (verified 2026-03-04)
 
@@ -411,5 +437,25 @@ Two bugs found in the dev-environment skill and corrected:
 - **Trust proxy** — `app.set('trust proxy', 1)` added to Express; silences rate-limiter `X-Forwarded-For` validation error from ngrok. Commit: 28fa3e0.
 - **finda.sale images confirmed working**. localhost:3000 images still broken — root cause: `next.config.js` not bind-mounted, frontend container has old CSP. Fix: frontend rebuild.
 
-Last Updated: 2026-03-04 (session 31 — H1-H11 pre-beta audit fixes complete + Track B Docker gap documented)
-Status: All C1-C7 and H1-H11 audit findings resolved. Resend verified. Ready to begin M1-M19 (medium severity) or move to beta.
+### Session 32 — M-Series Medium Audit Findings (2026-03-04)
+
+**Completed from audit-remaining-areas-2026-03-03.md:**
+- **E3 (Prisma singleton):** Created `packages/backend/src/lib/prisma.ts` shared singleton; removed `new PrismaClient()` from 10 files (saleController, stripeController, authController, userController, notificationController, stripeStatusController, marketingKitController, middleware/auth, jobs/auctionJob, models/LineEntry). `index.ts` re-exports from lib/prisma to avoid circular deps.
+- **ST3 (Stripe webhook organizer verification):** Webhook now cross-checks `paymentIntent.on_behalf_of` against purchase's `sale.organizer.stripeConnectId`. Mismatch skips PAID status — prevents spoofed/replayed webhook attacks.
+- **ST4 (Integer-cent fee math):** `priceCents = Math.round(price * 100)` then `Math.round(priceCents * feePercent)` — eliminates floating-point rounding errors in platform fee calculations.
+- **DB2 (Atomic user registration):** `prisma.$transaction()` wraps user + organizer creation in authController — neither is orphaned on failure.
+- **E7 (JWT expiry on client):** AuthContext now decodes JWT `exp` claim on load; clears stale token before any API call.
+- **EM2/EM3 (Retry backoff):** `withRetry()` helper added to emailReminderService with 4x backoff for Twilio 429s (EM3) and 2x for Resend failures (EM2).
+- **P1 (iCal date guard):** `generateIcal` returns 400 if `startDate` or `endDate` is missing.
+- **EC1 (Status machine):** Already implemented — verified clean, no fix needed.
+- **DB1 (findUnique audit):** All `findUnique` calls use `@id` or `@unique` fields — verified clean, no fix needed.
+
+**Operational finding:**
+- **GitHub push batching rule added to CORE.md (Section 10):** Max 3 files per `push_files` call. Exceeding this hits the output token limit. Rule is now permanently in CORE.md.
+
+**Not yet addressed (remaining M-series):** ST1, ST2, E1, E2, E4, E5, E6, PF1, S1 — see `claude_docs/audit-remaining-areas-2026-03-03.md` for details.
+
+All 14 changed files pushed to GitHub in 6 batched commits (deseee/findasale, main).
+
+Last Updated: 2026-03-04 (session 33 — E4/E5/E6/PF1/S1 complete, InstallPrompt Vercel build fix)
+Status: All C1-C7, H1-H11, and all M-series audit findings complete. Vercel build unblocked. Ready for real-user beta.
