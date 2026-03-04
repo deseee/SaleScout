@@ -1,17 +1,17 @@
 # Dynamic Project Context
-*Generated at 2026-03-04T00:27:17.057Z*
+*Generated at 2026-03-04T11:43:43.989Z*
 
 ## Git Status
-- **Branch:** (run git locally)
-- **Commit:** (run git locally)
-- **Remote:** (run git locally)
+- **Branch:** main
+- **Commit:** 74684b9
+- **Remote:** https://github.com/deseee/findasale.git
 
 ## Last Session
 ### 2026-03-04
-**Worked on:** Fixed all 11 high-severity pre-beta audit findings. H1: organizer badges/rating in getSale. H2: Promise.allSettled for partial upload success. H3: email/name normalization on auth. H4: weekend filter Saturday edge case. H5: mobile card views for 3 dashboard tables. H6: loading="lazy" on 16 frontend files (Python script introduced JSX arrow-operator bug in SaleCard.tsx — caught and fixed). H7: Zod CSV row validation. H8: global Express error handler. H9: Stripe webhook secret guard. H10: CAN-SPAM one-click unsubscribe (email link + backend endpoint + /unsubscribe page). H11: Resend domain — already verified, no action needed. Track B: tested all 5 Docker-from-VM options (MCP registry ✗, TCP 2375/2376 ✗, SSH ✗, relay ✗) — accepted gap, documented in RECOVERY.md entry 17. All 27 changed files pushed to GitHub via MCP.
-**Decisions:** Docker-from-VM gap is permanent unless Patrick manually enables TCP socket in Docker Desktop settings. Working pattern remains copy-paste PowerShell. Python lazy-load scripts that use regex on JSX must be reviewed for arrow-operator splits before committing.
-**Next up:** Activate fixes in Docker (`docker compose restart backend`, then `docker compose build --no-cache frontend && docker compose up -d`). Then begin M1-M19 medium findings or move to real-user beta.
-**Blockers:** None. All fixes pushed. Docker restart/rebuild required to activate on localhost.
+**Worked on:** Implemented Phase 9 (affiliate conversion tracking), Phase 12 (auction cron + frontend), and Phase 11 (PWA push notifications). Phase 9: fixed affiliateController prisma import, added `conversions` + `affiliateLinkId` to schema, wired Stripe metadata attribution, built `affiliate/[id].tsx` redirect page, updated creator dashboard stats, wired sessionStorage ref in CheckoutModal. Phase 12: fixed auctionJob.ts cron (was never scheduled), built AuctionCountdown + BidModal components, wired live countdown on sale detail. Phase 11: PushSubscription schema + migration, pushController/routes/webpush utility, usePushSubscription hook, sw-push.js service worker, PushSubscriber in _app.tsx, push sends in emailReminderService. Fixed Vercel build (pnpm-lock.yaml pushed after extended git conflict resolution). Fixed migration 20260304000001 with IF NOT EXISTS guards. Added self-healing skills 14–16 (MCP+untracked conflict, PowerShell bracket wildcards, git lock files).
+**Decisions:** sessionStorage over cookies for affiliate attribution (no cookie-parser). Polling over Socket.io for auction UI (not installed; sufficient for MVP). Lazy require('web-push') so server starts without package.
+**Next up:** Run `prisma migrate deploy` in Docker (both migrations 000001 + 000002 pending). Generate VAPID keys, add to .env files. Docker rebuild backend. Then smoke-test push subscriptions.
+**Blockers:** Migrations not yet applied — need `docker exec findasale-backend-1 sh -c "cd /app/packages/database && npx prisma migrate deploy"`. VAPID keys not yet generated — `npx web-push generate-vapid-keys`.
 
 ## Health Status
 Last scan: 2026-03-03
@@ -28,7 +28,7 @@ Docker status unavailable — run update-context.js locally (Windows) to capture
 - CLI tools: node
 
 ## Signals
-⚠ Env drift — in .env.example but missing from .env: HF_TOKEN
+⚠ Env drift — in .env.example but missing from .env: HF_TOKEN, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_CONTACT_EMAIL
 ✓ TODOs: none found
 
 ## Project File Tree
@@ -57,6 +57,7 @@ Docker status unavailable — run update-context.js locally (Windows) to capture
 │   │   └── .gitkeep
 │   ├── competitor-intel/
 │   │   └── .gitkeep
+│   ├── feature-research-2026-03-04.md
 │   ├── health-reports/
 │   │   ├── .gitkeep
 │   │   ├── 2026-03-01.md
@@ -90,16 +91,6 @@ Docker status unavailable — run update-context.js locally (Windows) to capture
 │   │   ├── package.json
 │   │   ├── services/
 │   │   │   └── image-tagger/
-│   │   │       ├── .coverage
-│   │   │       ├── .coverage.claude.pid10229.XQC9qibx.H0CrSzLFxgoh
-│   │   │       ├── .pytest_cache/
-│   │   │       │   ├── .gitignore
-│   │   │       │   ├── CACHEDIR.TAG
-│   │   │       │   ├── README.md
-│   │   │       │   └── v/
-│   │   │       │       └── cache/
-│   │   │       │           ├── lastfailed
-│   │   │       │           └── nodeids
 │   │   │       ├── Dockerfile
 │   │   │       ├── TESTING_PROGRESS.md
 │   │   │       ├── app.py
@@ -108,7 +99,6 @@ Docker status unavailable — run update-context.js locally (Windows) to capture
 │   │   │       │   ├── TAGGER_BENCHMARKS.md
 │   │   │       │   ├── TAGGER_DESIGN.md
 │   │   │       │   └── TAGGER_TROUBLESHOOTING.md
-│   │   │       ├── pytest-cache-files-pv4rszl7/
 │   │   │       ├── requirements-dev.txt
 │   │   │       ├── requirements.txt
 │   │   │       ├── setup.sh
@@ -137,6 +127,7 @@ Docker status unavailable — run update-context.js locally (Windows) to capture
 │   │   │   │   ├── lineController.ts
 │   │   │   │   ├── marketingKitController.ts
 │   │   │   │   ├── notificationController.ts
+│   │   │   │   ├── pushController.ts
 │   │   │   │   ├── saleController.ts
 │   │   │   │   ├── stripeController.ts
 │   │   │   │   ├── stripeStatusController.ts
@@ -147,6 +138,8 @@ Docker status unavailable — run update-context.js locally (Windows) to capture
 │   │   │   │   ├── auctionJob.ts
 │   │   │   │   ├── emailReminderJob.ts
 │   │   │   │   └── notificationJob.ts
+│   │   │   ├── lib/
+│   │   │   │   └── prisma.ts
 │   │   │   ├── middleware/
 │   │   │   │   └── auth.ts
 │   │   │   ├── models/
@@ -161,6 +154,7 @@ Docker status unavailable — run update-context.js locally (Windows) to capture
 │   │   │   │   ├── lines.ts
 │   │   │   │   ├── notifications.ts
 │   │   │   │   ├── organizers.ts
+│   │   │   │   ├── push.ts
 │   │   │   │   ├── sales.ts
 │   │   │   │   ├── stripe.ts
 │   │   │   │   ├── upload.ts
@@ -168,7 +162,8 @@ Docker status unavailable — run update-context.js locally (Windows) to capture
 │   │   │   ├── services/
 │   │   │   │   └── emailReminderService.ts
 │   │   │   └── utils/
-│   │   │       └── stripe.ts
+│   │   │       ├── stripe.ts
+│   │   │       └── webpush.ts
 │   │   └── tsconfig.json
 │   ├── database/
 │   │   ├── .env
@@ -178,7 +173,7 @@ Docker status unavailable — run update-context.js locally (Windows) to capture
 │   │   ├── package-lock.json
 │   │   ├── package.json
 │   │   ├── prisma/
-│   │   │   ├── migrations/ (14 migrations)
+│   │   │   ├── migrations/ (16 migrations)
 │   │   │   ├── schema.prisma
 │   │   │   └── seed.ts
 │   │   └── tsconfig.json
@@ -188,8 +183,10 @@ Docker status unavailable — run update-context.js locally (Windows) to capture
 │   │   ├── CLAUDE.md
 │   │   ├── Dockerfile
 │   │   ├── components/
+│   │   │   ├── AuctionCountdown.tsx
 │   │   │   ├── AuthContext.tsx
 │   │   │   ├── BadgeDisplay.tsx
+│   │   │   ├── BidModal.tsx
 │   │   │   ├── CSVImportModal.tsx
 │   │   │   ├── CheckoutModal.tsx
 │   │   │   ├── InstallPrompt.tsx
@@ -204,6 +201,8 @@ Docker status unavailable — run update-context.js locally (Windows) to capture
 │   │   │   └── ToastContext.tsx
 │   │   ├── contexts/
 │   │   │   └── ToastContext.tsx
+│   │   ├── hooks/
+│   │   │   └── usePushSubscription.ts
 │   │   ├── lib/
 │   │   │   └── api.ts
 │   │   ├── next-env.d.ts
@@ -216,6 +215,8 @@ Docker status unavailable — run update-context.js locally (Windows) to capture
 │   │   │   ├── _app.tsx
 │   │   │   ├── _document.tsx
 │   │   │   ├── about.tsx
+│   │   │   ├── affiliate/
+│   │   │   │   └── [id].tsx
 │   │   │   ├── api/
 │   │   │   │   └── og.tsx
 │   │   │   ├── city/
@@ -264,11 +265,6 @@ Docker status unavailable — run update-context.js locally (Windows) to capture
 │   │   │   └── unsubscribe.tsx
 │   │   ├── postcss.config.js
 │   │   ├── public/
-│   │   │   ├── fallback-OI8nXpndPrduP2yucmXrX.js
-│   │   │   ├── fallback-UaNjxref6efOge_HGFwCr.js
-│   │   │   ├── fallback-WBXriFD53-Yn3WC9tqMWi.js
-│   │   │   ├── fallback-er3uCbRza2kFz6gsQte4u.js
-│   │   │   ├── fallback-gNeuXxCbTqbTpJfL6SNTp.js
 │   │   │   ├── icons/
 │   │   │   │   ├── apple-touch-icon.png
 │   │   │   │   ├── favicon-16x16.png
@@ -286,6 +282,7 @@ Docker status unavailable — run update-context.js locally (Windows) to capture
 │   │   │   ├── images/
 │   │   │   │   └── placeholder.svg
 │   │   │   ├── manifest.json
+│   │   │   ├── sw-push.js
 │   │   │   ├── sw.js
 │   │   │   └── workbox-5d03dacf.js
 │   │   ├── styles/
