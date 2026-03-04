@@ -119,5 +119,30 @@ Before production deploy:
 
 ---
 
+## 9. Vercel Free-Tier Deploy Limit
+
+**Hard limit: 100 deployments per day** on the Hobby (free) plan.
+Every push to `main` triggers a Vercel build. Once exhausted, deploys are
+blocked for ~6 hours with error `api-deployments-free-per-day`.
+
+Rules:
+- **Never push single-file fixes in separate commits.** Batch all related
+  fixes into one commit before pushing to `main`.
+- Before pushing, mentally count: "How many commits have I pushed today?"
+  If approaching ~80, flag to Patrick and defer non-critical pushes.
+- For build-error whack-a-mole (TypeScript type mismatches, missing imports):
+  scan the entire codebase for the pattern first, fix ALL instances, then
+  push once. Do not fix-push-wait-fix-push.
+- If the limit is hit: wait 6 hours, or Patrick can upgrade to Vercel Pro.
+
+Mitigation for Claude sessions:
+- When fixing build errors, grep for the error pattern across all files
+  before pushing. Example: `loading` vs `isLoading` mismatch — check every
+  file that calls `useAuth()`, not just the one Vercel reported.
+- Use `mcp__github__push_files` to batch multiple file fixes into a single
+  commit whenever possible.
+
+---
+
 Status: Operational
-Last Revised: 2026-03-04 (verified post-rebrand SaleScout → FindA.Sale)
+Last Revised: 2026-03-04 (added Vercel deploy limit after hitting 100/day cap)

@@ -178,6 +178,23 @@ Tell Patrick **"please run `git push` in PowerShell"** when ANY of the following
 - **STATE.md** — Push **once**, at session wrap only. Never mid-session.
 - **Large docs not touched this turn** — Do not re-read for the sole purpose of pushing. Flag for PowerShell instead.
 
+### Build-Error Fix Protocol (Vercel Deploy Budget)
+
+Vercel free tier = **100 deploys/day**. Every push to `main` burns one.
+
+**Before pushing ANY build fix:**
+1. Identify the **pattern** (not just the one file Vercel reported).
+2. Grep the entire frontend for that pattern.
+3. Fix **every** instance locally or in a single push_files batch.
+4. Push once.
+
+Example: Vercel reports `loading` not on `AuthContextType` in `login.tsx`.
+Wrong: fix login.tsx, push, wait for build, fix register.tsx, push, wait…
+Right: grep for `loading.*useAuth\|useAuth.*loading` across all files,
+fix all 6 hits, push one commit.
+
+This rule is enforced by `claude_docs/SECURITY.md` Section 9.
+
 ---
 
 Status: Behavioral Authority
