@@ -547,5 +547,91 @@ Only remove lock files when you're certain no git process is actively running (n
 
 ---
 
+## Skill 17: Workbox SW Blocking Third-Party Scripts (next-pwa)
+
+**Name:** SW NetworkOnly no-response for cross-origin scripts
+**Trigger:** Third-party script (Stripe, analytics, etc.) fails with `no-response` error from workbox; console shows `ServiceWorker passed a promise to FetchEvent.respondWith() that rejected`
+**Environment:** Vercel production; next-pwa with runtimeCaching; any `NetworkOnly` or catch-all `NetworkFirst` rule
+
+**Pattern:**
+Workbox intercepts cross-origin `<script>` fetches and calls `fetch(request)` from the SW context. Some third-party CDNs (notably Stripe's `clover/stripe.js`) fail when fetched from a SW context due to CORS/fetch-mode restrictions. `NetworkOnly` propagates the failure as `no-response`, breaking the script load. The fix is to prevent the SW from intercepting those domains at all — not just use `NetworkOnly`.
+
+**Known instance:** `https://js.stripe.com/clover/stripe.js` blocked by SW `NetworkOnly` rule → `Failed to load Stripe.js` on production (fixed session 37).
+
+**Steps:**
+1. Remove any explicit `NetworkOnly` runtimeCaching rule for the failing domain.
+2. Modify the pages catch-all `urlPattern` to exclude the domain via negative lookahead:
+   ```js
+   // Before
+   urlPattern: /^https?:\/\/[^/]+\/(?!api\/).*/i,
+   // After — excludes all stripe.com subdomains
+   urlPattern: /^https?:\/\/(?!(?:js|hooks|m|api)\.stripe\.com)[^/]+\/(?!api\/).*/i,
+   ```
+3. With no matching runtimeCaching rule, the browser fetches the URL directly without SW interception.
+
+**Edge Cases:**
+- Applies to any third-party CDN that uses CORS restrictions or special fetch modes.
+- `NetworkOnly` is NOT sufficient — it still intercepts and can fail. True bypass requires no matching rule.
+- Add new subdomains to the negative lookahead as needed (`r.stripe.com`, etc.).
+
+**Test Command:** Open DevTools → Application → Service Workers → check for `no-response` errors after hard refresh on production.
+**Confidence:** High — root cause confirmed by workbox source behavior.
+
+---
+
+## Skill 18: Docker Bind Mount Missing for New Frontend Directory
+
+**Name:** Next.js module not found for bind-mounted dir
+**Trigger:** Frontend Docker container throws `Module not found: Can't resolve '../hooks/...'` (or similar) for a directory that exists locally but wasn't in docker-compose.yml volumes
+**Environment:** Docker + Next.js dev; any new top-level directory added under `packages/frontend/`
+
+**Pattern:**
+Only specific frontend directories are bind-mounted in `docker-compose.yml`. When a new directory is added (e.g., `hooks/`, `utils/`, `contexts/`) it exists on Windows but not inside the container. The Next.js dev server inside Docker can't resolve imports from it.
+
+**Known instance:** `hooks/usePushSubscription.ts` not importable in `_app.tsx` because `hooks/` wasn't in docker-compose.yml volumes (fixed session 37).
+
+**Steps:**
+1. Add to `docker-compose.yml` under `frontend` → `volumes`:
+   ```yaml
+   - ./packages/frontend/<new-dir>:/app/packages/frontend/<new-dir>
+   ```
+2. Restart with `docker compose down && docker compose up` (compose file change requires full restart, not just `up -d`).
+3. No rebuild needed — this is a volume mount change only.
+
+**Edge Cases:**
+- `next.config.js`, `tsconfig.json`, `package.json` at the package root are NOT bind-mounted — changes to those require a frontend image rebuild.
+- Currently mounted: `pages/`, `components/`, `styles/`, `lib/`, `public/`, `hooks/`.
+
+**Test Command:** `docker exec findasale-frontend-1 ls /app/packages/frontend/` — confirm the new dir is visible inside the container.
+**Confidence:** High — structural issue that will recur whenever Patrick adds a new top-level frontend directory.
+
+---
+
+## Skill 19: Diff-Only Violation — Full File Rewrite Without Permission
+
+**Name:** Unauthorized Full File Rewrite
+**Trigger:** Claude uses the Write tool to replace an entire existing file instead of using targeted Edit operations on changed sections
+**Environment:** Any file type — code, docs, config, roadmap, etc.
+
+**Pattern:**
+When a task requires substantial changes to a file, Claude defaults to rewriting the entire file via Write tool rather than making targeted edits. This violates CORE.md Section 4 (Diff-Only Rule), wastes tokens by re-serializing unchanged content, and risks silently dropping or altering sections Patrick didn't ask to change. The violation is especially likely when the user says "rewrite," "overhaul," or "major update" — Claude interprets the phrasing as permission for a full rewrite when it isn't.
+
+**Known instance:** Session 39 — ROADMAP.md rewritten entirely twice via Write tool. Patrick flagged the violation. No content was lost, but the approach bypassed diff-only rules and made it impossible to review what actually changed.
+
+**Steps:**
+1. Before any file modification, announce the approach in one line per CORE.md Section 4.
+2. If the change touches >50% of the file, ask Patrick: "This touches most of the file — should I do targeted edits or a full rewrite?"
+3. Never interpret "major rewrite," "overhaul," or "audit" as implicit permission for a full Write. Only "rewrite the whole file" or equivalent counts.
+4. Use Edit tool for targeted changes. Use Write tool only for new files or confirmed full rewrites.
+
+**Edge Cases:**
+- New files (no existing content) → Write is fine, no permission needed.
+- Files under 20 lines → Full rewrite is acceptable if faster than multiple tiny edits.
+- Session context compacted (long conversation) → Re-read the file before editing to avoid stale line references.
+
+**Confidence:** High (observed, rule violation confirmed by user, structurally certain to recur on large doc tasks)
+
+---
+
 Last Updated: 2026-03-04
-Source: Patterns derived from STATE.md (Phases 2–5), RECOVERY.md documented fixes, and health-scout proactive analysis (2026-03-01).
+Source: Patterns derived from STATE.md (Phases 2–5), RECOVERY.md documented fixes, health-scout proactive analysis (2026-03-01), and session 39 behavioral audit.
