@@ -120,4 +120,4 @@ Before production deploy:
 ---
 
 Status: Operational
-Last Revised: 2026-02-28
+Last Revised: 2026-03-04 (verified post-rebrand SaleScout → FindA.Sale)

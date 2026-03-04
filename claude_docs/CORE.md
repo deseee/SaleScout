@@ -23,9 +23,11 @@ Avoid stale documentation.
 
 At the start of every session, before any task work:
 
-1. Load `context.md` — filetree, Docker status, last session summary
-2. Load `claude_docs/STATE.md` — current sprint and blockers
-3. Skim `claude_docs/session-log.md` — last 1–2 entries for recent decisions
+1. Check active MCP tools in session context — note GitHub, Slack, Notion, etc. availability
+2. Load `claude_docs/CORE.md` — verify behavior rules haven't drifted
+3. Load `context.md` — filetree, Docker status, last session summary
+4. Load `claude_docs/STATE.md` — current sprint and blockers
+5. Skim `claude_docs/session-log.md` — last 1–2 entries for recent decisions
 
 Skip silently if Patrick has already given a task and context was loaded this session.
 Do not narrate the load unless asked.
@@ -46,16 +48,20 @@ Do not skip verification.
 
 ## 4. Diff-Only Rule
 
-When modifying code:
-- Output only changed files
-- No full rewrites unless requested
+When modifying **any file** (code, docs, config — no exceptions):
+- Output only changed sections
+- No full rewrites unless Patrick explicitly requests one
 - No unchanged context
+- Ambiguous phrases like "major rewrite" or "overhaul" do NOT count as requesting a full rewrite — ask first
 
-Before executing any file change, state the approach in one line:
+**Hard gate — announce before every file write:**
+Before using the Write or Edit tool on any existing file, state the approach in one line:
 - Targeted edit: "Editing [file] lines X–Y"
-- Full rewrite: "Rewriting [file] entirely"
+- Full rewrite: "Rewriting [file] entirely — confirmed by Patrick"
 
-This lets Patrick immediately catch unnecessary rewrites.
+If announcing a full rewrite, Patrick must have explicitly said "rewrite the whole file" or equivalent in that conversation. If unclear, ask: "Should I do targeted edits or a full rewrite?"
+
+This lets Patrick immediately catch unnecessary rewrites. Skipping the announcement is a rule violation.
 
 ---
 
@@ -92,15 +98,17 @@ No silent duplication.
 
 ## 7. Authority Order
 
-User  
-→ CORE.md  
-→ Root CLAUDE.md  
-→ Package CLAUDE.md  
-→ STACK.md  
-→ STATE.md  
-→ SECURITY.md / RECOVERY.md  
+User
+→ CORE.md (operational behavior)
+→ Self-Healing Skills (structurally certain patterns, HIGH confidence)
+→ conversation-defaults skill (active session rules)
+→ Root CLAUDE.md (execution contract)
+→ Package CLAUDE.md (scoped constraints)
+→ STACK.md (technology decisions)
+→ STATE.md (project state snapshot)
+→ SECURITY.md / RECOVERY.md (fallback procedures)
 
-Higher layer prevails.
+Higher layer prevails. Skills override lower layers when pattern confidence ≥ HIGH.
 
 ---
 
@@ -135,10 +143,18 @@ Large batches exceed the output token limit and silently fail or crash the sessi
 
 **Rule:** Max 3 files per `push_files` call. If a single file exceeds ~200 lines, push it alone.
 
+**Preferred tool by file size:**
+- **Single large file (200+ lines):** Use `mcp__github__create_or_update_file` — isolates token cost to one file per call, more reliable than `push_files` for big files.
+- **Small batch (2–3 files, all <200 lines):** Use `mcp__github__push_files` — one commit, clean history.
+- **Single small file:** Either tool works. Prefer `create_or_update_file` for simplicity.
+
+**Environment escape hatch:** If medium-large batches consistently fail, `MAX_MCP_OUTPUT_TOKENS` can be raised in `.claude/settings.local.json` (default 25,000). Only increase if chunking alone isn't enough — higher limits consume more context.
+
 **Pattern:**
 1. Read all target files in parallel (as many as needed — reads are input tokens, not output)
 2. Push in serial batches of ≤3 files, with a descriptive commit message per batch
 3. Group small files together; large files (>200 lines) always get their own commit
+4. For files >300 lines, always use `create_or_update_file` (requires the file's current SHA)
 
 This applies to every session wrap and any mid-session push. Never revert to a single
 giant push to "save commits" — the token limit will kill it.
