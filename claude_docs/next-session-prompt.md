@@ -1,40 +1,44 @@
 # Next Session Resume Prompt
-*Written: 2026-03-04 (updated after Track B re-test)*
+*Written: 2026-03-04 (session 32 — M-series medium findings + push batching rule)*
 *Session ended: normally*
 
 ## Resume From
 
-Run `docker compose restart backend` then rebuild frontend to activate H1-H11 fixes on localhost. Then decide: tackle M1-M19 medium audit findings, or move to real-user beta.
-
-## What Was In Progress
-
-Nothing unfinished. All H1-H11 fixes are complete and pushed to GitHub.
+Decide: tackle remaining M-series medium audit findings (ST1, ST2, E1, E2, E4, E5, E6, PF1, S1) or move directly to real-user beta. Ask Patrick which path.
 
 ## What Was Completed This Session
 
-- **H1-H11** — All 11 high-severity pre-beta audit findings fixed and pushed (27 files, deseee/findasale main)
-- **H11** — Resend domain already verified; no code change needed
-- **Track B** — Docker TCP socket enabled by Patrick; re-tested from VM — still unreachable. Docker Desktop binds to Windows loopback (127.0.0.1) only; VM cannot reach it. Gap is structural. RECOVERY.md entry 17 updated with root cause. Accepted workflow remains copy-paste PowerShell.
+- **E3** — Shared Prisma singleton (`lib/prisma.ts`); removed `new PrismaClient()` from 10 backend files
+- **ST3** — Stripe webhook verifies `on_behalf_of` vs organizer `stripeConnectId` before marking PAID
+- **ST4** — Fee math uses integer cents (`Math.round(price * 100)`) to eliminate float rounding
+- **DB2** — User + organizer creation wrapped in `prisma.$transaction()` in authController
+- **E7** — AuthContext checks JWT `exp` before any API call; clears stale token cleanly
+- **EM2/EM3** — `withRetry()` exponential backoff for Resend (2x) + Twilio (4x on 429) in emailReminderService
+- **P1** — iCal `generateIcal` returns 400 if `startDate` or `endDate` missing
+- **EC1, DB1** — Verified already implemented/clean; no fix needed
+- **CORE.md Section 10** — GitHub push batching rule permanently added: max 3 files per `push_files` call
+- All 14 changed files pushed to GitHub in 6 batched commits (deseee/findasale, main)
+
+## What Was In Progress
+
+Nothing — session completed cleanly.
+
+## Remaining M-Series Findings
+
+Not yet addressed — from `claude_docs/audit-remaining-areas-2026-03-03.md`:
+ST1, ST2, E1, E2, E4, E5, E6, PF1, S1
+
+Read the audit file at session start for accurate descriptions before beginning.
 
 ## Environment Notes
 
-**Docker restart required to activate fixes:**
+- All changes are on GitHub `main`. No pending local-only changes.
+- Docker containers may need `docker compose restart backend` to pick up the new shared Prisma singleton.
+- No schema changes this session — no migration needed.
 
-Backend changes (H1/H2/H3/H7/H8/H9/H10):
-  docker compose restart backend
+## Critical Rule (Read Before Any GitHub Push)
 
-Frontend changes (H4/H5/H6):
-  docker compose build --no-cache frontend && docker compose up -d frontend
+`claude_docs/CORE.md` Section 10 is now active. Summary:
+> Max 3 files per `push_files` call. Files >200 lines push alone. Read all files in parallel first, then push in serial batches of ≤3.
 
-No schema changes this session — no migration needed.
-Resend domain is verified. No further DNS action needed.
-Docker TCP socket is enabled in Docker Desktop settings but VM still cannot reach it (loopback binding only).
-
-## Exact Context
-
-Medium findings (M1-M19) are documented in claude_docs/pre-beta-audit-2026-03-03.md.
-Next logical step is either:
-1. Tackle M1-M19 (medium severity) — pre-beta-audit-2026-03-03.md has the fix list
-2. Skip to real-user beta — all critical and high findings are resolved; the app is functionally sound
-
-Docker-from-VM gap: the TCP socket setting is ON in Docker Desktop, but it binds to Windows 127.0.0.1 only. The VM resolves host.docker.internal to 10.0.0.24 but that interface doesn't expose port 2375. Accepted workflow is copy-paste PowerShell permanently. See RECOVERY.md entry 17.
+This was added after a token-overflow failure when pushing 14 files at once. It must be followed on every future push without exception.
