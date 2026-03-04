@@ -36,13 +36,15 @@ Full detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## In Progress
 
-**Sprint C — Phase 14: Rapid Capture + Background AI**
-- ✅ Phase 14a: RapidCapture.tsx — full-screen WebRTC camera overlay, rear-facing, 1920×1440, one-handed 72px shutter, filmstrip carousel, tap-to-preview/delete, flash feedback
-- ✅ Phase 14a: Integrated into add-items.tsx — gradient CTA button, batch queue state, tap-to-prefill form from AI results
-- ✅ Phase 14b: Backend /upload/rapid-batch endpoint — accepts up to 20 images, Cloudinary upload + Ollama AI analysis in parallel per file, Promise.allSettled for partial failure resilience
-- ✅ Phase 14b: Batch Processing Queue UI — status overlays (uploading/analyzing/done/error), AI result preview on cards, sequential fallback if batch endpoint fails
-- ✅ Build fix: creator/dashboard.tsx `loading` → `isLoading` (AuthContextType mismatch)
-- Phase 14c pending: Cloudinary webhook, auto-crop, thumbnail/optimized/full-res URLs
+**Sprint D — Phase 17: Follow System + Organizer Reputation**
+- ✅ Phase 17a: Prisma schema — Follow model (userId+organizerId unique, notifyEmail/notifyPush), Organizer reputation fields (reputationTier, avgRating, totalReviews, totalSales)
+- ✅ Phase 17b: Backend — follow/unfollow/followers API, organizer profile returns followerCount + isFollowing + reputationTier
+- ✅ Phase 17c: Frontend — FollowButton component, ReputationTier badge component, organizer profile page updated
+- ⚠️ Prisma migration needed: `prisma migrate dev` in Docker to apply Follow model + Organizer reputation fields
+
+**Sprint C — Phase 14: Rapid Capture + Background AI** ✅ COMPLETE
+- ✅ Phase 14a+14b: RapidCapture + batch upload + AI analysis
+- ✅ Phase 14c: Cloudinary eager transforms (thumbnail 200×200, optimized 800w, full 1600w — all WebP), imageUtils.ts frontend helpers, SaleCard/ItemCard using optimized URLs
 
 ---
 
@@ -69,8 +71,8 @@ Full detail: `claude_docs/COMPLETED_PHASES.md`
 Five-pillar growth phase. Sprint order:
 1. ~~Sprint A: Phase 12 completion~~ ✅ (2026-03-05)
 2. ~~Sprint B: Phase 24+25~~ ✅ — Design system + bottom tab nav (2026-03-04)
-3. **Sprint C: Phase 14** — Rapid capture + background AI (IN PROGRESS — 14a+14b done, 14c next)
-4. Sprint D: Phase 17 — Organizer reputation + follow system
+3. ~~Sprint C: Phase 14~~ ✅ — Rapid capture + background AI + Cloudinary image optimization (2026-03-04)
+4. **Sprint D: Phase 17** — Organizer reputation + follow system (IN PROGRESS — schema + API + UI done, migration pending)
 
 Full roadmap: `claude_docs/ROADMAP.md`
 
@@ -86,4 +88,4 @@ Full roadmap: `claude_docs/ROADMAP.md`
 
 ---
 
-Last Updated: 2026-03-04 (session 45 — Sprint C Phase 14a+14b complete, build fix pushed)
+Last Updated: 2026-03-04 (session 46 — Sprint C complete, Sprint D Phase 17 code complete, Vercel deploy budget rules added)
