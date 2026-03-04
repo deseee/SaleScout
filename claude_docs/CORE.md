@@ -128,4 +128,21 @@ Weekly scan runs automatically Sunday 11pm via `findasale-health-scout` task.
 
 ---
 
+## 10. GitHub Push Batching Rule
+
+When using `mcp__github__push_files`, **never push more than 3 files per call**.
+Large batches exceed the output token limit and silently fail or crash the session.
+
+**Rule:** Max 3 files per `push_files` call. If a single file exceeds ~200 lines, push it alone.
+
+**Pattern:**
+1. Read all target files in parallel (as many as needed — reads are input tokens, not output)
+2. Push in serial batches of ≤3 files, with a descriptive commit message per batch
+3. Group small files together; large files (>200 lines) always get their own commit
+
+This applies to every session wrap and any mid-session push. Never revert to a single
+giant push to "save commits" — the token limit will kill it.
+
+---
+
 Status: Behavioral Authority
