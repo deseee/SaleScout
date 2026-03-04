@@ -1,44 +1,46 @@
 # Next Session Resume Prompt
-*Written: 2026-03-04 (session 32 — M-series medium findings + push batching rule)*
+*Written: 2026-03-04 (session 33 — E4/E5/E6/PF1/S1 + Vercel build fixes)*
 *Session ended: normally*
 
 ## Resume From
 
-Decide: tackle remaining M-series medium audit findings (ST1, ST2, E1, E2, E4, E5, E6, PF1, S1) or move directly to real-user beta. Ask Patrick which path.
+All audit findings closed. Vercel build was failing; fixes applied — should be green. Do a drift spot-check at session start before starting any new feature work.
 
 ## What Was Completed This Session
 
-- **E3** — Shared Prisma singleton (`lib/prisma.ts`); removed `new PrismaClient()` from 10 backend files
-- **ST3** — Stripe webhook verifies `on_behalf_of` vs organizer `stripeConnectId` before marking PAID
-- **ST4** — Fee math uses integer cents (`Math.round(price * 100)`) to eliminate float rounding
-- **DB2** — User + organizer creation wrapped in `prisma.$transaction()` in authController
-- **E7** — AuthContext checks JWT `exp` before any API call; clears stale token cleanly
-- **EM2/EM3** — `withRetry()` exponential backoff for Resend (2x) + Twilio (4x on 429) in emailReminderService
-- **P1** — iCal `generateIcal` returns 400 if `startDate` or `endDate` missing
-- **EC1, DB1** — Verified already implemented/clean; no fix needed
-- **CORE.md Section 10** — GitHub push batching rule permanently added: max 3 files per `push_files` call
-- All 14 changed files pushed to GitHub in 6 batched commits (deseee/findasale, main)
+- **E4** — AuthRequest deduplication: removed local `interface AuthRequest` from 11 files, all import from `middleware/auth.ts`
+- **E5** — Axios interceptor detects `400 + errors[]` (Zod), attaches `error.validationMessage` with per-field messages
+- **E6** — `offline.tsx` wrapped in React class `OfflineErrorBoundary`; content extracted to `OfflineContent` component
+- **PF1** — `listSales` uses `Promise.all([findMany, count])` — parallel queries, one round-trip eliminated
+- **S1** — JSON-LD on sale detail page: each item offer gets `category` and `itemCondition` (schema.org URL mapping)
+- **Latent fix** — `notificationController.ts` had missing `Request` in express import; fixed before push
+- **routes/users.ts** — removed stray `new PrismaClient()`; now uses shared `lib/prisma` singleton
+- **Vercel fix 1** — `InstallPrompt.tsx`: old GitHub version called `deferredPrompt.prompt()` twice, tried to destructure `outcome` from `void`. Fixed to use `deferredPrompt.userChoice`. Commit: `b873fdc1`
+- **Vercel fix 2** — `SaleMapInner.tsx`: old GitHub version had `sales: SalePin[]` as required prop; `SaleMap.tsx` spreads `pins`. Fixed to `pins?: SalePin[]`. Commit: `93d46e0f`
+- **ROADMAP.md** — Added "GitHub ↔ Local Drift Audit" section under Infrastructure & Dev Tools
 
-## What Was In Progress
+## GitHub ↔ Local Drift Suspects (Check at Session Start)
 
-Nothing — session completed cleanly.
+These components were rewritten in Phase 5/6 sprints and may never have been pushed. Read the GitHub version before touching them:
+- `packages/frontend/components/SaleCard.tsx` — added `imgError` state + `onError` handler + placeholder.svg fallback
+- `packages/frontend/components/CheckoutModal.tsx` — added refund policy note above Pay button
+- `packages/frontend/components/Layout.tsx` — added hamburger nav, skip-to-content, aria-live toast container
 
-## Remaining M-Series Findings
-
-Not yet addressed — from `claude_docs/audit-remaining-areas-2026-03-03.md`:
-ST1, ST2, E1, E2, E4, E5, E6, PF1, S1
-
-Read the audit file at session start for accurate descriptions before beginning.
+**How to check:** `mcp__github__get_file_contents` → scan for the feature (e.g. `imgError` in SaleCard). If missing from GitHub, push local version.
 
 ## Environment Notes
 
-- All changes are on GitHub `main`. No pending local-only changes.
-- Docker containers may need `docker compose restart backend` to pick up the new shared Prisma singleton.
-- No schema changes this session — no migration needed.
+- No schema changes this session — no migration needed
+- All pushed commits are on `main` (deseee/findasale)
+- Vercel build should be clean after commits `b873fdc1` (InstallPrompt) and `93d46e0f` (SaleMapInner)
 
-## Critical Rule (Read Before Any GitHub Push)
+## Critical Rules Still Active
 
-`claude_docs/CORE.md` Section 10 is now active. Summary:
-> Max 3 files per `push_files` call. Files >200 lines push alone. Read all files in parallel first, then push in serial batches of ≤3.
+- CORE.md Section 10: max 3 files per `push_files` call. Files >200 lines push alone.
+- `push_files` sends the full file every time — minimize large-file pushes to once per session
 
-This was added after a token-overflow failure when pushing 14 files at once. It must be followed on every future push without exception.
+## Next Strategic Options
+
+1. **Drift audit** — verify SaleCard, CheckoutModal, Layout on GitHub (30 min)
+2. **Real-user beta** — onboarding first organizers in Grand Rapids
+3. **Phase 14 growth mechanics** — weekend cluster view, route planner

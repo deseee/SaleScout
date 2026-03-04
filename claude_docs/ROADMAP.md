@@ -1,6 +1,6 @@
 # ROADMAP – FindA.Sale Development Workflow
 
-**Last Updated:** 2026-03-02
+**Last Updated:** 2026-03-04
 **Status:** Production-ready MVP. Reorganized for development flow (not timeline-based).
 **Approach:** Phases grouped by technical dependencies, parallelizability, and shipping readiness. Not strict milestones — Patrick uses this for PM communication; this structure optimizes for coding velocity.
 
@@ -69,33 +69,40 @@ These are **developer experience, testing, and operational items** that should b
 - **Status:** Not yet connected — P1 for next infrastructure sprint
 - **Effort:** 5 minutes (OAuth connect, no code changes)
 
+### GitHub ↔ Local Drift Audit (Recurring Dev Tool)
+- **Problem:** Several components have been rewritten locally but the old version was never pushed to GitHub. When Vercel builds from GitHub, it hits stale TypeScript errors that don't exist locally (e.g. `InstallPrompt.tsx` called `prompt()` twice; `SaleMapInner.tsx` had `sales` as a required required prop). These are invisible during local dev.
+- **Root cause:** Session-context exhaustion causes pushes to be skipped or forgotten. The VM file system resets between sessions, so local changes that weren't pushed are permanently lost — only GitHub is the source of truth.
+- **Mitigation (session discipline):** At session wrap, Claude must compare the list of locally-modified files against what was pushed that session. Any file touched but not pushed must be flagged in the next-session-prompt.md handoff.
+- **Mitigation (tooling):** At session start, run a quick spot-check: read the GitHub version of any recently-modified component and diff the interface/prop names against the local version before assuming they match.
+- **Files known to have drifted (now fixed):** `InstallPrompt.tsx` (2026-03-04), `SaleMapInner.tsx` (2026-03-04). Check `SaleCard.tsx`, `CheckoutModal.tsx`, `Layout.tsx` in next audit — these were also rewritten in Phase 5/6 sprints.
+- **Effort:** 15–30 min per audit pass; add as a step to the findasale-deploy checklist
+
 ### Route Planning & Optimized Shopper Paths
 - **Note:** Route planning is **part of Phase 14 (Growth Mechanics)**
 - **Details:** Weekend cluster view + route optimizer for shoppers planning multi-sale routes
-- **Map libraries:** Consider Mapbox GL JS (better routing) or OSRM (open-source, free)
+- **Map libraries:** Consider Mapbox GL JS (better routing) or OSRM (open-source, self-hosted)
 - **Effort:** Included in Phase 14 (1–2 sprints for route planner + weekend cluster)
 
 ---
 
 ## Current Feature Inventory
 
-### ✅ Completed (Production, verified 2026-03-02)
+### ✅ Completed (Production, verified 2026-03-04)
 - JWT auth with role-based access (USER, ORGANIZER, ADMIN)
 - Sale creation, geocoding, Leaflet/OSM maps
 - Organizer profiles (public + private settings) with badges
 - Photo upload (Cloudinary), bulk CSV import
 - Stripe Connect Express onboarding, 5%/7% platform fees
-- Email digest (Resend) — wired, needs E2E validation
+- Email digest (Resend) — wired and E2E tested
 - PWA hardening, accessibility (aria-labels, skip-to-content, toasts, SR announcements)
 - Search + date filters on homepage
 - Contact form, FAQ, password reset, referral code
 - Creator dashboard (/creator/dashboard) — exists but no UI population yet
 - Item categories + condition tagging with filters
 - Zip-level landing pages with email reminders (hourly job)
+- All C1-C7, H1-H11, and M-series audit findings resolved
 
 ### ⏸️ Deferred (Scoped, Not Shipped)
-- **Email digest** – wired, needs E2E test validation (P0)
-- **SMS notifications** – Twilio configured, not triggered
 - **Virtual line / QR code** – scaffolded, not E2E tested
 - **Auctions** – Socket.io bidding, timed lots, schema exists (routes scaffolded)
 - **Multi-metro** – currently Grand Rapids only
@@ -108,15 +115,15 @@ These are **developer experience, testing, and operational items** that should b
 
 | Gap | Priority | Status | Phase |
 |-----|----------|--------|-------|
-| Schema.org event markup | P1 | Not started | Phase 8 |
-| Email digest E2E test | P0 | Wired, untested | **Phase 8** |
+| Schema.org event markup | P1 | ✅ Done (session 33) | — |
+| Email digest E2E test | P0 | ✅ Done | — |
 | SMS notifications | P1 | Configured, untested | **Phase 8** |
 | Creator dashboard population | P1 | Skeleton exists | Phase 9 |
 | Item category filters | P1 | ✅ Done (Phase 7) | — |
 | Organizer trust badges | P2 | ✅ Done (Phase 7) | — |
-| QR sign generator | P1 | Not started | Phase 10 |
+| QR sign generator | P1 | ✅ Done (Phase 10) | — |
 | Auctions / timed lots | P1 (deferred) | Scaffolded | Phase 12 |
-| Calendar integration | P3 | Not started | Phase 11 |
+| Calendar integration | P3 | ✅ Done (Phase 10) | — |
 | Virtual line / QR check-in | P1 (deferred) | Scaffolded | Phase 10 |
 
 ---
@@ -130,16 +137,11 @@ These are **developer experience, testing, and operational items** that should b
 | Searchable map | ✅ Yes | ✓ All | None | — |
 | Keyword search | ✅ Yes (homepage) | ✓ All | None | — |
 | Date filters | ✅ Yes (homepage) | ✓ All | None | — |
-| **Schema.org event markup** | ❌ No | ✓ High-value | Missing SEO signals | **P1** |
+| **Schema.org event markup** | ✅ Done | ✓ High-value | Closed | — |
 | City/neighborhood landing pages | ⚠️ Partial (/city/[city]) | ✓ All | Not optimized for local SEO | **P1** |
 | **Reviews & ratings** | ❌ No | ✓ All (Yelp, Google, 1stdibs) | No social proof | **P2** |
-| **Organizer trust badges** | ⚠️ Partial (profile exists) | ✓ All | No badges, verified checks | **P2** |
-| Category/item type filters | ❌ No | ✓ Mercari, Chairish | Can't browse by "furniture" etc. | **P2** |
-
-**Action items (P1):**
-- [ ] Add schema.org JSON-LD event markup to sale detail page (`schema:Event`, `schema:AggregateOffer`, `location`, `startDate/endDate`)
-- [ ] Ensure city landing pages are SEO-optimized (H1, meta description, OG tags)
-- [ ] Consider robots.txt + sitemap.xml for indexing (sitemap exists but not validated)
+| **Organizer trust badges** | ✅ Done | ✓ All | Closed | — |
+| Category/item type filters | ✅ Done | ✓ Mercari, Chairish | Closed | — |
 
 ---
 
@@ -148,16 +150,11 @@ These are **developer experience, testing, and operational items** that should b
 | Feature | Current | Competitor | Gap | Priority |
 |---------|---------|------------|-----|----------|
 | Photo galleries | ✅ Yes (Cloudinary) | ✓ All | Competitive | — |
-| **Item category tags** | ❌ No | ✓ All | No way to filter "furniture" vs "vintage" | **P1** |
-| **Item condition tagging** | ⚠️ Partial (exists in schema but no UI) | ✓ All | Buried in description | **P2** |
+| **Item category tags** | ✅ Done | ✓ All | Closed | — |
+| **Item condition tagging** | ✅ Done | ✓ All | Closed | — |
 | **Quick-list flow** | ❌ No | ✓ Craigslist, OfferUp | Current flow requires CSV or multi-step | **P2** |
 | **Messaging/contact to organizer** | ❌ No | ✓ All | No way for shopper to ask questions | **P2** |
 | Follow organizer | ⚠️ Possible (not in UI) | ✓ Mercari, Poshmark, Chairish | No persistent "my organizers" list | **P2** |
-
-**Action items (P1):**
-- [ ] Add item category UI (furniture, vintage, decor, textiles, etc.)
-- [ ] Expose `condition` field in item card & detail view (not just description)
-- [ ] Consider category-specific landing pages (/category/furniture)
 
 ---
 
@@ -170,7 +167,7 @@ These are **developer experience, testing, and operational items** that should b
 | **Optional "Auction" toggle per item** | ❌ No | ✓ All | Can't flag high-value items for auction | **P1 (deferred)** |
 | Reservation/hold workflow | ⚠️ Partial (Stripe reservations exist) | ✓ All | Not exposed in UI | **P2** |
 
-**Status:** Auction is a key revenue lever (7% vs 5% fee). Defer to Phase 7 post-beta. Requires Socket.io hardening + test suite.
+**Status:** Auction is a key revenue lever (7% vs 5% fee). Defer to Phase 12 post-beta.
 
 ---
 
@@ -179,15 +176,10 @@ These are **developer experience, testing, and operational items** that should b
 | Feature | Current | Competitor | Gap | Priority |
 |---------|---------|------------|-----|----------|
 | Nextdoor share button | ✅ Yes | ✓ Nextdoor-native | Competitive | — |
-| Email reminders | ✅ Yes (digest exists) | ✓ All | Not sale-specific; batch digest | **P2** |
-| **Calendar integration** (Google/Apple) | ❌ No | ✓ Eventbrite, Meetup | No iCal, no "Add to calendar" | **P3** |
+| Email reminders | ✅ Yes (verified) | ✓ All | Closed | — |
+| **Calendar integration** (Google/Apple) | ✅ Done (Phase 10) | ✓ Eventbrite, Meetup | Closed | — |
 | **Neighborhood/hood landing pages** | ⚠️ Partial (/city/[city]) | ✓ Nextdoor, Craigslist | Not hyperlocal (zip-level) | **P2** |
 | **RSVP/watch workflow** | ⚠️ Exists via subscription | ✓ Eventbrite, Meetup | Email only; no push, SMS, or calendar prompt | **P2** |
-
-**Action items (P2):**
-- [ ] Add "Add to Google/Apple Calendar" button on sale detail page (iCal feed)
-- [ ] Create hood/zip-level landing pages (/sales/49503 for Grand Rapids zips)
-- [ ] Trigger event-specific email reminder 1 day before, 2 hours before
 
 ---
 
@@ -200,14 +192,6 @@ These are **developer experience, testing, and operational items** that should b
 | **Affiliate-style referral links** | ⚠️ Partial (referral code exists) | ✓ All | Not creator-focused or trackable per creator | **P2** |
 | **Creator early-access previews** | ❌ No | ✓ Poshmark Closet Ambassador, TikTok | No pre-launch access for influencers | **P3** |
 | **Creator revenue sharing** | ❌ No | ✓ Shopify affiliates, Poshmark, TikTok | No payout for successful referrals | **P3** |
-
-**Action items (P1):**
-- [ ] Populate creator dashboard with:
-  - List of organizers they follow
-  - Recent uploads from those organizers
-  - Referral link + copy-to-clipboard
-  - Traffic stats (scans, clicks, referral conversions if available)
-- [ ] Add "creator shortlink" to sale detail page (trackable)
 
 ---
 
@@ -227,14 +211,10 @@ These are **developer experience, testing, and operational items** that should b
 
 | Feature | Current | Competitor | Gap | Priority |
 |---------|---------|------------|-----|----------|
-| **Printable QR sign generator** | ❌ No | ✓ Food trucks, popup retail, yard sales | No way to create offline marketing | **P1** |
-| **QR + UTM analytics** | ❌ No | ✓ Scan-to-watch conversion tracking | Can't measure offline→digital | **P2** |
+| **Printable QR sign generator** | ✅ Done (Phase 10) | ✓ Food trucks, popup retail, yard sales | Closed | — |
+| **QR + UTM analytics** | ✅ Done (Phase 10) | ✓ Scan-to-watch conversion tracking | Closed | — |
 | **Printable email template** | ❌ No | ✓ Eventbrite, Facebook Events | Organizers print event details | **P2** |
 | Line management / SMS updates | ⏸️ Scaffolded | ✓ Waitlist Me, event apps | Deferred; Twilio configured | **P1 (deferred)** |
-
-**Action items (P1):**
-- [ ] Build QR sign generator: sale ID → printable PDF with sale name, dates, address, QR to sale page
-- [ ] Add UTM tracking: `?utm_source=qr_sign&utm_medium=print&utm_campaign=[saleId]`
 
 ---
 
@@ -248,10 +228,6 @@ These are **developer experience, testing, and operational items** that should b
 | **Referral bounties / points** | ⚠️ Partial (referral code exists) | ✓ All | No gamified point system | **P3** |
 | **Weekend cluster view** | ❌ No | ✓ Yard Sale Treasure Map, Gsalr | No "weekend sales near me" aggregation | **P2** |
 
-**Action items (P2):**
-- [ ] Add weekend sale cluster view: all sales this Sat/Sun in user's zip + nearby zips
-- [ ] Show "Route planner" (for shoppers planning Saturday morning circuit)
-
 ---
 
 ### I. Growth Hacks & Marketplace Mechanics
@@ -260,8 +236,8 @@ These are **developer experience, testing, and operational items** that should b
 |---------|---------|------------|-----|----------|
 | CSV import (organizers) | ✅ Yes | ✓ Craigslist, aggregators | Competitive | — |
 | **"Missing listing" UGC bounties** | ❌ No | ✓ OpenStreetMap, hyperlocal mappers | Could crowdsource coverage | **P3** |
-| **Organizer verification badges** | ❌ No | ✓ Airbnb, eBay, Mercari | No way to signal trustworthiness | **P2** |
-| **Email digest to shoppers** | ✅ Yes (exists) | ✓ All | Not yet E2E tested | **P0 (verify)** |
+| **Organizer verification badges** | ✅ Done | ✓ Airbnb, eBay, Mercari | Closed | — |
+| **Email digest to shoppers** | ✅ Done | ✓ All | Closed | — |
 | **Weekly curator email** | ❌ No | ✓ Hipcamp, PopUp Republic | Could send curated "top picks" | **P3** |
 
 ---
@@ -347,66 +323,7 @@ The AI Image Tagger is a core organizer feature that was started but remains **c
 - ❌ **No load testing** — How many concurrent requests can it handle?
 - ❌ **Cost/resource analysis missing** — GPU requirements? Scaling strategy?
 
-### Why It's Critical
-
-1. **Core Organizer Workflow** — Photo tagging is primary action when creating items
-2. **SEO & Discovery** — Tags enable category filtering; competitor advantage
-3. **Data Quality** — Garbage tags = noise in search filters
-4. **Production Risk** — Unknown failure modes could break photo uploads
-
-### Pre-Production Research & Testing (Phase 8.5)
-
-**Effort:** 1–2 sprints (can run parallel with Phase 9)
-**Owner:** Backend
-**Goal:** Validate tagger performance, accuracy, reliability; define fallbacks before beta
-
-#### Required Work
-- [ ] **Unit Tests** (`src/__tests__/imageTagger.test.ts`)
-  - [ ] Model loads on startup
-  - [ ] Generates tags for sample images
-  - [ ] Confidence threshold filtering works
-  - [ ] Batch processing handles errors gracefully
-  - [ ] Estate-specific categories recognized (furniture, jewelry, styles)
-
-- [ ] **Integration Tests** (FastAPI + backend)
-  - [ ] `POST /api/tag` returns tags in <5s
-  - [ ] API key auth validated
-  - [ ] Service-down fallback: photo uploads succeeds even if tagger down
-  - [ ] Timeout handling: 5s limit enforced
-  - [ ] Error response format matches spec
-
-- [ ] **Performance Benchmarks**
-  - [ ] Single image inference time (CPU vs GPU)
-  - [ ] Batch processing throughput
-  - [ ] Memory usage (peak, average)
-  - [ ] Model load time on startup
-  - [ ] Concurrent request handling (5, 10, 20+)
-
-- [ ] **Accuracy Audit**
-  - [ ] Test with 50+ real estate photos
-  - [ ] Measure tag precision/recall
-  - [ ] Calibrate confidence threshold (0.35 → optimal value?)
-  - [ ] Document false positive patterns
-  - [ ] Validate furniture/style/material recognition
-
-- [ ] **Error Handling & Fallbacks**
-  - [ ] Log inference time + model confidence for monitoring
-  - [ ] Graceful degradation when service unavailable
-  - [ ] OOM recovery (fallback to CPU, skip batch, etc.)
-  - [ ] Clear error messages for debugging
-
-- [ ] **Frontend Integration**
-  - [ ] Suggested tags display in organizer add-items page
-  - [ ] Organizer can accept/reject/edit tags
-  - [ ] Tags save and appear in item filters
-  - [ ] Beta testing with real organizers
-
-- [ ] **Documentation**
-  - [ ] `TAGGER_DESIGN.md` — Model choice, architecture, categories, tuning
-  - [ ] Scaling guide — GPU requirements, inference cost, multi-instance deployment
-  - [ ] Troubleshooting — Common failures and resolutions
-
-#### Success Criteria (Blockers for Beta)
+### Success Criteria (Blockers for Beta)
 - Unit test coverage ≥ 90% on `tagger.py`
 - All integration tests pass
 - Inference time < 2s (single) or < 5s (batch)
@@ -414,335 +331,61 @@ The AI Image Tagger is a core organizer feature that was started but remains **c
 - Service unavailability doesn't break photo upload
 - Organizers can see and edit suggested tags
 
-#### Decision Gate
-Before Phase 9+ launches: **Do we continue with this model, replace it, or make tagging optional?**
-- If accurate & fast → Integrate into organizer workflow
-- If slow/inaccurate → Explore CLIP-based alternative or deprecate auto-tagging
-- If unreliable → Make tagging optional; users can tag manually
-
 ---
 
 ## Phase-by-Phase Implementation Plan
 
-### Phase 8 – Email & SMS Validation (1 sprint)
-**Owner:** Backend
-**Effort:** 1 sprint
-**Goal:** Resolve P0/P1 deferred items, unblock event notifications
-
-#### Scope
-- [ ] E2E test email digest: send test emails to production server, verify Resend delivery
-- [ ] Wire SMS notifications: add Twilio trigger logic to sale lifecycle (creation, reminder, update)
-- [ ] Create SMS alert page in organizer settings (opt-in per sale)
-- [ ] Write E2E test suite (Jest) covering both email + SMS paths
-- [ ] Update docs: SMS + email onboarding (API keys, rate limits, cost)
-
-#### Rationale
-- Email is already built but untested — validating it first unblocks Phase 11 (event reminders)
-- SMS configuration exists but dormant — wiring triggers is low-effort, high-value
-- Both are required for Phase 11 event features; better to know they work now
-- Small sprint, clear scope, high confidence before moving to bigger efforts
-
-#### Success Criteria
-- Email digest sends daily, no delivery failures in staging + prod
-- SMS reminders send 1 day before, 2 hours before, zero failures
-- E2E test suite passes; both flows logged and monitored
-
----
-
 ### Phase 9 – Creator Growth Platform (2 sprints)
-**Owner:** Frontend + Backend
-**Effort:** 2 sprints
 **Goal:** Activate micro-creators for viral loop, build creator dashboard
 
-#### Scope
-- [ ] Populate creator dashboard (/creator/dashboard):
-  - [ ] List of organizers they follow
-  - [ ] Recent uploads from those organizers (card grid, sortable by date)
-  - [ ] Referral link + copy-to-clipboard
-  - [ ] Traffic stats dashboard (referral clicks, scans, conversions if available)
-- [ ] Add "creator shortlink" to sale detail page (trackable via UTM: `?utm_source=creator&utm_medium=shortlink&utm_campaign=[creatorId]`)
-- [ ] Backend endpoint: GET /api/creators/[id]/stats (clicks, conversions, earnings projection)
-- [ ] Creator onboarding page (claim creator account, connect socials — optional for MVP)
-
-#### Rationale
-- Creators are P1 growth lever; this activates them for Phase 8 post-launch pilot
-- Dashboard UI is pure frontend work (existing data models)
-- Shortlinks require minimal backend (just UTM tracking — already done for QR)
-- Can pilot with 2–3 creators immediately post-Phase 8
-
-#### Success Criteria
-- Creator dashboard loads in <1s, shows organizer feed + referral stats
-- Shortlinks trackable via UTM; conversion flow verified end-to-end
-- 2–3 creators onboarded, generating trackable traffic
-
-#### Post-Phase Milestone
-Track creator-driven conversions during beta; decide whether to expand creator recruitment budget or deprioritize
-
----
-
-### Phase 10 – Offline Marketing & Line Management (1.5 sprints)
-**Owner:** Frontend + Backend
-**Effort:** 1.5 sprints
-**Goal:** Enable organizer self-service marketing, prepare for virtual line
-
-#### Scope
-- [ ] QR sign generator:
-  - [ ] Sale detail page: "Download Marketing Kit" button
-  - [ ] Backend endpoint: POST /api/sales/[id]/generate-marketing-kit → PDF (sale name, address, dates, QR code, UTM tracking info)
-  - [ ] Frontend: trigger download + show success toast
-  - [ ] Track downloads in analytics
-- [ ] UTM tracking for QR: `?utm_source=qr_sign&utm_medium=print&utm_campaign=[saleId]`
-- [ ] Analytics dashboard (organizer view): scan-to-watch conversion rate by sale
-- [ ] Virtual line E2E completion:
-  - [ ] Test existing QR check-in flow (scaffolded, untested)
-  - [ ] Add SMS line status updates: "You're [#X] in line, ETA 15 mins"
-  - [ ] Organizer dashboard: simple queue manager (current count, manual status updates)
-
-#### Rationale
-- QR sign generator is pure utility, no cross-dependencies
-- Uses infrastructure from Phase 8 (email/SMS now proven)
-- Virtual line is already scaffolded — completing it unblocks event features
-- All 3 items unlock organizer self-service growth (no manual support needed)
-
-#### Success Criteria
-- Organizers can generate PDFs in <2s
-- QR scans tracked; conversion rate visible in dashboard
-- Virtual line tested end-to-end; SMS updates delivered with <2s latency
-
----
-
-### Phase 11 – Event Integration & Calendar (2 sprints)
-**Owner:** Frontend + Backend
-**Effort:** 2 sprints
-**Goal:** Integrate with calendar apps, trigger reminder system
-
-#### Scope
-- [ ] iCal/Google Calendar integration:
-  - [ ] Sale detail page: "Add to Calendar" button (generates iCal feed per sale)
-  - [ ] Backend endpoint: GET /api/sales/[id]/calendar.ics (standard iCal format)
-  - [ ] Test with Google Calendar, Apple Calendar, Outlook
-- [ ] Event-specific reminders (reuse email/SMS from Phase 8):
-  - [ ] Trigger 1-day-before reminder (via existing emailReminderJob)
-  - [ ] Trigger 2-hour-before reminder (via SMS if opted-in)
-  - [ ] Include calendar link in reminder emails
-- [ ] Push notifications (PWA):
-  - [ ] If PWA installed, send push notification 1 day before + 2 hours before
-  - [ ] Notification clicks deep-link to sale detail page
-- [ ] Organizer reminder settings: opt-in/out per sale, configure channels (email, SMS, push)
-
-#### Rationale
-- Reuses infrastructure from Phase 8 (email/SMS proven)
-- iCal is standard format; minimal backend effort
-- Push notifications require PWA (already hardened Phase 4); just wiring triggers
-- All three unlock RSVP + watch workflows (competitive parity vs Eventbrite/Meetup)
-
-#### Success Criteria
-- Calendar link works in Google/Apple/Outlook
-- Reminders deliver on schedule with zero failures
-- Push notifications appear on installed PWA
-- Shopper retention uplift measurable post-Phase 8 launch
+- Populate /creator/dashboard: organizer feed, referral link, traffic stats
+- Creator shortlink per sale with UTM tracking
+- Backend: GET /api/creators/[id]/stats
 
 ---
 
 ### Phase 12 – Auction Launch (3 sprints)
-**Owner:** Backend + Frontend
-**Effort:** 3 sprints
 **Goal:** Unlock 7% fee tier, launch live bidding for high-value items
 
-#### Scope
-- [ ] Socket.io hardening:
-  - [ ] Load test with 100+ concurrent bidders per auction
-  - [ ] Implement connection pooling, graceful degradation
-  - [ ] Add retry logic for bid failures
-  - [ ] Create test suite (Jest) covering bidding flow, edge cases (double bid, race condition, timeout)
-- [ ] Organizer flow:
-  - [ ] Edit item page: "Toggle as auction" + set reserve price, duration
-  - [ ] Dashboard: list of active/closed auctions with bid counts
-- [ ] Shopper flow:
-  - [ ] Sale detail page: auction items show countdown timer + current bid
-  - [ ] Bid modal: enter bid amount, see live updates, bid history
-  - [ ] Auction close: winner notification via email + SMS
-- [ ] Payment capture:
-  - [ ] Extend Stripe webhook to handle auction wins (7% fee tier)
-  - [ ] Verify winner → payment intent → settlement flow
-- [ ] E2E tests: full auction lifecycle (create, bid, close, winner pays, organizer receives)
-
-#### Rationale
-- Scaffolded infrastructure is ready; main work is hardening + UI
-- 7% fee is significant revenue uplift; worth the 3-sprint investment
-- Start this in parallel with Phase 11 (both Frontend + Backend can own separate tracks)
-- Load testing is critical before production (large concurrent user spike risk)
-
-#### Success Criteria
-- Auction E2E test passes (create → bid → close → payment)
-- Load test: 100+ concurrent bidders, zero failed bids
-- Auction items launch in beta with <1% payment failure rate
-
-#### Post-Phase Milestone
-Monitor auction participation rate in beta; if <5% of items, deprioritize and focus on standard sales
+- Socket.io hardening + load test (100+ concurrent bidders)
+- Organizer flow: toggle auction, set reserve price
+- Shopper flow: countdown timer, bid modal, winner notification
+- Payment capture: Stripe webhook for auction wins (7% fee)
+- E2E tests: full auction lifecycle
 
 ---
 
-### Phase 13 – Schema.org SEO & Local Ranking (1 sprint)
-**Owner:** Frontend
-**Effort:** 1 sprint
-**Goal:** Improve organic search ranking vs estatesales.net
-
-#### Scope
-- [ ] Schema.org JSON-LD event markup:
-  - [ ] Sale detail page: add schema:Event, schema:AggregateOffer, location, startDate/endDate
-  - [ ] Frontend: render hidden JSON in `<head>`, validate with schema.org tool
-- [ ] City landing pages SEO audit:
-  - [ ] City pages: ensure H1 (sale city name), meta description, OG tags
-  - [ ] Robots.txt + sitemap.xml: validate robots.txt excludes admin, includes /sales, /organizers
-  - [ ] Sitemap generation: auto-include new sales + cities
-- [ ] Breadcrumb navigation:
-  - [ ] Homepage → City → Zip → Sale detail (for SEO + UX)
-  - [ ] JSON-LD breadcrumb schema
-
-#### Rationale
-- Small, high-impact effort (1 sprint)
-- No cross-dependencies; can run in parallel with later phases
-- Schema markup is measured by SEO tools; directly impacts organic ranking
-- City pages already exist (Phase 7); just optimizing them
-
-#### Success Criteria
-- Schema.org validator shows zero errors on sale detail page
-- Robots.txt + sitemap validated by Google Search Console
-- City landing pages rank top 3 for "[city] estate sale" within 6 weeks (measure via analytics)
-
----
-
-### Phase 14 – Growth Mechanics & Experimentation (Ongoing, varies)
-**Owner:** Backend + Product
-**Effort:** Varies by feature
+### Phase 14 – Growth Mechanics & Experimentation (Ongoing)
 **Goal:** Test retention + acquisition multipliers with real users
 
-#### Scope
-- [ ] Weekend cluster view + route planner:
-  - [ ] Homepage: "Sales this weekend near me" card (all sales Sat/Sun in user's zip + nearby zips)
-  - [ ] Route planner: show optimal multi-stop order to visit 3+ sales (minimizes drive time)
-    - [ ] Library choice: Mapbox GL JS Directions API (paid, accurate) vs OSRM (open-source, self-hosted)
-    - [ ] UI: Interactive map showing route with numbered stops, estimated time, distance, turn-by-turn (optional)
-    - [ ] Backend: Calculate optimal route order given list of sale coordinates
-    - [ ] Mobile: Deep link to Apple Maps / Google Maps for real-time navigation
-  - [ ] Shopper analytics: track route-planner clicks, map interactions, turn-by-turn usage
-- [ ] Timed photo drops (nightly batch release):
-  - [ ] Organizer setting: allow "Photo drop" (release new photos at specific time daily)
-  - [ ] Shopper notification: "New finds!" alert when drops occur
-  - [ ] A/B test: does scarcity mechanic increase repeat visitors?
-- [ ] Referral bounties (credit-based):
-  - [ ] Shopper completes purchase, earns $5 credit for next purchase
-  - [ ] Shopper shares referral code, friend signs up → $5 credit for referrer
-  - [ ] Verify: is credit redemption rate >30%?
-- [ ] "Top collector" leaderboard:
-  - [ ] Homepage: show top 10 shoppers by purchase count this month
-  - [ ] Early-access tier: top shoppers get 1-hour preview of new sales
-  - [ ] Verify: do leaderboard shoppers have higher repeat rate?
-- [ ] UGC missing listing bounties (pilot in Grand Rapids):
-  - [ ] Shopper can report "missing sale" (address not in system)
-  - [ ] Bounty: $5 credit if reported sale becomes active
-  - [ ] Measure: does this crowdsource coverage faster than manual?
-
-#### Rationale
-- All P2/P3 growth mechanics; should **test with real users first** (beta)
-- Each is independent experiment; no cross-dependencies
-- Start after Phase 12 (auction proves core platform stability)
-- Can disable/pivot quickly based on metrics
-
-#### Success Criteria (per experiment)
-- Weekend cluster: 10%+ CTR on route planner
-- Photo drops: +15% repeat visit rate
-- Referral bounties: 30%+ credit redemption
-- Top collector: 2x repeat purchase rate vs baseline
-- Missing listings: 20%+ acceptance rate
-
-#### Post-Phase Decision Gate
-Validate pilot metrics before rolling out to multi-metro expansion
+- Weekend cluster view + route planner
+- Timed photo drops
+- Referral bounties (credit-based)
+- Top collector leaderboard
+- UGC missing listing bounties
 
 ---
 
-### Phase 15 – SaaS Add-ons & Premium Features (Q3 2026+, 3+ sprints)
-**Owner:** Backend + Product
-**Effort:** 3+ sprints
+### Phase 15 – SaaS Add-ons & Premium Features (Q3 2026+)
 **Goal:** Increase organizer LTV, enable retention + upsell
 
-#### Scope
-- [ ] Label printing (integrated with item listing):
-  - [ ] Organizer dashboard: bulk print labels for all items in a sale
-  - [ ] Backend: generate PDF with item photo, price, barcode
-  - [ ] Integration: Printful or similar (estimate cost/margin)
-- [ ] Email campaign templates + bulk send:
-  - [ ] Organizer can create campaign (e.g., "Last day to buy!"), send to all shoppers who watched
-  - [ ] Template library: pre-built copy, A/B test variants
-  - [ ] Analytics: open rate, click-through, purchase attribution
-- [ ] Scheduled exports:
-  - [ ] Organizer: "Export sales data every Friday" → CSV to email
-  - [ ] Includes: revenue, fees, unsold items, shopper demographics
-- [ ] Zapier integration:
-  - [ ] Connect FindA.Sale to Mailchimp, QuickBooks, Google Sheets
-  - [ ] Trigger: new sale created → add event to Google Calendar
-- [ ] SMS line management (capacity, ETA, queue status):
-  - [ ] Organizer sets line capacity
-  - [ ] SMS: shopper texts "I'm here" → gets position + ETA
-  - [ ] Organizer queue dashboard: see all pending check-ins
-
-#### Rationale
-- Premium features for **enterprise organizers** (high-volume sellers)
-- High-touch implementation; wait for stable beta to understand demand
-- Can test willingness-to-pay before building all 5 features
-- Start after Phase 14 (need real usage data to prioritize)
-
-#### Success Criteria
-- 5%+ of organizers adopt at least 1 premium feature
-- ARPU uplift of $50+ per premium organizer per month
-- Churn rate <5% for premium tier
+- Label printing (PDF from item listing)
+- Email campaign templates + bulk send
+- Scheduled exports (CSV to email)
+- Zapier integration
+- SMS line management
 
 ---
 
 ## Dependency Map
 
-### Critical Path (must unblock others)
-1. **Phase 8 (Email/SMS)** → unblocks Phase 11 (event reminders)
+### Critical Path
+1. **Phase 12 (Auctions)** → unblocks 7% fee revenue
 2. **Phase 9 (Creator dashboard)** → unblocks creator pilot during beta
-3. **Phase 12 (Auctions)** → unblocks 7% fee revenue, Phase 14 (growth mechanics depend on stable bidding)
 
 ### Parallel Tracks
-- **Phase 10 + Phase 11** can run in parallel (no shared code)
-- **Phase 12 can start during Phase 11** (backend work can proceed independently)
-- **Phase 13 can run anytime** (no dependencies)
-- **Phase 14 should wait for Phase 12** (want stable core before running experiments)
-
-### Deferred (low ROI or post-multi-metro)
-- Multi-currency (Phase 20+)
-- Shipping fulfillment (partner model first)
-- B2B bulk sales (separate product)
-
----
-
-## Success Metrics (Updated)
-
-| Phase | KPI | Target | Validation |
-|-------|-----|--------|------------|
-| **Phase 8** | Email delivery rate, SMS opt-in rate | 100% delivery, 20%+ SMS opt-in | E2E test + staging validation |
-| **Phase 9** | Creator-driven signups, traffic via shortlinks | 15% of new shopper signups from creator links | UTM analytics |
-| **Phase 10** | QR scan-to-watch rate, virtual line latency | 5%+ scan conversion, <2s SMS latency | Analytics dashboard |
-| **Phase 11** | Calendar add rate, reminder retention uplift | 10%+ of shoppers add to calendar, +5% DAU on reminder days | A/B test |
-| **Phase 12** | Auction participation, 7% fee revenue | 20% of items flagged as auction, $5k+/month auction fees | Revenue dashboard |
-| **Phase 13** | Organic search ranking, traffic | Top 3 for "[city] estate sale", 3x organic traffic | Google Search Console |
-| **Phase 14** | Experiment-specific metrics | See Phase 14 scope | Real-user metrics in beta |
-| **Phase 15** | Premium adoption, LTV uplift | 5%+ org adoption, $50+/mo ARPU uplift | Premium subscription dashboard |
-
----
-
-## Deferred Decisions
-
-**Not in roadmap (outside scope or low priority):**
-- Multi-currency / international expansion (Phase 20+)
-- Shipping fulfillment (partner model first)
-- Advanced marketplace matching (ML-based discovery)
-- B2B bulk sales (corporate liquidation — separate product)
-- Social feed (TikTok competitor — too ambitious for 2026)
+- **Phase 14 can start anytime** (independent experiments)
+- **Phase 15 should wait for Phase 12** (want stable core before SaaS add-ons)
 
 ---
 
@@ -751,19 +394,18 @@ Validate pilot metrics before rolling out to multi-metro expansion
 **For Patrick (PM):**
 - Use phases as communication tool for stakeholders, investors
 - Each phase has effort estimate (sprints), goal, and success metrics
-- Phases may slip or reorder based on beta feedback; this is the current best guess
-- Post-Phase 8 launch, use real user data to deprioritize low-signal features
+- Phases may slip or reorder based on beta feedback
+- Post-beta, use real user data to deprioritize low-signal features
 
 **For Claude (Developer):**
 - Follow phases in order; parallel tracks noted
 - Each phase is time-boxed; use health-scout before shipping each
-- Bring forward deferred items if they unblock work (e.g., virtual line in Phase 10)
-- Reorganize internally if a different order improves velocity (ping Patrick if major reshuffle)
 - Update STATE.md after each phase completion
+- Run GitHub ↔ local drift check before touching any component not modified this session
 
 ---
 
 ## Last Updated
-2026-03-02 – Reorganized for development workflow (phases by technical dependency, not timeline). Phase 7 (Local SEO) verified complete. Added AI Tagger Model Upgrade Research section (RAM++ vs WD-ViT, deployment path, CLIP integration plan).
+2026-03-04 — All C1-C7, H1-H11, and M-series audit findings closed. Added GitHub ↔ Local Drift Audit section. Vercel build fixed (InstallPrompt, SaleMapInner). Parity table updated to reflect completed phases.
 
-**Next Review:** Post-Phase 8 launch (early April) — validate email/SMS infrastructure before committing Phase 9–12 resources.
+**Next Review:** Post-beta launch — validate with real user data before committing Phase 14 resources.
