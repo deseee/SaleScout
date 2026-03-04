@@ -181,6 +181,23 @@ Prepare for scale to additional metros.
 
 None.
 
+### Session 35 — Bug Burn-Down + Component Drift Fixes (verified 2026-03-04)
+
+**Component drift fixes (SaleCard, Layout, index.tsx, city/[city].tsx):**
+- Shared `Sale` type updated to match real API shape (startDate/endDate/organizer.{id,businessName}/photoUrls/etc.)
+- `SaleCard.tsx`: added `organizer.id`, fixed nested anchor invalid HTML (outer `<div>` + sibling organizer link), `line-clamp-2`, em-dash date separator
+- `pages/index.tsx`: replaced 30-line inline card JSX with `<SaleCard>`, removed unused `formatSaleDate`/`format`/`Link`
+- `Layout.tsx`: replaced mobile-only `navLinks` JSX variable with `staticNavLinks` data array shared by desktop + mobile nav
+- `city/[city].tsx`: replaced inline sale card JSX with `<SaleCard>`, removed local `Sale` interface + `formatSaleDate` + `format` import; imports shared `Sale` type
+
+**Bug fixes pushed (3 commits):**
+- `72379f9` — `routes/auth.ts`: password reset token removed from console log (HIGH severity); changed to `console.warn` without token
+- `517f843` — `pages/shopper/purchases.tsx`: 3DS redirect handling via `useEffect` on `router.query` (Stripe `redirect_status`/`payment_intent` params); `_app.tsx` staleTime 60s→20s
+- `b7d207b` — `city/[city].tsx`: inline card drift fix
+
+**Verified already complete (confirmed by Patrick):**
+- Vercel project rename ✅ | Stripe business name ✅ | M-series ST1/ST2/E1/E2 (all closed as H8/H9/C5/C6)
+
 ### Session 34 — Frontend Drift Audit Complete (verified 2026-03-04)
 
 **Root cause:** GitHub had 11 stale frontend pages — early-draft versions with direct Prisma imports / qrcode npm package / stub implementations. Local versions (correct API-based) had never been pushed. Detected via size comparison: `find ... wc -c` locally vs GitHub directory listing sizes.
@@ -217,16 +234,6 @@ None.
 
 **routes/users.ts cleanup:** Removed stray `new PrismaClient()` instance; now uses `import { prisma } from '../lib/prisma'` shared singleton.
 
-**GitHub commits (5 batches of ≤3 files each, per CORE.md Section 10):**
-- Batch 1 (saleController, stripeController, favoriteController): `cc81f566`
-- Batch 2 (itemController, marketingKitController, notificationController): `f2c80a68`
-- Batch 3 (stripeStatusController, userController, routes/auth): `f3adc9fb`
-- Batch 4 (routes/organizers, routes/users, frontend/lib/api): `7ce0c8fd`
-- Batch 5 (pages/offline, pages/sales/[id]): `0c281044`
-
-**Vercel build fix (same session):**
-- `InstallPrompt.tsx` had old GitHub version calling `await deferredPrompt.prompt()` twice and destructuring `outcome` from the return (TypeScript error: `Property 'outcome' does not exist on type 'void'`). Fixed by pushing local rewrite that correctly uses `deferredPrompt.userChoice` for outcome. Commit: `b873fdc1`.
-
 **All remaining M-series audit findings closed. Vercel build unblocked.**
 
 ### Pre-Beta Audit — All Fixes Complete (verified 2026-03-04)
@@ -255,7 +262,6 @@ None.
 - H9: Stripe webhook — STRIPE_WEBHOOK_SECRET guard before constructEvent
 - H10: CAN-SPAM unsubscribe — one-click unsubscribe link in reminder emails, public backend endpoint, new /unsubscribe frontend page
 - H11: Resend domain verification — confirmed verified in Resend dashboard (no code change needed)
-- Track B: Docker-from-VM gap — TCP socket enabled by Patrick (2026-03-04) but still unreachable; Docker Desktop binds to Windows loopback only, not accessible from the VM. Gap is structural. RECOVERY.md entry 17 updated with root cause and re-test results.
 - All 27 changed files pushed to GitHub via MCP (deseee/findasale, main)
 
 ---
@@ -289,13 +295,8 @@ None.
 
 ## Next Strategic Move
 
-Validate stability.
-Run real-user beta.
-Measure:
-- Organizer activation
-- Shopper retention
-- Auction latency
-- Fee capture accuracy
+Feature sprint — all bugs and audit findings closed.
+Next session: research-only — find open-source code to sample for Phase 12 (auctions), Phase 9 (creator analytics), Phase 11 (push notifications) before building.
 
 ---
 
@@ -303,16 +304,12 @@ Measure:
 
 Comprehensive roadmap created: `claude_docs/ROADMAP.md`
 
-Maps competitive feature parity gaps, deferred work, and growth initiatives across 7 phases (2–3 quarters). Prioritized by impact: local SEO (P1), creator growth (P1), offline marketing (P1), auction launch (deferred), and experimental mechanics (P3).
-
-**Key P1 items to tackle post-beta:**
-- Schema.org event markup (SEO)
-- Item category tags + filters
-- QR sign generator
-- Populate creator dashboard
-- Zip-level landing pages
-
 See ROADMAP.md for full phase breakdown, success metrics, and decision gates.
+
+**Upcoming feature phases (post-bug-burn):**
+- Phase 12: Auctions (Socket.io bidding, 7% fee tier) — 3 sprints
+- Phase 9: Creator dashboard analytics (UTM tracking, referral attribution) — 2 sprints
+- Phase 11: PWA push notifications — 1 sprint
 
 ### Phase 7 – Local SEO & Parity (verified 2026-03-02)
 - Item categories: added `category` + `condition` fields to Item schema; migration 20260301000003_add_item_category created
@@ -404,88 +401,27 @@ See ROADMAP.md for full phase breakdown, success metrics, and decision gates.
 
 ---
 
-### Dev Environment Skill Fix (2026-03-02)
-Two bugs found in the dev-environment skill and corrected:
-- **Missing `pnpm install` step** — rebuild table said "changed `package.json` → `docker compose build`" but omitted the required `pnpm install` on Windows first. Dockerfile uses `--frozen-lockfile`, so lockfile must be updated before Docker can build. Pitfall #8 added.
-- **Wrong Prisma working directory** — all Prisma `docker exec` commands used `cd /app` (workspace root). Schema is at `packages/database/prisma/schema.prisma` — Prisma CLI needs `cd /app/packages/database`. All example commands corrected. Pitfall #9 added.
-- `ai-config/dev-environment.skill` updated and live.
-
----
-
-### Session 20 — Workflow & Automation (2026-03-02)
-- CORE.md: added mandatory Session Init (Section 2), filetree-first rule (Section 3), bug-capture hook (Section 8)
-- context-maintenance skill: added Step 3 self-healing pattern capture to session end protocol
-- health-scout skill: added Self-Healing Candidates section to report format
-- 4 scheduled research tasks created: competitor-monitor (Mon), changelog-tracker (Tue), ux-spotcheck (Wed), monthly-digest (1st of month)
-- 4 intel directories created: claude_docs/competitor-intel/, changelog-tracker/, ux-spotchecks/, monthly-digests/
-- 7 GitHub issues created (#9–#15): route planner, color-coded favorites, re-engagement emails, PWA install prompt, pre-registration, bulk pricing, granular notifications
-- Pending: reinstall context-maintenance.skill + health-scout.skill from ai-config/ via Cowork; create GitHub milestones manually
-
----
-
 ### SaleScout → FindA.Sale Rebrand + DNS + Deployment (2026-03-03)
 - Full codebase rebrand complete: all frontend pages, backend, docker-compose, package.json, docs.
 - about.tsx fully rewritten with fresh narrative. terms.tsx rewritten with marketplace-style language (Etsy/eBay patterns).
-- Remaining docs/artifacts cleaned: EMAIL_SMS_REMINDERS.md, test fixtures (@findasale.test).
-- Committed and pushed to GitHub (deseee/findasale.git, 84 files, branch: main).
-- finda.sale DNS: Vercel nameservers confirmed active in Spaceship. A record + 4 Resend DNS records added in Vercel DNS panel (A @ 216.198.79.1, DKIM, MX send, SPF send, DMARC _dmarc). DNS resolving correctly (Google DNS confirmed).
-- Resend domain: records added in Vercel DNS, status pending/verifying.
-- Docker: volume wiped (`docker compose down -v`), rebuilt with findasale credentials. Containers now named `findasale-*`. Database re-seeded.
-- CORS fix: `ALLOWED_ORIGINS` default updated to include `https://finda.sale,https://www.finda.sale,https://findasale.vercel.app`.
-- ngrok: `--domain` flag deprecated, fixed to `--url` in docker-compose.yml.
-- finda.sale live on Vercel and loading FindA.Sale branding. API connectivity via ngrok confirmed (GET /api/sales returns 200 through tunnel).
+- finda.sale DNS: Vercel nameservers confirmed active in Spaceship. DNS resolving correctly.
+- Resend domain: verified (confirmed 2026-03-04). Vercel project rename: ✅. Stripe business name: ✅.
+- Docker: volume wiped, rebuilt with findasale credentials. Containers named `findasale-*`. Database re-seeded.
+- finda.sale live on Vercel and loading FindA.Sale branding.
 
-### Session 26 — Dev Tooling & Full Rebrand Completion (2026-03-03)
-- **CSP fix** — `next.config.js` `connect-src` now derives `apiOrigin` from `NEXT_PUBLIC_API_URL` at build time; ngrok URL no longer blocked by browser CSP. Committed: acec537.
-- **Session self-awareness** — `update-context.js` now emits `## Environment` section (GitHub auth status, ngrok tunnel URL from Docker logs, CLI tools). `CORE.md` Section 4: edit transparency rule added. `context-maintenance` skill updated with capabilities inventory, dirty-session detection (`.last-wrap`), breakpoint wraps, two-tier memory system, next-session-prompt.md handoff doc. Committed: f7e130e.
-- **Post-commit hook** — `.git/hooks/post-commit` auto-regenerates `context.md` after every commit.
-- **Scheduled tasks renamed** — 8 new `findasale-*` tasks created (replacing 9 `salescout-*` tasks, now disabled): context, session-wrap, health-scout, competitor-monitor, changelog-tracker, ux-spotcheck, monthly-digest, beta-monitor.
-- **Skills repackaged** — `dev-environment`, `health-scout`, `salescout-deploy→findasale-deploy` all updated: trigger text, DB connection strings, container names, project paths. `.skill` files in FindaSale/ root ready to install.
-- **Full salescout wipe** — Zero remaining salescout/SaleScout references in active docs or skills. CLAUDE.md, SECURITY.md, STATE.md, session-log.md, self_healing_skills.md all updated. Historical log entries preserved as accurate records.
-- **Pending:** Install 3 `.skill` files via Cowork skill manager; uninstall `salescout-deploy`.
-
----
+### Seed Bug Fixes (2026-03-03)
+- ✅ Fixed: organizer users 0–9 now seeded with `role: 'ORGANIZER'` (was always `'USER'`).
+- ✅ Fixed: `stripeConnectId` now always `null` in seed — organizers go through real Stripe Connect onboarding.
 
 ### Session 32 — M-Series Medium Audit Findings (2026-03-04)
+- E3: Prisma singleton extracted to `lib/prisma.ts`; `new PrismaClient()` removed from 10 files
+- ST3: Stripe webhook verifies `on_behalf_of` vs organizer's `stripeConnectId`
+- ST4: Integer-cent fee math (`Math.round(price * 100)`)
+- DB2: `prisma.$transaction()` wraps user + organizer creation
+- E7: AuthContext checks JWT `exp` before API calls
+- EM2/EM3: `withRetry()` helper with exponential backoff
+- P1: iCal guard for missing `startDate`/`endDate`
+- GitHub push batching rule added to CORE.md (Section 10): max 3 files per `push_files` call
 
-**Completed from audit-remaining-areas-2026-03-03.md:**
-- **E3 (Prisma singleton):** Created `packages/backend/src/lib/prisma.ts` shared singleton; removed `new PrismaClient()` from 10 files (saleController, stripeController, authController, userController, notificationController, stripeStatusController, marketingKitController, middleware/auth, jobs/auctionJob, models/LineEntry). `index.ts` re-exports from lib/prisma to avoid circular deps.
-- **ST3 (Stripe webhook organizer verification):** Webhook now cross-checks `paymentIntent.on_behalf_of` against purchase's `sale.organizer.stripeConnectId`. Mismatch skips PAID status — prevents spoofed/replayed webhook attacks.
-- **ST4 (Integer-cent fee math):** `priceCents = Math.round(price * 100)` then `Math.round(priceCents * feePercent)` — eliminates floating-point rounding errors in platform fee calculations.
-- **DB2 (Atomic user registration):** `prisma.$transaction()` wraps user + organizer creation in authController — neither is orphaned on failure.
-- **E7 (JWT expiry on client):** AuthContext now decodes JWT `exp` claim on load; clears stale token before any API call.
-- **EM2/EM3 (Retry backoff):** `withRetry()` helper added to emailReminderService with 4x backoff for Twilio 429s (EM3) and 2x for Resend failures (EM2).
-- **P1 (iCal date guard):** `generateIcal` returns 400 if `startDate` or `endDate` is missing.
-- **EC1 (Status machine):** Already implemented — verified clean, no fix needed.
-- **DB1 (findUnique audit):** All `findUnique` calls use `@id` or `@unique` fields — verified clean, no fix needed.
-
-**Operational finding:**
-- **GitHub push batching rule added to CORE.md (Section 10):** Max 3 files per `push_files` call. Exceeding this hits the output token limit. Rule is now permanently in CORE.md.
-
-**Not yet addressed (remaining M-series):** ST1, ST2, E1, E2 — see `claude_docs/audit-remaining-areas-2026-03-03.md` for details.
-
-All 14 changed files pushed to GitHub in 6 batched commits (deseee/findasale, main).
-
----
-
-### Seed Bug Fixes (2026-03-03)
-- ✅ Fixed: organizer users 0–9 now seeded with `role: 'ORGANIZER'` (was always `'USER'`).
-- ✅ Fixed: `stripeConnectId` now always `null` in seed — organizers go through real Stripe Connect onboarding. Fake `acct_test_*` IDs removed.
-
-### Session 27 – Image Loading, CORS & Backend Fixes (2026-03-03)
-- **Seed updated** — `seed.ts` now uses direct `fastly.picsum.photos` HMAC-signed URLs (no redirect). Eliminates Service Worker redirect-interception issue. Commit: c813d57.
-- **CSP hardened** — `next.config.js` `img-src` now includes `https://picsum.photos https://fastly.picsum.photos`; `connect-src` uses `https://*.tile.openstreetmap.org` wildcard. Workbox rules added: StaleWhileRevalidate for picsum/fastly, NetworkOnly for Stripe, fixed OSM tile pattern to `[abc].tile.openstreetmap.org`.
-- **ngrok interstitial fix** — `packages/frontend/lib/api.ts` axios headers include `ngrok-skip-browser-warning: true` — prevents ngrok HTML interstitial from replacing API JSON responses.
-- **SaleCard fallback** — `components/SaleCard.tsx` now has `imgError` state + `onError` handler; broken images fall back to placeholder.svg.
-- **CORS: Vercel previews** — `index.ts` CORS origin check now allows `https://findasale*.vercel.app` via regex. Commit: 3cf0833.
-- **Trust proxy** — `app.set('trust proxy', 1)` added to Express; silences rate-limiter `X-Forwarded-For` validation error from ngrok. Commit: 28fa3e0.
-- **finda.sale images confirmed working**. localhost:3000 images still broken — root cause: `next.config.js` not bind-mounted, frontend container has old CSP. Fix: frontend rebuild.
-
-Last Updated: 2026-03-04 (session 34 — frontend drift audit complete, all Vercel build errors resolved)
-Status: All C1-C7, H1-H11, and resolved M-series findings complete. All 11 stale frontend pages now synced to GitHub. Vercel build clean. Ready for real-user beta or remaining M-series (ST1, ST2, E1, E2).
-
----
-
-### Seed Bug Fixes (2026-03-03)
-- ✅ Fixed: organizer users 0–9 now seeded with `role: 'ORGANIZER'` (was always `'USER'`).
-- ✅ Fixed: `stripeConnectId` now always `null` in seed — organizers go through real Stripe Connect onboarding. Fake `acct_test_*` IDs removed.
+Last Updated: 2026-03-04 (session 35 — bug burn-down + component drift complete)
+Status: All bugs and audit findings closed. Build clean. Next: research session for Phase 12/9/11 features.

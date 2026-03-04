@@ -1,46 +1,64 @@
 # Next Session Resume Prompt
-*Written: 2026-03-04 (session 33 — E4/E5/E6/PF1/S1 + Vercel build fixes)*
+*Written: 2026-03-04T05:00:00Z*
 *Session ended: normally*
 
 ## Resume From
 
-All audit findings closed. Vercel build was failing; fixes applied — should be green. Do a drift spot-check at session start before starting any new feature work.
+Research-only session. Find open-source code to sample from for the next three roadmap features **before writing any code**. Output a single research doc at `claude_docs/feature-research-2026-03-04.md` with snippets, library picks, and a build-first order recommendation per feature.
+
+## What Was In Progress
+
+Nothing in flight. All bugs and audit findings closed.
 
 ## What Was Completed This Session
 
-- **E4** — AuthRequest deduplication: removed local `interface AuthRequest` from 11 files, all import from `middleware/auth.ts`
-- **E5** — Axios interceptor detects `400 + errors[]` (Zod), attaches `error.validationMessage` with per-field messages
-- **E6** — `offline.tsx` wrapped in React class `OfflineErrorBoundary`; content extracted to `OfflineContent` component
-- **PF1** — `listSales` uses `Promise.all([findMany, count])` — parallel queries, one round-trip eliminated
-- **S1** — JSON-LD on sale detail page: each item offer gets `category` and `itemCondition` (schema.org URL mapping)
-- **Latent fix** — `notificationController.ts` had missing `Request` in express import; fixed before push
-- **routes/users.ts** — removed stray `new PrismaClient()`; now uses shared `lib/prisma` singleton
-- **Vercel fix 1** — `InstallPrompt.tsx`: old GitHub version called `deferredPrompt.prompt()` twice, tried to destructure `outcome` from `void`. Fixed to use `deferredPrompt.userChoice`. Commit: `b873fdc1`
-- **Vercel fix 2** — `SaleMapInner.tsx`: old GitHub version had `sales: SalePin[]` as required prop; `SaleMap.tsx` spreads `pins`. Fixed to `pins?: SalePin[]`. Commit: `93d46e0f`
-- **ROADMAP.md** — Added "GitHub ↔ Local Drift Audit" section under Infrastructure & Dev Tools
+- Component drift audit + fixes: SaleCard shared type, nested anchor HTML fix, Layout `staticNavLinks` array, homepage and city page `<SaleCard>` replacement
+- Bug fixes: password reset token removed from console log (HIGH), 3DS redirect handling in purchases.tsx, staleTime 60s→20s
+- Verified M-series ST1/ST2/E1/E2 and Vercel/Stripe rebrand items already closed
+- Commits: `72379f9`, `517f843`, `b7d207b` — all on GitHub main
 
-## GitHub ↔ Local Drift Suspects (Check at Session Start)
+## Research Goals
 
-These components were rewritten in Phase 5/6 sprints and may never have been pushed. Read the GitHub version before touching them:
-- `packages/frontend/components/SaleCard.tsx` — added `imgError` state + `onError` handler + placeholder.svg fallback
-- `packages/frontend/components/CheckoutModal.tsx` — added refund policy note above Pay button
-- `packages/frontend/components/Layout.tsx` — added hamburger nav, skip-to-content, aria-live toast container
+Three upcoming roadmap features, in priority order:
 
-**How to check:** `mcp__github__get_file_contents` → scan for the feature (e.g. `imgError` in SaleCard). If missing from GitHub, push local version.
+### 1. Phase 12 — Socket.io Auction Bidding
+What to find:
+- Open-source Socket.io auction/bidding room implementations (GitHub: `socket.io auction bidding`)
+- Race condition handling — two bids arriving simultaneously (DB-level lock or optimistic lock?)
+- Room lifecycle: create, join, bid, close, winner notification
+- Reconnection handling (shopper drops WiFi mid-auction)
+- Load testing patterns for 100+ concurrent bidders
+- Whether Pusher Channels is a simpler alternative worth evaluating
+
+Read first: `packages/backend/src/jobs/auctionJob.ts` and `packages/backend/src/routes/auctions.ts` — understand what's already scaffolded before searching externally.
+
+### 2. Phase 9 — Creator Dashboard Analytics
+What to find:
+- UTM click tracking + aggregation at the DB level (no GA dependency)
+- Referral conversion attribution (link visit → signup → purchase — how do you chain the attribution?)
+- Open-source affiliate dashboard examples (GitHub: `affiliate tracking nodejs prisma`)
+- Simple shortlink generation pattern
+
+Read first: `packages/database/prisma/schema.prisma` (AffiliateLink model), `packages/frontend/pages/creator/dashboard.tsx` (current state of the UI).
+
+### 3. Phase 11 — PWA Push Notifications
+What to find:
+- `web-push` npm package: VAPID key setup, sending a push from Node.js, subscription storage schema
+- Service worker `push` event → show notification → `notificationclick` deep-link to `/sales/[id]`
+- Subscription lifecycle management (user revokes → backend cleans up stale endpoints)
+- Google Web Push codelab patterns
+
+Read first: `public/sw.js` and `pages/_app.tsx` ServiceWorkerUpdateNotifier — understand what's already hooked up.
+
+## Research Deliverable
+
+`claude_docs/feature-research-2026-03-04.md` containing:
+- Per feature: 2-3 code snippets to sample, recommended libraries, "what to build first" order
+- Conflicts with existing scaffold code (flag anything that will need rework)
+- Rough complexity estimate (LOC, risk areas)
 
 ## Environment Notes
 
-- No schema changes this session — no migration needed
-- All pushed commits are on `main` (deseee/findasale)
-- Vercel build should be clean after commits `b873fdc1` (InstallPrompt) and `93d46e0f` (SaleMapInner)
-
-## Critical Rules Still Active
-
-- CORE.md Section 10: max 3 files per `push_files` call. Files >200 lines push alone.
-- `push_files` sends the full file every time — minimize large-file pushes to once per session
-
-## Next Strategic Options
-
-1. **Drift audit** — verify SaleCard, CheckoutModal, Layout on GitHub (30 min)
-2. **Real-user beta** — onboarding first organizers in Grand Rapids
-3. **Phase 14 growth mechanics** — weekend cluster view, route planner
+- All fixes on GitHub main — no pending pushes
+- No Docker restarts or migrations needed (research only)
+- GitHub MCP is active — use `mcp__github__get_file_contents` to read existing scaffold before searching externally
