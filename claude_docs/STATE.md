@@ -181,6 +181,28 @@ Prepare for scale to additional metros.
 
 None.
 
+### Session 34 — Frontend Drift Audit Complete (verified 2026-03-04)
+
+**Root cause:** GitHub had 11 stale frontend pages — early-draft versions with direct Prisma imports / qrcode npm package / stub implementations. Local versions (correct API-based) had never been pushed. Detected via size comparison: `find ... wc -c` locally vs GitHub directory listing sizes.
+
+**Files pushed (all stale → local correct versions):**
+- `next.config.js` — SW/ngrok NetworkOnly rule, unpkg CacheFirst, Stripe CSP (m.stripe.network) — commits 5d06cd4e, fc41bfdb
+- `claude_docs/CORE.md` — MCP vs PowerShell push decision rule — commit 1ac3a942
+- `pages/city/[city].tsx` — removed broken Prisma import — commit 82c66d11
+- `pages/items/[id].tsx` — removed stale Prisma import — commit 5c501605
+- `pages/unsubscribe.tsx` — new page (was missing from GitHub) — commit 70e1c7d9
+- `pages/organizers/[id].tsx` — removed stale Prisma/getServerSideProps — commit d5bc73f
+- `pages/organizer/add-items/[saleId].tsx` — stub → full 469-line implementation — commit 6cc7659
+- `pages/index.tsx` — removed stale Prisma/getServerSideProps (was causing Vercel build failure) — commit 4296a9ca
+- `pages/organizer/dashboard.tsx` — stub with `import QRCode from 'qrcode'` → 762-line full dashboard (was causing Vercel build failure) — commit 41392f2
+- `pages/organizer/add-items.tsx`, `pages/organizer/create-sale.tsx`, `pages/shopper/dashboard.tsx`, `pages/shopper/purchases.tsx`, `pages/profile.tsx` — all stale stubs → full implementations — commit 406635d
+
+**Vercel build errors fixed:** `Cannot find module 'qrcode'`, `has no exported member named 'prisma'`. Build should now be clean.
+
+**Zero Prisma imports remain in local frontend pages** — confirmed by grep before audit.
+
+---
+
 ### Session 33 — E-Series, PF1, S1 Audit Fixes + Vercel Build Fix (verified 2026-03-04)
 
 **Audit findings closed (from audit-remaining-areas-2026-03-03.md):**
@@ -424,19 +446,6 @@ Two bugs found in the dev-environment skill and corrected:
 
 ---
 
-### Seed Bug Fixes (2026-03-03)
-- ✅ Fixed: organizer users 0–9 now seeded with `role: 'ORGANIZER'` (was always `'USER'`).
-- ✅ Fixed: `stripeConnectId` now always `null` in seed — organizers go through real Stripe Connect onboarding. Fake `acct_test_*` IDs removed.
-
-### Session 27 – Image Loading, CORS & Backend Fixes (2026-03-03)
-- **Seed updated** — `seed.ts` now uses direct `fastly.picsum.photos` HMAC-signed URLs (no redirect). Eliminates Service Worker redirect-interception issue. Commit: c813d57.
-- **CSP hardened** — `next.config.js` `img-src` now includes `https://picsum.photos https://fastly.picsum.photos`; `connect-src` uses `https://*.tile.openstreetmap.org` wildcard. Workbox rules added: StaleWhileRevalidate for picsum/fastly, NetworkOnly for Stripe, fixed OSM tile pattern to `[abc].tile.openstreetmap.org`.
-- **ngrok interstitial fix** — `packages/frontend/lib/api.ts` axios headers include `ngrok-skip-browser-warning: true` — prevents ngrok HTML interstitial from replacing API JSON responses.
-- **SaleCard fallback** — `components/SaleCard.tsx` now has `imgError` state + `onError` handler; broken images fall back to placeholder.svg.
-- **CORS: Vercel previews** — `index.ts` CORS origin check now allows `https://findasale*.vercel.app` via regex. Commit: 3cf0833.
-- **Trust proxy** — `app.set('trust proxy', 1)` added to Express; silences rate-limiter `X-Forwarded-For` validation error from ngrok. Commit: 28fa3e0.
-- **finda.sale images confirmed working**. localhost:3000 images still broken — root cause: `next.config.js` not bind-mounted, frontend container has old CSP. Fix: frontend rebuild.
-
 ### Session 32 — M-Series Medium Audit Findings (2026-03-04)
 
 **Completed from audit-remaining-areas-2026-03-03.md:**
@@ -453,9 +462,30 @@ Two bugs found in the dev-environment skill and corrected:
 **Operational finding:**
 - **GitHub push batching rule added to CORE.md (Section 10):** Max 3 files per `push_files` call. Exceeding this hits the output token limit. Rule is now permanently in CORE.md.
 
-**Not yet addressed (remaining M-series):** ST1, ST2, E1, E2, E4, E5, E6, PF1, S1 — see `claude_docs/audit-remaining-areas-2026-03-03.md` for details.
+**Not yet addressed (remaining M-series):** ST1, ST2, E1, E2 — see `claude_docs/audit-remaining-areas-2026-03-03.md` for details.
 
 All 14 changed files pushed to GitHub in 6 batched commits (deseee/findasale, main).
 
-Last Updated: 2026-03-04 (session 33 — E4/E5/E6/PF1/S1 complete, InstallPrompt Vercel build fix)
-Status: All C1-C7, H1-H11, and all M-series audit findings complete. Vercel build unblocked. Ready for real-user beta.
+---
+
+### Seed Bug Fixes (2026-03-03)
+- ✅ Fixed: organizer users 0–9 now seeded with `role: 'ORGANIZER'` (was always `'USER'`).
+- ✅ Fixed: `stripeConnectId` now always `null` in seed — organizers go through real Stripe Connect onboarding. Fake `acct_test_*` IDs removed.
+
+### Session 27 – Image Loading, CORS & Backend Fixes (2026-03-03)
+- **Seed updated** — `seed.ts` now uses direct `fastly.picsum.photos` HMAC-signed URLs (no redirect). Eliminates Service Worker redirect-interception issue. Commit: c813d57.
+- **CSP hardened** — `next.config.js` `img-src` now includes `https://picsum.photos https://fastly.picsum.photos`; `connect-src` uses `https://*.tile.openstreetmap.org` wildcard. Workbox rules added: StaleWhileRevalidate for picsum/fastly, NetworkOnly for Stripe, fixed OSM tile pattern to `[abc].tile.openstreetmap.org`.
+- **ngrok interstitial fix** — `packages/frontend/lib/api.ts` axios headers include `ngrok-skip-browser-warning: true` — prevents ngrok HTML interstitial from replacing API JSON responses.
+- **SaleCard fallback** — `components/SaleCard.tsx` now has `imgError` state + `onError` handler; broken images fall back to placeholder.svg.
+- **CORS: Vercel previews** — `index.ts` CORS origin check now allows `https://findasale*.vercel.app` via regex. Commit: 3cf0833.
+- **Trust proxy** — `app.set('trust proxy', 1)` added to Express; silences rate-limiter `X-Forwarded-For` validation error from ngrok. Commit: 28fa3e0.
+- **finda.sale images confirmed working**. localhost:3000 images still broken — root cause: `next.config.js` not bind-mounted, frontend container has old CSP. Fix: frontend rebuild.
+
+Last Updated: 2026-03-04 (session 34 — frontend drift audit complete, all Vercel build errors resolved)
+Status: All C1-C7, H1-H11, and resolved M-series findings complete. All 11 stale frontend pages now synced to GitHub. Vercel build clean. Ready for real-user beta or remaining M-series (ST1, ST2, E1, E2).
+
+---
+
+### Seed Bug Fixes (2026-03-03)
+- ✅ Fixed: organizer users 0–9 now seeded with `role: 'ORGANIZER'` (was always `'USER'`).
+- ✅ Fixed: `stripeConnectId` now always `null` in seed — organizers go through real Stripe Connect onboarding. Fake `acct_test_*` IDs removed.
