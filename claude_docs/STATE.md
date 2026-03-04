@@ -24,10 +24,11 @@ Maintain stable MVP in Grand Rapids. Prepare for scale to additional metros.
 
 ## Completed Phases (summary)
 
-Phases 1–13 + pre-beta audit + rebrand all verified and shipped.
+Phases 1–13 + pre-beta audit + rebrand + Sprint A + Sprint B all verified and shipped.
 Key milestones: JWT auth, sale management, Stripe payments, push notifications,
 creator affiliates, auction UI + cron + 7% item-level fee, QR marketing,
-virtual line, AI item tagging, Schema.org SEO, PWA hardening.
+virtual line, AI item tagging, Schema.org SEO, PWA hardening,
+warm design system (Phase 24), bottom tab nav (Phase 25), full palette swap (586 refs / 47 files), skeleton components.
 
 Full detail: `claude_docs/COMPLETED_PHASES.md`
 
@@ -35,16 +36,13 @@ Full detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## In Progress
 
-**Sprint B — Phase 24+25: Design System + Bottom Tab Navigation**
-- ✅ Phase 24 complete: warm color palette, typography (Montserrat/Inter), spacing tokens, shadows, touch targets in tailwind.config.js
-- ✅ globals.css rewritten: base layer, component classes (.card, .btn-primary/secondary/ghost), utility classes (.pb-safe, .line-clamp)
-- ✅ _document.tsx: Google Fonts loaded, theme-color → #D97706
-- ✅ Layout.tsx: full blue→warm/amber color swap, font-heading on logo, shadow-header
-- ✅ manifest.json: theme_color + background_color updated
-- ✅ Phase 25: BottomTabNav component (Browse/Map/Saved/Profile), integrated into Layout with pb-15 clearance
-- ✅ Full warm palette swap: 586 blue/gray references replaced across 47 files (all components + all pages)
-- ✅ SkeletonCards.tsx: composite skeleton components (SaleCardSkeleton, ItemCardSkeleton, StatCardSkeleton, TableRowSkeleton, SkeletonGrid, TableSkeleton)
-- Sprint B Phase 24+25 COMPLETE. Ready for Sprint C.
+**Sprint C — Phase 14: Rapid Capture + Background AI**
+- ✅ Phase 14a: RapidCapture.tsx — full-screen WebRTC camera overlay, rear-facing, 1920×1440, one-handed 72px shutter, filmstrip carousel, tap-to-preview/delete, flash feedback
+- ✅ Phase 14a: Integrated into add-items.tsx — gradient CTA button, batch queue state, tap-to-prefill form from AI results
+- ✅ Phase 14b: Backend /upload/rapid-batch endpoint — accepts up to 20 images, Cloudinary upload + Ollama AI analysis in parallel per file, Promise.allSettled for partial failure resilience
+- ✅ Phase 14b: Batch Processing Queue UI — status overlays (uploading/analyzing/done/error), AI result preview on cards, sequential fallback if batch endpoint fails
+- ✅ Build fix: creator/dashboard.tsx `loading` → `isLoading` (AuthContextType mismatch)
+- Phase 14c pending: Cloudinary webhook, auto-crop, thumbnail/optimized/full-res URLs
 
 ---
 
@@ -71,7 +69,7 @@ Full detail: `claude_docs/COMPLETED_PHASES.md`
 Five-pillar growth phase. Sprint order:
 1. ~~Sprint A: Phase 12 completion~~ ✅ (2026-03-05)
 2. ~~Sprint B: Phase 24+25~~ ✅ — Design system + bottom tab nav (2026-03-04)
-3. **Sprint C: Phase 14** — Rapid capture carousel + background AI (NEXT)
+3. **Sprint C: Phase 14** — Rapid capture + background AI (IN PROGRESS — 14a+14b done, 14c next)
 4. Sprint D: Phase 17 — Organizer reputation + follow system
 
 Full roadmap: `claude_docs/ROADMAP.md`
@@ -88,4 +86,4 @@ Full roadmap: `claude_docs/ROADMAP.md`
 
 ---
 
-Last Updated: 2026-03-04 (session 44 — Sprint B complete, full warm palette + skeletons)
+Last Updated: 2026-03-04 (session 45 — Sprint C Phase 14a+14b complete, build fix pushed)
