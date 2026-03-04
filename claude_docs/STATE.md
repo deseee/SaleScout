@@ -95,7 +95,7 @@ Prepare for scale to additional metros.
 
 - **Backend hosting not yet chosen** — domain `finda.sale` registered, frontend live on Vercel. Backend needs Railway/Render/Fly.io for `api.finda.sale`. Currently bridged via ngrok (static domain: `pamelia-unweathered-arabesquely.ngrok-free.dev`, runs as Docker service automatically).
 - **Resend domain verification** — ✅ Verified (confirmed 2026-03-04).
-- **localhost:3000 images** — `next.config.js` is not bind-mounted; Docker frontend container still has old CSP without `fastly.picsum.photos`. Fix: `docker compose build --no-cache frontend && docker compose up -d`.
+- **ROADMAP.md audit** — Last updated 2026-03-04. Phases 9/11/12 are now complete; roadmap likely has stale items and missing next priorities. Audit needed before next feature sprint.
 
 ---
 
@@ -180,6 +180,45 @@ Prepare for scale to additional metros.
 ## In Progress
 
 None.
+
+### Session 37 — Activation Sprint: Migrations + VAPID + Upload Fix + SW Fix (verified 2026-03-04)
+- Applied Phase 9 + 11 DB migrations in Docker (000001 affiliate conversions, 000002 push subscriptions). Migration 000002 required `prisma migrate resolve --applied` — table already existed from prior `db push`.
+- Generated VAPID keys; added to root `.env`, `packages/frontend/.env.local`, Vercel env vars, and `docker-compose.yml` (both backend + frontend services).
+- Fixed `uploadController.ts` — stale version missing `upload` multer export + wrong handler names (`uploadSalePhotos`, `uploadItemPhoto`, `analyzePhotoWithAI`). Routes were importing names that didn't exist; backend crash-looped on startup.
+- Fixed `docker-compose.yml` — added `./packages/frontend/hooks:/app/packages/frontend/hooks` bind mount (was missing; frontend couldn't resolve `usePushSubscription`).
+- Rebuilt backend with `--no-cache` to install `web-push` into container.
+- Confirmed push notifications working on Vercel production: SW registered (count=1), VAPID key present, permission prompt appeared for first user. One-prompt-per-browser is correct design.
+- Fixed `next.config.js` SW rule — Stripe `clover/stripe.js` was blocked by workbox NetworkOnly (CORS failure in SW fetch context → `no-response`). Removed explicit Stripe NetworkOnly rule; excluded all `*.stripe.com` from pages catch-all so SW never intercepts Stripe at all.
+- Fixed Vercel build TypeScript error — `Uint8Array<ArrayBufferLike>` → `Uint8Array<ArrayBuffer>` in `usePushSubscription.ts`.
+
+### Phase 9 – Affiliate Conversion Tracking (verified 2026-03-04)
+- Fixed `affiliateController.ts`: prisma import (`../lib/prisma`), JSON response replacing redirect, `conversions` added to `getCreatorStats`
+- Schema: `conversions Int @default(0)` on AffiliateLink, `affiliateLinkId String?` on Purchase, FK constraint
+- Migration: `20260304000001_add_affiliate_conversions` (idempotent with IF NOT EXISTS guards)
+- `stripeController.ts`: reads `affiliateLinkId` from body, stores on Purchase, increments conversions in webhook
+- `pages/affiliate/[id].tsx`: click tracking → sessionStorage → redirect to sale
+- `pages/creator/dashboard.tsx`: Conversions + Conv. Rate stat cards added
+- `components/CheckoutModal.tsx`: reads `affiliateRef` from sessionStorage, passes to createPaymentIntent
+- **Pending:** `prisma migrate deploy` to apply 20260304000001 in Docker
+
+### Phase 12 – Auction Launch (verified 2026-03-04)
+- `auctionJob.ts`: added `cron.schedule('*/5 * * * *', endAuctions)` — was never scheduled before
+- `components/AuctionCountdown.tsx`: live per-second countdown, red under 1hr, triggers query invalidation on expiry
+- `components/BidModal.tsx`: bid modal with validation, login prompt if unauthenticated
+- `pages/sales/[id].tsx`: 🔨 Auction badge on items, replaced static time display with live AuctionCountdown
+
+### Phase 11 – PWA Push Notifications (verified 2026-03-04)
+- Schema: `PushSubscription` model added (userId, endpoint, p256dh, auth, @@unique([userId, endpoint]))
+- Migration: `20260304000002_add_push_subscriptions`
+- `pushController.ts` + `routes/push.ts`: subscribe/unsubscribe endpoints (authenticated)
+- `utils/webpush.ts`: lazy-loaded web-push utility, no-op if VAPID keys missing
+- `index.ts`: `/api/push` route registered
+- `emailReminderService.ts`: push notifications sent alongside SMS reminders
+- `hooks/usePushSubscription.ts`: auto-subscribes logged-in users
+- `public/sw-push.js`: push event + notificationclick service worker handlers
+- `pages/_app.tsx`: PushSubscriber component wired inside provider tree
+- `packages/backend/package.json`: web-push + @types/web-push added (pnpm-lock.yaml pushed)
+- **Pending:** `prisma migrate deploy`, VAPID key generation, backend Docker rebuild
 
 ### Session 35 — Bug Burn-Down + Component Drift Fixes (verified 2026-03-04)
 
@@ -423,5 +462,5 @@ See ROADMAP.md for full phase breakdown, success metrics, and decision gates.
 - P1: iCal guard for missing `startDate`/`endDate`
 - GitHub push batching rule added to CORE.md (Section 10): max 3 files per `push_files` call
 
-Last Updated: 2026-03-04 (session 35 — bug burn-down + component drift complete)
-Status: All bugs and audit findings closed. Build clean. Next: research session for Phase 12/9/11 features.
+Last Updated: 2026-03-04 (session 37 — activation sprint complete)
+Status: Phases 9/11/12 fully activated in Docker + Vercel. Push notifications live. No open bugs. Next: ROADMAP.md audit before next feature sprint.

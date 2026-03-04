@@ -1,64 +1,34 @@
 # Next Session Resume Prompt
-*Written: 2026-03-04T05:00:00Z*
+*Written: 2026-03-04T00:00:00Z*
 *Session ended: normally*
 
 ## Resume From
-
-Research-only session. Find open-source code to sample from for the next three roadmap features **before writing any code**. Output a single research doc at `claude_docs/feature-research-2026-03-04.md` with snippets, library picks, and a build-first order recommendation per feature.
+Audit `claude_docs/ROADMAP.md` — Phases 9, 11, and 12 are now complete; the roadmap has stale statuses, missing completions, and likely outdated priorities. Reconcile against STATE.md and propose a revised sprint order before any new feature work begins.
 
 ## What Was In Progress
-
-Nothing in flight. All bugs and audit findings closed.
+Nothing. Clean session end.
 
 ## What Was Completed This Session
-
-- Component drift audit + fixes: SaleCard shared type, nested anchor HTML fix, Layout `staticNavLinks` array, homepage and city page `<SaleCard>` replacement
-- Bug fixes: password reset token removed from console log (HIGH), 3DS redirect handling in purchases.tsx, staleTime 60s→20s
-- Verified M-series ST1/ST2/E1/E2 and Vercel/Stripe rebrand items already closed
-- Commits: `72379f9`, `517f843`, `b7d207b` — all on GitHub main
-
-## Research Goals
-
-Three upcoming roadmap features, in priority order:
-
-### 1. Phase 12 — Socket.io Auction Bidding
-What to find:
-- Open-source Socket.io auction/bidding room implementations (GitHub: `socket.io auction bidding`)
-- Race condition handling — two bids arriving simultaneously (DB-level lock or optimistic lock?)
-- Room lifecycle: create, join, bid, close, winner notification
-- Reconnection handling (shopper drops WiFi mid-auction)
-- Load testing patterns for 100+ concurrent bidders
-- Whether Pusher Channels is a simpler alternative worth evaluating
-
-Read first: `packages/backend/src/jobs/auctionJob.ts` and `packages/backend/src/routes/auctions.ts` — understand what's already scaffolded before searching externally.
-
-### 2. Phase 9 — Creator Dashboard Analytics
-What to find:
-- UTM click tracking + aggregation at the DB level (no GA dependency)
-- Referral conversion attribution (link visit → signup → purchase — how do you chain the attribution?)
-- Open-source affiliate dashboard examples (GitHub: `affiliate tracking nodejs prisma`)
-- Simple shortlink generation pattern
-
-Read first: `packages/database/prisma/schema.prisma` (AffiliateLink model), `packages/frontend/pages/creator/dashboard.tsx` (current state of the UI).
-
-### 3. Phase 11 — PWA Push Notifications
-What to find:
-- `web-push` npm package: VAPID key setup, sending a push from Node.js, subscription storage schema
-- Service worker `push` event → show notification → `notificationclick` deep-link to `/sales/[id]`
-- Subscription lifecycle management (user revokes → backend cleans up stale endpoints)
-- Google Web Push codelab patterns
-
-Read first: `public/sw.js` and `pages/_app.tsx` ServiceWorkerUpdateNotifier — understand what's already hooked up.
-
-## Research Deliverable
-
-`claude_docs/feature-research-2026-03-04.md` containing:
-- Per feature: 2-3 code snippets to sample, recommended libraries, "what to build first" order
-- Conflicts with existing scaffold code (flag anything that will need rework)
-- Rough complexity estimate (LOC, risk areas)
+- Vercel build fix: `Uint8Array<ArrayBuffer>` type annotation in `usePushSubscription.ts`
+- DB migrations 000001 (affiliate conversions) + 000002 (push subscriptions) applied in Docker. 000002 needed `prisma migrate resolve --applied` — table already existed from prior `db push`
+- VAPID keys generated + wired into root `.env`, `docker-compose.yml` (backend + frontend services), `packages/frontend/.env.local`, Vercel env vars
+- `uploadController.ts` rewritten — stale version missing `upload` multer export and wrong handler names (`uploadSalePhotos`, `uploadItemPhoto`, `analyzePhotoWithAI`); was causing backend crash loop
+- `docker-compose.yml` fixed — added `hooks/` bind mount to frontend; added VAPID env vars to both backend + frontend services
+- Backend rebuilt `--no-cache` with web-push installed
+- Push notifications confirmed working on Vercel (SW=1, prompt appeared, one-prompt-per-browser is by design)
+- `next.config.js` fixed — removed Stripe `NetworkOnly` SW rule + excluded `*.stripe.com` from pages catch-all; fixes `clover/stripe.js` `no-response` crash on organizer dashboard
+- Self-healing skills 17 (SW third-party blocking) + 18 (missing bind mount) added to `self_healing_skills.md`
 
 ## Environment Notes
+- All changes on GitHub main. Vercel redeploying with Stripe SW fix — confirm `clover/stripe.js` error is gone after deploy completes.
+- Docker running cleanly. No pending migrations. No pending rebuilds.
+- Push subscription row should be in DB for the first `finda.sale` user who accepted the prompt.
 
-- All fixes on GitHub main — no pending pushes
-- No Docker restarts or migrations needed (research only)
-- GitHub MCP is active — use `mcp__github__get_file_contents` to read existing scaffold before searching externally
+## Roadmap Audit Instructions
+Read `claude_docs/ROADMAP.md` in full, then cross-reference against STATE.md Completed sections. For each roadmap item:
+1. Mark complete if STATE.md shows it verified
+2. Flag stale if description contradicts current code
+3. Identify the logical next 1–3 sprints given current app state (post-9/11/12)
+4. Check whether deferred items (Socket.io live bidding, multi-metro, OAuth) should be re-prioritised
+
+Key completed phases to reconcile in ROADMAP.md: Phase 9 (affiliate + creator dashboard), Phase 11 (PWA push), Phase 12 (auction launch + countdown + cron fix).

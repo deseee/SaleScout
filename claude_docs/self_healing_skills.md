@@ -498,5 +498,114 @@ git push
 
 ---
 
+## Skill 15: PowerShell Treats [ ] in File Paths as Wildcards
+
+**Name:** Remove-Item / Test-Path Fails on Bracket Filenames
+**Trigger:** `Remove-Item "path/[id].tsx"` silently does nothing or deletes the wrong file; `Test-Path` returns false for a file that exists
+**Environment:** Windows PowerShell + Next.js dynamic routes (e.g. `pages/sales/[id].tsx`)
+
+**Pattern:**
+PowerShell's wildcard engine treats `[` and `]` as character-class delimiters. `Remove-Item "pages/affiliate/[id].tsx"` is interpreted as "files matching `pages/affiliate/` + any single char from the set `{i,d}` + `.tsx`" — which matches nothing (or the wrong file). The command exits 0 with no error, giving the illusion the file was deleted.
+
+**Known instance:** 2026-03-04 — `Remove-Item "packages/frontend/pages/affiliate/[id].tsx"` appeared to succeed but file remained; git pull --rebase still failed on that file.
+
+**Fix — always use `-LiteralPath` for Next.js dynamic route files:**
+```powershell
+Remove-Item -LiteralPath "packages/frontend/pages/affiliate/[id].tsx"
+Remove-Item -LiteralPath "packages/frontend/pages/sales/[id].tsx"
+# Same for Test-Path, Get-Item, Copy-Item, Move-Item
+Test-Path -LiteralPath "packages/frontend/pages/sales/[id].tsx"
+```
+
+**Prevention:** Any PowerShell file operation on a path containing `[` or `]` MUST use `-LiteralPath`. Standard double-quoted paths are NOT safe.
+
+**Confidence:** High (observed, structurally certain to recur on all Next.js dynamic route file operations)
+
+---
+
+## Skill 16: Stale Git Lock Files (.git/index.lock, .git/HEAD.lock)
+
+**Name:** Git Lock File Prevents Operations
+**Trigger:** `git add` or `git commit` fails with `fatal: Unable to create '.git/index.lock': File exists` or similar for `HEAD.lock`
+**Environment:** Windows PowerShell + git
+
+**Pattern:**
+A previous git process (e.g. a VS Code git extension, a crashed commit, or a GitHub Desktop background sync) left behind a lock file. Git refuses to proceed until it's removed.
+
+**Known instance:** 2026-03-04 — `git add pnpm-lock.yaml` failed with index.lock; `git commit` then failed with HEAD.lock.
+
+**Fix:**
+```powershell
+Remove-Item C:\Users\desee\ClaudeProjects\FindaSale\.git\index.lock
+Remove-Item C:\Users\desee\ClaudeProjects\FindaSale\.git\HEAD.lock
+# Then retry the git command normally
+```
+
+Only remove lock files when you're certain no git process is actively running (no git GUI, no ongoing rebase/merge in another terminal).
+
+**Confidence:** High (common git pattern, certain to recur)
+
+---
+
 Last Updated: 2026-03-04
 Source: Patterns derived from STATE.md (Phases 2–5), RECOVERY.md documented fixes, and health-scout proactive analysis (2026-03-01).
+
+---
+
+## Skill 17: Workbox SW Blocking Third-Party Scripts (next-pwa)
+
+**Name:** SW NetworkOnly no-response for cross-origin scripts
+**Trigger:** Third-party script (Stripe, analytics, etc.) fails with `no-response` error from workbox; console shows `ServiceWorker passed a promise to FetchEvent.respondWith() that rejected`
+**Environment:** Vercel production; next-pwa with runtimeCaching; any `NetworkOnly` or catch-all `NetworkFirst` rule
+
+**Pattern:**
+Workbox intercepts cross-origin `<script>` fetches and calls `fetch(request)` from the SW context. Some third-party CDNs (notably Stripe's `clover/stripe.js`) fail when fetched from a SW context due to CORS/fetch-mode restrictions. `NetworkOnly` propagates the failure as `no-response`, breaking the script load. The fix is to prevent the SW from intercepting those domains at all — not just use `NetworkOnly`.
+
+**Known instance:** `https://js.stripe.com/clover/stripe.js` blocked by SW `NetworkOnly` rule → `Failed to load Stripe.js` on production (fixed session 37).
+
+**Steps:**
+1. Remove any explicit `NetworkOnly` runtimeCaching rule for the failing domain.
+2. Modify the pages catch-all `urlPattern` to exclude the domain via negative lookahead:
+   ```js
+   // Before
+   urlPattern: /^https?:\/\/[^/]+\/(?!api\/).*/i,
+   // After — excludes all stripe.com subdomains
+   urlPattern: /^https?:\/\/(?!(?:js|hooks|m|api)\.stripe\.com)[^/]+\/(?!api\/).*/i,
+   ```
+3. With no matching runtimeCaching rule, the browser fetches the URL directly without SW interception.
+
+**Edge Cases:**
+- Applies to any third-party CDN that uses CORS restrictions or special fetch modes.
+- `NetworkOnly` is NOT sufficient — it still intercepts and can fail. True bypass requires no matching rule.
+- Add new subdomains to the negative lookahead as needed (`r.stripe.com`, etc.).
+
+**Test Command:** Open DevTools → Application → Service Workers → check for `no-response` errors after hard refresh on production.
+**Confidence:** High — root cause confirmed by workbox source behavior.
+
+---
+
+## Skill 18: Docker Bind Mount Missing for New Frontend Directory
+
+**Name:** Next.js module not found for bind-mounted dir
+**Trigger:** Frontend Docker container throws `Module not found: Can't resolve '../hooks/...'` (or similar) for a directory that exists locally but wasn't in docker-compose.yml volumes
+**Environment:** Docker + Next.js dev; any new top-level directory added under `packages/frontend/`
+
+**Pattern:**
+Only specific frontend directories are bind-mounted in `docker-compose.yml`. When a new directory is added (e.g., `hooks/`, `utils/`, `contexts/`) it exists on Windows but not inside the container. The Next.js dev server inside Docker can't resolve imports from it.
+
+**Known instance:** `hooks/usePushSubscription.ts` not importable in `_app.tsx` because `hooks/` wasn't in docker-compose.yml volumes (fixed session 37).
+
+**Steps:**
+1. Add to `docker-compose.yml` under `frontend` → `volumes`:
+   ```yaml
+   - ./packages/frontend/<new-dir>:/app/packages/frontend/<new-dir>
+   ```
+2. Restart with `docker compose down && docker compose up` (compose file change requires full restart, not just `up -d`).
+3. No rebuild needed — this is a volume mount change only.
+
+**Edge Cases:**
+- `next.config.js`, `tsconfig.json`, `package.json` at the package root are NOT bind-mounted — changes to those require a frontend image rebuild.
+- Currently mounted: `pages/`, `components/`, `styles/`, `lib/`, `public/`, `hooks/`.
+
+**Test Command:** `docker exec findasale-frontend-1 ls /app/packages/frontend/` — confirm the new dir is visible inside the container.
+**Confidence:** High — structural issue that will recur whenever Patrick adds a new top-level frontend directory.
