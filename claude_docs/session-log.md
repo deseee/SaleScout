@@ -8,6 +8,12 @@ Keep only the 5 most recent sessions. Delete older entries — git history and S
 
 ## Recent Sessions
 
+### 2026-03-05 (session 61 — Sentry live, git crisis resolved, doc audit)
+**Worked on:** Completed Sentry deployment: committed updated `pnpm-lock.yaml` (Vercel was failing with frozen lockfile error), fixed Vercel deploy. Resolved multi-session git crisis: `.gitattributes` CRLF rule caused perpetual dirty `roadmap.md`/`ROADMAP.md` (case-sensitivity duplicate index entries on Windows) — resolved via `git reset --hard origin/main`. Restored local `roadmap.md` to v9 (was at v3 — severely stale). Updated STATE.md Sentry entry to "fully deployed". Added self-healing entries 30 (`.gitattributes` CRLF perpetual dirty), 31 (case-sensitivity duplicate index), 32 (pnpm frozen lockfile mismatch). Updated entry 29 with nuclear reset fix.
+**Decisions:** `git reset --hard origin/main` is the canonical nuclear fix for any git state that survives stash/restore loops 3+ times. Never attempt case-only renames on Windows. Always commit `pnpm-lock.yaml` after Claude adds packages.
+**Next up:** Sprint T — Production Hardening. Session-start self-healing diagnostic first.
+**Blockers:** Phase 31 OAuth env vars still needed in Vercel. Sentry test endpoint should be added and removed to verify end-to-end capture.
+
 ### 2026-03-05 (session 59 — claude_docs audit + anti-bloat system)
 **Worked on:** Full claude_docs audit. Cleaned STACK.md (Cloudinary locked, Vercel/Railway/Neon infra confirmed), DEVELOPMENT.md (removed stale Gradio section), OPS.md (rewrote to 4-line pointer). Archived 3 one-time audit files to `claude_docs/archive/`. Added CORE.md §14 (Tier 1/2/3 doc classification + anti-bloat rules) and §2 step 6 (GitHub sync check). Updated context-maintenance skill with Step 0 (Archive Check). Added self_healing entry #29 (git local/GitHub drift — MCP push + CRLF = perpetual dirty ROADMAP.md). Diagnosed `reservationExpiryJob` TypeError (Prisma client stale, needs Docker rebuild). Diagnosed `next-auth/react` missing (needs `pnpm install` + frontend `--no-cache` rebuild).
 **Decisions:** Tier 1/2/3 doc classification locked in CORE.md §14. Archive trigger now enforced at every session wrap via context-maintenance Step 0. Git drift is structurally certain to recur — self-healing entry #29 is the canonical fix.
@@ -31,10 +37,4 @@ Keep only the 5 most recent sessions. Delete older entries — git history and S
 **Decisions:** Conversation `@@unique([shopperUserId, organizerId, saleId])`. `/unread-count` before `/:conversationId` in Express. `prisma.$transaction` for atomic reply + `lastMessageAt`.
 **Next up:** Sprint O — Phase 21.
 **Blockers:** Phase 20 migration needs `prisma migrate deploy` on Neon.
-
-### 2026-03-05 (session 54 — Production stabilisation: CORS, NextAuth, Railway 502, seed)
-**Worked on:** Fixed CORS (`finda.sale` missing from `ALLOWED_ORIGINS`). Fixed NextAuth 500 (`NEXTAUTH_SECRET` + `NEXTAUTH_URL` missing). Fixed Railway 502 (PORT mismatch, set `PORT=5000` in Variables). Created missing Phase 22 migration `20260305000001_phase22_reputation_tier`. Seeded Neon. Set up `.githooks/pre-push` TS check.
-**Decisions:** `PORT=5000` locked in Railway Variables permanently.
-**Next up:** Sprint M — Phase 15.
-**Blockers:** Phase 31 OAuth env vars still needed.
 

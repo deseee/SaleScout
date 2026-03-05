@@ -152,19 +152,56 @@ Only entries with ≥2 occurrences OR structurally certain to recur.
 **Test:** Patrick can copy-paste command block without editing anything.
 
 ### 29. Local/GitHub Drift — git pull --rebase Blocked by Unstaged Changes
-**Trigger:** `git pull --rebase` fails with "unstaged changes" or "cannot pull with rebase" — even after `git restore <file>` clears the visible modified file. Root cause: MCP pushes files directly to GitHub without touching Patrick's local repo. Claude's Write/Edit tools modify local tracked files (including CRLF conversions that git treats as modifications). Local HEAD falls behind GitHub. Hidden tracked-file changes (not always visible in `git status`) block the rebase.
-**Fix (copy-paste sequence):**
+**Trigger:** `git pull --rebase` fails with "unstaged changes" — even after `git restore <file>` or `git stash`. Root cause: MCP pushes files directly to GitHub without touching Patrick's local repo, causing HEAD to fall behind. CRLF conversions and case-rename artifacts in git's index create unstaged changes that survive stash.
+**Nuclear fix (use when stash/restore loops fail):**
+```powershell
+git fetch origin
+git reset --hard origin/main
+```
+This discards all local state and matches remote exactly. Untracked files are preserved. Use when `git stash` + `git pull --rebase` loops 3+ times without resolution.
+**Lighter fix (when only a single file is blocking):**
 ```powershell
 git stash
 git pull --rebase
 git stash pop
 git push
 ```
-If stash pop hits a conflict on a specific file: `git checkout -- <file>` then retry `git stash pop`.
-If `git status` shows a modified file that `git restore` won't clear, use `git checkout -- <file>` instead.
-**Prevention:** CORE.md §2 step 6 catches drift at session start. After any MCP push mid-session, note in session-log so Patrick knows to pull before next local commit.
-**Recurrence pattern:** Happens whenever Claude edits docs locally AND pushes different files via MCP in the same session — two separate commit streams diverge on the same branch.
+**Prevention:** After any MCP push mid-session, note in session-log so Patrick pulls before next local commit.
+
+### 30. .gitattributes CRLF Rule Creates Perpetual Dirty File
+**Trigger:** Adding `*.md text eol=lf` to `.gitattributes` causes git to see existing committed markdown files as perpetually modified, even after `git restore` or `git checkout --`. `git status` flip-flops between lowercase and uppercase filename.
+**Root cause:** The committed blob in the index has CRLF. After `.gitattributes` rule is added, git smudges the checkout to LF but still compares working tree (LF) against index blob (CRLF) = always dirty. `git checkout -- file` re-applies smudge but doesn't fix the index.
+**Fix:** Renormalize the index to force the new rule into the committed blob:
+```powershell
+git add --renormalize .
+git commit -m "chore: renormalize all line endings per .gitattributes"
+git push
+```
+If `git add --renormalize` fails because unstaged changes block it, use nuclear fix from entry #29 first.
+**Test:** `git status` should show clean after commit.
+
+### 31. Git Case-Sensitivity Duplicate Index Entries (Windows)
+**Trigger:** Same file appears in `git status` as both `roadmap.md` and `ROADMAP.md` (different casing). `git checkout -- roadmap.md` doesn't clear the modification. `git add --renormalize claude_docs/roadmap.md` succeeds but shows `ROADMAP.md` as still dirty after.
+**Root cause:** A file was renamed (case-only) on a case-insensitive Windows filesystem. Git's index contains two entries for what Windows sees as the same file. `core.ignoreCase=true` doesn't prevent this split — it just makes the rename silently ambiguous. Each checkout/restore only touches one index entry.
+**Fix:** Nuclear reset is the only reliable fix. Don't attempt to repair via checkout/restore/renormalize — the duplicate entries will survive.
+```powershell
+git fetch origin
+git reset --hard origin/main
+```
+**Prevention:** Never rename files with case-only changes on Windows. If a rename is needed, use `git mv old.md OLD.md` on Linux/Mac, not on Windows.
+
+### 32. pnpm Frozen Lockfile Mismatch — Vercel/CI Build Fails
+**Trigger:** Vercel (or any CI using `pnpm install --frozen-lockfile`) fails with `ERR_PNPM_OUTDATED_LOCKFILE`. Message: "specifiers in the lockfile don't match specs in package.json". Happens after Claude adds a new package to `package.json` without running `pnpm install` on Windows to update `pnpm-lock.yaml`.
+**Root cause:** Docker rebuilds with `--no-cache` bypass the frozen lockfile check (Docker uses its own install step). Vercel uses `--frozen-lockfile` strictly and fails if lockfile doesn't match `package.json`.
+**Fix:**
+```powershell
+pnpm install
+git add pnpm-lock.yaml
+git commit -m "chore: update lockfile for <package-name>"
+git push
+```
+**Prevention:** After Claude adds any package to `package.json`, explicitly note in session-log: "Patrick must run `pnpm install` and commit `pnpm-lock.yaml` before Vercel deploy."
 
 ---
 
-Last Updated: 2026-03-05 (added entry 29 — git local/GitHub drift self-healing pattern)
+Last Updated: 2026-03-05 (session 61 — added entries 30-32: .gitattributes CRLF perpetual dirty, case-sensitivity duplicate index, pnpm frozen lockfile mismatch)
