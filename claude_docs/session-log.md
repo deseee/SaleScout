@@ -8,32 +8,28 @@ Keep only the 5 most recent sessions. Delete older entries — git history and S
 
 ## Recent Sessions
 
+### 2026-03-05 (session 53 — Sprints I–L: Hunt Pass, Creator Tier, Onboarding, Search)
+**Worked on:** Four sprints shipped. Sprint I (Phase 19): `PointsTransaction` schema + `pointsService.ts` + `/api/points` GET+track-visit routes + `PointsBadge.tsx` + `usePoints` hook + profile tier display (Scout/Hunter/Estate Pro) + BottomTabNav badge + visit tracking wired in `sales/[id].tsx`. Sprint J (Phase 22): `reputationJob.ts` (weekly cron, tier recalculation) + `TierBadge.tsx` (compact inline, TRUSTED/ESTATE_CURATOR only) + `GET /api/organizers/me` (progress message) + `reputationTier` in `listSales` + `SaleCard` tier badge + organizer dashboard tier card with benefits checklist. Sprint K (Phase 27): `OnboardingModal.tsx` (3-step, push permission, localStorage gate) + `_app.tsx` OnboardingShower + `ToastContext` points type (amber, bottom-20 above BottomTabNav) + shopper dashboard empty states. Sprint L (Phase 29): `search.ts` backend route (`GET /` unified text search, `GET /categories/:cat`) + `/search` page (tabs, TanStack Query) + `/categories/[category]` page + wired `app.use('/api/search')` in `index.ts` + fixed CORS regex bug (was double-escaped `\\/\\/`). Commits: 723bafe, 114f55c, 89b732f, 991cb40.
+**Decisions:** Points toast renders at `bottom-20` (above BottomTabNav) in a separate container from standard toasts. `TierBadge` returns null for `NEW` tier — no badge shown. `OnboardingModal` excluded for ORGANIZER/ADMIN roles. Search uses Prisma `contains` with `mode: 'insensitive'` — no FTS extension needed. CORS regex fix: `/^https:\/\/findasale[a-z0-9-]*\.vercel\.app$/`.
+**Next up:** Sprint M — Phase 15 (Review + rating system UI). Also: Neon migration for Phase 19 `PointsTransaction` table still needs manual run.
+**Blockers:** Phase 19 Neon migration still pending (`phase19_points_transaction` — points system will error until table exists). Vercel redeploy pending. Phase 31 OAuth env vars still needed.
+
 ### 2026-03-05 (session 52 — Opus Research: Workflow Hardening + Self-Improvement)
-**Worked on:** Comprehensive research session using Opus. Three parallel research agents investigated: model routing (Opus/Sonnet/Haiku pricing + sub-agent `model` parameter), MCP connectors and uptime monitoring, stress testing and CLAUDE.md best practices. Created 3 new reference docs: `claude_docs/model-routing.md` (session model + sub-agent routing matrix), `claude_docs/patrick-language-map.md` (Patrick's command vocabulary mapped to expected Claude actions), `claude_docs/session-safeguards.md` (circuit breakers, repair loop limits, common error defenses). Updated CORE.md with §11–§13 referencing new docs. Added 4 new self-healing entries (#21–#24: PowerShell syntax, Prisma non-interactive, repair loops, write-before-read). Created 2 scheduled tasks: `weekly-industry-intel` (Mondays 9am) and `context-freshness-check` (daily 8am). Added Workflow & Infrastructure track to roadmap.
-**Decisions:** Default model is Sonnet. Target split: 60% Sonnet / 30% Haiku sub-agents / 10% Opus sessions. Repair loop hard limit: 3 attempts per error. Ollama embedding service deferred to post-Phase 29. External uptime monitoring (StatusGator/UptimeRobot) queued for Patrick setup. Pre-commit validation skill queued for next Sonnet session.
-**Next up:** Sprint I — Phase 19 (Hunt Pass + shopper points). Also queued: stress test suite skill, pre-commit validation skill (both Sonnet-tier).
-**Blockers:** Same as session 51 — Vercel redeploy pending, Phase 31 OAuth env vars pending.
+**Worked on:** Comprehensive research session using Opus. Created 3 new reference docs: `claude_docs/model-routing.md`, `claude_docs/patrick-language-map.md`, `claude_docs/session-safeguards.md`. Updated CORE.md with §11–§13. Added 4 new self-healing entries (#21–#24). Created 2 scheduled tasks: `weekly-industry-intel` (Mondays 9am) and `context-freshness-check` (daily 8am). Added Workflow & Infrastructure track to roadmap.
+**Decisions:** Default model: Sonnet. Target split: 60% Sonnet / 30% Haiku sub-agents / 10% Opus. Repair loop hard limit: 3 attempts per error.
+**Blockers:** Same as session 51.
 
 ### 2026-03-05 (session 51 — Phase 26 + 28 + 18 sprint batch)
-**Worked on:** Three full sprints in one session. Phase 26: SaleCard + ItemCard full rewrite (LQIP 3-tier blur-up, aspect-square, badge overlays, 2-col mobile grid), SkeletonCards + index.tsx + organizers/[id].tsx updated. Phase 28: `GET /api/feed` personalized activity feed endpoint (follows→sales, fallback to recent), `favoriteCount` (`_count.favorites`) added to `listSales` response, `/feed` page with auth gate + empty states + 2-col grid. Phase 18: `PhotoLightbox.tsx` component (full-screen, keyboard+swipe nav, dot indicators, `getFullUrl` 1600w), wired into `sales/[id].tsx` gallery (replaced `<a target=_blank>` with aspect-square button grid + hover overlay) and `items/[id].tsx` (thumbnail strip with selected-photo state + lightbox). All files pushed to GitHub (commits abe5461, 11d06e1, ac7ebf2, 2225c4d).
-**Decisions:** Phase 28 uses no new Prisma schema — `_count.favorites` is an aggregate on the existing Favorite model. Feed falls back to all recent sales when user follows nobody (`personalized: false` flag in response). PhotoLightbox uses `getFullUrl` (1600w WebP) — existing imageUtils helper from Phase 14c.
-**Next up:** Sprint I — Phase 19 (Hunt Pass + shopper points). Sprint J — Phase 22 (Creator tier). See next-session-prompt.md for full specs.
-**Blockers:** Vercel redeploy still pending (rate limit from earlier). Phase 31 OAuth env vars still need adding once Vercel clears.
+**Worked on:** Three full sprints. Phase 26: SaleCard + ItemCard LQIP rewrite. Phase 28: `/api/feed` + `/feed` page. Phase 18: PhotoLightbox component.
+**Decisions:** Phase 28 uses `_count.favorites` aggregate. PhotoLightbox uses `getFullUrl` (1600w WebP).
+**Blockers:** Vercel redeploy pending. Phase 31 OAuth env vars needed.
 
 ### 2026-03-05 (session 49 — Phase 17 delivery + Phase 31 OAuth)
-**Worked on:** Built Phase 17 notification delivery — created `followerNotificationService.ts` (queries Follow table, sends Resend email + VAPID push per follower preference), wired fire-and-forget call into `saleController.updateSaleStatus` on DRAFT→PUBLISHED transition. Built Phase 31 OAuth social login — NextAuth v4 (Pages Router), backend `POST /auth/oauth` endpoint (find-or-create by oauthProvider+oauthId), OAuthBridge pattern in `_app.tsx` that hands JWT to AuthContext then clears NextAuth session, Google + Facebook buttons on login + register pages, `next-auth` dep added. All 8 files pushed to GitHub (commits c3e664 + 5fad9af).
-**Decisions:** NextAuth v4 over v5 — project uses Pages Router; v5 targets App Router only. OAuthBridge pattern (NextAuth handles OAuth flow only; existing JWT system owns all API auth) — avoids dual-auth conflict without replacing AuthContext.
-**Next up:** Add Phase 31 env vars to Vercel once Vercel redeploy clears.
-**Blockers:** Vercel rate limit still pending.
+**Worked on:** Phase 17 notification delivery + Phase 31 OAuth social login (NextAuth v4).
+**Decisions:** NextAuth v4 over v5 (Pages Router). OAuthBridge pattern.
+**Blockers:** Vercel rate limit. Phase 31 dormant until env vars set.
 
 ### 2026-03-04 (session 48 — Security fix, Phase 17 audit, Phase 31 schema)
-**Worked on:** Fixed HIGH-severity health item: sanitized `console.error` calls in `auth.ts` that could leak reset tokens. Audited Phase 17 follow system — discovered notification delivery entirely missing. Phase 31 OAuth schema prep: added `oauthProvider`, `oauthId`, made `password` optional; created and applied migration to Neon. Fixed Docker crash loop caused by `DIRECT_URL` missing from `docker-compose.yml`.
-**Decisions:** Phase 17 re-flagged as incomplete — notification delivery was the blocking gap. Phase 31 schema-first approach.
-**Next up:** Build Phase 17 notification delivery. Then Phase 31 NextAuth install.
-**Blockers:** Vercel redeploy still pending.
-
-### 2026-03-04 (session 47 — Railway + Neon Infrastructure Migration)
-**Worked on:** Migrated backend from local Docker + ngrok to Railway. Fixed 6 TypeScript compilation errors. Fixed Dockerfile binary resolution. Fixed `uuid@13` ESM-only crash by replacing with `crypto.randomUUID()`. Railway container now healthy. Ran `prisma migrate deploy` against Neon.
-**Decisions:** `crypto.randomUUID()` preferred over pinning uuid@9. `pnpm run` preferred over `pnpm exec` in Docker.
-**Next up:** Vercel redeploy. Then Sprint E (Phase 26).
-**Blockers:** Vercel redeploy rate limit.
+**Worked on:** Fixed reset token leak in auth.ts. Audited Phase 17. Phase 31 OAuth schema prep + Neon migration. Fixed Docker DIRECT_URL crash.
+**Decisions:** Phase 17 re-flagged incomplete. Phase 31 schema-first approach.
+**Blockers:** Vercel redeploy pending.
