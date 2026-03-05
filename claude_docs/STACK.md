@@ -23,7 +23,7 @@ No silent library substitutions.
 - Framework: Express
 - ORM: Prisma
 - Validation: Zod
-- Auth: JWT + bcrypt
+- Auth: JWT + bcrypt + NextAuth v4 (OAuth)
 - File Upload: Multer
 - Payments: Stripe (Connect + application_fee_amount)
 - Email: Resend
@@ -52,7 +52,7 @@ No silent library substitutions.
 
 ## Image Storage
 
-- Primary: Cloudinary OR Vercel Blob
+- Primary: Cloudinary (locked)
 - Direct browser upload (signed URL)
 - CDN-delivered
 
@@ -61,9 +61,11 @@ No silent library substitutions.
 ## Infrastructure
 
 - Monorepo: pnpm workspaces
-- Containerization: Docker
+- Containerization: Docker (local dev)
 - Version Control: GitHub
-- Deployment: TBD (Vercel or self-hosted)
+- Frontend Deployment: Vercel (finda.sale)
+- Backend Deployment: Railway (backend-production-153c9.up.railway.app)
+- Database: Neon PostgreSQL (production)
 
 ---
 
