@@ -197,4 +197,33 @@ This rule is enforced by `claude_docs/SECURITY.md` Section 9.
 
 ---
 
+## 11. Model Routing
+
+Before selecting session model or sub-agent model, consult:
+`claude_docs/model-routing.md`
+
+Default: Sonnet. Haiku for read-only sub-agents. Opus for novel architecture only.
+Sub-agents accept `model: "haiku"` parameter in the Task tool for cost savings.
+
+---
+
+## 12. Session Safeguards
+
+Before debugging recurring errors or when stuck in a loop, consult:
+`claude_docs/session-safeguards.md`
+
+Hard limits: 3 fix attempts per error, 2 rewrites per file per turn.
+Escalate to Patrick after hitting limits — do not continue silently.
+
+---
+
+## 13. Patrick's Language Map
+
+When interpreting Patrick's short commands ("check", "note", "ok", "wrap", etc.), consult:
+`claude_docs/patrick-language-map.md`
+
+Key rule: Patrick's short affirmations ("ok", "that worked") mean proceed — don't re-explain.
+
+---
+
 Status: Behavioral Authority
