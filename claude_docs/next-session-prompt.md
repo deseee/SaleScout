@@ -1,123 +1,102 @@
 # Next Session Resume Prompt
-*Written: 2026-03-05T04:52:02Z*
+*Written: 2026-03-05T06:00:00Z*
 *Session ended: normally*
 
 ## Resume From
 
-Start Sprint M — Phase 15 (Review + rating system UI). Full spec below.
-
-**No critical blockers** — production is live and stable. Seed succeeded. Phase 22 migration applied.
-
-**One pending check:** The Phase 19 Neon migration (`phase19_points_transaction`) was flagged in session 53 as needed. The session 54 seed succeeded but may not have written PointsTransaction records. If points features throw DB errors, run `prisma migrate deploy` with `phase19_points_transaction` migration (migration file should already exist in `packages/database/prisma/migrations/`).
+Patrick wants 3–5 more roadmap tasks. Start with **Sprint O — Phase 21 (Reservation/hold UI)**, then continue into Phase 23 or 30 if capacity allows. Load STATE.md and context.md, then start coding immediately.
 
 ## What Was In Progress
 
-Nothing — session ended cleanly. All production incidents resolved.
+Nothing. Session ended cleanly. All Phase 20 files pushed to GitHub.
 
-## What Was Completed This Session (54)
+## What Was Completed This Session
 
-- **Railway backend 502 fixed** — root cause: `EXPOSE 5000` in Dockerfile but Railway was injecting `PORT=8080`. Fixed by setting `PORT=5000` explicitly in Railway Variables. Backend now returns 200.
-- **CORS fixed** — `finda.sale` was missing from `ALLOWED_ORIGINS`. Fixed.
-- **NextAuth 500 fixed** — `NEXTAUTH_SECRET` + `NEXTAUTH_URL` were missing from Vercel env vars. Added.
-- **Phase 22 reputationTier migration created** — `reputationTier`/`avgRating`/`totalReviews`/`totalSales` were applied to local DB via `db push` without a migration file, causing seed to fail on Neon. Created `20260305000001_phase22_reputation_tier`, pushed to GitHub, ran `db:deploy` against production.
-- **Neon DB seeded** — `pnpm run db:generate && pnpm run prisma:seed` succeeded.
-- **Dockerfile.production updated** — added warning comment about PORT/EXPOSE alignment.
-- **Self-healing entries 25–27 added** — Railway PORT mismatch, missing Prisma migration, stale Windows Prisma client.
-- **STATE.md, session-log.md, context.md** all synced.
+Sprint M — Phase 15 (Review + rating system):
+- `reviewController.ts` + `/api/reviews` routes (POST, GET by sale, GET by organizer)
+- `StarRating.tsx` + `ReviewsSection.tsx` + `ReviewCard.tsx` + `ReviewForm.tsx`
+- `avgRating` recalc + 5pt award on first review
+
+Sprint N — Phase 20 (Shopper messaging) — all 11 files pushed to GitHub:
+- `Conversation` + `Message` Prisma models + migration `20260305000002_phase20_messaging`
+- `messageController.ts` (5 endpoints: conversations, thread, sendMessage, replyInThread, unreadCount)
+- `/api/messages` Express router + registered in `index.ts`
+- `hooks/useUnreadMessages.ts`
+- `pages/messages/index.tsx` (inbox — shoppers + organizers)
+- `pages/messages/[id].tsx` (iMessage-style thread view, 15s polling)
+- `pages/messages/new.tsx` (start conversation from sale page)
+- `BottomTabNav.tsx` extended to 5 tabs + amber unread badge
+- `pages/sales/[id].tsx` — "Message organizer" button (shoppers only)
+
+STATE.md, roadmap.md, session-log.md, context.md all updated.
 
 ## Environment Notes
 
-- **Production: LIVE and stable.** Railway backend healthy on PORT 5000. Vercel frontend deployed. Neon DB seeded with demo data.
-- **`PORT=5000` locked in Railway Variables** — must stay aligned with `EXPOSE 5000` in `Dockerfile.production`. Do not remove.
-- **Phase 31 OAuth still dormant** — add to Vercel: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `FACEBOOK_CLIENT_ID`, `FACEBOOK_CLIENT_SECRET` + configure redirect URIs → `https://finda.sale/api/auth/callback/{google,facebook}`.
-- **Seed command (Windows):** `cd packages\database`, then set `$env:DATABASE_URL` and `$env:DIRECT_URL` from `packages/backend/.env`, then `pnpm run db:generate && pnpm run prisma:seed`. ⚠️ Clears all data.
-- GitHub MCP active — push via `mcp__github__push_files`. Repo: `deseee/findasale`, branch: `main`.
+- **Phase 20 migration pending on Neon** — file committed, Railway auto-applies on next deploy via `prisma migrate deploy` at startup. If messaging routes 500 in production, check Railway logs for `Applying migration '20260305000002_phase20_messaging'`.
+- **Phase 31 OAuth env vars still missing from Vercel** — social login dormant.
+- No pending git pushes — everything is on GitHub main.
+- GitHub MCP active (`mcp__github__*`) — push via `mcp__github__push_files` or `create_or_update_file`. Max 3 files per `push_files` batch; large files individually via `create_or_update_file` with SHA.
 
-## Exact Context
-
-All session 54 fixes were pushed to GitHub. No uncommitted changes expected.
-
----
-
-## Sprint M — Phase 15: Review + Rating System UI
+## Sprint O — Phase 21: Reservation/Hold UI (build this first)
 
 ### What already exists
-
-- `Review` model in `schema.prisma`: `id`, `userId`, `saleId`, `rating` (Int), `comment` (String?), `createdAt`
-- `Organizer.avgRating` + `Organizer.reviewCount` fields exist and are exposed in `GET /api/organizers/:id`
-- Phase 17 reputation job references `prisma.review.findMany` — confirms the table is live
+- `Item.status` enum — check whether `RESERVED` is already a value in `schema.prisma`
+- `Item` model fields to verify: `id`, `saleId`, `status`, relations
 
 ### What to build
 
-**Backend (new file + edits):**
+**Task 1 — Schema + migration:**
+- Add `ItemReservation` model:
+  ```prisma
+  model ItemReservation {
+    id        String   @id @default(cuid())
+    itemId    String
+    item      Item     @relation(fields: [itemId], references: [id])
+    userId    String
+    user      User     @relation(fields: [userId], references: [id])
+    status    ReservationStatus @default(PENDING)
+    expiresAt DateTime
+    note      String?
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+    @@unique([itemId]) // one active hold per item
+  }
+  enum ReservationStatus { PENDING CONFIRMED CANCELLED EXPIRED }
+  ```
+- Add `RESERVED` to `ItemStatus` enum if not present
+- Add `reservations ItemReservation[]` to `Item` and `User`
+- Migration: `20260305000003_phase21_reservations`
 
-1. **`packages/backend/src/routes/reviews.ts`** (new)
-   - `POST /api/reviews` — auth required, body: `{ saleId, rating (1–5), comment? }` — validates sale exists + ENDED status (can only review past sales) + user attended (purchased at least one item from sale) — creates `Review`, then recalculates `Organizer.avgRating` + `reviewCount`
-   - `GET /api/reviews/sale/:saleId` — public, returns reviews for a sale with `user.name`
-   - `GET /api/reviews/organizer/:organizerId` — public, paginated reviews for organizer profile
+**Task 2 — Backend `reservationController.ts` + routes:**
+- `POST /api/reservations` — shopper places hold: upsert reservation, set 24hr expiry, update item status → `RESERVED`
+- `DELETE /api/reservations/:id` — shopper cancels; item reverts to `AVAILABLE`
+- `GET /api/reservations/item/:itemId` — get active reservation for an item
+- `GET /api/reservations/organizer` — all holds across organizer's sales
+- `PATCH /api/reservations/:id` — organizer confirms or cancels (body: `{ status: 'CONFIRMED' | 'CANCELLED' }`)
+- Cron job in `packages/backend/src/jobs/`: expire holds older than 24hr, reset item to `AVAILABLE`
+- Register `app.use('/api/reservations', reservationRoutes)` in `index.ts`
 
-2. **`packages/backend/src/index.ts`** — add `app.use('/api/reviews', reviewRoutes)`
+**Task 3 — Frontend: Reserve button on item detail page (`pages/items/[id].tsx`):**
+- "Hold for 24 hours" button — visible to shoppers when item is `AVAILABLE`
+- If current user holds it: show countdown to expiry + "Cancel hold" button
+- If held by someone else: show "Item on hold" badge (no button)
+- Query: `GET /api/reservations/item/:itemId`
+- Mutation: `POST /api/reservations` / `DELETE /api/reservations/:id`
 
-**Frontend (new files + edits):**
+**Task 4 — Frontend: Organizer hold management (`/organizer/holds`):**
+- List of all active reservations across organizer's sales
+- Per-hold: shopper name, item title, sale name, time remaining, Confirm / Cancel buttons
+- Link from organizer dashboard
 
-1. **`packages/frontend/components/StarRating.tsx`** (new)
-   - Interactive star picker (1–5): filled vs empty stars, hover state, `onChange` callback
-   - Also usable in display-only mode (`readonly` prop) — used in review cards
-
-2. **`packages/frontend/components/ReviewCard.tsx`** (new)
-   - Displays a single review: `user.name`, `StarRating` (readonly), `comment`, `createdAt` formatted
-
-3. **`packages/frontend/components/ReviewForm.tsx`** (new)
-   - `StarRating` picker + optional comment textarea + Submit button
-   - Calls `POST /api/reviews`, shows success toast on submit
-   - Props: `saleId`, `onSubmitted` callback
-
-4. **`packages/frontend/pages/sales/[id].tsx`** (edit)
-   - Below items section: add Reviews section
-   - Fetch `GET /api/reviews/sale/:saleId`
-   - If user is authenticated + sale ENDED + user purchased item from this sale → show `ReviewForm`
-   - List of `ReviewCard` components
-
-5. **`packages/frontend/pages/organizers/[id].tsx`** (edit)
-   - Add `avgRating` star display + review count near organizer header (already fetched from `/api/organizers/:id`)
-   - Add reviews tab or section: `GET /api/reviews/organizer/:organizerId`, list `ReviewCard`
-
-### Points integration
-
-When `POST /api/reviews` succeeds, fire-and-forget `pointsService.awardPoints(userId, 'REVIEW', 5, saleId, undefined, 'Left a review')` — Phase 19 points rule.
-
----
-
-## Sprint N — Phase 20: Shopper Messaging
-
-### Scope
-
-- `Message` model (if not already in schema): `id`, `fromUserId`, `toUserId`, `saleId?`, `body`, `read` (bool), `createdAt`
-- `GET /api/messages` — auth, returns conversation threads grouped by other user
-- `POST /api/messages` — auth, body: `{ toUserId, saleId?, body }`
-- `GET /api/messages/:threadId/read` — marks as read
-- Frontend: `/messages` page — conversation list + message thread view
-- Notification: when new message arrives, send push notification to recipient (reuse VAPID push service)
+**Task 5 (optional, if capacity allows):** Add hold status badge to item cards in `SaleCard` item list and `pages/sales/[id].tsx` item grid.
 
 ---
 
-## Sprint O — Phase 21: Reservation / Hold UI
-
-### Scope
-
-- `Reservation` model: `id`, `userId`, `itemId`, `expiresAt` (24hr hold), `status` (ACTIVE/EXPIRED/CANCELLED)
-- `POST /api/items/:id/reserve` — auth, creates 24hr hold (one per user per item), marks item `RESERVED`
-- `DELETE /api/items/:id/reserve` — auth, cancels hold
-- Cron: hourly job expires stale reservations, reverts item to `AVAILABLE`
-- Frontend: "Hold for 24h" button on item cards (shoppers only), countdown timer if held by current user
-
----
-
-## K+ Post-Beta Phases (load spec on demand)
+## Next sprints after Phase 21 (if time allows)
 
 | Sprint | Phase | Focus |
 |--------|-------|-------|
 | P | 23 | Affiliate + referral program |
 | Q | 30 | Weekly curator email |
 | R | 32 | Creator tools (CSV export, Zapier) |
-| S | 16 | Advanced photo pipeline (video-to-inventory) |
+| S | 16 | Advanced photo pipeline |
