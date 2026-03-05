@@ -40,7 +40,7 @@ Full detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## In Progress
 
-None. Sprint H complete. Next: Sprint I — Phase 19 (Hunt Pass + points).
+None. Sprint H complete. Opus research session (52) complete. Next: Sprint I — Phase 19 (Hunt Pass + points).
 
 ---
 
@@ -89,4 +89,4 @@ Full roadmap: `claude_docs/ROADMAP.md`
 
 ---
 
-Last Updated: 2026-03-05 (session 51 — Phase 18 photo lightbox complete; Phases 26, 28, 18 all pushed this session)
+Last Updated: 2026-03-05 (session 52 — Opus research session: model routing, session safeguards, language map, scheduled tasks, self-healing 21–24, roadmap workflow track)

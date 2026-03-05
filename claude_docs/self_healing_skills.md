@@ -103,6 +103,26 @@ Only entries with ≥2 occurrences OR structurally certain to recur.
 **Fix:** Add field to `req.body` destructuring AND `prisma.create`/`update` data objects.
 **Test:** `grep -n "<fieldname>" packages/backend/src/controllers/<controller>.ts`
 
+### 21. PowerShell vs Bash Syntax Confusion
+**Trigger:** Claude gives Patrick a shell command with `&&` (bash-only) or misuses backticks
+**Fix:** Always specify the target terminal. PowerShell: use `;` to chain, backtick (`` ` ``) for line continuation. Docker exec / Linux: use `&&` to chain, `\` for continuation. Load dev-environment skill before giving ANY shell command.
+**Test:** Review command before sending — does it match the target terminal?
+
+### 22. Prisma Migrate in Non-Interactive Container
+**Trigger:** `prisma migrate dev` fails with "environment is non-interactive"
+**Fix:** Docker dev: use `prisma db push` or `docker exec -it` (must have both `-i` and `-t`). Production (Railway/Neon): use `prisma migrate deploy`. Never `migrate dev` in CI/Docker without interactive terminal.
+**Test:** `docker exec -it findasale-backend-1 npx prisma migrate deploy`
+
+### 23. Repair Loop — Same Error 3+ Times
+**Trigger:** Claude has attempted the same fix pattern 3 times without success
+**Fix:** Stop. Report to Patrick: "I've tried 3 approaches for [error]. Here's what failed and why." Suggest: different model, manual intervention, or deferral. See session-safeguards.md.
+**Test:** Count fix attempts per error per session — if ≥3, halt.
+
+### 24. Write-Before-Read Tool Error
+**Trigger:** Edit tool fails because the file wasn't Read in the current conversation
+**Fix:** Always batch-Read all target files at the start of a multi-file edit session. Plan reads before edits.
+**Test:** Before any Edit call, confirm the file appears in recent Read results.
+
 ---
 
-Last Updated: 2026-03-05 (compressed from v1 — full code examples removed, trigger→fix→test format)
+Last Updated: 2026-03-05 (added entries 21–24 from Opus research session)
