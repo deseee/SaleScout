@@ -1,36 +1,53 @@
 # Next Session Resume Prompt
-*Written: 2026-03-05T22:00:00Z*
+*Written: 2026-03-05T (session 65)*
 *Session ended: normally*
 
 ## Resume From
-Merge the parallel roadmap v2 into the official `roadmap.md`, then audit all claude_docs for alignment with the new roadmap structure. This is a Sonnet-appropriate task — structured doc work, no novel architecture.
+
+Parallel path model is live. `roadmap.md` is now v10. Start CA1 unless Patrick has a higher-priority directive.
 
 ## What Was In Progress
-Nothing in-flight. Session ended cleanly after strategic planning.
+
+Nothing in-flight. Session ended cleanly after doc merge and audit.
 
 ## What Was Completed This Session
-- Strategic review of entire project (saved to `claude_docs/research/strategic-review-2026-03-05.md`)
-- Competitor ToS research across 7 platforms (agent output, patterns summarized)
-- Branding brief with color palette, typography, voice (`claude_docs/research/branding-brief-2026-03-05.md`)
-- Cross-industry feature brainstorm, 25+ features ranked (`claude_docs/research/feature-brainstorm-2026-03-05.md`)
-- Parallel roadmap v2 with 5 tracks (`parallel-roadmap-v2-2026-03-05.md` at project root AND `claude_docs/research/`)
+
+- Merged `parallel-roadmap-v2-2026-03-05.md` + old `roadmap.md` into `claude_docs/roadmap.md` v10
+- Incorporated Long-Term Hold section (video-to-inventory, multi-metro)
+- Updated `STATE.md`: Active Objective, In Progress, Next Strategic Move, Last Updated
+- Audited all claude_docs for stale Sprint T–X references — all cleaned
+- Updated `session-log.md` (added session 65, dropped session 59)
+- Updated `next-session-prompt.md`
 
 ## Primary Task for Next Session
-1. Read `parallel-roadmap-v2-2026-03-05.md` (project root) — this is the new roadmap template
-2. Read current `claude_docs/roadmap.md` — note the Long-Term Hold section that must be merged in
-3. Replace `claude_docs/roadmap.md` with the v2 parallel roadmap content, incorporating the long-term hold items
-4. Update `claude_docs/STATE.md` to reflect the new parallel path structure (replace Sprint T–X references)
-5. Audit all claude_docs for stale references to the old sprint structure
-6. Clean up: move `parallel-roadmap-v2-2026-03-05.md` and `strategic-review-2026-03-05.md` from project root to archive once merged
 
-## Key Context
-- Patrick confirmed: P1 partially done (LLC/EIN/bank ✅, support email/cards/GBP still open)
-- Patrick confirmed: P3 done (field research was the project's origin)
-- The v2 roadmap has 5 paths: P (Patrick), CA (Production), CB (AI Tagging), CC (Business Intel), CD (Innovation)
-- Long-term hold items from old roadmap: Video-to-inventory (late 2026+), Multi-metro expansion (after beta data)
-- These files should be pushed to GitHub after changes: roadmap.md, STATE.md, session-log.md, next-session-prompt.md
+**CA1 — ToS & Privacy Policy (1 session, fully autonomous):**
+- Draft ToS covering platform fees, dispute resolution, user content license, item condition disclaimers, cancellation, Stripe's role, account termination
+- Draft Privacy Policy: data collection, cookies, Stripe/Cloudinary third-party sharing, CCPA basics
+- Implement as `/terms` and `/privacy` pages (update existing if they exist)
+- Add footer links + checkout consent checkbox
+- ⚡ Sync: Patrick reviews before going live
+
+Alternative if Patrick wants to queue something else: CC1 (investor materials) or CC2 (marketing content) are fully autonomous.
+
+## Blocked Paths (Patrick Action Needed)
+
+| Path | What's Needed |
+|------|---------------|
+| CB1 (AI tagging spec) | Google Cloud + Anthropic API keys (P5) |
+| CD1 (branding implementation) | Branding direction decision (P6) |
+| CA2 (Neon migrations) | Patrick runs `prisma migrate deploy` for 3 pending migrations (20260305000006–8) |
+| Phase 31 OAuth | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `FACEBOOK_CLIENT_ID`, `FACEBOOK_CLIENT_SECRET` in Vercel |
+
+## Files Pushed to GitHub This Session
+
+- `claude_docs/roadmap.md` (v10 — full rewrite)
+- `claude_docs/STATE.md` (parallel path updates)
+- `claude_docs/session-log.md` (session 65 added)
+- `claude_docs/next-session-prompt.md` (this file)
 
 ## Environment Notes
-- GitHub is fully up to date — all session 64 research files pushed
-- 3 Neon migrations still pending (from session 62)
+
+- GitHub MCP active — use `mcp__github__push_files` at every session wrap
+- 3 Neon migrations still pending (Patrick must run in PowerShell)
 - Phase 31 OAuth env vars still needed in Vercel

@@ -8,6 +8,12 @@ Keep only the 5 most recent sessions. Delete older entries — git history and S
 
 ## Recent Sessions
 
+### 2026-03-05 (session 65 — roadmap merge + claude_docs audit)
+**Worked on:** Merged `parallel-roadmap-v2-2026-03-05.md` into official `roadmap.md` (now v10). Incorporated Long-Term Hold section from old roadmap (video-to-inventory, multi-metro). Updated STATE.md to reflect parallel path model — replaced all Sprint T–X language with 5-path structure (P/CA/CB/CC/CD). Audited claude_docs for stale sprint references; updated next-session-prompt.md and session-log.md.
+**Decisions:** roadmap.md is now authoritative v10 parallel path document. `research/parallel-roadmap-v2-2026-03-05.md` remains in research/ as the source doc.
+**Next up:** CA1 (ToS/Privacy — 1 session, fully autonomous). CB1 needs Patrick API keys. CD1 needs Patrick branding direction.
+**Blockers:** Phase 31 OAuth env vars still needed in Vercel. 3 Neon migrations still pending (20260305000006–8). Branding direction + AI tagging API keys needed from Patrick.
+
 ### 2026-03-05 (session 64 — strategic review + parallel roadmap)
 **Worked on:** Comprehensive strategic review of FindA.Sale post-Sprint X. Market research ($2.7B–$4B US estate sale market, $186B secondhand market). Competitor ToS research across 7 platforms. Branding brief (warm amber palette, serif+sans typography, affordable path). Cross-industry feature brainstorm (25+ features ranked). Built 5-path parallel roadmap v2: P (Patrick human tasks), CA (production readiness), CB (AI tagging), CC (business intel), CD (innovation & experience). All research saved to `claude_docs/research/`.
 **Decisions:** Parallel path model adopted as new roadmap structure. Sync points at 8 defined moments over 8 weeks. AI tagging production: Google Vision + Claude Haiku ($10–50/mo). 3-tier pricing proposed (3%/5%/4%). P1 partially done (LLC/EIN/bank done; email/cards/GBP open). P3 already done (original project research).
@@ -31,9 +37,3 @@ Keep only the 5 most recent sessions. Delete older entries — git history and S
 **Decisions:** `git reset --hard origin/main` is the canonical nuclear fix for any git state that survives stash/restore loops 3+ times. Never attempt case-only renames on Windows. Always commit `pnpm-lock.yaml` after Claude adds packages.
 **Next up:** Sprint T — Production Hardening. Session-start self-healing diagnostic first.
 **Blockers:** Phase 31 OAuth env vars still needed in Vercel. Sentry test endpoint should be added and removed to verify end-to-end capture.
-
-### 2026-03-05 (session 59 — claude_docs audit + anti-bloat system)
-**Worked on:** Full claude_docs audit. Cleaned STACK.md (Cloudinary locked, Vercel/Railway/Neon infra confirmed), DEVELOPMENT.md (removed stale Gradio section), OPS.md (rewrote to 4-line pointer). Archived 3 one-time audit files to `claude_docs/archive/`. Added CORE.md §14 (Tier 1/2/3 doc classification + anti-bloat rules) and §2 step 6 (GitHub sync check). Updated context-maintenance skill with Step 0 (Archive Check). Added self_healing entry #29 (git local/GitHub drift — MCP push + CRLF = perpetual dirty ROADMAP.md). Diagnosed `reservationExpiryJob` TypeError (Prisma client stale, needs Docker rebuild). Diagnosed `next-auth/react` missing (needs `pnpm install` + frontend `--no-cache` rebuild).
-**Decisions:** Tier 1/2/3 doc classification locked in CORE.md §14. Archive trigger now enforced at every session wrap via context-maintenance Step 0. Git drift is structurally certain to recur — self-healing entry #29 is the canonical fix.
-**Next up:** Patrick must run git fix commands, then Docker rebuilds (backend for Prisma, frontend for next-auth), then Sprint T begins.
-**Blockers:** Local git CRLF drift (ROADMAP.md perpetually dirty) — run `git stash; git pull --rebase; git stash pop; git push`. `reservationExpiryJob` TypeError — run `docker-compose up --build -d backend`. `next-auth` missing — run `pnpm install` then `docker compose build --no-cache frontend && docker compose up -d`.

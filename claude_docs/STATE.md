@@ -7,7 +7,7 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Active Objective
 
-Post-launch improvement. MVP stable in Grand Rapids. Sprints T–X queued.
+Parallel path model active (5 tracks). MVP stable in Grand Rapids. Beta target: 6–8 weeks. CA1 (ToS) is next Claude task.
 
 ---
 
@@ -48,7 +48,12 @@ Full detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## In Progress
 
-None. **Sprints T–X complete.** All post-launch sprint tracks shipped.
+Parallel path model launched. No Claude task actively in flight.
+
+- **CA1** — ToS & Privacy Policy implementation (next autonomous task)
+- **CB1** — AI tagging spec (blocked: API keys needed from Patrick)
+- **P1** — Support email, business cards, Google Business Profile (Patrick)
+- **P6** — Branding direction decision (Patrick)
 
 ---
 
@@ -70,8 +75,7 @@ None. **Sprints T–X complete.** All post-launch sprint tracks shipped.
 
 ## Next Strategic Move
 
-Post-launch Sprint Track T–X **fully complete**. All roadmap items shipped. All migrations applied.
-Next: define Sprint Y or begin beta onboarding / real-user testing.
+5 parallel paths active. Start CA1 (ToS/Privacy — 1 session, fully autonomous). CB1 blocked until Patrick creates API keys (P5). CD1 blocked until Patrick picks branding direction (P6). CC1 (investor materials) and CC2 (marketing content) can start any time. Beta target: 6–8 weeks. Full roadmap: `claude_docs/roadmap.md`.
 
 ---
 
@@ -99,4 +103,4 @@ Next: define Sprint Y or begin beta onboarding / real-user testing.
 
 ---
 
-Last Updated: 2026-03-05 (session 63 — All migrations applied to Neon + Docker. Pre-push hook fixed for Prisma v7 global. Lockfile synced. Clean state.)
+Last Updated: 2026-03-05 (session 65 — Roadmap merged to v10 parallel path model. STATE.md updated. claude_docs audited for stale sprint refs.)
