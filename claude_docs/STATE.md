@@ -24,7 +24,7 @@ Maintain stable MVP in Grand Rapids. Prepare for scale to additional metros.
 
 ## Completed Phases (summary)
 
-Phases 1–13 + pre-beta audit + rebrand + Sprints A–M + Phase 31 all verified and shipped.
+Phases 1–13 + pre-beta audit + rebrand + Sprints A–S all verified and shipped.
 Key milestones: JWT auth, sale management, Stripe payments, push notifications,
 creator affiliates, auction UI + cron + 7% item-level fee, QR marketing,
 virtual line, AI item tagging, Schema.org SEO, PWA hardening,
@@ -42,7 +42,8 @@ Shopper messaging — Conversation + Message models + messageController + /api/m
 Reservation/hold UI — ItemReservation model + holds migration + reservationController + /api/reservations (5 routes) + reserve button on item detail (shoppers) + organizer holds management page + Manage Holds button on dashboard (Phase 21),
 Affiliate + referral program — referralController + /api/referrals/dashboard + /refer/[code].tsx redirect page + referral-dashboard.tsx fixed (user.referralCode) + recent referrals list (Phase 23),
 Weekly curator email — curatorEmailJob.ts (Monday 8AM cron) + per-organizer HTML digest to followers with notifyEmail=true + upcoming PUBLISHED sales in next 7 days (Phase 30),
-Creator tools CSV export — GET /organizers/me/export/items/:saleId backend endpoint (RFC 4180 CSV) + Export CSV button on add-items page (authenticated fetch + blob URL) (Phase 32).
+Creator tools CSV export — GET /organizers/me/export/items/:saleId backend endpoint (RFC 4180 CSV) + Export CSV button on add-items page (authenticated fetch + blob URL) (Phase 32),
+Advanced photo pipeline — addItemPhoto + removeItemPhoto + reorderItemPhotos endpoints + ItemPhotoManager component (upload/delete/reorder/cover badge) + wired into edit-item page + edit/delete buttons wired in add-items list (Phase 16).
 
 Full detail: `claude_docs/COMPLETED_PHASES.md`
 
@@ -50,7 +51,7 @@ Full detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## In Progress
 
-None. Sprints O–R complete (2026-03-05). Next: Sprint S — Phase 16 (Advanced photo pipeline).
+**None. All Five Pillars complete (2026-03-05). Next: Workflow & Infrastructure track or new sprint planning.**
 
 ---
 
@@ -73,7 +74,8 @@ None. Sprints O–R complete (2026-03-05). Next: Sprint S — Phase 16 (Advanced
 
 ## Next Strategic Move
 
-Five-pillar growth phase. Sprint order:
+**All Five Pillars shipped.** Roadmap sprints A–S complete.
+
 1. ~~Sprint A: Phase 12 completion~~ ✅ (2026-03-05)
 2. ~~Sprint B: Phase 24+25~~ ✅ — Design system + bottom tab nav (2026-03-04)
 3. ~~Sprint C: Phase 14~~ ✅ — Rapid capture + background AI + Cloudinary image optimization (2026-03-04)
@@ -92,7 +94,7 @@ Five-pillar growth phase. Sprint order:
 16. ~~Sprint P — Phase 23~~ ✅ — Affiliate + referral program (2026-03-05)
 17. ~~Sprint Q — Phase 30~~ ✅ — Weekly curator email (2026-03-05)
 18. ~~Sprint R — Phase 32~~ ✅ — Creator tools CSV export (2026-03-05)
-19. **Sprint S — Phase 16** — Advanced photo pipeline
+19. ~~Sprint S — Phase 16~~ ✅ — Advanced photo pipeline: ItemPhotoManager + add/remove/reorder endpoints (2026-03-05)
 
 Full roadmap: `claude_docs/ROADMAP.md`
 
@@ -122,4 +124,4 @@ Full roadmap: `claude_docs/ROADMAP.md`
 
 ---
 
-Last Updated: 2026-03-05 (session 57 — Sprints O–R done: Phase 21 reservation/hold UI, Phase 23 referral program, Phase 30 weekly curator email, Phase 32 CSV export)
+Last Updated: 2026-03-05 (session 58 — Sprint S done: Phase 16 advanced photo pipeline. All Five Pillars complete.)

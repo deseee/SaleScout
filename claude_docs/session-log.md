@@ -8,6 +8,12 @@ Keep only the 5 most recent sessions. Delete older entries — git history and S
 
 ## Recent Sessions
 
+### 2026-03-05 (session 58 — Sprint S: Phase 16 Advanced photo pipeline. All Five Pillars complete.)
+**Worked on:** Sprint S (Phase 16): pushed 5 files — `itemController.ts` (addItemPhoto, removeItemPhoto, reorderItemPhotos functions + getItemForOrganizer helper), `items.ts` (3 new Phase 16 routes), `ItemPhotoManager.tsx` (NEW — upload/delete/reorder/cover badge component), `edit-item/[id].tsx` (ItemPhotoManager integration), `add-items/[saleId].tsx` (Edit Link + Delete button wired with deleteMutation). No schema migration needed — `photoUrls String[]` already on Item model. Two-step upload flow: POST /upload/item-photo (Cloudinary) → POST /items/:id/photos (append to array). Index-based deletion. Set-based URL validation on reorder to prevent injection. Commit `7c10b0a`.
+**Decisions:** No new Prisma model needed for Phase 16 — existing `photoUrls` array sufficient. Upload endpoint chains to existing `/api/upload/item-photo` then new `/api/items/:id/photos`. Cover badge shown on first photo (index 0). Hover UI for delete/reorder arrows.
+**Next up:** All Five Pillars complete. No more defined sprints. Await Patrick's direction — likely Workflow & Infrastructure track items or new feature planning.
+**Blockers:** Phase 31 OAuth env vars still needed in Vercel.
+
 ### 2026-03-05 (session 57 — Sprints O–R: Hold UI + Referral + Curator Email + CSV Export)
 **Worked on:** Sprint O (Phase 21): pushed `dashboard.tsx` with Manage Holds button (was edited but not pushed). Sprint P (Phase 23): `referralController.ts` + `/api/referrals/dashboard` + `refer/[code].tsx` (localStorage + redirect) + fixed `referral-dashboard.tsx` (user.referralCode in link, added Recent Referrals list). Sprint Q (Phase 30): `curatorEmailJob.ts` (Monday 8AM cron, per-organizer HTML email digest to followers with `notifyEmail=true`, PUBLISHED sales in next 7 days) + registered in `index.ts`. Sprint R (Phase 32): `GET /organizers/me/export/items/:saleId` endpoint (RFC 4180 CSV, ownership check) + Export CSV button in `add-items/[saleId].tsx` (authenticated fetch + blob URL). All pushed to GitHub `deseee/findasale` main.
 **Decisions:** Phase 23 was mostly pre-built; missing pieces were `/refer/[code].tsx` redirect page, referral dashboard backend endpoint, and bug in share link URL. Phase 30 uses `Follow.notifyEmail` field (already existed) to filter digest recipients. Phase 32 export route placed before `/:id` wildcard in organizers.ts to avoid Express routing collision. Authenticated blob download required because `<a download>` cannot include `Authorization` headers.
@@ -31,8 +37,3 @@ Keep only the 5 most recent sessions. Delete older entries — git history and S
 **Decisions:** Points toast renders at `bottom-20` (above BottomTabNav). `TierBadge` returns null for `NEW` tier. `OnboardingModal` excluded for ORGANIZER/ADMIN roles. Search uses Prisma `contains` with `mode: 'insensitive'`.
 **Next up:** Sprint M — Phase 15.
 **Blockers:** Phase 19 Neon migration still pending. Vercel redeploy pending. Phase 31 OAuth env vars still needed.
-
-### 2026-03-05 (session 52 — Opus Research: Workflow Hardening + Self-Improvement)
-**Worked on:** Comprehensive research session using Opus. Created 3 new reference docs: `claude_docs/model-routing.md`, `claude_docs/patrick-language-map.md`, `claude_docs/session-safeguards.md`. Updated CORE.md with §11–§13. Added 4 new self-healing entries (#21–#24). Created 2 scheduled tasks: `weekly-industry-intel` (Mondays 9am) and `context-freshness-check` (daily 8am). Added Workflow & Infrastructure track to roadmap.
-**Decisions:** Default model: Sonnet. Target split: 60% Sonnet / 30% Haiku sub-agents / 10% Opus. Repair loop hard limit: 3 attempts per error.
-**Blockers:** Vercel redeploy pending. Phase 31 OAuth env vars needed.
