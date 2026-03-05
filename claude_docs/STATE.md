@@ -48,24 +48,28 @@ Full detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## In Progress
 
-Parallel path model active. Batches 1 + 2 + CB1 complete.
+Parallel path model active. Session 66 batch complete.
 
 - **CA1** — ✅ COMPLETE. Full ToS + Privacy Policy + checkout consent checkbox. Pushed 2026-03-05.
-- **CA5** — ✅ COMPLETE. Health scout: GREEN. 0 critical, 0 high. 3 medium (message pagination, contact rate limiter). Pushed 2026-03-05.
+- **CA5** — ✅ COMPLETE. Health scout: GREEN. Medium fixes shipped (M1/M2 message pagination take:200/100, M3 contactLimiter 5/15min). Pushed 2026-03-05.
 - **CC3** — ✅ COMPLETE. Pricing analysis: competitors 13–20% vs FindA.Sale 5%. 4 options. Recommends flat 5%/7% for beta. ⚡ Patrick confirms?
 - **CC1** — ✅ COMPLETE. Investor materials: exec summary, 12-slide pitch deck outline, 3-year financial model, TAM $150M. Pushed 2026-03-05.
+- **CC2** — ✅ COMPLETE. Marketing content: 2 blog posts (organizer + shopper), social templates (IG/FB/GBP), 4 email templates, messaging pillars, hashtag bank. Pushed 2026-03-05.
 - **CD4** — ✅ COMPLETE. Bi-weekly workflow review scheduled task (1st + 15th, 9AM). First run: March 15.
-- **CD2 Phase 1** — ✅ COMPLETE. Scarcity counter + social proof stats bar on sale pages. Pulsing "Only X left!" when <20% remain. "On Hold" / "Sold" item badges. No migration needed. Pushed 2026-03-05.
-- **CB1** — ✅ COMPLETE. `cloudAIService.ts` created (Google Vision → Claude Haiku chain). `uploadController.ts` updated — cloud AI primary, Ollama fallback. `.env.example` updated. Pushed 2026-03-05 (commit 104c414).
-- **P1** — Support email, business cards, Google Business Profile (Patrick)
-- **P6** — Branding direction decision (Patrick)
+- **CD2 Phase 1** — ✅ COMPLETE. Scarcity counter + social proof stats bar. Pulsing "Only X left!" + "On Hold" / "Sold" badges. Pushed 2026-03-05.
+- **CB1** — ✅ COMPLETE. `cloudAIService.ts` (Google Vision → Claude Haiku). `uploadController.ts` cloud AI primary, Ollama fallback. Pushed 2026-03-05.
+- **CB3** — ✅ COMPLETE. AI tagging suggestions review panel in add-items. Apply/dismiss/rescan. No silent pre-fill. Pushed 2026-03-05.
+- **P5** — ✅ Google Vision, Anthropic API, UptimeRobot DONE. Remaining: OAuth credentials, VAPID production confirm.
+- **P6** — ✅ AI-generated SVG logo created (`claude_docs/brand/`). Unblocks business cards + CD1. Pushed 2026-03-05.
+- **P1** — Support email, business cards (use logo-primary.svg), Google Business Profile (Patrick)
+- **P2** — Stripe business account, Google Voice, Search Console (Patrick)
 
 ---
 
 ## Pending Manual Action
 
 - **Phase 31 OAuth env vars** — Social login dormant until added to Vercel: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `FACEBOOK_CLIENT_ID`, `FACEBOOK_CLIENT_SECRET`. Configure redirect URIs → `https://finda.sale/api/auth/callback/{google,facebook}`.
-- **Uptime monitoring** — Create UptimeRobot or StatusGator free account, add monitors for `finda.sale` and Railway backend. Share URL with Claude to wire alerts.
+- **Uptime monitoring** — ✅ UptimeRobot done (Patrick confirmed 2026-03-05).
 - **Sentry** — ✅ Fully deployed. `@sentry/node` (backend) + `@sentry/nextjs` (frontend) wired and running in Docker. Lockfile committed. Vercel deployed. DSNs set in Railway + Vercel. Test: add `/sentry-test` route → verify event in Sentry dashboard → remove route.
 
 ---
@@ -80,7 +84,7 @@ Parallel path model active. Batches 1 + 2 + CB1 complete.
 
 ## Next Strategic Move
 
-Batches 1 + 2 + CB1 complete. CB3 (AI tagging frontend UI — photo → suggestions flow) is next CB task. CA2 (DB/migration health) and CA3 (payment stress test) are next CA tasks. CA5 medium findings (message pagination, contact rate limiter) need fixes. CD2 Phase 2 (engagement layer) and CC2 (marketing content) queued. CD1 blocked pending P6 branding decision. Beta target: 6–8 weeks. Full roadmap: `claude_docs/roadmap.md`.
+Session 66 complete: CB1+CB3+CC2+CA5-fixes+P5/P6 shipped. Next priorities: CA2 (DB/migration health — apply 3 pending Neon migrations), CA3 (payment stress test), CD1 (branding implementation — P6 logo now available, can proceed). CD2 Phase 2 (engagement layer) queued. Patrick P items: P1 business cards/email/GBP, P2 Stripe/Search Console, P5 OAuth credentials. Beta target: 6–8 weeks. Full roadmap: `claude_docs/roadmap.md`.
 
 ---
 
@@ -108,4 +112,4 @@ Batches 1 + 2 + CB1 complete. CB3 (AI tagging frontend UI — photo → suggesti
 
 ---
 
-Last Updated: 2026-03-05 (session 66 — Batches 1+2 complete (CA1/CA5/CC1/CC3/CD2Ph1/CD4). CB1 shipped: cloudAIService.ts + uploadController fallback chain. STATE.md updated.)
+Last Updated: 2026-03-05 (session 66 — CB1+CB3+CC2+CA5-fixes+P5/P6 complete. Brand assets created. Marketing content. STATE.md updated.)
