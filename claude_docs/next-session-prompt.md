@@ -1,28 +1,43 @@
 # Next Session Resume Prompt
-*Written: 2026-03-04T23:30:00Z*
+*Written: 2026-03-05T00:45:45Z*
 *Session ended: normally*
 
 ## Resume From
-Build Phase 17 notification delivery - when an organizer publishes a sale, query the Follow table and send email (Resend) + push (VAPID) to all followers who have notifyEmail/notifyPush enabled.
+
+Check whether Vercel has redeployed (rate limit from session 47/48). If yes, verify frontend talks to Railway backend end-to-end. Then add Phase 31 OAuth env vars to Vercel.
 
 ## What Was In Progress
-- Phase 17 notification delivery - blocking gap. Follow/unfollow API and DB schema exist and work. Missing piece is in saleController.ts: when updateSaleStatus transitions a sale to PUBLISHED, it must look up all followers and dispatch notifications. notifyEmail/notifyPush fields are stored but never read.
-- Phase 31 NextAuth.js - schema is live on Neon (oauthProvider, oauthId, password now optional). Next step: install NextAuth.js v5, wire Google + Facebook providers.
+
+Nothing — session ended cleanly. Sprint D and Phase 31 are both complete and pushed.
 
 ## What Was Completed This Session
-- Security fix: sanitized console.error in packages/backend/src/routes/auth.ts - no longer leaks Prisma error objects that could expose reset token details
-- Phase 31 schema applied: migration 20260304000003_phase31_oauth_fields live on Neon
-- Docker crash loop fixed: DIRECT_URL added to docker-compose.yml backend environment
-- packages/database/.env updated with DIRECT_URL pointing to local postgres
+
+- **Phase 17 notification delivery** — `followerNotificationService.ts` created (queries Follow table, sends Resend email + VAPID push per follower preference), wired fire-and-forget into `saleController.updateSaleStatus` on DRAFT→PUBLISHED. Commit c3e664.
+- **Phase 31 OAuth social login** — NextAuth v4 (Pages Router compatible), backend `POST /auth/oauth` find-or-create endpoint, `OAuthBridge` component in `_app.tsx` hands JWT to AuthContext then clears NextAuth session, Google + Facebook buttons on login + register pages, `next-auth: ^4.24.0` added to frontend deps. Commit 5fad9af.
 
 ## Environment Notes
-- Vercel redeploy still pending from prior session (rate limit) - verify before frontend-dependent testing.
-- packages/backend/.env has Neon URLs (Patrick set for migration). Safe to revert to local Docker URLs for day-to-day dev.
-- Railway backend was 502 during this session - may be transient. Check at session start.
-- All changes pushed to GitHub main (latest commit: ace79de).
+
+- **Vercel redeploy still pending** — rate-limited since session 47. Frontend may still point at old backend URL. Check this first.
+- **Phase 31 dormant until env vars are set in Vercel:**
+  - `NEXTAUTH_SECRET` — generate: `openssl rand -hex 32`
+  - `NEXTAUTH_URL` — Vercel frontend URL (e.g. `https://finda-sale.vercel.app`)
+  - `GOOGLE_CLIENT_ID` + `GOOGLE_CLIENT_SECRET` — Google Cloud Console → OAuth 2.0 → add redirect URI: `https://your-app.vercel.app/api/auth/callback/google`
+  - `FACEBOOK_CLIENT_ID` + `FACEBOOK_CLIENT_SECRET` — Meta Developer Portal → add redirect URI: `https://your-app.vercel.app/api/auth/callback/facebook`
+- Railway backend: healthy, no changes needed.
+- GitHub MCP active — push via `mcp__github__push_files`, no PowerShell.
 
 ## Exact Context
-- Follow notification gap: packages/backend/src/controllers/saleController.ts - updateSaleStatus function. After PUBLISHED transition: query Follow where organizerId = sale.organizerId, fan out Resend email (notifyEmail: true) and VAPID push (notifyPush: true).
-- Resend pattern: packages/backend/src/routes/auth.ts forgot-password route.
-- VAPID push pattern: packages/backend/src/utils/webpush.ts + pushController.ts.
-- Phase 31: install next-auth@beta in frontend, create pages/api/auth/[...nextauth].ts, configure Google + Facebook providers.
+
+Phase 17 files changed:
+- `packages/backend/src/services/followerNotificationService.ts` (new)
+- `packages/backend/src/controllers/saleController.ts` (fire-and-forget added in `updateSaleStatus`)
+
+Phase 31 files changed:
+- `packages/backend/src/controllers/authController.ts` (added `oauthLogin`)
+- `packages/backend/src/routes/auth.ts` (added `POST /oauth`)
+- `packages/frontend/pages/api/auth/[...nextauth].ts` (new)
+- `packages/frontend/types/next-auth.d.ts` (new)
+- `packages/frontend/pages/_app.tsx` (added SessionProvider + OAuthBridge)
+- `packages/frontend/pages/login.tsx` (added social buttons)
+- `packages/frontend/pages/register.tsx` (added social buttons)
+- `packages/frontend/package.json` (added `next-auth: ^4.24.0`)
