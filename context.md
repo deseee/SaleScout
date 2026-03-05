@@ -1,5 +1,5 @@
 # Dynamic Project Context
-*Generated at 2026-03-05T01:22:39.976Z*
+*Generated at 2026-03-05T14:24:48.709Z*
 
 ## Git Status
 - **Branch:** (run git locally)
@@ -8,10 +8,10 @@
 
 ## Last Session
 ### 2026-03-05
-**Worked on:** Three full sprints in one session. Phase 26: SaleCard + ItemCard full rewrite (LQIP 3-tier blur-up, aspect-square, badge overlays, 2-col mobile grid), SkeletonCards + index.tsx + organizers/[id].tsx updated. Phase 28: `GET /api/feed` personalized activity feed endpoint (follows→sales, fallback to recent), `favoriteCount` (`_count.favorites`) added to `listSales` response, `/feed` page with auth gate + empty states + 2-col grid. Phase 18: `PhotoLightbox.tsx` component (full-screen, keyboard+swipe nav, dot indicators, `getFullUrl` 1600w), wired into `sales/[id].tsx` gallery (replaced `<a target=_blank>` with aspect-square button grid + hover overlay) and `items/[id].tsx` (thumbnail strip with selected-photo state + lightbox). All files pushed to GitHub (commits abe5461, 11d06e1, ac7ebf2, 2225c4d).
-**Decisions:** Phase 28 uses no new Prisma schema — `_count.favorites` is an aggregate on the existing Favorite model. Feed falls back to all recent sales when user follows nobody (`personalized: false` flag in response). PhotoLightbox uses `getFullUrl` (1600w WebP) — existing imageUtils helper from Phase 14c.
-**Next up:** Sprint I — Phase 19 (Hunt Pass + shopper points). Sprint J — Phase 22 (Creator tier). See next-session-prompt.md for full specs.
-**Blockers:** Vercel redeploy still pending (rate limit from earlier). Phase 31 OAuth env vars still need adding once Vercel clears.
+**Worked on:** Full claude_docs audit. Cleaned STACK.md (Cloudinary locked, Vercel/Railway/Neon infra confirmed), DEVELOPMENT.md (removed stale Gradio section), OPS.md (rewrote to 4-line pointer). Archived 3 one-time audit files to `claude_docs/archive/`. Added CORE.md §14 (Tier 1/2/3 doc classification + anti-bloat rules) and §2 step 6 (GitHub sync check). Updated context-maintenance skill with Step 0 (Archive Check). Added self_healing entry #29 (git local/GitHub drift — MCP push + CRLF = perpetual dirty ROADMAP.md). Diagnosed `reservationExpiryJob` TypeError (Prisma client stale, needs Docker rebuild). Diagnosed `next-auth/react` missing (needs `pnpm install` + frontend `--no-cache` rebuild).
+**Decisions:** Tier 1/2/3 doc classification locked in CORE.md §14. Archive trigger now enforced at every session wrap via context-maintenance Step 0. Git drift is structurally certain to recur — self-healing entry #29 is the canonical fix.
+**Next up:** Patrick must run git fix commands, then Docker rebuilds (backend for Prisma, frontend for next-auth), then Sprint T begins.
+**Blockers:** Local git CRLF drift (ROADMAP.md perpetually dirty) — run `git stash; git pull --rebase; git stash pop; git push`. `reservationExpiryJob` TypeError — run `docker-compose up --build -d backend`. `next-auth` missing — run `pnpm install` then `docker compose build --no-cache frontend && docker compose up -d`.
 
 ## Health Status
 Last scan: 2026-03-03
@@ -29,12 +29,16 @@ Docker status unavailable — run update-context.js locally (Windows) to capture
 
 ## Signals
 ⚠ Env drift — in .env.example but missing from .env: HF_TOKEN
-✓ TODOs: none found
+⚠ 1+ TODO/FIXME markers in source (showing up to 5):
+  /sessions/dazzling-upbeat-mayer/mnt/FindaSale/packages/backend/src/controllers/userController.ts:210:          // TODO: Implement notification system when ready
 
 ## Project File Tree
 ```
 ├── .env
 ├── .env.example
+├── .githooks/
+│   ├── pre-commit
+│   └── pre-push
 ├── .gitignore
 ├── CLAUDE.md
 ├── README.md
@@ -51,6 +55,10 @@ Docker status unavailable — run update-context.js locally (Windows) to capture
 │   ├── SEED_SUMMARY.md
 │   ├── STACK.md
 │   ├── STATE.md
+│   ├── archive/
+│   │   ├── pre-beta-audit-2026-03-03.md
+│   │   ├── rebrand-audit.md
+│   │   └── workflow-audit-2026-03-03.md
 │   ├── changelog-tracker/
 │   │   └── .gitkeep
 │   ├── competitor-intel/
@@ -60,22 +68,23 @@ Docker status unavailable — run update-context.js locally (Windows) to capture
 │   │   ├── 2026-03-01.md
 │   │   ├── 2026-03-02.md
 │   │   └── 2026-03-03.md
+│   ├── model-routing.md
 │   ├── monthly-digests/
 │   │   └── .gitkeep
-│   ├── new 1.txt
 │   ├── next-session-prompt.md
+│   ├── patrick-language-map.md
+│   ├── pre-commit-check.md
 │   ├── research/
 │   │   ├── competitor-intel-2026-03-04.md
 │   │   └── growth-channels-2026-03-04.md
 │   ├── roadmap.md
 │   ├── self_healing_skills.md
 │   ├── session-log.md
+│   ├── session-safeguards.md
 │   ├── ux-spotchecks/
-│   │   ├── .gitkeep
-│   │   └── 2026-03-04.md
+│   │   └── .gitkeep
 │   └── workflow-retrospectives/
 │       └── .gitkeep
-├── conversation-defaults Skill.md
 ├── docker-compose.yml
 ├── next
 ├── package.json
@@ -138,8 +147,12 @@ Docker status unavailable — run update-context.js locally (Windows) to capture
 │   │   │   │   ├── itemController.ts
 │   │   │   │   ├── lineController.ts
 │   │   │   │   ├── marketingKitController.ts
+│   │   │   │   ├── messageController.ts
 │   │   │   │   ├── notificationController.ts
 │   │   │   │   ├── pushController.ts
+│   │   │   │   ├── referralController.ts
+│   │   │   │   ├── reservationController.ts
+│   │   │   │   ├── reviewController.ts
 │   │   │   │   ├── saleController.ts
 │   │   │   │   ├── stripeController.ts
 │   │   │   │   ├── stripeStatusController.ts
@@ -148,8 +161,11 @@ Docker status unavailable — run update-context.js locally (Windows) to capture
 │   │   │   ├── index.ts
 │   │   │   ├── jobs/
 │   │   │   │   ├── auctionJob.ts
+│   │   │   │   ├── curatorEmailJob.ts
 │   │   │   │   ├── emailReminderJob.ts
-│   │   │   │   └── notificationJob.ts
+│   │   │   │   ├── notificationJob.ts
+│   │   │   │   ├── reputationJob.ts
+│   │   │   │   └── reservationExpiryJob.ts
 │   │   │   ├── lib/
 │   │   │   │   └── prisma.ts
 │   │   │   ├── middleware/
@@ -165,16 +181,23 @@ Docker status unavailable — run update-context.js locally (Windows) to capture
 │   │   │   │   ├── geocode.ts
 │   │   │   │   ├── items.ts
 │   │   │   │   ├── lines.ts
+│   │   │   │   ├── messages.ts
 │   │   │   │   ├── notifications.ts
 │   │   │   │   ├── organizers.ts
+│   │   │   │   ├── points.ts
 │   │   │   │   ├── push.ts
+│   │   │   │   ├── referrals.ts
+│   │   │   │   ├── reservations.ts
+│   │   │   │   ├── reviews.ts
 │   │   │   │   ├── sales.ts
+│   │   │   │   ├── search.ts
 │   │   │   │   ├── stripe.ts
 │   │   │   │   ├── upload.ts
 │   │   │   │   └── users.ts
 │   │   │   ├── services/
 │   │   │   │   ├── emailReminderService.ts
-│   │   │   │   └── followerNotificationService.ts
+│   │   │   │   ├── followerNotificationService.ts
+│   │   │   │   └── pointsService.ts
 │   │   │   └── utils/
 │   │   │       ├── stripe.ts
 │   │   │       └── webpush.ts
@@ -187,7 +210,7 @@ Docker status unavailable — run update-context.js locally (Windows) to capture
 │   │   ├── package-lock.json
 │   │   ├── package.json
 │   │   ├── prisma/
-│   │   │   ├── migrations/ (18 migrations)
+│   │   │   ├── migrations/ (22 migrations)
 │   │   │   ├── schema.prisma
 │   │   │   └── seed.ts
 │   │   └── tsconfig.json
@@ -207,10 +230,14 @@ Docker status unavailable — run update-context.js locally (Windows) to capture
 │   │   │   ├── FollowButton.tsx
 │   │   │   ├── InstallPrompt.tsx
 │   │   │   ├── ItemCard.tsx
+│   │   │   ├── ItemPhotoManager.tsx
 │   │   │   ├── Layout.tsx
+│   │   │   ├── OnboardingModal.tsx
 │   │   │   ├── PhotoLightbox.tsx
+│   │   │   ├── PointsBadge.tsx
 │   │   │   ├── RapidCapture.tsx
 │   │   │   ├── ReputationTier.tsx
+│   │   │   ├── ReviewsSection.tsx
 │   │   │   ├── SaleCard.tsx
 │   │   │   ├── SaleMap.tsx
 │   │   │   ├── SaleMapInner.tsx
@@ -218,9 +245,15 @@ Docker status unavailable — run update-context.js locally (Windows) to capture
 │   │   │   ├── SaleSubscription.tsx
 │   │   │   ├── Skeleton.tsx
 │   │   │   ├── SkeletonCards.tsx
+│   │   │   ├── StarRating.tsx
+│   │   │   ├── TierBadge.tsx
+│   │   │   └── ToastContext.tsx
+│   │   ├── contexts/
 │   │   │   └── ToastContext.tsx
 │   │   ├── hooks/
-│   │   │   └── usePushSubscription.ts
+│   │   │   ├── usePoints.ts
+│   │   │   ├── usePushSubscription.ts
+│   │   │   └── useUnreadMessages.ts
 │   │   ├── lib/
 │   │   │   ├── api.ts
 │   │   │   └── imageUtils.ts
@@ -240,6 +273,8 @@ Docker status unavailable — run update-context.js locally (Windows) to capture
 │   │   │   │   ├── auth/
 │   │   │   │   │   └── [...nextauth].ts
 │   │   │   │   └── og.tsx
+│   │   │   ├── categories/
+│   │   │   │   └── [category].tsx
 │   │   │   ├── city/
 │   │   │   │   └── [city].tsx
 │   │   │   ├── contact.tsx
@@ -252,6 +287,10 @@ Docker status unavailable — run update-context.js locally (Windows) to capture
 │   │   │   ├── items/
 │   │   │   │   └── [id].tsx
 │   │   │   ├── login.tsx
+│   │   │   ├── messages/
+│   │   │   │   ├── [id].tsx
+│   │   │   │   ├── index.tsx
+│   │   │   │   └── new.tsx
 │   │   │   ├── offline.tsx
 │   │   │   ├── organizer/
 │   │   │   │   ├── add-items/
@@ -263,6 +302,7 @@ Docker status unavailable — run update-context.js locally (Windows) to capture
 │   │   │   │   │   └── [id].tsx
 │   │   │   │   ├── edit-sale/
 │   │   │   │   │   └── [id].tsx
+│   │   │   │   ├── holds.tsx
 │   │   │   │   ├── line-queue/
 │   │   │   │   │   └── [id].tsx
 │   │   │   │   ├── send-update/
@@ -272,6 +312,8 @@ Docker status unavailable — run update-context.js locally (Windows) to capture
 │   │   │   │   └── [id].tsx
 │   │   │   ├── privacy.tsx
 │   │   │   ├── profile.tsx
+│   │   │   ├── refer/
+│   │   │   │   └── [code].tsx
 │   │   │   ├── referral-dashboard.tsx
 │   │   │   ├── register.tsx
 │   │   │   ├── reset-password.tsx
@@ -279,6 +321,7 @@ Docker status unavailable — run update-context.js locally (Windows) to capture
 │   │   │   │   ├── [id].tsx
 │   │   │   │   └── zip/
 │   │   │   │       └── [zip].tsx
+│   │   │   ├── search.tsx
 │   │   │   ├── server-sitemap.xml.tsx
 │   │   │   ├── shopper/
 │   │   │   │   ├── dashboard.tsx
@@ -330,6 +373,7 @@ Docker status unavailable — run update-context.js locally (Windows) to capture
 ├── pnpm-workspace.yaml
 ├── railway.toml
 └── scripts/
+    ├── stress-test.js
     └── update-context.js
 
 ```

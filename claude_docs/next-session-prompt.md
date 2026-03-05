@@ -1,62 +1,63 @@
 # Next Session Resume Prompt
-*Written: 2026-03-05T13:00:00Z*
-*Session ended: normally*
+*Written: 2026-03-05T14:15:00Z*
+*Session ended: normally — doc audit complete, feature blockers pending*
 
 ## Resume From
-
-**Start Sprint T — Production Hardening.** Load STATE.md and roadmap.md, then begin T1 (stress test suite). No pending pushes, no mid-task items. Clean start.
+Fix the three environment blockers below before starting Sprint T.
 
 ## What Was In Progress
+Three blockers need resolving before Sprint T can start:
 
-Nothing. Session ended cleanly. All files pushed, Neon migrations applied, Railway redeployed.
+1. **Git CRLF drift** — ROADMAP.md perpetually dirty on Windows due to `core.autocrlf`. Run:
+   ```powershell
+   git stash
+   git pull --rebase
+   git stash pop
+   git push
+   ```
+   If ROADMAP.md still shows as modified after stash, commit it directly:
+   ```powershell
+   git add claude_docs/ROADMAP.md
+   git commit -m "docs: fix CRLF drift on ROADMAP.md"
+   git pull --rebase
+   git push
+   ```
+   Also re-commit the archive files (came back after git reset):
+   ```powershell
+   git add claude_docs/archive/
+   git rm --cached claude_docs/pre-beta-audit-2026-03-03.md claude_docs/rebrand-audit.md claude_docs/workflow-audit-2026-03-03.md
+   git commit -m "docs: archive one-time audit files"
+   git push
+   ```
+
+2. **reservationExpiryJob TypeError** — `prisma.itemReservation` undefined, Prisma client predates Phase 21. Fix:
+   ```powershell
+   docker-compose up --build -d backend
+   ```
+
+3. **next-auth missing from frontend** — in `package.json` but container never rebuilt. Fix:
+   ```powershell
+   pnpm install
+   docker compose build --no-cache frontend
+   docker compose up -d
+   ```
 
 ## What Was Completed This Session
-
-- Phase 16 (advanced photo pipeline): ItemPhotoManager component + 3 backend endpoints + wired into edit-item + add-items delete/edit buttons. Commit `7c10b0a`.
-- Production fix: `prisma migrate deploy` applied 4 pending Neon migrations (Phases 19, 22, 20, 21). Railway `ItemReservation` error loop resolved.
-- Docs reorganized: roadmap v9 (Sprint Track T–X), STATE.md trimmed, self-healing #28 added.
+- Full claude_docs audit: STACK.md fixed, DEVELOPMENT.md cleaned, OPS.md rewritten
+- 3 one-time audit files moved to `claude_docs/archive/`
+- CORE.md §14: Tier 1/2/3 doc classification + anti-bloat rules
+- CORE.md §2 step 6: GitHub sync check at session start
+- context-maintenance skill: Step 0 (Archive Check) added to Session End Protocol
+- self_healing entry #29: git local/GitHub drift pattern
 
 ## Environment Notes
+- Local git needs a clean `git pull --rebase + git push` (see blocker 1 above)
+- Install `context-maintenance.skill` from the FindaSale folder root (updated Archive Check step)
+- All doc changes pushed to GitHub via MCP
 
-- All Five Pillars complete. 21 phases shipped. Railway and Neon fully in sync.
-- No pending git pushes.
-- GitHub MCP active — push via `mcp__github__push_files`.
-- Phase 31 OAuth env vars still missing from Vercel (social login dormant).
-
-## Sprint T — Production Hardening (build this first)
-
-Four tasks in priority order:
-
-### T1 — Stress Test Suite
-`scripts/health-check.ts` — runnable script that checks:
-1. **Schema drift** — compare Prisma schema model names vs migration SQL `CREATE TABLE` statements; flag any model with no matching migration
-2. **Dead routes** — parse `packages/backend/src/routes/*.ts` for `router.{method}` calls and verify each imported controller export exists
-3. **Stale doc refs** — scan STATE.md and roadmap.md for file paths; verify each path exists in the repo
-4. **Console stub leak** — grep `packages/backend/src/controllers/**/*.ts` for `console.log` / `alert(` / `// TODO`
-5. **Missing authenticate** — grep mutation routes for any POST/PUT/PATCH/DELETE without `authenticate`
-
-Output: `PASS` / `FAIL [item]` per check. Exit 1 on any failure (so it can gate deploys).
-
-Wire into `claude_docs/health-reports/` — save a timestamped run result. Update health-scout skill to call this script.
-
-### T2 — Pre-Commit Validation Skill
-Extend `.githooks/pre-push` (already has TS check) to also run:
-- `npx prisma validate` (Prisma schema lint)
-- `node scripts/health-check.ts` (run the new stress test)
-
-Update the `findasale-deploy` skill checklist to include: “Run `node scripts/health-check.ts` — all checks must pass.”
-
-### T3 — Favorites Categories
-- Add `category` filter to `GET /api/favorites` (backend filter on `item.category`)
-- Frontend: `/favorites` page gets category tabs (reuse existing `/search` `CategoryTabs` or inline tabs pattern)
-- No schema change needed
-
-### T4 — Virtual Line SMS E2E
-Scaffolded files to check first: `lineController.ts`, `virtualLine` routes, Twilio env vars.
-- Complete `POST /api/lines/:saleId/join` → Twilio SMS confirmation to shopper
-- Complete `POST /api/lines/:saleId/notify` → SMS blast to all in line
-- Add simple organizer UI on sale management page: current queue count + Notify button
-
-## After Sprint T
-
-See `claude_docs/roadmap.md` for Sprints U–X. Patrick's standing instruction: continue in batches of 3–5 roadmap tasks.
+## Exact Context
+- Archive files moved locally to `claude_docs/archive/` (not yet committed — blocker 1)
+- CORE.md: §14 and §2 step 6 live on GitHub (SHA: `371563b7`)
+- self_healing_skills.md: 29 entries on GitHub (SHA: `8640c3b2`)
+- reservationExpiryJob error: `TypeError: Cannot read properties of undefined (reading 'findMany')` in `packages/backend/src/jobs/reservationExpiryJob.ts`
+- Sprint T spec: `claude_docs/roadmap.md` — stress tests, pre-commit validation, favorites categories, virtual line SMS E2E

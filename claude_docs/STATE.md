@@ -100,4 +100,4 @@ Sprints A–S complete. Post-launch Sprint Track T–X defined in `claude_docs/r
 
 ---
 
-Last Updated: 2026-03-05 (session 58 — All Five Pillars done, post-launch Sprint Track T–X defined, Neon migrations applied, Railway redeployed clean)
+Last Updated: 2026-03-05 (session 59 — claude_docs audit, anti-bloat rules added to CORE.md §14, git drift self-healing entry #29, context-maintenance skill updated with Archive Check step)
