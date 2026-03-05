@@ -48,7 +48,7 @@ Full detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## In Progress
 
-Parallel path model active. Session 66 batch complete.
+Parallel path model active. Session 66–67 batches complete.
 
 - **CA1** — ✅ COMPLETE. Full ToS + Privacy Policy + checkout consent checkbox. Pushed 2026-03-05.
 - **CA5** — ✅ COMPLETE. Health scout: GREEN. Medium fixes shipped (M1/M2 message pagination take:200/100, M3 contactLimiter 5/15min). Pushed 2026-03-05.
@@ -60,8 +60,11 @@ Parallel path model active. Session 66 batch complete.
 - **CB1** — ✅ COMPLETE. `cloudAIService.ts` (Google Vision → Claude Haiku). `uploadController.ts` cloud AI primary, Ollama fallback. Pushed 2026-03-05.
 - **CB3** — ✅ COMPLETE. AI tagging suggestions review panel in add-items. Apply/dismiss/rescan. No silent pre-fill. Pushed 2026-03-05.
 - **P5** — ✅ Google Vision, Anthropic API, UptimeRobot DONE. Remaining: OAuth credentials, VAPID production confirm.
-- **P6** — ✅ AI-generated SVG logo created (`claude_docs/brand/`). Unblocks business cards + CD1. Pushed 2026-03-05.
-- **P1** — Support email, business cards (use logo-primary.svg), Google Business Profile (Patrick)
+- **P6** — ✅ AI-generated SVG + PNG logos created (`claude_docs/brand/`). 4 PNG files: logo-icon-512.png, logo-primary.png, business-card-front.png, business-card-back.png — Vistaprint-ready. Pushed 2026-03-05.
+- **P1** — Support email, business cards (use business-card-front/back.png from claude_docs/brand/), Google Business Profile (Patrick)
+- **CA2** — ✅ COMPLETE. Schema validated (4 additive migrations pending Railway deploy). Migration runbook created. Pushed 2026-03-05.
+- **CD1** — ✅ COMPLETE. Fraunces serif font, sage-green color palette added to Tailwind + _document. Pushed 2026-03-05.
+- **CA3** — ✅ COMPLETE. Payment stress test map created. 2 bugs fixed: concurrent purchase auto-refund guard + $0.50 minimum check. Pushed 2026-03-05.
 - **P2** — Stripe business account, Google Voice, Search Console (Patrick)
 
 ---
@@ -84,7 +87,7 @@ Parallel path model active. Session 66 batch complete.
 
 ## Next Strategic Move
 
-Session 66 complete: CB1+CB3+CC2+CA5-fixes+P5/P6 shipped. Next priorities: CA2 (DB/migration health — apply 3 pending Neon migrations), CA3 (payment stress test), CD1 (branding implementation — P6 logo now available, can proceed). CD2 Phase 2 (engagement layer) queued. Patrick P items: P1 business cards/email/GBP, P2 Stripe/Search Console, P5 OAuth credentials. Beta target: 6–8 weeks. Full roadmap: `claude_docs/roadmap.md`.
+Sessions 66–67 complete: CA2+CA3+CD1+CB1+CB3+CC2 shipped. Next: CA4 (user flow audit), CA6 (feature polish), CD2 Phase 2 (engagement layer). Patrick: P1 business cards (PNG logo ready in claude_docs/brand/), P2 Stripe/Search Console, P5 OAuth credentials, apply Railway migrations (`prisma migrate deploy` runs on deploy — verify in Railway logs). Beta target: 6–8 weeks. Full roadmap: `claude_docs/roadmap.md`.
 
 ---
 
@@ -94,7 +97,7 @@ Session 66 complete: CB1+CB3+CC2+CA5-fixes+P5/P6 shipped. Next priorities: CA2 (
 - **Neon production DB** — `prisma migrate deploy` must be run manually after any new migration. All 26 migrations applied to both Neon and local Docker as of 2026-03-05.
 - **Production seed:**
   ```powershell
-  cd C:\Users\desee\ClaudeProjects\FindaSale\packages\database
+  cd C:\\Users\\desee\\ClaudeProjects\\FindaSale\\packages\\database
   $env:DATABASE_URL="postgresql://neondb_owner:npg_6CVGh8YvPSHg@ep-plain-sound-aeefcq1y-pooler.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
   $env:DIRECT_URL="postgresql://neondb_owner:npg_6CVGh8YvPSHg@ep-plain-sound-aeefcq1y.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
   pnpm run db:generate
@@ -112,4 +115,4 @@ Session 66 complete: CB1+CB3+CC2+CA5-fixes+P5/P6 shipped. Next priorities: CA2 (
 
 ---
 
-Last Updated: 2026-03-05 (session 66 — CB1+CB3+CC2+CA5-fixes+P5/P6 complete. Brand assets created. Marketing content. STATE.md updated.)
+Last Updated: 2026-03-05 (session 68 — CB1+CB3+CA2+CA3+CD1+CC2+P6 complete. PNG logos generated (Vistaprint-ready). STATE.md updated.)
