@@ -50,7 +50,7 @@ None. **Next: Sprint T — Production Hardening.** See `claude_docs/roadmap.md` 
 
 - **Phase 31 OAuth env vars** — Social login dormant until added to Vercel: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `FACEBOOK_CLIENT_ID`, `FACEBOOK_CLIENT_SECRET`. Configure redirect URIs → `https://finda.sale/api/auth/callback/{google,facebook}`.
 - **Uptime monitoring** — Create UptimeRobot or StatusGator free account, add monitors for `finda.sale` and Railway backend. Share URL with Claude to wire alerts.
-- **Sentry** — Create Sentry project, share DSN. Claude wires `@sentry/node` + `@sentry/nextjs`.
+- **Sentry** — ✅ Wired. `@sentry/node` in backend (`instrument.ts`), `@sentry/nextjs` in frontend. Requires `pnpm install` + `docker compose build --no-cache backend frontend && docker compose up -d` to activate in Docker. Also add both DSNs to Railway/Vercel env vars before production deploy.
 
 ---
 
@@ -100,4 +100,4 @@ Sprints A–S complete. Post-launch Sprint Track T–X defined in `claude_docs/r
 
 ---
 
-Last Updated: 2026-03-05 (session 59 — claude_docs audit, anti-bloat rules added to CORE.md §14, git drift self-healing entry #29, context-maintenance skill updated with Archive Check step)
+Last Updated: 2026-03-05 (session 60 — Sentry wired: @sentry/node backend + @sentry/nextjs frontend + CSP updated. Requires pnpm install + Docker rebuild to activate.)
