@@ -50,7 +50,7 @@ None. **Next: Sprint T — Production Hardening.** See `claude_docs/roadmap.md` 
 
 - **Phase 31 OAuth env vars** — Social login dormant until added to Vercel: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `FACEBOOK_CLIENT_ID`, `FACEBOOK_CLIENT_SECRET`. Configure redirect URIs → `https://finda.sale/api/auth/callback/{google,facebook}`.
 - **Uptime monitoring** — Create UptimeRobot or StatusGator free account, add monitors for `finda.sale` and Railway backend. Share URL with Claude to wire alerts.
-- **Sentry** — ✅ Wired. `@sentry/node` in backend (`instrument.ts`), `@sentry/nextjs` in frontend. Requires `pnpm install` + `docker compose build --no-cache backend frontend && docker compose up -d` to activate in Docker. Also add both DSNs to Railway/Vercel env vars before production deploy.
+- **Sentry** — ✅ Fully deployed. `@sentry/node` (backend) + `@sentry/nextjs` (frontend) wired and running in Docker. Lockfile committed. Vercel deployed. DSNs set in Railway + Vercel. Test: add `/sentry-test` route → verify event in Sentry dashboard → remove route.
 
 ---
 
@@ -100,4 +100,4 @@ Sprints A–S complete. Post-launch Sprint Track T–X defined in `claude_docs/r
 
 ---
 
-Last Updated: 2026-03-05 (session 60 — Sentry wired: @sentry/node backend + @sentry/nextjs frontend + CSP updated. Requires pnpm install + Docker rebuild to activate.)
+Last Updated: 2026-03-05 (session 61 — Sentry fully live in Docker + Vercel. Git CRLF crisis resolved via reset --hard origin/main. roadmap.md local restored to v9. 3 new self-healing entries added.)

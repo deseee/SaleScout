@@ -1,63 +1,90 @@
 # Next Session Resume Prompt
-*Written: 2026-03-05T14:15:00Z*
-*Session ended: normally — doc audit complete, feature blockers pending*
+*Written: 2026-03-05T00:00:00Z*
+*Session ended: normally*
 
 ## Resume From
-Fix the three environment blockers below before starting Sprint T.
+
+Run the self-healing diagnostic below first, then begin Sprint T — T1 stress test suite.
+
+---
+
+## Self-Healing Diagnostic — Run at Start of Next Session
+
+This week (sessions 54–61) had repeated git, Docker, and deploy failures. Run this before touching any code:
+
+### 1. Git state check
+```powershell
+git status
+git log --oneline -5
+```
+Expected: clean working tree, HEAD at `3974bbb` or later. If dirty — see self_healing_skills.md entry #29 (nuclear reset: `git fetch origin && git reset --hard origin/main`).
+
+### 2. Docker health
+```powershell
+docker compose ps
+docker compose logs --tail=20 backend
+docker compose logs --tail=10 frontend
+```
+Expected: all services running. No `Cannot find module` errors. If backend crashes on `@sentry/node` or similar — run `pnpm install && docker compose build --no-cache backend && docker compose up -d`.
+
+### 3. reservationExpiryJob
+In backend logs: look for `TypeError: Cannot read properties of undefined (reading 'findMany')`. If present — stale Prisma client → `docker compose build --no-cache backend && docker compose up -d`.
+
+### 4. roadmap.md version
+```powershell
+head -3 claude_docs/roadmap.md
+```
+Expected: `v9 — Post-launch reorganization`. If it shows v3, v6, or any earlier version — local file is stale. Overwrite from GitHub using the MCP: `mcp__github__get_file_contents` for `deseee/findasale` → `claude_docs/roadmap.md`.
+
+### 5. Vercel status
+Check https://vercel.com dashboard — last deployment should be green. If failed with `ERR_PNPM_OUTDATED_LOCKFILE` — run `pnpm install && git add pnpm-lock.yaml && git commit -m "chore: update lockfile" && git push` (self_healing entry #32).
+
+### 6. Sentry end-to-end test (not yet verified)
+Add temporarily to `packages/backend/src/index.ts` before `Sentry.setupExpressErrorHandler`:
+```typescript
+app.get('/sentry-test', () => { throw new Error('Sentry test — backend'); });
+```
+Hit `http://localhost:5000/sentry-test` → check Sentry backend project for the event → remove the route and commit.
+
+---
 
 ## What Was In Progress
-Three blockers need resolving before Sprint T can start:
 
-1. **Git CRLF drift** — ROADMAP.md perpetually dirty on Windows due to `core.autocrlf`. Run:
-   ```powershell
-   git stash
-   git pull --rebase
-   git stash pop
-   git push
-   ```
-   If ROADMAP.md still shows as modified after stash, commit it directly:
-   ```powershell
-   git add claude_docs/ROADMAP.md
-   git commit -m "docs: fix CRLF drift on ROADMAP.md"
-   git pull --rebase
-   git push
-   ```
-   Also re-commit the archive files (came back after git reset):
-   ```powershell
-   git add claude_docs/archive/
-   git rm --cached claude_docs/pre-beta-audit-2026-03-03.md claude_docs/rebrand-audit.md claude_docs/workflow-audit-2026-03-03.md
-   git commit -m "docs: archive one-time audit files"
-   git push
-   ```
+Nothing mid-task. All blockers from sessions 59–61 resolved. Sprint T has not started.
 
-2. **reservationExpiryJob TypeError** — `prisma.itemReservation` undefined, Prisma client predates Phase 21. Fix:
-   ```powershell
-   docker-compose up --build -d backend
-   ```
+---
 
-3. **next-auth missing from frontend** — in `package.json` but container never rebuilt. Fix:
-   ```powershell
-   pnpm install
-   docker compose build --no-cache frontend
-   docker compose up -d
-   ```
+## What Was Completed This Session (61)
 
-## What Was Completed This Session
-- Full claude_docs audit: STACK.md fixed, DEVELOPMENT.md cleaned, OPS.md rewritten
-- 3 one-time audit files moved to `claude_docs/archive/`
-- CORE.md §14: Tier 1/2/3 doc classification + anti-bloat rules
-- CORE.md §2 step 6: GitHub sync check at session start
-- context-maintenance skill: Step 0 (Archive Check) added to Session End Protocol
-- self_healing entry #29: git local/GitHub drift pattern
+- Sentry fully deployed: `@sentry/node` + `@sentry/nextjs` running in Docker, Vercel green, DSNs in Railway + Vercel
+- `pnpm-lock.yaml` committed (was blocking Vercel with `ERR_PNPM_OUTDATED_LOCKFILE`)
+- Git CRLF crisis resolved: `.gitattributes` rule + case-sensitivity duplicate index entries caused perpetual dirty `roadmap.md`/`ROADMAP.md` loop — resolved via `git reset --hard origin/main`
+- Local `roadmap.md` restored from v3 (stale) to v9 (current)
+- `self_healing_skills.md` entries 29 (updated with nuclear fix), 30 (`.gitattributes` CRLF), 31 (case-sensitivity duplicate index), 32 (pnpm frozen lockfile) added
+
+---
 
 ## Environment Notes
-- Local git needs a clean `git pull --rebase + git push` (see blocker 1 above)
-- Install `context-maintenance.skill` from the FindaSale folder root (updated Archive Check step)
-- All doc changes pushed to GitHub via MCP
 
-## Exact Context
-- Archive files moved locally to `claude_docs/archive/` (not yet committed — blocker 1)
-- CORE.md: §14 and §2 step 6 live on GitHub (SHA: `371563b7`)
-- self_healing_skills.md: 29 entries on GitHub (SHA: `8640c3b2`)
-- reservationExpiryJob error: `TypeError: Cannot read properties of undefined (reading 'findMany')` in `packages/backend/src/jobs/reservationExpiryJob.ts`
-- Sprint T spec: `claude_docs/roadmap.md` — stress tests, pre-commit validation, favorites categories, virtual line SMS E2E
+- Git: clean, HEAD at `3974bbb` (chore: update lockfile for @sentry/node and @sentry/nextjs)
+- Docker: all containers running after rebuild (backend + frontend + image-tagger)
+- Vercel: deploying from commit `3974bbb` — check dashboard for green
+- Railway: backend live, `SENTRY_DSN` set
+- `pnpm-lock.yaml` is current
+
+## Known Issues Still Open
+
+- **Phase 31 OAuth** — social login dormant until `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `FACEBOOK_CLIENT_ID`, `FACEBOOK_CLIENT_SECRET` added to Vercel env vars + redirect URIs configured at `https://finda.sale/api/auth/callback/{google,facebook}`
+- **Uptime monitoring** — Patrick needs to create UptimeRobot or StatusGator free account and share alert URL
+- **Sentry end-to-end test** — see diagnostic step 6 above
+
+---
+
+## Sprint T Spec (start here after diagnostic passes)
+
+Full spec in `claude_docs/roadmap.md` → Sprint T section. Work order:
+
+1. **T1** — `scripts/health-check.ts`: schema drift, dead routes, stale doc refs, orphaned migrations, console.log stubs
+2. **T2** — Extend `.githooks/pre-push` with Prisma lint + auth middleware grep
+3. **T3** — Favorites categories: `GET /api/favorites?category=X` + tab UI on `/favorites` page
+4. **T4** — Virtual Line SMS E2E: complete `lineController` scaffold with Twilio join + notify flow

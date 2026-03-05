@@ -132,7 +132,6 @@ Let organizers push FindA.Sale events to external tools (CRMs, email lists, inve
 | Item | What's Needed |
 |------|---------------|
 | Uptime monitoring | Create free UptimeRobot or StatusGator account → add monitor for `finda.sale` and Railway backend URL → share alert email |
-| Sentry error tracking | Create Sentry project → share DSN → Claude wires `@sentry/node` + `@sentry/nextjs` |
 
 ---
 
