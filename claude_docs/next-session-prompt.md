@@ -1,102 +1,62 @@
 # Next Session Resume Prompt
-*Written: 2026-03-05T06:00:00Z*
+*Written: 2026-03-05T13:00:00Z*
 *Session ended: normally*
 
 ## Resume From
 
-Patrick wants 3–5 more roadmap tasks. Start with **Sprint O — Phase 21 (Reservation/hold UI)**, then continue into Phase 23 or 30 if capacity allows. Load STATE.md and context.md, then start coding immediately.
+**Start Sprint T — Production Hardening.** Load STATE.md and roadmap.md, then begin T1 (stress test suite). No pending pushes, no mid-task items. Clean start.
 
 ## What Was In Progress
 
-Nothing. Session ended cleanly. All Phase 20 files pushed to GitHub.
+Nothing. Session ended cleanly. All files pushed, Neon migrations applied, Railway redeployed.
 
 ## What Was Completed This Session
 
-Sprint M — Phase 15 (Review + rating system):
-- `reviewController.ts` + `/api/reviews` routes (POST, GET by sale, GET by organizer)
-- `StarRating.tsx` + `ReviewsSection.tsx` + `ReviewCard.tsx` + `ReviewForm.tsx`
-- `avgRating` recalc + 5pt award on first review
-
-Sprint N — Phase 20 (Shopper messaging) — all 11 files pushed to GitHub:
-- `Conversation` + `Message` Prisma models + migration `20260305000002_phase20_messaging`
-- `messageController.ts` (5 endpoints: conversations, thread, sendMessage, replyInThread, unreadCount)
-- `/api/messages` Express router + registered in `index.ts`
-- `hooks/useUnreadMessages.ts`
-- `pages/messages/index.tsx` (inbox — shoppers + organizers)
-- `pages/messages/[id].tsx` (iMessage-style thread view, 15s polling)
-- `pages/messages/new.tsx` (start conversation from sale page)
-- `BottomTabNav.tsx` extended to 5 tabs + amber unread badge
-- `pages/sales/[id].tsx` — "Message organizer" button (shoppers only)
-
-STATE.md, roadmap.md, session-log.md, context.md all updated.
+- Phase 16 (advanced photo pipeline): ItemPhotoManager component + 3 backend endpoints + wired into edit-item + add-items delete/edit buttons. Commit `7c10b0a`.
+- Production fix: `prisma migrate deploy` applied 4 pending Neon migrations (Phases 19, 22, 20, 21). Railway `ItemReservation` error loop resolved.
+- Docs reorganized: roadmap v9 (Sprint Track T–X), STATE.md trimmed, self-healing #28 added.
 
 ## Environment Notes
 
-- **Phase 20 migration pending on Neon** — file committed, Railway auto-applies on next deploy via `prisma migrate deploy` at startup. If messaging routes 500 in production, check Railway logs for `Applying migration '20260305000002_phase20_messaging'`.
-- **Phase 31 OAuth env vars still missing from Vercel** — social login dormant.
-- No pending git pushes — everything is on GitHub main.
-- GitHub MCP active (`mcp__github__*`) — push via `mcp__github__push_files` or `create_or_update_file`. Max 3 files per `push_files` batch; large files individually via `create_or_update_file` with SHA.
+- All Five Pillars complete. 21 phases shipped. Railway and Neon fully in sync.
+- No pending git pushes.
+- GitHub MCP active — push via `mcp__github__push_files`.
+- Phase 31 OAuth env vars still missing from Vercel (social login dormant).
 
-## Sprint O — Phase 21: Reservation/Hold UI (build this first)
+## Sprint T — Production Hardening (build this first)
 
-### What already exists
-- `Item.status` enum — check whether `RESERVED` is already a value in `schema.prisma`
-- `Item` model fields to verify: `id`, `saleId`, `status`, relations
+Four tasks in priority order:
 
-### What to build
+### T1 — Stress Test Suite
+`scripts/health-check.ts` — runnable script that checks:
+1. **Schema drift** — compare Prisma schema model names vs migration SQL `CREATE TABLE` statements; flag any model with no matching migration
+2. **Dead routes** — parse `packages/backend/src/routes/*.ts` for `router.{method}` calls and verify each imported controller export exists
+3. **Stale doc refs** — scan STATE.md and roadmap.md for file paths; verify each path exists in the repo
+4. **Console stub leak** — grep `packages/backend/src/controllers/**/*.ts` for `console.log` / `alert(` / `// TODO`
+5. **Missing authenticate** — grep mutation routes for any POST/PUT/PATCH/DELETE without `authenticate`
 
-**Task 1 — Schema + migration:**
-- Add `ItemReservation` model:
-  ```prisma
-  model ItemReservation {
-    id        String   @id @default(cuid())
-    itemId    String
-    item      Item     @relation(fields: [itemId], references: [id])
-    userId    String
-    user      User     @relation(fields: [userId], references: [id])
-    status    ReservationStatus @default(PENDING)
-    expiresAt DateTime
-    note      String?
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-    @@unique([itemId]) // one active hold per item
-  }
-  enum ReservationStatus { PENDING CONFIRMED CANCELLED EXPIRED }
-  ```
-- Add `RESERVED` to `ItemStatus` enum if not present
-- Add `reservations ItemReservation[]` to `Item` and `User`
-- Migration: `20260305000003_phase21_reservations`
+Output: `PASS` / `FAIL [item]` per check. Exit 1 on any failure (so it can gate deploys).
 
-**Task 2 — Backend `reservationController.ts` + routes:**
-- `POST /api/reservations` — shopper places hold: upsert reservation, set 24hr expiry, update item status → `RESERVED`
-- `DELETE /api/reservations/:id` — shopper cancels; item reverts to `AVAILABLE`
-- `GET /api/reservations/item/:itemId` — get active reservation for an item
-- `GET /api/reservations/organizer` — all holds across organizer's sales
-- `PATCH /api/reservations/:id` — organizer confirms or cancels (body: `{ status: 'CONFIRMED' | 'CANCELLED' }`)
-- Cron job in `packages/backend/src/jobs/`: expire holds older than 24hr, reset item to `AVAILABLE`
-- Register `app.use('/api/reservations', reservationRoutes)` in `index.ts`
+Wire into `claude_docs/health-reports/` — save a timestamped run result. Update health-scout skill to call this script.
 
-**Task 3 — Frontend: Reserve button on item detail page (`pages/items/[id].tsx`):**
-- "Hold for 24 hours" button — visible to shoppers when item is `AVAILABLE`
-- If current user holds it: show countdown to expiry + "Cancel hold" button
-- If held by someone else: show "Item on hold" badge (no button)
-- Query: `GET /api/reservations/item/:itemId`
-- Mutation: `POST /api/reservations` / `DELETE /api/reservations/:id`
+### T2 — Pre-Commit Validation Skill
+Extend `.githooks/pre-push` (already has TS check) to also run:
+- `npx prisma validate` (Prisma schema lint)
+- `node scripts/health-check.ts` (run the new stress test)
 
-**Task 4 — Frontend: Organizer hold management (`/organizer/holds`):**
-- List of all active reservations across organizer's sales
-- Per-hold: shopper name, item title, sale name, time remaining, Confirm / Cancel buttons
-- Link from organizer dashboard
+Update the `findasale-deploy` skill checklist to include: “Run `node scripts/health-check.ts` — all checks must pass.”
 
-**Task 5 (optional, if capacity allows):** Add hold status badge to item cards in `SaleCard` item list and `pages/sales/[id].tsx` item grid.
+### T3 — Favorites Categories
+- Add `category` filter to `GET /api/favorites` (backend filter on `item.category`)
+- Frontend: `/favorites` page gets category tabs (reuse existing `/search` `CategoryTabs` or inline tabs pattern)
+- No schema change needed
 
----
+### T4 — Virtual Line SMS E2E
+Scaffolded files to check first: `lineController.ts`, `virtualLine` routes, Twilio env vars.
+- Complete `POST /api/lines/:saleId/join` → Twilio SMS confirmation to shopper
+- Complete `POST /api/lines/:saleId/notify` → SMS blast to all in line
+- Add simple organizer UI on sale management page: current queue count + Notify button
 
-## Next sprints after Phase 21 (if time allows)
+## After Sprint T
 
-| Sprint | Phase | Focus |
-|--------|-------|-------|
-| P | 23 | Affiliate + referral program |
-| Q | 30 | Weekly curator email |
-| R | 32 | Creator tools (CSV export, Zapier) |
-| S | 16 | Advanced photo pipeline |
+See `claude_docs/roadmap.md` for Sprints U–X. Patrick's standing instruction: continue in batches of 3–5 roadmap tasks.
