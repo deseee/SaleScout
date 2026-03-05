@@ -24,7 +24,7 @@ Maintain stable MVP in Grand Rapids. Prepare for scale to additional metros.
 
 ## Completed Phases (summary)
 
-Phases 1–13 + pre-beta audit + rebrand + Sprints A–H + Phase 31 all verified and shipped.
+Phases 1–13 + pre-beta audit + rebrand + Sprints A–L + Phase 31 all verified and shipped.
 Key milestones: JWT auth, sale management, Stripe payments, push notifications,
 creator affiliates, auction UI + cron + 7% item-level fee, QR marketing,
 virtual line, AI item tagging, Schema.org SEO, PWA hardening,
@@ -32,7 +32,11 @@ warm design system (Phase 24), bottom tab nav (Phase 25), full palette swap (586
 follow system + notification delivery (Phase 17), OAuth social login via NextAuth v4 (Phase 31),
 listing card redesign — LQIP blur-up + square aspect ratio + badge overlays (Phase 26),
 social proof + activity feed — /api/feed + favoriteCount + /feed page (Phase 28),
-photo preview lightbox — PhotoLightbox component, sale + item detail pages (Phase 18).
+photo preview lightbox — PhotoLightbox component, sale + item detail pages (Phase 18),
+Hunt Pass + shopper points — PointsTransaction model + pointsService + /api/points + PointsBadge + usePoints + profile tier display (Phase 19),
+Creator Tier Program — weekly reputationJob cron + TierBadge + organizer /me endpoint + tier card in dashboard (Phase 22),
+Shopper onboarding + empty states + microinteractions — OnboardingModal + points toast (amber, bottom-20) + empty states across all major shopper screens (Phase 27),
+Discovery + search — /api/search full-text + /api/search/categories/:cat + /search page + /categories/[category] page (Phase 29).
 
 Full detail: `claude_docs/COMPLETED_PHASES.md`
 
@@ -40,12 +44,13 @@ Full detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## In Progress
 
-None. Sprint H complete. Opus research session (52) complete. Next: Sprint I — Phase 19 (Hunt Pass + points).
+None. Sprints I–L complete (2026-03-05). Next: Sprint M — Phase 15 (Review + rating system UI).
 
 ---
 
 ## Pending Manual Action
 
+- **Neon migration pending — Phase 19** — `PointsTransaction` table not yet created. Run `prisma migrate deploy` with migration name `phase19_points_transaction` (requires local env with `DIRECT_URL`). Until this runs, the points system will throw DB errors.
 - **Vercel redeploy needed** — `NEXT_PUBLIC_API_URL` updated to Railway URL but Vercel is rate-limited; redeploy still pending.
 - **Phase 31 env vars** — OAuth social login is deployed but dormant until these are added to Vercel: `NEXTAUTH_SECRET` (generate: `openssl rand -hex 32`), `NEXTAUTH_URL` (Vercel frontend URL), `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `FACEBOOK_CLIENT_ID`, `FACEBOOK_CLIENT_SECRET`. Also configure OAuth redirect URIs in Google Console + Meta Dev Portal pointing to `https://your-app.vercel.app/api/auth/callback/{google,facebook}`.
 - **Resend domain verification** — ✅ Verified.
@@ -73,7 +78,11 @@ Five-pillar growth phase. Sprint order:
 6. ~~Sprint E — Phase 26~~ ✅ — Listing card redesign (LQIP, square, badges, 2-col grid) (2026-03-05)
 7. ~~Sprint G — Phase 28~~ ✅ — Social proof + activity feed /api/feed + /feed page (2026-03-05)
 8. ~~Sprint H — Phase 18~~ ✅ — Photo lightbox (PhotoLightbox component, sale + item detail pages) (2026-03-05)
-9. **Sprint I — Phase 19** — Hunt Pass + shopper points system
+9. ~~Sprint I — Phase 19~~ ✅ — Hunt Pass + shopper points system (2026-03-05)
+10. ~~Sprint J — Phase 22~~ ✅ — Creator Tier Program: reputationJob cron + TierBadge + organizer /me route + tier card in dashboard (2026-03-05)
+11. ~~Sprint K — Phase 27~~ ✅ — Onboarding + Empty States + Microinteractions: OnboardingModal + points toast + shopper empty states (2026-03-05)
+12. ~~Sprint L — Phase 29~~ ✅ — Discovery + Search: /api/search + /search page + /categories/[category] page (2026-03-05)
+13. **Sprint M — Phase 15** — Review + rating system UI
 
 Full roadmap: `claude_docs/ROADMAP.md`
 
@@ -89,4 +98,4 @@ Full roadmap: `claude_docs/ROADMAP.md`
 
 ---
 
-Last Updated: 2026-03-05 (session 52 — Opus research session: model routing, session safeguards, language map, scheduled tasks, self-healing 21–24, roadmap workflow track)
+Last Updated: 2026-03-05 (session 53 — Sprints I–L: Hunt Pass points, Creator Tier, Onboarding, Discovery Search)
