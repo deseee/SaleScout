@@ -48,10 +48,15 @@ Full detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## In Progress
 
-Parallel path model launched. No Claude task actively in flight.
+Parallel path model active. Batches 1 + 2 + CB1 complete.
 
-- **CA1** — ToS & Privacy Policy implementation (next autonomous task)
-- **CB1** — AI tagging spec (blocked: API keys needed from Patrick)
+- **CA1** — ✅ COMPLETE. Full ToS + Privacy Policy + checkout consent checkbox. Pushed 2026-03-05.
+- **CA5** — ✅ COMPLETE. Health scout: GREEN. 0 critical, 0 high. 3 medium (message pagination, contact rate limiter). Pushed 2026-03-05.
+- **CC3** — ✅ COMPLETE. Pricing analysis: competitors 13–20% vs FindA.Sale 5%. 4 options. Recommends flat 5%/7% for beta. ⚡ Patrick confirms?
+- **CC1** — ✅ COMPLETE. Investor materials: exec summary, 12-slide pitch deck outline, 3-year financial model, TAM $150M. Pushed 2026-03-05.
+- **CD4** — ✅ COMPLETE. Bi-weekly workflow review scheduled task (1st + 15th, 9AM). First run: March 15.
+- **CD2 Phase 1** — ✅ COMPLETE. Scarcity counter + social proof stats bar on sale pages. Pulsing "Only X left!" when <20% remain. "On Hold" / "Sold" item badges. No migration needed. Pushed 2026-03-05.
+- **CB1** — ✅ COMPLETE. `cloudAIService.ts` created (Google Vision → Claude Haiku chain). `uploadController.ts` updated — cloud AI primary, Ollama fallback. `.env.example` updated. Pushed 2026-03-05 (commit 104c414).
 - **P1** — Support email, business cards, Google Business Profile (Patrick)
 - **P6** — Branding direction decision (Patrick)
 
@@ -75,7 +80,7 @@ Parallel path model launched. No Claude task actively in flight.
 
 ## Next Strategic Move
 
-5 parallel paths active. Start CA1 (ToS/Privacy — 1 session, fully autonomous). CB1 blocked until Patrick creates API keys (P5). CD1 blocked until Patrick picks branding direction (P6). CC1 (investor materials) and CC2 (marketing content) can start any time. Beta target: 6–8 weeks. Full roadmap: `claude_docs/roadmap.md`.
+Batches 1 + 2 + CB1 complete. CB3 (AI tagging frontend UI — photo → suggestions flow) is next CB task. CA2 (DB/migration health) and CA3 (payment stress test) are next CA tasks. CA5 medium findings (message pagination, contact rate limiter) need fixes. CD2 Phase 2 (engagement layer) and CC2 (marketing content) queued. CD1 blocked pending P6 branding decision. Beta target: 6–8 weeks. Full roadmap: `claude_docs/roadmap.md`.
 
 ---
 
@@ -103,4 +108,4 @@ Parallel path model launched. No Claude task actively in flight.
 
 ---
 
-Last Updated: 2026-03-05 (session 65 — Roadmap merged to v10 parallel path model. STATE.md updated. claude_docs audited for stale sprint refs.)
+Last Updated: 2026-03-05 (session 66 — Batches 1+2 complete (CA1/CA5/CC1/CC3/CD2Ph1/CD4). CB1 shipped: cloudAIService.ts + uploadController fallback chain. STATE.md updated.)
