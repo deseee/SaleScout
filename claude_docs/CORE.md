@@ -28,6 +28,9 @@ At the start of every session, before any task work:
 3. Load `context.md` — filetree, Docker status, last session summary
 4. Load `claude_docs/STATE.md` — current sprint and blockers
 5. Skim `claude_docs/session-log.md` — last 1–2 entries for recent decisions
+6. **GitHub sync check** — read local `STATE.md` `Last Updated` line, then fetch GitHub version via `mcp__github__get_file_contents` (`deseee/findasale`, `claude_docs/STATE.md`). If the `Last Updated` lines differ, stop immediately and tell Patrick:
+   > "Local docs are behind GitHub. Run this before we start: `git stash && git pull --rebase && git stash pop`"
+   Do not make any file edits until Patrick confirms local is synced.
 
 Skip silently if Patrick has already given a task and context was loaded this session.
 Do not narrate the load unless asked.
@@ -223,6 +226,27 @@ When interpreting Patrick's short commands ("check", "note", "ok", "wrap", etc.)
 `claude_docs/patrick-language-map.md`
 
 Key rule: Patrick's short affirmations ("ok", "that worked") mean proceed — don't re-explain.
+
+---
+
+## 14. Doc Classification + Anti-Bloat Rules
+
+Every file in `claude_docs/` has a tier. Assign it when creating the file.
+
+**Tier 1 — Hot (always loaded at session start):** CORE.md, STATE.md, context.md, root CLAUDE.md.
+Target: ≤2,000 tokens combined. If you're adding something "just in case", it belongs in Tier 2.
+
+**Tier 2 — Deep store (load on demand):** session-log.md, self_healing_skills.md, STACK.md, SECURITY.md, RECOVERY.md, roadmap.md, model-routing.md, session-safeguards.md, patrick-language-map.md, next-session-prompt.md, DEVELOPMENT.md, health-reports/, research/.
+Load only when the task requires it. Never preload the whole directory.
+
+**Tier 3 — One-time artifacts (archive on creation):** Audit reports, migration checklists, rebrand tables, any file whose purpose ends when the work ends.
+**Rule: Tier 3 files go in `claude_docs/archive/` immediately. Never save them to the root `claude_docs/` directory.**
+
+**Archive trigger:** When a phase, audit, or one-time task completes, move its driving document to `archive/` at session wrap. The context-maintenance skill's Session End Protocol enforces this — see "Archive Check" step there.
+
+**Duplication guard (extends §6):** Before adding content to any doc, check if it already exists elsewhere. If yes, add a pointer — do not copy. Duplicate content means two places to update when reality changes.
+
+**Staleness rule:** Any section referencing a completed sprint, resolved audit, or shipped feature that is no longer actionable must be removed or archived at the next session wrap. Stale content is a bug.
 
 ---
 
