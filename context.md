@@ -1,5 +1,5 @@
 # Dynamic Project Context
-*Generated at 2026-03-04T00:27:17.057Z*
+*Generated at 2026-03-05T01:22:39.976Z*
 
 ## Git Status
 - **Branch:** (run git locally)
@@ -7,11 +7,11 @@
 - **Remote:** (run git locally)
 
 ## Last Session
-### 2026-03-04
-**Worked on:** Fixed all 11 high-severity pre-beta audit findings. H1: organizer badges/rating in getSale. H2: Promise.allSettled for partial upload success. H3: email/name normalization on auth. H4: weekend filter Saturday edge case. H5: mobile card views for 3 dashboard tables. H6: loading="lazy" on 16 frontend files (Python script introduced JSX arrow-operator bug in SaleCard.tsx — caught and fixed). H7: Zod CSV row validation. H8: global Express error handler. H9: Stripe webhook secret guard. H10: CAN-SPAM one-click unsubscribe (email link + backend endpoint + /unsubscribe page). H11: Resend domain — already verified, no action needed. Track B: tested all 5 Docker-from-VM options (MCP registry ✗, TCP 2375/2376 ✗, SSH ✗, relay ✗) — accepted gap, documented in RECOVERY.md entry 17. All 27 changed files pushed to GitHub via MCP.
-**Decisions:** Docker-from-VM gap is permanent unless Patrick manually enables TCP socket in Docker Desktop settings. Working pattern remains copy-paste PowerShell. Python lazy-load scripts that use regex on JSX must be reviewed for arrow-operator splits before committing.
-**Next up:** Activate fixes in Docker (`docker compose restart backend`, then `docker compose build --no-cache frontend && docker compose up -d`). Then begin M1-M19 medium findings or move to real-user beta.
-**Blockers:** None. All fixes pushed. Docker restart/rebuild required to activate on localhost.
+### 2026-03-05
+**Worked on:** Three full sprints in one session. Phase 26: SaleCard + ItemCard full rewrite (LQIP 3-tier blur-up, aspect-square, badge overlays, 2-col mobile grid), SkeletonCards + index.tsx + organizers/[id].tsx updated. Phase 28: `GET /api/feed` personalized activity feed endpoint (follows→sales, fallback to recent), `favoriteCount` (`_count.favorites`) added to `listSales` response, `/feed` page with auth gate + empty states + 2-col grid. Phase 18: `PhotoLightbox.tsx` component (full-screen, keyboard+swipe nav, dot indicators, `getFullUrl` 1600w), wired into `sales/[id].tsx` gallery (replaced `<a target=_blank>` with aspect-square button grid + hover overlay) and `items/[id].tsx` (thumbnail strip with selected-photo state + lightbox). All files pushed to GitHub (commits abe5461, 11d06e1, ac7ebf2, 2225c4d).
+**Decisions:** Phase 28 uses no new Prisma schema — `_count.favorites` is an aggregate on the existing Favorite model. Feed falls back to all recent sales when user follows nobody (`personalized: false` flag in response). PhotoLightbox uses `getFullUrl` (1600w WebP) — existing imageUtils helper from Phase 14c.
+**Next up:** Sprint I — Phase 19 (Hunt Pass + shopper points). Sprint J — Phase 22 (Creator tier). See next-session-prompt.md for full specs.
+**Blockers:** Vercel redeploy still pending (rate limit from earlier). Phase 31 OAuth env vars still need adding once Vercel clears.
 
 ## Health Status
 Last scan: 2026-03-03
@@ -23,7 +23,7 @@ Docker status unavailable — run update-context.js locally (Windows) to capture
 ```
 
 ## Environment
-- GitHub: ✗ not authenticated (gh auth login to fix)
+- GitHub CLI: ✗ not authenticated (not required when GitHub MCP is active — check MCP tools at session start)
 - ngrok tunnel: unknown (check Docker Desktop logs for findasale-ngrok-1)
 - CLI tools: node
 
@@ -38,21 +38,19 @@ Docker status unavailable — run update-context.js locally (Windows) to capture
 ├── .gitignore
 ├── CLAUDE.md
 ├── README.md
-├── Session Wrap — 2026-03-03.txt
 ├── ai-config/
 │   └── global-instructions.md
 ├── claude_docs/
 │   ├── .last-wrap
+│   ├── COMPLETED_PHASES.md
 │   ├── CORE.md
 │   ├── DEVELOPMENT.md
 │   ├── OPS.md
 │   ├── RECOVERY.md
-│   ├── ROADMAP.md
 │   ├── SECURITY.md
 │   ├── SEED_SUMMARY.md
 │   ├── STACK.md
 │   ├── STATE.md
-│   ├── audit-remaining-areas-2026-03-03.md
 │   ├── changelog-tracker/
 │   │   └── .gitkeep
 │   ├── competitor-intel/
@@ -64,17 +62,20 @@ Docker status unavailable — run update-context.js locally (Windows) to capture
 │   │   └── 2026-03-03.md
 │   ├── monthly-digests/
 │   │   └── .gitkeep
+│   ├── new 1.txt
 │   ├── next-session-prompt.md
-│   ├── pre-beta-audit-2026-03-03.md
-│   ├── rebrand-audit.md
+│   ├── research/
+│   │   ├── competitor-intel-2026-03-04.md
+│   │   └── growth-channels-2026-03-04.md
+│   ├── roadmap.md
 │   ├── self_healing_skills.md
 │   ├── session-log.md
-│   ├── test_write
 │   ├── ux-spotchecks/
-│   │   └── .gitkeep
-│   ├── workflow-audit-2026-03-03.md
+│   │   ├── .gitkeep
+│   │   └── 2026-03-04.md
 │   └── workflow-retrospectives/
 │       └── .gitkeep
+├── conversation-defaults Skill.md
 ├── docker-compose.yml
 ├── next
 ├── package.json
@@ -84,6 +85,7 @@ Docker status unavailable — run update-context.js locally (Windows) to capture
 │   │   ├── .env.example
 │   │   ├── CLAUDE.md
 │   │   ├── Dockerfile
+│   │   ├── Dockerfile.production
 │   │   ├── docs/
 │   │   │   └── EMAIL_SMS_REMINDERS.md
 │   │   ├── nodemon.json
@@ -137,6 +139,7 @@ Docker status unavailable — run update-context.js locally (Windows) to capture
 │   │   │   │   ├── lineController.ts
 │   │   │   │   ├── marketingKitController.ts
 │   │   │   │   ├── notificationController.ts
+│   │   │   │   ├── pushController.ts
 │   │   │   │   ├── saleController.ts
 │   │   │   │   ├── stripeController.ts
 │   │   │   │   ├── stripeStatusController.ts
@@ -147,6 +150,8 @@ Docker status unavailable — run update-context.js locally (Windows) to capture
 │   │   │   │   ├── auctionJob.ts
 │   │   │   │   ├── emailReminderJob.ts
 │   │   │   │   └── notificationJob.ts
+│   │   │   ├── lib/
+│   │   │   │   └── prisma.ts
 │   │   │   ├── middleware/
 │   │   │   │   └── auth.ts
 │   │   │   ├── models/
@@ -156,19 +161,23 @@ Docker status unavailable — run update-context.js locally (Windows) to capture
 │   │   │   │   ├── auth.ts
 │   │   │   │   ├── contact.ts
 │   │   │   │   ├── favorites.ts
+│   │   │   │   ├── feed.ts
 │   │   │   │   ├── geocode.ts
 │   │   │   │   ├── items.ts
 │   │   │   │   ├── lines.ts
 │   │   │   │   ├── notifications.ts
 │   │   │   │   ├── organizers.ts
+│   │   │   │   ├── push.ts
 │   │   │   │   ├── sales.ts
 │   │   │   │   ├── stripe.ts
 │   │   │   │   ├── upload.ts
 │   │   │   │   └── users.ts
 │   │   │   ├── services/
-│   │   │   │   └── emailReminderService.ts
+│   │   │   │   ├── emailReminderService.ts
+│   │   │   │   └── followerNotificationService.ts
 │   │   │   └── utils/
-│   │   │       └── stripe.ts
+│   │   │       ├── stripe.ts
+│   │   │       └── webpush.ts
 │   │   └── tsconfig.json
 │   ├── database/
 │   │   ├── .env
@@ -178,7 +187,7 @@ Docker status unavailable — run update-context.js locally (Windows) to capture
 │   │   ├── package-lock.json
 │   │   ├── package.json
 │   │   ├── prisma/
-│   │   │   ├── migrations/ (14 migrations)
+│   │   │   ├── migrations/ (18 migrations)
 │   │   │   ├── schema.prisma
 │   │   │   └── seed.ts
 │   │   └── tsconfig.json
@@ -188,24 +197,33 @@ Docker status unavailable — run update-context.js locally (Windows) to capture
 │   │   ├── CLAUDE.md
 │   │   ├── Dockerfile
 │   │   ├── components/
+│   │   │   ├── AuctionCountdown.tsx
 │   │   │   ├── AuthContext.tsx
 │   │   │   ├── BadgeDisplay.tsx
+│   │   │   ├── BidModal.tsx
+│   │   │   ├── BottomTabNav.tsx
 │   │   │   ├── CSVImportModal.tsx
 │   │   │   ├── CheckoutModal.tsx
+│   │   │   ├── FollowButton.tsx
 │   │   │   ├── InstallPrompt.tsx
 │   │   │   ├── ItemCard.tsx
 │   │   │   ├── Layout.tsx
+│   │   │   ├── PhotoLightbox.tsx
+│   │   │   ├── RapidCapture.tsx
+│   │   │   ├── ReputationTier.tsx
 │   │   │   ├── SaleCard.tsx
 │   │   │   ├── SaleMap.tsx
 │   │   │   ├── SaleMapInner.tsx
 │   │   │   ├── SaleShareButton.tsx
 │   │   │   ├── SaleSubscription.tsx
 │   │   │   ├── Skeleton.tsx
+│   │   │   ├── SkeletonCards.tsx
 │   │   │   └── ToastContext.tsx
-│   │   ├── contexts/
-│   │   │   └── ToastContext.tsx
+│   │   ├── hooks/
+│   │   │   └── usePushSubscription.ts
 │   │   ├── lib/
-│   │   │   └── api.ts
+│   │   │   ├── api.ts
+│   │   │   └── imageUtils.ts
 │   │   ├── next-env.d.ts
 │   │   ├── next-sitemap.config.js
 │   │   ├── next.config.js
@@ -216,7 +234,11 @@ Docker status unavailable — run update-context.js locally (Windows) to capture
 │   │   │   ├── _app.tsx
 │   │   │   ├── _document.tsx
 │   │   │   ├── about.tsx
+│   │   │   ├── affiliate/
+│   │   │   │   └── [id].tsx
 │   │   │   ├── api/
+│   │   │   │   ├── auth/
+│   │   │   │   │   └── [...nextauth].ts
 │   │   │   │   └── og.tsx
 │   │   │   ├── city/
 │   │   │   │   └── [city].tsx
@@ -224,6 +246,7 @@ Docker status unavailable — run update-context.js locally (Windows) to capture
 │   │   │   ├── creator/
 │   │   │   │   └── dashboard.tsx
 │   │   │   ├── faq.tsx
+│   │   │   ├── feed.tsx
 │   │   │   ├── forgot-password.tsx
 │   │   │   ├── index.tsx
 │   │   │   ├── items/
@@ -286,6 +309,7 @@ Docker status unavailable — run update-context.js locally (Windows) to capture
 │   │   │   ├── images/
 │   │   │   │   └── placeholder.svg
 │   │   │   ├── manifest.json
+│   │   │   ├── sw-push.js
 │   │   │   ├── sw.js
 │   │   │   └── workbox-5d03dacf.js
 │   │   ├── styles/
@@ -293,7 +317,9 @@ Docker status unavailable — run update-context.js locally (Windows) to capture
 │   │   │   └── output.css
 │   │   ├── tailwind.config.js
 │   │   ├── tsconfig.json
-│   │   └── tsconfig.tsbuildinfo
+│   │   ├── tsconfig.tsbuildinfo
+│   │   └── types/
+│   │       └── next-auth.d.ts
 │   └── shared/
 │       ├── CLAUDE.md
 │       ├── package.json
@@ -302,9 +328,35 @@ Docker status unavailable — run update-context.js locally (Windows) to capture
 │       └── tsconfig.json
 ├── pnpm
 ├── pnpm-workspace.yaml
+├── railway.toml
 └── scripts/
     └── update-context.js
 
+```
+
+## Tool & Skill Tree
+MCP tools are injected at session start — check active tools before assuming availability.
+```
+MCP Connectors (check at session start):
+├── mcp__github__*          — GitHub file push, PR, issues (repo: deseee/findasale)
+├── mcp__Claude_in_Chrome__ — Browser automation, screenshots, form filling
+├── mcp__MCP_DOCKER__       — Playwright browser, code execution
+├── mcp__scheduled-tasks__  — Cron scheduling for recurring tasks
+├── mcp__cowork__           — File access, directory requests, file presentation
+└── mcp__mcp-registry__     — Search/suggest additional connectors
+
+Skills (loaded on demand):
+├── conversation-defaults   — AskUserQuestion workaround + diff-only gate (ALWAYS ACTIVE)
+├── dev-environment         — Docker/DB/Prisma reference (load before shell commands)
+├── context-maintenance     — Session wrap protocol (load at session end)
+├── health-scout            — Proactive code scanning (load before deploys)
+├── findasale-deploy        — Deploy checklist (load before production push)
+├── skill-creator           — Create/edit/eval skills
+├── docx / xlsx / pptx / pdf — Document creation skills
+└── schedule                — Create scheduled tasks
+
+Self-Healing Skills: 19 entries in claude_docs/self_healing_skills.md
+Docker Containers: findasale-backend-1, findasale-frontend-1, findasale-postgres-1, findasale-image-tagger-1
 ```
 
 ## On-Demand References
