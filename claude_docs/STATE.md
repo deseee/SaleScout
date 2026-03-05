@@ -18,13 +18,16 @@ Post-launch improvement. MVP stable in Grand Rapids. Sprints T–X queued.
 - Leaflet + OSM maps, backend geocoding cache
 - Cloudinary image storage
 - PWA enabled
-- Polling for auctions (Socket.io → Sprint V)
+- Socket.io live bidding (Sprint V1 — shipped)
+- Stripe Connect Express payouts (instant payout schedule — Sprint V2 — shipped)
 
 ---
 
 ## Completed Phases (summary)
 
 Phases 1–13 + pre-beta audit + rebrand + Sprints A–S all verified and shipped (21 phases total).
+Sprints T–X complete 2026-03-05.
+
 Key milestones: JWT auth, sale management, Stripe payments, push notifications,
 creator affiliates, auction UI + cron + 7% item-level fee, QR marketing,
 virtual line scaffold, AI item tagging, Schema.org SEO, PWA hardening,
@@ -35,6 +38,9 @@ photo lightbox, Hunt Pass points, creator tier program, shopper onboarding + emp
 discovery + full-text search, review + rating system, shopper messaging,
 reservation/hold UI, affiliate + referral program, weekly curator email,
 CSV export, advanced photo pipeline (add/remove/reorder + ItemPhotoManager).
+Post-launch: Ollama semantic search (U1), neighborhood landing pages (U2),
+Socket.io live bidding (V1), instant payouts (V2), UGC bounties (V3),
+shipping workflow (W1), label PDF (W2), Zapier webhooks (X1).
 
 Full detail: `claude_docs/COMPLETED_PHASES.md`
 
@@ -42,7 +48,7 @@ Full detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## In Progress
 
-None. **Next: Sprint T — Production Hardening.** See `claude_docs/roadmap.md` for full spec.
+None. **Sprints T–X complete.** All post-launch sprint tracks shipped.
 
 ---
 
@@ -64,22 +70,16 @@ None. **Next: Sprint T — Production Hardening.** See `claude_docs/roadmap.md` 
 
 ## Next Strategic Move
 
-Sprints A–S complete. Post-launch Sprint Track T–X defined in `claude_docs/roadmap.md`.
-
-| Sprint | Focus |
-|--------|-------|
-| **T** | **Production Hardening — stress tests, pre-commit skill, favorites categories, virtual line SMS E2E** |
-| U | Search & Discovery Upgrade — Ollama semantic embeddings, neighborhood landing pages |
-| V | Live Engagement — Socket.io bidding, instant payouts, UGC bounties |
-| W | Organizer Workflow — shipping, label printing |
-| X | Integrations — Zapier webhook system |
+Post-launch Sprint Track T–X **fully complete**. All roadmap items shipped.
+Next: define Sprint Y or begin beta onboarding / real-user testing.
+Consider: `prisma migrate deploy` for the 3 pending migrations before next deploy.
 
 ---
 
 ## Known Gotchas (Production)
 
 - **Railway PORT mismatch** — `PORT=5000` locked in Railway Variables. Must match `EXPOSE 5000` in Dockerfile. Do not remove.
-- **Neon production DB** — `prisma migrate deploy` must be run manually after any new migration. 4 migrations were applied 2026-03-05. All pending migrations now resolved.
+- **Neon production DB** — `prisma migrate deploy` must be run manually after any new migration. ⚠️ 3 new migrations pending from Sprint V3/W1/X1: `20260305000006_v3_bounties`, `20260305000007_w1_shipping`, `20260305000008_x1_webhooks`. Run from `packages/database` with production env vars set.
 - **Production seed:**
   ```powershell
   cd C:\Users\desee\ClaudeProjects\FindaSale\packages\database
@@ -100,4 +100,4 @@ Sprints A–S complete. Post-launch Sprint Track T–X defined in `claude_docs/r
 
 ---
 
-Last Updated: 2026-03-05 (session 61 — Sentry fully live in Docker + Vercel. Git CRLF crisis resolved via reset --hard origin/main. roadmap.md local restored to v9. 3 new self-healing entries added.)
+Last Updated: 2026-03-05 (session 62+ — Sprints U1/U2/V1-V3/W1-W2/X1 complete. Full post-launch track shipped. 3 migrations pending on Neon.)

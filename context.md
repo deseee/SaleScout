@@ -1,17 +1,17 @@
 # Dynamic Project Context
-*Generated at 2026-03-05T14:24:48.709Z*
+*Generated at 2026-03-05T17:45:18.913Z*
 
 ## Git Status
-- **Branch:** (run git locally)
-- **Commit:** (run git locally)
-- **Remote:** (run git locally)
+- **Branch:** main
+- **Commit:** 3974bbb
+- **Remote:** https://github.com/deseee/findasale.git
 
 ## Last Session
 ### 2026-03-05
-**Worked on:** Full claude_docs audit. Cleaned STACK.md (Cloudinary locked, Vercel/Railway/Neon infra confirmed), DEVELOPMENT.md (removed stale Gradio section), OPS.md (rewrote to 4-line pointer). Archived 3 one-time audit files to `claude_docs/archive/`. Added CORE.md §14 (Tier 1/2/3 doc classification + anti-bloat rules) and §2 step 6 (GitHub sync check). Updated context-maintenance skill with Step 0 (Archive Check). Added self_healing entry #29 (git local/GitHub drift — MCP push + CRLF = perpetual dirty ROADMAP.md). Diagnosed `reservationExpiryJob` TypeError (Prisma client stale, needs Docker rebuild). Diagnosed `next-auth/react` missing (needs `pnpm install` + frontend `--no-cache` rebuild).
-**Decisions:** Tier 1/2/3 doc classification locked in CORE.md §14. Archive trigger now enforced at every session wrap via context-maintenance Step 0. Git drift is structurally certain to recur — self-healing entry #29 is the canonical fix.
-**Next up:** Patrick must run git fix commands, then Docker rebuilds (backend for Prisma, frontend for next-auth), then Sprint T begins.
-**Blockers:** Local git CRLF drift (ROADMAP.md perpetually dirty) — run `git stash; git pull --rebase; git stash pop; git push`. `reservationExpiryJob` TypeError — run `docker-compose up --build -d backend`. `next-auth` missing — run `pnpm install` then `docker compose build --no-cache frontend && docker compose up -d`.
+**Worked on:** V2 (instant payouts): `payoutController.ts` (balance, payout schedule, on-demand payout), `routes/stripe.ts` (4 new routes), `pages/organizer/payouts.tsx`. V3 (UGC bounties): `MissingListingBounty` schema + migration, `bountyController.ts`, `routes/bounties.ts`, `pages/organizer/bounties.tsx`, `components/BountyModal.tsx`. W1 (shipping): `shippingAvailable`/`shippingPrice` on Item + migration, item CRUD updated, payment intent accepts `shippingRequested`. W2 (label PDF): `labelController.ts` with pdfkit, single-item and all-items endpoints. X1 (Zapier webhooks): `Webhook` model + migration, `webhookService.ts` (HMAC-SHA256 signed), `webhookController.ts`, `routes/webhooks.ts`, `pages/organizer/webhooks.tsx`. Hooks fired on `bid.placed` and `purchase.completed`. All pushed to GitHub.
+**Decisions:** Webhook secrets shown once on creation. Instant payout eligibility errors handled gracefully. Shipping cost added to Stripe charge total, stored in payment intent metadata. Label PDF uses pdfkit 4×3" pages (already installed).
+**Next up:** Run `prisma migrate deploy` for 3 pending migrations (20260305000006–8) on Neon. Then define Sprint Y or begin real-user beta onboarding.
+**Blockers:** 3 Neon migrations pending before deploy. Phase 31 OAuth env vars still needed in Vercel.
 
 ## Health Status
 Last scan: 2026-03-03
@@ -30,12 +30,13 @@ Docker status unavailable — run update-context.js locally (Windows) to capture
 ## Signals
 ⚠ Env drift — in .env.example but missing from .env: HF_TOKEN
 ⚠ 1+ TODO/FIXME markers in source (showing up to 5):
-  /sessions/dazzling-upbeat-mayer/mnt/FindaSale/packages/backend/src/controllers/userController.ts:210:          // TODO: Implement notification system when ready
+  /sessions/festive-ecstatic-galileo/mnt/FindaSale/packages/backend/src/controllers/userController.ts:210:          // TODO: Implement notification system when ready
 
 ## Project File Tree
 ```
 ├── .env
 ├── .env.example
+├── .gitattributes
 ├── .githooks/
 │   ├── pre-commit
 │   └── pre-push
@@ -51,6 +52,7 @@ Docker status unavailable — run update-context.js locally (Windows) to capture
 │   ├── DEVELOPMENT.md
 │   ├── OPS.md
 │   ├── RECOVERY.md
+│   ├── ROADMAP.md
 │   ├── SECURITY.md
 │   ├── SEED_SUMMARY.md
 │   ├── STACK.md
@@ -67,20 +69,22 @@ Docker status unavailable — run update-context.js locally (Windows) to capture
 │   │   ├── .gitkeep
 │   │   ├── 2026-03-01.md
 │   │   ├── 2026-03-02.md
-│   │   └── 2026-03-03.md
+│   │   ├── 2026-03-03.md
+│   │   └── 2026-03-05-health-check.json
 │   ├── model-routing.md
 │   ├── monthly-digests/
 │   │   └── .gitkeep
+│   ├── new 2.txt
 │   ├── next-session-prompt.md
 │   ├── patrick-language-map.md
 │   ├── pre-commit-check.md
 │   ├── research/
 │   │   ├── competitor-intel-2026-03-04.md
 │   │   └── growth-channels-2026-03-04.md
-│   ├── roadmap.md
 │   ├── self_healing_skills.md
 │   ├── session-log.md
 │   ├── session-safeguards.md
+│   ├── test_write
 │   ├── ux-spotchecks/
 │   │   └── .gitkeep
 │   └── workflow-retrospectives/
@@ -142,13 +146,16 @@ Docker status unavailable — run update-context.js locally (Windows) to capture
 │   │   │   ├── controllers/
 │   │   │   │   ├── affiliateController.ts
 │   │   │   │   ├── authController.ts
+│   │   │   │   ├── bountyController.ts
 │   │   │   │   ├── favoriteController.ts
 │   │   │   │   ├── geocodeController.ts
 │   │   │   │   ├── itemController.ts
+│   │   │   │   ├── labelController.ts
 │   │   │   │   ├── lineController.ts
 │   │   │   │   ├── marketingKitController.ts
 │   │   │   │   ├── messageController.ts
 │   │   │   │   ├── notificationController.ts
+│   │   │   │   ├── payoutController.ts
 │   │   │   │   ├── pushController.ts
 │   │   │   │   ├── referralController.ts
 │   │   │   │   ├── reservationController.ts
@@ -157,8 +164,10 @@ Docker status unavailable — run update-context.js locally (Windows) to capture
 │   │   │   │   ├── stripeController.ts
 │   │   │   │   ├── stripeStatusController.ts
 │   │   │   │   ├── uploadController.ts
-│   │   │   │   └── userController.ts
+│   │   │   │   ├── userController.ts
+│   │   │   │   └── webhookController.ts
 │   │   │   ├── index.ts
+│   │   │   ├── instrument.ts
 │   │   │   ├── jobs/
 │   │   │   │   ├── auctionJob.ts
 │   │   │   │   ├── curatorEmailJob.ts
@@ -167,7 +176,8 @@ Docker status unavailable — run update-context.js locally (Windows) to capture
 │   │   │   │   ├── reputationJob.ts
 │   │   │   │   └── reservationExpiryJob.ts
 │   │   │   ├── lib/
-│   │   │   │   └── prisma.ts
+│   │   │   │   ├── prisma.ts
+│   │   │   │   └── socket.ts
 │   │   │   ├── middleware/
 │   │   │   │   └── auth.ts
 │   │   │   ├── models/
@@ -175,6 +185,7 @@ Docker status unavailable — run update-context.js locally (Windows) to capture
 │   │   │   ├── routes/
 │   │   │   │   ├── affiliate.ts
 │   │   │   │   ├── auth.ts
+│   │   │   │   ├── bounties.ts
 │   │   │   │   ├── contact.ts
 │   │   │   │   ├── favorites.ts
 │   │   │   │   ├── feed.ts
@@ -193,11 +204,13 @@ Docker status unavailable — run update-context.js locally (Windows) to capture
 │   │   │   │   ├── search.ts
 │   │   │   │   ├── stripe.ts
 │   │   │   │   ├── upload.ts
-│   │   │   │   └── users.ts
+│   │   │   │   ├── users.ts
+│   │   │   │   └── webhooks.ts
 │   │   │   ├── services/
 │   │   │   │   ├── emailReminderService.ts
 │   │   │   │   ├── followerNotificationService.ts
-│   │   │   │   └── pointsService.ts
+│   │   │   │   ├── pointsService.ts
+│   │   │   │   └── webhookService.ts
 │   │   │   └── utils/
 │   │   │       ├── stripe.ts
 │   │   │       └── webpush.ts
@@ -210,7 +223,7 @@ Docker status unavailable — run update-context.js locally (Windows) to capture
 │   │   ├── package-lock.json
 │   │   ├── package.json
 │   │   ├── prisma/
-│   │   │   ├── migrations/ (22 migrations)
+│   │   │   ├── migrations/ (27 migrations)
 │   │   │   ├── schema.prisma
 │   │   │   └── seed.ts
 │   │   └── tsconfig.json
@@ -225,6 +238,7 @@ Docker status unavailable — run update-context.js locally (Windows) to capture
 │   │   │   ├── BadgeDisplay.tsx
 │   │   │   ├── BidModal.tsx
 │   │   │   ├── BottomTabNav.tsx
+│   │   │   ├── BountyModal.tsx
 │   │   │   ├── CSVImportModal.tsx
 │   │   │   ├── CheckoutModal.tsx
 │   │   │   ├── FollowButton.tsx
@@ -291,11 +305,15 @@ Docker status unavailable — run update-context.js locally (Windows) to capture
 │   │   │   │   ├── [id].tsx
 │   │   │   │   ├── index.tsx
 │   │   │   │   └── new.tsx
+│   │   │   ├── neighborhoods/
+│   │   │   │   ├── [slug].tsx
+│   │   │   │   └── index.tsx
 │   │   │   ├── offline.tsx
 │   │   │   ├── organizer/
 │   │   │   │   ├── add-items/
 │   │   │   │   │   └── [saleId].tsx
 │   │   │   │   ├── add-items.tsx
+│   │   │   │   ├── bounties.tsx
 │   │   │   │   ├── create-sale.tsx
 │   │   │   │   ├── dashboard.tsx
 │   │   │   │   ├── edit-item/
@@ -305,9 +323,11 @@ Docker status unavailable — run update-context.js locally (Windows) to capture
 │   │   │   │   ├── holds.tsx
 │   │   │   │   ├── line-queue/
 │   │   │   │   │   └── [id].tsx
+│   │   │   │   ├── payouts.tsx
 │   │   │   │   ├── send-update/
 │   │   │   │   │   └── [saleId].tsx
-│   │   │   │   └── settings.tsx
+│   │   │   │   ├── settings.tsx
+│   │   │   │   └── webhooks.tsx
 │   │   │   ├── organizers/
 │   │   │   │   └── [id].tsx
 │   │   │   ├── privacy.tsx
@@ -325,6 +345,7 @@ Docker status unavailable — run update-context.js locally (Windows) to capture
 │   │   │   ├── server-sitemap.xml.tsx
 │   │   │   ├── shopper/
 │   │   │   │   ├── dashboard.tsx
+│   │   │   │   ├── favorites.tsx
 │   │   │   │   └── purchases.tsx
 │   │   │   ├── terms.tsx
 │   │   │   └── unsubscribe.tsx
@@ -355,6 +376,9 @@ Docker status unavailable — run update-context.js locally (Windows) to capture
 │   │   │   ├── sw-push.js
 │   │   │   ├── sw.js
 │   │   │   └── workbox-5d03dacf.js
+│   │   ├── sentry.client.config.ts
+│   │   ├── sentry.edge.config.ts
+│   │   ├── sentry.server.config.ts
 │   │   ├── styles/
 │   │   │   ├── globals.css
 │   │   │   └── output.css
@@ -373,6 +397,7 @@ Docker status unavailable — run update-context.js locally (Windows) to capture
 ├── pnpm-workspace.yaml
 ├── railway.toml
 └── scripts/
+    ├── health-check.ts
     ├── stress-test.js
     └── update-context.js
 

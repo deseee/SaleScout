@@ -8,6 +8,12 @@ Keep only the 5 most recent sessions. Delete older entries — git history and S
 
 ## Recent Sessions
 
+### 2026-03-05 (session 62+ — Sprints V2–X1 complete, full post-launch track done)
+**Worked on:** V2 (instant payouts): `payoutController.ts` (balance, payout schedule, on-demand payout), `routes/stripe.ts` (4 new routes), `pages/organizer/payouts.tsx`. V3 (UGC bounties): `MissingListingBounty` schema + migration, `bountyController.ts`, `routes/bounties.ts`, `pages/organizer/bounties.tsx`, `components/BountyModal.tsx`. W1 (shipping): `shippingAvailable`/`shippingPrice` on Item + migration, item CRUD updated, payment intent accepts `shippingRequested`. W2 (label PDF): `labelController.ts` with pdfkit, single-item and all-items endpoints. X1 (Zapier webhooks): `Webhook` model + migration, `webhookService.ts` (HMAC-SHA256 signed), `webhookController.ts`, `routes/webhooks.ts`, `pages/organizer/webhooks.tsx`. Hooks fired on `bid.placed` and `purchase.completed`. All pushed to GitHub.
+**Decisions:** Webhook secrets shown once on creation. Instant payout eligibility errors handled gracefully. Shipping cost added to Stripe charge total, stored in payment intent metadata. Label PDF uses pdfkit 4×3" pages (already installed).
+**Next up:** Run `prisma migrate deploy` for 3 pending migrations (20260305000006–8) on Neon. Then define Sprint Y or begin real-user beta onboarding.
+**Blockers:** 3 Neon migrations pending before deploy. Phase 31 OAuth env vars still needed in Vercel.
+
 ### 2026-03-05 (session 61 — Sentry live, git crisis resolved, doc audit)
 **Worked on:** Completed Sentry deployment: committed updated `pnpm-lock.yaml` (Vercel was failing with frozen lockfile error), fixed Vercel deploy. Resolved multi-session git crisis: `.gitattributes` CRLF rule caused perpetual dirty `roadmap.md`/`ROADMAP.md` (case-sensitivity duplicate index entries on Windows) — resolved via `git reset --hard origin/main`. Restored local `roadmap.md` to v9 (was at v3 — severely stale). Updated STATE.md Sentry entry to "fully deployed". Added self-healing entries 30 (`.gitattributes` CRLF perpetual dirty), 31 (case-sensitivity duplicate index), 32 (pnpm frozen lockfile mismatch). Updated entry 29 with nuclear reset fix.
 **Decisions:** `git reset --hard origin/main` is the canonical nuclear fix for any git state that survives stash/restore loops 3+ times. Never attempt case-only renames on Windows. Always commit `pnpm-lock.yaml` after Claude adds packages.
@@ -22,7 +28,7 @@ Keep only the 5 most recent sessions. Delete older entries — git history and S
 
 ### 2026-03-05 (session 58 — Sprint S complete + post-launch reorganization)
 **Worked on:** Pushed Phase 16 (advanced photo pipeline) to GitHub — 5 files: `itemController.ts` (addItemPhoto/removeItemPhoto/reorderItemPhotos), `items.ts` (3 new routes), `ItemPhotoManager.tsx` (new component), `edit-item/[id].tsx`, `add-items/[saleId].tsx`. Fixed Railway production error: `ItemReservation` table missing from Neon — ran `prisma migrate deploy` to apply 4 pending migrations (Phases 19, 22, 20, 21). Railway redeployed clean. Diagnosed homepage console log — all CSP errors from Yoroi browser extension, not the app. Reorganized all project docs: roadmap v9 with post-launch Sprint Track T–X, STATE.md trimmed to post-launch structure, self-healing entry #28 (pre-fill Neon URLs from .env).
-**Decisions:** Sprint Track T–X consolidates all deferred features, nice-to-haves, and infrastructure items into buildable sprints. Human-only items (beta onboarding, revenue goals, multi-metro) excluded. Uptime monitoring + Sentry blocked on Patrick creating external accounts. Polling for auctions stays until Sprint V.
+**Decisions:** Sprint Track T–X consolidates all deferred features, nice-to-haves, and infrastructure items into buildable sprints. Human-only items (beta onboarding, revenue goals, multi-metro) excluded. Polling for auctions stays until Sprint V.
 **Next up:** Sprint T — Production Hardening: stress test suite, pre-commit validation, favorites categories, virtual line SMS E2E.
 **Blockers:** Phase 31 OAuth env vars still needed in Vercel. Uptime/Sentry accounts needed before those items can start.
 
@@ -31,10 +37,3 @@ Keep only the 5 most recent sessions. Delete older entries — git history and S
 **Decisions:** Phase 32 export route before `/:id` wildcard to avoid routing collision. Authenticated blob download for CSV (no `Authorization` in `<a download>`).
 **Next up:** Sprint S — Phase 16.
 **Blockers:** Phase 31 OAuth env vars still needed. Phase 21/23 Neon migrations needed.
-
-### 2026-03-05 (session 56 — Sprint M + N: Reviews system + Shopper messaging)
-**Worked on:** Sprint M (Phase 15): `reviewController.ts` + `/api/reviews` + `StarRating.tsx` + `ReviewsSection.tsx` + 5pt award. Sprint N (Phase 20): `Conversation` + `Message` models + migration + `messageController.ts` (5 endpoints) + messages inbox + thread + new conversation + unread badge in BottomTabNav + Message organizer button.
-**Decisions:** Conversation `@@unique([shopperUserId, organizerId, saleId])`. `/unread-count` before `/:conversationId` in Express. `prisma.$transaction` for atomic reply + `lastMessageAt`.
-**Next up:** Sprint O — Phase 21.
-**Blockers:** Phase 20 migration needs `prisma migrate deploy` on Neon.
-
