@@ -75,18 +75,15 @@ Escalate from Haiku → Sonnet when:
 
 ---
 
-## Ollama / Local AI Offloading
+## Cloud vs Local AI
 
-Tasks suitable for local models (runs in Docker, zero API cost):
+**Current approach:** Cloud APIs only. No local Ollama/Docker overhead in production.
 
-| Task | Model | Integration Point |
-|------|-------|-------------------|
-| Image tagging (estate items) | Qwen vision / llama3.2-vision | image-tagger service (already exists) |
-| Embedding generation for search | nomic-embed-text | Backend batch job |
-| Text classification (item condition) | mistral 7B | Backend API endpoint |
-| Price suggestion from history | mistral 7B + RAG | Scheduled batch job |
+- **Image tagging:** Google Vision API (labels) + Claude Haiku (descriptions) — production pipeline since session 81
+- **Embeddings:** TODO (Pinecone or similar if needed for semantic search)
+- **Text classification:** Claude Haiku (cost-effective for interactive work)
 
-**Rule:** Use Ollama for batch/async tasks where latency doesn't matter. Use Claude API for interactive/real-time work.
+The standalone image-tagger service (FastAPI/Docker) was retired in session 81. The cloud pipeline is simpler, faster to debug, and requires no ops overhead.
 
 ---
 

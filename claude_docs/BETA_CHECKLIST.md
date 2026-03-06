@@ -79,9 +79,10 @@ Track completion in each section. Patrick owns ⚡ items; Claude owns 🤖 items
 
 | Item | Priority | Notes |
 |------|----------|-------|
-| Admin `findMany` pagination | Medium | Add `take: 100` to 5 admin queries |
-| `.env.example` drift fix | Low | Remove deprecated Ollama vars |
-| `buyingPool` user select cleanup | Low | Switch `include: { user: true }` → `select: { email, name }` |
+| Admin `findMany` pagination | ✅ DONE | All 5 findMany already have `take:` limits — verified clean |
+| `.env.example` drift fix | ✅ DONE | Ollama vars removed, cloud AI vars added (session 82) |
+| `buyingPool` user select cleanup | ✅ DONE | `include: { user: { select: {email,name} } }` (session 82) |
+| Beta invite flow (admin + register + auth) | ✅ DONE | Admin routes wired, register.tsx ?invite= param + field, authController validates + redeems (session 82) |
 | CD2 Phase 4 features | Post-beta | Reverse auction enhancements, Group buying, AR preview |
 
 ---

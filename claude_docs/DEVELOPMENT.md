@@ -5,7 +5,6 @@
 - Node.js 18+
 - pnpm 8+
 - PostgreSQL (native Windows install, port 5432)
-- Docker + Docker Compose — **image tagger only** (`findasale-image-tagger-1`)
 
 ## Quick Start
 
@@ -18,9 +17,6 @@ pnpm --filter backend run dev
 
 # Terminal 2 — Frontend (Next.js, port 3000)
 pnpm --filter frontend dev
-
-# Image tagger only (if using AI photo feature)
-docker compose up -d image-tagger
 ```
 
 ---
@@ -53,96 +49,44 @@ Key variables:
 | `JWT_SECRET` | Auth token signing secret |
 | `STRIPE_SECRET_KEY` | Stripe API key |
 | `CLOUDINARY_*` | Image upload credentials |
-| `TAGGER_URL` | Image tagger service URL |
-| `TAGGER_API_KEY` | Shared secret for tagger auth |
+| `GOOGLE_VISION_API_KEY` | Google Cloud Vision API key |
+| `ANTHROPIC_API_KEY` | Anthropic API key for Claude Haiku |
 
 ---
 
-## Image Tagger Service
+## AI Item Tagging
 
-The AI image tagger is a FastAPI microservice that analyzes item photos and suggests estate-sale categories.
+The AI tagging system analyzes item photos and suggests categories, descriptions, and price estimates using a cloud-based pipeline.
 
-### Starting the Tagger
+### How It Works
 
-```bash
-# Start via docker-compose (recommended)
-docker-compose up -d image-tagger
+**Current Pipeline (Production):**
+1. Organizer uploads photo via the Add Item form
+2. Backend calls `cloudAIService.ts`:
+   - **Primary:** Google Cloud Vision API (labels) + Claude Haiku (description/condition/price)
+   - **Fallback:** Claude Haiku only (if Vision API fails)
+   - **Last resort:** Manual entry with "AI unavailable" message
 
-# Check it's running
-curl http://localhost:5001/health
-# → {"status": "ok", "timestamp": "..."}
+Organizers review all AI suggestions before applying them — nothing is pre-filled silently.
 
-# View model info
-curl http://localhost:5001/info
+### Setup
+
+Ensure these env vars are set in `packages/backend/.env`:
+
+```
+GOOGLE_VISION_API_KEY=your_key_here
+ANTHROPIC_API_KEY=your_key_here
 ```
 
-### First-Time Setup
-
-The tagger image must be built before first use (model weights are downloaded at build time):
-
-```bash
-docker-compose build image-tagger
-docker-compose up -d image-tagger
-```
-
-If you update `requirements.txt`, always rebuild — `docker-compose restart` does not apply dependency changes.
-
-### Manual Testing
-
-Tag a single image via curl:
-
-```bash
-curl -X POST http://localhost:5001/api/tag \
-  -H "X-API-Key: change-this-in-production" \
-  -F "image=@/path/to/photo.jpg" \
-  -F "threshold=0.35"
-```
-
-Expected response:
-```json
-{
-  "filename": "photo.jpg",
-  "tags": [
-    {"tag": "furniture: sofa", "confidence": 0.87},
-    {"tag": "furniture: couch", "confidence": 0.72}
-  ],
-  "count": 2
-}
-```
+Get keys from:
+- **Google Vision API:** console.cloud.google.com → APIs → Vision API → Credentials → Create API Key
+- **Anthropic:** console.anthropic.com → API Keys → Create key
 
 ### Re-analyzing Existing Items
 
-Organizers can re-run AI tagging on an existing item from the Edit Item page. A "✨ AI suggest" link appears next to the Category field when:
-- The item has at least one photo URL
-- No category is currently set
+Organizers can re-run AI tagging on an existing item from the Edit Item page. A "✨ AI suggest" link appears next to the Category field when the item has at least one photo URL.
 
-Clicking it calls `POST /api/items/:id/analyze`, which downloads the first photo and runs it through the tagger.
-
-### Running Tagger Tests
-
-```bash
-cd packages/backend/services/image-tagger
-
-pip install -r requirements-dev.txt --break-system-packages
-
-# All tests
-python -m pytest tests/ -v
-
-# Unit tests only (no ML dependencies needed)
-python -m pytest tests/test_tagger_simple.py -v
-
-# Integration tests only
-python -m pytest tests/test_app_simple.py -v
-```
-
-### Tagger Documentation
-
-Full documentation is in `packages/backend/services/image-tagger/docs/`:
-
-- `TAGGER_DESIGN.md` — Architecture, model choice, category taxonomy
-- `TAGGER_BENCHMARKS.md` — Performance targets and benchmark script
-- `TAGGER_ACCURACY.md` — Accuracy methodology, expected metrics, decision gate
-- `TAGGER_TROUBLESHOOTING.md` — Common errors and fixes
+Clicking it calls `POST /api/items/:id/analyze`, which downloads the first photo and runs it through the cloud AI pipeline.
 
 ---
 
@@ -178,10 +122,6 @@ pnpm --filter backend test
 
 # Frontend tests
 pnpm --filter frontend test
-
-# Tagger tests (Python)
-cd packages/backend/services/image-tagger
-python -m pytest tests/ -v
 ```
 
 ---
