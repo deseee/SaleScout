@@ -48,7 +48,7 @@ Full detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## In Progress
 
-Parallel path model active. Session 66–67 batches complete.
+Parallel path model active. Session 66–69 batches complete.
 
 - **CA1** — ✅ COMPLETE. Full ToS + Privacy Policy + checkout consent checkbox. Pushed 2026-03-05.
 - **CA5** — ✅ COMPLETE. Health scout: GREEN. Medium fixes shipped (M1/M2 message pagination take:200/100, M3 contactLimiter 5/15min). Pushed 2026-03-05.
@@ -66,6 +66,9 @@ Parallel path model active. Session 66–67 batches complete.
 - **CD1** — ✅ COMPLETE. Fraunces serif font, sage-green color palette added to Tailwind + _document. Pushed 2026-03-05.
 - **CA3** — ✅ COMPLETE. Payment stress test map created. 2 bugs fixed: concurrent purchase auto-refund guard + $0.50 minimum check. Pushed 2026-03-05.
 - **P2** — Stripe business account, Google Voice, Search Console (Patrick)
+- **favicon.ico** — ✅ COMPLETE. Multi-size ICO (16/32/48px) from logo-icon-512.png. `_document.tsx` updated with shortcut/icon links. Pushed 2026-03-05.
+- **CA4** — ✅ COMPLETE. User flow audit (shopper/organizer/creator). 10 fixes shipped: search aria-label, purchases error handling, index refetch(), items/[id] retry, referral copy feedback. Open items logged in `claude_docs/ux-spotchecks/ca4-ca6-audit-2026-03-05.md`.
+- **CA6** — ✅ COMPLETE. Feature polish: 5MB photo validation + server error surfacing, push notification toggle in organizer settings, onboarding step 3 copy improved, empty referrals state. Pushed 2026-03-05.
 
 ---
 
@@ -87,7 +90,7 @@ Parallel path model active. Session 66–67 batches complete.
 
 ## Next Strategic Move
 
-Sessions 66–67 complete: CA2+CA3+CD1+CB1+CB3+CC2 shipped. Next: CA4 (user flow audit), CA6 (feature polish), CD2 Phase 2 (engagement layer). Patrick: P1 business cards (PNG logo ready in claude_docs/brand/), P2 Stripe/Search Console, P5 OAuth credentials, apply Railway migrations (`prisma migrate deploy` runs on deploy — verify in Railway logs). Beta target: 6–8 weeks. Full roadmap: `claude_docs/roadmap.md`.
+Sessions 68–69 complete: favicon.ico + CA4 + CA6 shipped. Next: CD2 Phase 2 (engagement layer), CA7 (human documentation). Patrick: P1 business cards (PNG logo ready in claude_docs/brand/), P2 Stripe/Search Console, P5 OAuth credentials, apply Railway migrations (`prisma migrate deploy` runs on deploy — verify in Railway logs). Beta target: 6–8 weeks. Full roadmap: `claude_docs/roadmap.md`.
 
 ---
 
@@ -115,4 +118,4 @@ Sessions 66–67 complete: CA2+CA3+CD1+CB1+CB3+CC2 shipped. Next: CA4 (user flow
 
 ---
 
-Last Updated: 2026-03-05 (session 68 — CB1+CB3+CA2+CA3+CD1+CC2+P6 complete. PNG logos generated (Vistaprint-ready). STATE.md updated.)
+Last Updated: 2026-03-05 (session 69 — favicon.ico + CA4 + CA6 complete. Pushed.)
