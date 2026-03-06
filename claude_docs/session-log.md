@@ -61,3 +61,9 @@ Keep only the 5 most recent sessions. Delete older entries — git history and S
 **Decisions:** CRLF phantom problem: run `git add [files] && git commit` BEFORE running `.\push.ps1` — do NOT chain them in a single command block because push.ps1's CRLF normalization runs before the commit.
 **Next up:** Patrick to push batch 14-15 changes using the corrected git commands (add + commit first, then push.ps1 separately).
 **Blockers:** Patrick's beta checklist items.
+
+### 2026-03-06 (session 82 batch 17 — pre-push hook fully silent)
+**Worked on:** Pre-push hook auth coverage check updated: added abTest.ts, feedback.ts, invites.ts, planner.ts to known-public allowlist; fixed router.use grep to match `router.use(authenticate,` (with extra middleware like requireAdmin); added `// public` comment filter for individual routes; added `// public, no auth needed` comment to search.ts /visual endpoint. Dry-run verified: zero warnings. Loading/error state audit: messages/new.tsx correctly uses React Query useMutation (isPending/isError) — no issues.
+**Decisions:** Pre-push hook now outputs zero ⚠️ warnings on a clean push. All checks fully silent.
+**Next up:** Patrick to push batch 17. Then beta launch prep.
+**Blockers:** Patrick's beta checklist items only.
