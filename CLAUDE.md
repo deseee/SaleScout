@@ -65,10 +65,18 @@ At session start, Claude must check which MCP tools are active. They are injecte
 at session start and not visible in any file — missing them causes wasted fallbacks.
 
 **GitHub MCP (`mcp__github__*`):**
-If active, use `mcp__github__push_files` to push changes directly to GitHub.
-Never write "push from PowerShell" in session wrap notes when the GitHub MCP is
-available. The VM cannot run `git push` (no HTTPS auth), but the MCP bypasses
-this entirely. This applies at every session wrap — push all changed files.
+Use `mcp__github__push_files` for **small targeted changes only** (1–5 files per session wrap).
+The VM cannot run `git push` (no HTTPS auth), but the MCP bypasses this for small batches.
+
+**Bulk pushes (>5 files) must always be done manually by Patrick from PowerShell:**
+```powershell
+cd C:\Users\desee\ClaudeProjects\FindaSale
+git add [specific files]
+git commit -m "..."
+git push origin main
+```
+Never attempt to push the full codebase via MCP — it burns tokens and fails at scale.
+At session wrap, Claude must tell Patrick exactly which files changed so he can git add them.
 
 Repo: `deseee/findasale` — Branch: `main`
 

@@ -1,137 +1,208 @@
 # ROADMAP – FindA.Sale
 
-**Last Updated:** 2026-03-05 (v9 — Post-launch reorganization. All Five Pillars done. Sprint Track T–X defined.)
-**Status:** Production MVP live at finda.sale. 21 phases shipped. Entering post-launch improvement track.
+**Last Updated:** 2026-03-05 (v11 — Sessions 65–70 completions marked. CB path updated: Cloud AI pipeline shipped, standalone image tagger retired. Brainstorm features integrated into CD2.)
+**Status:** Production MVP live at finda.sale. 21 phases + post-launch T–X complete. CB1–CB3 shipped. CA1–CA6 shipped. CC1–CC3 shipped. CD1 + CD2-Phase1 shipped. Entering beta recruitment.
 
 ---
 
-## Achievement: Five Pillars Complete ✅
+## Achievement: All Sprints Complete ✅
 
-21 phases shipped across 5 pillars (Sprints A–S, 2026-03-04 to 2026-03-05):
-
-1. **Organizer Photo/Video Workflow** — rapid capture, AI tagging, Cloudinary pipeline, multi-photo manager (14, 15, 16)
-2. **UI/UX Design Overhaul** — warm design system, bottom tab nav, listing card redesign, onboarding + empty states (24, 25, 26, 27)
-3. **Social & Discovery Layer** — follow system, social proof feed, full-text search, weekly curator email (17, 28, 29, 30)
-4. **Shopper Engagement Engine** — lightbox, Hunt Pass points, messaging, reservation/hold UI (18, 19, 20, 21)
-5. **Creator-Led Growth + Distribution** — creator tier, affiliate/referral, OAuth login, CSV export (22, 23, 31, 32)
-
-Research archives: `claude_docs/research/`
+21 phases + post-launch Sprints T–X shipped. Five Pillars complete. Full detail: `claude_docs/COMPLETED_PHASES.md`.
 
 ---
 
-## Post-Launch Sprint Track
+## Parallel Path Architecture
 
-All items below are buildable by Claude — no external accounts or human decisions required unless noted.
+5 tracks run concurrently. Sync points defined below.
 
-| Sprint | Focus | Status |
-|--------|-------|--------|
-| **T** | **Production Hardening** | **Next** |
-| U | Search & Discovery Upgrade | Queued |
-| V | Live Engagement | Queued |
-| W | Organizer Workflow | Queued |
-| X | Integrations | Queued |
+**P — Patrick (Human):** Beta recruitment, API keys, branding decisions, Stripe setup, real-world partnerships.
 
----
+**CA — Claude: Production Readiness:** Stress testing, bug fixing, ToS implementation, polish. Fully autonomous.
 
-## Sprint T — Production Hardening ← Next
+**CB — Claude: AI Image Processing (Cloud Pipeline):** Google Vision + Claude Haiku shipped. Standalone tagger retired. Quality tuning + legacy cleanup remaining.
 
-**Goal:** Catch regressions early, finish scaffolded features, add quick shopper wins.
+**CC — Claude: Business Intel & Content:** Investor materials, marketing content, pricing analysis. Fully autonomous.
 
-### T1 — Stress Test Suite
-Automated checks for: schema drift (Prisma model vs migration mismatch), dead routes (registered but no controller export), stale docs (STATE.md references non-existent files), orphaned migrations, console.log stubs in controllers.
-- `scripts/health-check.ts` — runs all checks, outputs pass/fail report
-- Wires into health-scout skill and pre-deploy checklist
-
-### T2 — Pre-Commit Validation Skill
-Extend `.githooks/pre-push` beyond TypeScript check to also run: Prisma schema lint, grep for `console.log` / `TODO` / `alert(` in controllers, check for missing `authenticate` on mutation routes.
-- Update `packages/backend/.githooks/pre-push`
-- Update findasale-deploy skill checklist to reference it
-
-### T3 — Favorites Categories
-Let shoppers filter their saved favorites by category. Builds on existing favorites + search.
-- `GET /api/favorites?category=X` — add category filter param
-- Update `/favorites` page with category tabs (reuse `/search` category tab pattern)
-- Zero schema changes needed
-
-### T4 — Virtual Line SMS E2E
-`VirtualLine` model and `lineController` are already scaffolded. Twilio is configured. Complete the flow end-to-end:
-- `POST /api/lines/:saleId/join` → SMS confirmation to shopper via Twilio
-- `POST /api/lines/:saleId/notify` → organizer broadcasts "now serving #N" via SMS blast
-- Simple organizer UI on sale management page (join count + notify button)
+**CD — Claude: Innovation & Experience:** Blue-sky feature development, branding implementation, UX research, cross-industry feature porting.
 
 ---
 
-## Sprint U — Search & Discovery Upgrade
+## Path P — Patrick
 
-### U1 — Ollama Semantic Search
-Replace Prisma `contains` in `/api/search` with Ollama embedding vectors for semantic matching.
-- `qwen3-vl:4b` + `nomic-embed-text` model via Ollama `/api/embeddings`
-- Store embeddings on `Item` (pgvector or Float[] column + cosine similarity query)
-- Graceful fallback to text search if Ollama unavailable
-- Migration: `add_item_embedding`
+### P1: Business Formation — IN PROGRESS
+- [x] File Michigan LLC with LARA
+- [x] Get EIN from IRS.gov
+- [x] Open business bank account
+- [ ] Set up support@finda.sale email forwarding
+- [ ] Order business cards (~$25)
+- [ ] Create Google Business Profile for FindA.Sale
 
-### U2 — Neighborhood Landing Pages
-SEO-friendly pages for "Estate Sales in [Grand Rapids Neighborhood]".
-- `pages/neighborhoods/[slug].tsx` — upcoming sales filtered by neighborhood/area
-- Prisma query by city district or lat/lng bounding box
-- Add to sitemap for SEO indexing
+### P2: Legal + Stripe — IN PROGRESS
+- [ ] Open Stripe business account (if easier than personal Connect)
+- [ ] ⚡ **Sync: Claude implements ToS/Privacy into the app (CA1)**
+- [ ] Set up Google Voice for support line
+- [ ] Google Search Console verification (if not done)
 
----
+### P3: Field Research — ✅ COMPLETE
+Original project research done. Notes available.
 
-## Sprint V — Live Engagement
+### P4: Beta Recruitment (Week 3–6)
+- [ ] Identify 5 target beta organizers
+- [ ] ⚡ **Sync: Claude provides demo walkthrough + onboarding guide (CA7)**
+- [ ] Schedule 1-on-1 onboarding sessions
+- [ ] Hand-hold first 3 sales
+- [ ] Collect structured feedback
+- [ ] ⚡ **Sync: feedback → Claude for iteration**
 
-### V1 — Socket.io Live Bidding
-Replace 10s auction polling with real-time bid events.
-- Add `socket.io` to backend, emit `bid:update` on each `placeBid` call
-- Frontend: replace polling `useEffect` in auction item detail with `useSocket` hook
-- Graceful fallback to polling if socket drops
+### P5: API Keys & Services (As Needed)
+- [x] Google Cloud account + Vision API key ✅ 2026-03-05
+- [x] Anthropic API key (for Claude Haiku) ✅ 2026-03-05
+- [x] UptimeRobot monitoring ✅ 2026-03-05
+- [ ] OAuth credentials (Google, Facebook) → Vercel env vars: GOOGLE_CLIENT_ID/SECRET, FACEBOOK_CLIENT_ID/SECRET
+- [ ] VAPID keys confirmed in production
 
-### V2 — Instant Payouts
-Allow organizers to configure faster Stripe payout schedule.
-- `POST /api/organizers/me/payout-schedule` → `{ interval: 'daily' | 'weekly' | 'manual' }`
-- Stripe Connect `account.update({ settings: { payouts: { schedule } } })`
-- Display current schedule + change option in organizer dashboard
-
-### V3 — UGC Missing-Listing Bounties
-Reward shoppers who photograph and submit items the organizer missed.
-- `POST /api/items/suggest` — shopper submits photo + title + description
-- `/organizer/suggestions` — organizer review queue (approve/reject)
-- On approval: 25pt award to submitter, item added to sale
-
----
-
-## Sprint W — Organizer Workflow
-
-### W1 — Shipping Workflow
-For organizers who ship items (antique dealers, online-first sellers).
-- `shippingAvailable Boolean @default(false)` + `shippingPrice Decimal?` on `Item`
-- Checkout: shopper selects local pickup or shipping
-- Flat-rate shipping calculator (organizer sets price per item or per order)
-
-### W2 — Label Printing
-PDF-printable item price tags for in-person sales.
-- `GET /api/items/:id/label.pdf` — single label: title, price, QR code, sale name
-- `GET /api/sales/:id/labels.pdf` — all items in one print-ready PDF
-- Builds on existing QR scan infrastructure
+### P6: Branding Decisions (Week 2–4)
+- [x] Review branding brief (`claude_docs/research/branding-brief-2026-03-05.md`)
+- [x] Logo generated via AI (SVG) — `claude_docs/brand/logo-primary.svg` ✅ 2026-03-05 — unblocks business cards + CD1
+- [ ] ⚡ **Sync: Claude implements chosen color palette, typography, PWA manifest (CD1)**
 
 ---
 
-## Sprint X — Integrations
+## Path CA — Claude: Production Readiness
 
-### X1 — Zapier Webhook System
-Let organizers push FindA.Sale events to external tools (CRMs, email lists, inventory systems).
-- `Webhook` model: `{ id, organizerId, url, events String[], secret String }`
-- Events: `sale.published`, `item.sold`, `reservation.created`, `review.posted`
-- `POST /api/organizers/me/webhooks` — register; `DELETE` to remove; `POST .../test` to verify
-- Background job fires signed `axios.post(webhook.url, payload)` on each event
+### CA1: ToS & Privacy Policy Implementation — ✅ COMPLETE (Session 66)
+`/terms` and `/privacy` pages live. Footer links + checkout consent checkbox shipped.
+
+### CA2: Database & Migration Health — ✅ COMPLETE (Session 68)
+Prisma schema validated. Production migration runbook documented. 4 migrations pending Railway deploy (Live Drop, Treasure Hunt, Reverse Auction, StripeEvent).
+
+### CA3: Payment Flow Stress Test — ✅ COMPLETE (Session 69)
+All Stripe paths tested. 2 bugs found and fixed. 5%/7% fee logic verified.
+
+### CA4: User Flow Audit — ✅ COMPLETE (Session 70)
+Shopper + organizer journeys audited. 5 polish fixes shipped (merged with CA6).
+
+### CA5: Performance & Security — ✅ COMPLETE (Session 67)
+Health-scout GREEN. All critical issues resolved.
+
+### CA6: Feature Polish — ✅ COMPLETE (Session 70)
+5 fixes shipped across photo upload UX, empty states, and error handling.
+
+### CA7: Human Documentation (2 sessions) ← NEXT
+Organizer guide, shopper FAQ, Zapier webhook API docs, in-app help tooltips. ⚡ **Sync: Patrick reviews before beta launch.**
 
 ---
 
-## Needs Patrick First (Blocked on External Setup)
+## Path CB — Claude: AI Image Processing (Cloud Pipeline)
 
-| Item | What's Needed |
-|------|---------------|
-| Uptime monitoring | Create free UptimeRobot or StatusGator account → add monitor for `finda.sale` and Railway backend URL → share alert email |
+> **Standalone image tagger retired.** Google Vision + Claude Haiku is the production pipeline. Ollama remains as optional local dev fallback only. The `TAGGER_URL`/`TAGGER_API_KEY` env vars and RAM++ references can be removed in a future cleanup pass.
+
+### CB1: Research & Architecture — ✅ COMPLETE (Session 68)
+Google Vision (labels) + Claude Haiku (structured analysis). Cost at beta: $10–50/month. Spec + cost model documented.
+
+### CB2: Backend Integration — ✅ COMPLETE (Session 69)
+`cloudAIService.ts` shipped. Fallback chain: Vision → Haiku → Ollama → manual. Rate limiting and cache in place.
+
+### CB3: Frontend Integration — ✅ COMPLETE (Session 69)
+AI suggestions review panel on add-items page. Accept/edit/reject per suggestion. Rapid-batch upload endpoint live.
+
+### CB4: Quality Tuning — IN PROGRESS
+Test across item categories. Measure organizer acceptance rate. Prompt engineering for Haiku. Feedback loop for rejected suggestions.
+
+### CB5: Legacy Cleanup (1 session) — PLANNED
+Remove `TAGGER_URL`/`TAGGER_API_KEY` references, Gradio UI remnants, and unused FastAPI service code. Keep Ollama as optional dev-only fallback.
+
+---
+
+## Path CC — Claude: Business Intel & Content
+
+### CC1: Investor Materials — ✅ COMPLETE (Session 68)
+Executive summary, 12-slide pitch deck, 3-year financial model, TAM/SAM/SOM, competitive landscape. All in `claude_docs/research/`.
+
+### CC2: Marketing Content — ✅ COMPLETE (Session 69)
+Blog posts, social templates, email templates shipped. See `claude_docs/research/marketing-content-2026-03-05.md`.
+
+### CC3: Pricing Model Analysis — ✅ COMPLETE (Session 68)
+Recommends flat 5%/7% for beta. Full analysis in `claude_docs/research/pricing-analysis-2026-03-05.md`. ⚡ **Sync: Patrick confirms launch pricing.**
+
+### CC4: Automated Intelligence (running)
+7 scheduled tasks covering competitor monitoring, industry intel, changelog, UX spots, health, monthly digest, workflow retrospective.
+
+---
+
+## Path CD — Claude: Innovation & Experience
+
+### CD1: Branding Implementation — ✅ COMPLETE (Session 70)
+Fraunces serif + sage-green palette applied. PWA manifest, favicon, app icons updated. Brand voice in microcopy shipped.
+
+### CD2: Feature Innovation Pipeline (ongoing)
+
+**Phase 1 — Quick Wins: ✅ COMPLETE (Session 69)**
+
+| Feature | Status |
+|---------|--------|
+| Live Scarcity Counter | ✅ Shipped — "3 left" / "5 bought in last hour" badges |
+| Social Proof Live Feed | ✅ Shipped — "X people viewing" / "Y just bought" stats bar |
+| Streak Challenges | Deferred to Phase 2 (needs Hunt Pass system first) |
+
+**Phase 2 — Engagement Layer (Weeks 5–12):** ← NEXT CD TRACK
+
+| Feature | What It Does | Claude Path |
+|---------|-------------|-------------|
+| Smart Inventory Upload | Bulk photo → AI tags → listings in one batch | CB (leverages cloudAIService rapid-batch) |
+| Treasure Hunt Mode | Daily discovery challenges with AI-generated clues | CD + CB (AI generates clues from inventory) |
+| Live Drop Events | Countdown reveals of premium items, FOMO-driven | CD (DB migration already staged) |
+| Personalized Weekly Email | Curated items based on shopper browse/buy history | CC (marketing automation) + CD |
+| Streak Challenges + Hunt Pass | Visit/save/buy streaks with point bonuses, $4.99 premium tier | CD |
+| QR Codes for Physical Sales | Scannable codes linking to digital inventory at sale location | CD (low effort, high organizer value) |
+
+**Phase 3 — Moat Features (Months 4–6):**
+
+| Feature | What It Does | Claude Path |
+|---------|-------------|-------------|
+| AI Discovery Feed | Personalized item feed using ML on browse/buy signals | CB + CD (embeddings already in schema) |
+| Buyer-to-Sale Matching | ML matches shoppers to sales based on preference history | CB + CD |
+| Dynamic Pricing | AI suggests prices based on comps, condition, demand | CB (PriceSuggestion component exists) |
+| Visual Search | Photo → find similar items across all active sales | CB (Google Vision + embeddings) |
+| Virtual Tours (360°) | Walkable preview of sale space before visiting | CD |
+| City Leaderboards & Badges | Gamification layer for repeat buyers/organizers | CD |
+| Sale Near Me Heat Map | Geo-visual discovery of active/upcoming sales | CD |
+| Organizer Insights Dashboard | Analytics on views, conversions, popular items | CA + CD |
+
+**Phase 4 — Market Expansion (Months 7–12):**
+
+| Feature | What It Does | Claude Path |
+|---------|-------------|-------------|
+| Reverse Auction | Declining price on slow inventory — shoppers get alerts | CD (DB migration staged) |
+| Group Buying Pools | Co-buy expensive items (antique sets, furniture collections) | CD |
+| White-label MaaS | Marketplace-as-a-Service for thrift chains and antique dealers | CD + CA |
+| Estate Sale Planning Assistant | AI chatbot guiding executors through the entire process | CB + CD |
+| Consignment Integration | Connect thrift store POS systems to FindA.Sale listings | CD + CA |
+| Wishlist/Registry | Occasion-based wishlists (moving, downsizing, decorating) | CD |
+| Flash Deals & Promotions | Time-limited organizer promotions with push notifications | CD |
+| Organizer Tier Rewards | Bronze/Silver/Gold tiers with reduced fees + priority features | CC + CD |
+| AR Furniture Preview | See items in your space before buying (long-term R&D) | CD |
+
+### CD3: Cross-Industry Research (ongoing)
+Weekly feature-innovation-scan monitors: real estate, social commerce, gaming, food delivery, dating apps, fitness apps, auction houses.
+
+### CD4: UX & Workflow Review System (bi-weekly)
+Scheduled bi-weekly review of session logs, skill effectiveness, doc freshness, and workflow bottlenecks.
+
+---
+
+## Sync Point Calendar (Updated)
+
+| Week | Sync | What Converges | Status |
+|------|------|----------------|--------|
+| 1 | ⚡ ToS review | CA1 draft → Patrick approves | ✅ Done |
+| 1 | ⚡ Branding direction | Patrick chooses path → CD1 implements | ✅ Done |
+| 2 | ⚡ AI tagging approach | CB1 spec → Patrick approves + API keys | ✅ Done |
+| 3 | ⚡ Payment test results | CA3 report → go/no-go | ✅ Done |
+| 4 | ⚡ Documentation review | CA7 guides → Patrick reviews | ← NEXT |
+| 4 | ⚡ Launch pricing confirmation | CC3 analysis → Patrick decides 5%/7% | Pending Patrick |
+| 5 | ⚡ Beta readiness check | All paths → go/no-go for beta | Pending |
+| 6–8 | ⚡ Beta feedback loops | P4 feedback → CA/CB/CD iterate | Pending |
 
 ---
 
@@ -150,4 +221,4 @@ Backend on Railway (`backend-production-153c9.up.railway.app`), PostgreSQL on Ne
 
 ---
 
-*v9 updated 2026-03-05. Five Pillars complete. Post-launch Sprint Track T–X defined.*
+*v11 updated 2026-03-05. Sessions 65–70 completions reflected. Cloud AI pipeline (Google Vision + Claude Haiku) shipped and standalone image tagger retired. Brainstorm features integrated into CD2 phases with Claude path assignments. Source: `claude_docs/research/parallel-roadmap-v2-2026-03-05.md`, `claude_docs/research/feature-brainstorm-2026-03-05.md`.*

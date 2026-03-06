@@ -7,7 +7,7 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Active Objective
 
-Post-launch improvement. MVP stable in Grand Rapids. Sprints T–X queued.
+Parallel path model active (5 tracks). MVP stable in Grand Rapids. Beta target: 6–8 weeks. CA1 (ToS) is next Claude task.
 
 ---
 
@@ -48,15 +48,35 @@ Full detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## In Progress
 
-None. **Sprints T–X complete.** All post-launch sprint tracks shipped.
+Parallel path model active. Session 66–67 batches complete.
+
+- **CA1** — ✅ COMPLETE. Full ToS + Privacy Policy + checkout consent checkbox. Pushed 2026-03-05.
+- **CA5** — ✅ COMPLETE. Health scout: GREEN. Medium fixes shipped (M1/M2 message pagination take:200/100, M3 contactLimiter 5/15min). Pushed 2026-03-05.
+- **CC3** — ✅ COMPLETE. Pricing analysis: competitors 13–20% vs FindA.Sale 5%. 4 options. Recommends flat 5%/7% for beta. ⚡ Patrick confirms?
+- **CC1** — ✅ COMPLETE. Investor materials: exec summary, 12-slide pitch deck outline, 3-year financial model, TAM $150M. Pushed 2026-03-05.
+- **CC2** — ✅ COMPLETE. Marketing content: 2 blog posts (organizer + shopper), social templates (IG/FB/GBP), 4 email templates, messaging pillars, hashtag bank. Pushed 2026-03-05.
+- **CD4** — ✅ COMPLETE. Bi-weekly workflow review scheduled task (1st + 15th, 9AM). First run: March 15.
+- **CD2 Phase 1** — ✅ COMPLETE. Scarcity counter + social proof stats bar. Pulsing "Only X left!" + "On Hold" / "Sold" badges. Pushed 2026-03-05.
+- **CB1** — ✅ COMPLETE. `cloudAIService.ts` (Google Vision → Claude Haiku). `uploadController.ts` cloud AI primary, Ollama fallback. Pushed 2026-03-05.
+- **CB3** — ✅ COMPLETE. AI tagging suggestions review panel in add-items. Apply/dismiss/rescan. No silent pre-fill. Pushed 2026-03-05.
+- **P5** — ✅ Google Vision, Anthropic API, UptimeRobot DONE. Remaining: OAuth credentials, VAPID production confirm.
+- **P6** — ✅ AI-generated SVG + PNG logos created (`claude_docs/brand/`). 4 PNG files: logo-icon-512.png, logo-primary.png, business-card-front.png, business-card-back.png — Vistaprint-ready. Pushed 2026-03-05.
+- **P1** — Support email, business cards (use business-card-front/back.png from claude_docs/brand/), Google Business Profile (Patrick)
+- **CA2** — ✅ COMPLETE. Schema validated (4 additive migrations pending Railway deploy). Migration runbook created. Pushed 2026-03-05.
+- **CD1** — ✅ COMPLETE. Fraunces serif font, sage-green color palette added to Tailwind + _document. Pushed 2026-03-05.
+- **CA3** — ✅ COMPLETE. Payment stress test map created. 2 bugs fixed: concurrent purchase auto-refund guard + $0.50 minimum check. Pushed 2026-03-05.
+- **P2** — Stripe business account, Google Voice, Search Console (Patrick)
 
 ---
 
 ## Pending Manual Action
 
 - **Phase 31 OAuth env vars** — Social login dormant until added to Vercel: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `FACEBOOK_CLIENT_ID`, `FACEBOOK_CLIENT_SECRET`. Configure redirect URIs → `https://finda.sale/api/auth/callback/{google,facebook}`.
-- **Uptime monitoring** — Create UptimeRobot or StatusGator free account, add monitors for `finda.sale` and Railway backend. Share URL with Claude to wire alerts.
-- **Sentry** — ✅ Fully deployed. `@sentry/node` (backend) + `@sentry/nextjs` (frontend) wired and running in Docker. Lockfile committed. Vercel deployed. DSNs set in Railway + Vercel. Test: add `/sentry-test` route → verify event in Sentry dashboard → remove route.
+- **Support email** — `support@finda.sale` not yet configured.
+- **Railway migrations** — 4 migrations pending deploy (Live Drop, Treasure Hunt, Reverse Auction, StripeEvent). Run `prisma migrate deploy` via Railway CLI or confirm they auto-ran on last deploy.
+- **Uptime monitoring** — ✅ UptimeRobot done (Patrick confirmed 2026-03-05).
+- **Sentry** — ✅ Fully deployed. DSNs set in Railway + Vercel.
+- **STRIPE_WEBHOOK_SECRET** — ✅ Set in Railway (2026-03-05).
 
 ---
 
@@ -70,15 +90,15 @@ None. **Sprints T–X complete.** All post-launch sprint tracks shipped.
 
 ## Next Strategic Move
 
-Post-launch Sprint Track T–X **fully complete**. All roadmap items shipped. All migrations applied.
-Next: define Sprint Y or begin beta onboarding / real-user testing.
+Sessions 68–69 complete: favicon.ico + CA4 + CA6 shipped. Next: CD2 Phase 2 (engagement layer), CA7 (human documentation). Patrick: P1 business cards (PNG logo ready in claude_docs/brand/), P2 Stripe/Search Console, P5 OAuth credentials, apply Railway migrations (`prisma migrate deploy` runs on deploy — verify in Railway logs). Beta target: 6–8 weeks. Full roadmap: `claude_docs/roadmap.md`.
 
 ---
 
 ## Known Gotchas (Production)
 
 - **Railway PORT mismatch** — `PORT=5000` locked in Railway Variables. Must match `EXPOSE 5000` in Dockerfile. Do not remove.
-- **Neon production DB** — `prisma migrate deploy` must be run manually after any new migration. All 26 migrations applied to both Neon and local Docker as of 2026-03-05.
+- **Neon production DB** — `prisma migrate deploy` must be run manually after any new migration. All 26 migrations applied to Neon as of 2026-03-05; 4 more pending (Live Drop, Treasure Hunt, Reverse Auction, StripeEvent).
+- **Dev stack is now native** — As of 2026-03-05, Docker is no longer used for core dev (backend/frontend/postgres run natively on Windows). Docker remains only for `image-tagger` (AI photo feature). See `claude_docs/DEVELOPMENT.md`.
 - **Production seed:**
   ```powershell
   cd C:\Users\desee\ClaudeProjects\FindaSale\packages\database
@@ -99,4 +119,8 @@ Next: define Sprint Y or begin beta onboarding / real-user testing.
 
 ---
 
-Last Updated: 2026-03-05 (session 63 — All migrations applied to Neon + Docker. Pre-push hook fixed for Prisma v7 global. Lockfile synced. Clean state.)
+- **favicon.ico** — ✅ COMPLETE. Multi-size ICO (16/32/48px) from logo-icon-512.png. `_document.tsx` updated with shortcut/icon links. Pushed 2026-03-05.
+- **CA4** — ✅ COMPLETE. User flow audit (shopper/organizer/creator). 10 fixes shipped: search aria-label, purchases error handling, index refetch(), items/[id] retry, referral copy feedback. Open items logged in `claude_docs/ux-spotchecks/ca4-ca6-audit-2026-03-05.md`.
+- **CA6** — ✅ COMPLETE. Feature polish: 5MB photo validation + server error surfacing, push notification toggle in organizer settings, onboarding step 3 copy improved, empty referrals state. Pushed 2026-03-05.
+
+Last Updated: 2026-03-05 (session 70 — Stripe webhook ✅, native PostgreSQL migration complete, dev docs updated.)

@@ -4,23 +4,23 @@
 
 - Node.js 18+
 - pnpm 8+
-- Docker + Docker Compose
-- PostgreSQL (via Docker — see docker-compose.yml)
+- PostgreSQL (native Windows install, port 5432)
+- Docker + Docker Compose — **image tagger only** (`findasale-image-tagger-1`)
 
 ## Quick Start
 
-```bash
+```powershell
 # Install all workspace dependencies
 pnpm install
 
-# Start all services (backend, frontend, image-tagger)
-docker-compose up -d
+# Terminal 1 — Backend (Express, port 5000)
+pnpm --filter backend run dev
 
-# Run frontend dev server
+# Terminal 2 — Frontend (Next.js, port 3000)
 pnpm --filter frontend dev
 
-# Run backend dev server
-pnpm --filter backend dev
+# Image tagger only (if using AI photo feature)
+docker compose up -d image-tagger
 ```
 
 ---
@@ -148,16 +148,25 @@ Full documentation is in `packages/backend/services/image-tagger/docs/`:
 
 ## Database
 
-```bash
-# Apply migrations
-pnpm --filter database db:migrate
+Native Windows PostgreSQL (port 5432). Connection string in `packages/database/.env`.
+
+```powershell
+# Apply pending migrations
+cd packages/database
+npx prisma migrate deploy
+
+# Create a new migration (dev only)
+npx prisma migrate dev --name describe_your_change
 
 # Open Prisma Studio
 pnpm --filter database db:studio
 
-# Generate Prisma client after schema changes
+# Regenerate Prisma client after schema changes
 pnpm --filter database db:generate
 ```
+
+⚠️ Never run `prisma db push` in production. Never run `prisma migrate reset` against Neon.
+The production DB (Neon) requires `prisma migrate deploy` only — runs automatically on Railway deploy.
 
 ---
 

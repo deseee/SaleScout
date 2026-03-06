@@ -1,36 +1,88 @@
 # Next Session Resume Prompt
-*Written: 2026-03-05T22:00:00Z*
+*Written: 2026-03-05 (Session 75 wrap)*
 *Session ended: normally*
 
 ## Resume From
-Merge the parallel roadmap v2 into the official `roadmap.md`, then audit all claude_docs for alignment with the new roadmap structure. This is a Sonnet-appropriate task — structured doc work, no novel architecture.
 
-## What Was In Progress
-Nothing in-flight. Session ended cleanly after strategic planning.
+GitHub sync — partially complete. Batches 1–3 pushed via MCP. Patrick is completing
+the remainder via PowerShell (manual push — see below). After that, next feature work
+is CA7 (human documentation) or CD2 Phase 2 (engagement layer) on Patrick's signal.
 
-## What Was Completed This Session
-- Strategic review of entire project (saved to `claude_docs/research/strategic-review-2026-03-05.md`)
-- Competitor ToS research across 7 platforms (agent output, patterns summarized)
-- Branding brief with color palette, typography, voice (`claude_docs/research/branding-brief-2026-03-05.md`)
-- Cross-industry feature brainstorm, 25+ features ranked (`claude_docs/research/feature-brainstorm-2026-03-05.md`)
-- Parallel roadmap v2 with 5 tracks (`parallel-roadmap-v2-2026-03-05.md` at project root AND `claude_docs/research/`)
+---
 
-## Primary Task for Next Session
-1. Read `parallel-roadmap-v2-2026-03-05.md` (project root) — this is the new roadmap template
-2. Read current `claude_docs/roadmap.md` — note the Long-Term Hold section that must be merged in
-3. Replace `claude_docs/roadmap.md` with the v2 parallel roadmap content, incorporating the long-term hold items
-4. Update `claude_docs/STATE.md` to reflect the new parallel path structure (replace Sprint T–X references)
-5. Audit all claude_docs for stale references to the old sprint structure
-6. Clean up: move `parallel-roadmap-v2-2026-03-05.md` and `strategic-review-2026-03-05.md` from project root to archive once merged
+## GitHub Sync Status
 
-## Key Context
-- Patrick confirmed: P1 partially done (LLC/EIN/bank ✅, support email/cards/GBP still open)
-- Patrick confirmed: P3 done (field research was the project's origin)
-- The v2 roadmap has 5 paths: P (Patrick), CA (Production), CB (AI Tagging), CC (Business Intel), CD (Innovation)
-- Long-term hold items from old roadmap: Video-to-inventory (late 2026+), Multi-metro expansion (after beta data)
-- These files should be pushed to GitHub after changes: roadmap.md, STATE.md, session-log.md, next-session-prompt.md
+### Already pushed via MCP (Batches 1–3):
+- `packages/database/prisma/` — schema.prisma + all 26 migrations + seed.ts + migration_lock.toml
+- `packages/backend/src/index.ts`, `instrument.ts`
+- `packages/backend/src/services/` — cloudAIService.ts, emailReminderService.ts, pointsService.ts, webhookService.ts
+- `packages/backend/src/lib/` — prisma.ts, socket.ts
+- `packages/backend/src/middleware/auth.ts`
+- `packages/backend/src/models/LineEntry.ts`
+- `packages/backend/src/utils/` — stripe.ts, webpush.ts
+- `packages/backend/src/controllers/` — all 22 controller files
+
+### Patrick pushes manually from PowerShell:
+```powershell
+cd C:\Users\desee\ClaudeProjects\FindaSale
+
+git add packages/backend/src/routes
+git add packages/backend/src/jobs
+git add packages/backend/src/tests
+git add packages/frontend/components
+git add packages/frontend/hooks
+git add packages/frontend/contexts
+git add packages/frontend/lib
+git add packages/frontend/pages
+git add packages/frontend/styles
+git add packages/frontend/types
+git add packages/frontend/public
+git add packages/frontend/*.ts packages/frontend/*.js packages/frontend/*.json
+git add packages/shared/src
+git add packages/database/package.json
+git add packages/backend/package.json packages/backend/tsconfig.json packages/backend/Dockerfile
+git add packages/frontend/Dockerfile
+git add docker-compose.yml package.json pnpm-workspace.yaml railway.toml
+git add claude_docs/
+git add CLAUDE.md README.md context.md
+git commit -m "sync: push all remaining source files from sessions 65-74"
+git push origin main
+```
+**Skip:** `.env` files, `pnpm-lock.yaml`, `node_modules/`, `.next/`, `dist/`, `build/`, `tsconfig.tsbuildinfo`
+
+---
+
+## Workflow Change (effective this session)
+
+MCP push is now limited to 1–5 files per session wrap.
+Bulk pushes are always done manually by Patrick from PowerShell.
+CLAUDE.md Section 5 updated to reflect this.
+
+---
+
+## What Was Completed Sessions 74–75
+
+- Audited local vs GitHub — flagged ~200 unpushed files
+- Updated ROADMAP.md to v11, pushed (commit `c0597e2`)
+- Pushed Batches 1–3 via MCP (database, backend core, all controllers)
+- Decided bulk push workflow should be manual — updated CLAUDE.md + this file
+
+---
+
+## Next Feature Work (Patrick's signal)
+
+- **CA7** — Human-facing documentation (user guide, organizer guide)
+- **CD2 Phase 2** — Engagement layer (recently viewed, wishlist alerts, scarcity nudges)
+- **P1** — Business cards (PNG logos ready in `claude_docs/brand/`), Google Business Profile
+- **P2** — Stripe business account, Google Voice, Search Console
+- **P5** — OAuth credentials (Google + Facebook) + Railway env var additions
+
+## Pending Manual Actions (unchanged)
+
+- Phase 31 OAuth env vars in Vercel: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `FACEBOOK_CLIENT_ID`, `FACEBOOK_CLIENT_SECRET`
+- Railway migrations: verify 4 pending migrations ran on last deploy
+- Support email `support@finda.sale` not configured
 
 ## Environment Notes
-- GitHub is fully up to date — all session 64 research files pushed
-- 3 Neon migrations still pending (from session 62)
-- Phase 31 OAuth env vars still needed in Vercel
+
+Native dev stack (no Docker for core). Beta target: March 12–19, 2026.
