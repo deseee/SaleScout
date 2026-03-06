@@ -1,6 +1,6 @@
 # ROADMAP – FindA.Sale
 
-**Last Updated:** 2026-03-06 (v12 — Sessions 78–80. All CA/CB/CC paths complete. CD2 Phases 2–4 substantially complete. All 35 Neon migrations applied. Batches 7–17 pushed. push.ps1 + pre-push hook fix shipped.)
+**Last Updated:** 2026-03-06 (v13 — Session 82. CD2 Phase 2+3 complete. Health scout fixes applied. SaleTourGallery.tsx created.)
 **Status:** Production MVP live at finda.sale. 21 phases + post-launch T–X complete. All CA/CB/CC paths complete. CD1–CD4 shipped. CD2 Phases 2–4 substantially complete. 35 Neon migrations applied. Entering beta recruitment.
 
 ---
@@ -153,35 +153,35 @@ Fraunces serif + sage-green palette applied. PWA manifest, favicon, app icons up
 | Treasure Hunt Mode | Daily discovery challenges with AI-generated clues | ✅ COMPLETE (TreasureHuntBanner, service, routes, items/[id] integration) |
 | Live Drop Events | Countdown reveals of premium items, FOMO-driven | ✅ COMPLETE (isLiveDrop/liveDropAt in items/[id].tsx + add-items.tsx) |
 | Personalized Weekly Email | Curated items based on shopper browse/buy history | ✅ COMPLETE (weeklyEmailService personalized picks + weeklyEmailJob.ts) |
-| Streak Challenges + Hunt Pass | Visit/save/buy streaks with point bonuses, $4.99 premium tier | ← NEXT |
+| Streak Challenges + Hunt Pass | Visit/save/buy streaks with point bonuses, $4.99 Hunt Pass Stripe flow | ✅ COMPLETE (StreakWidget.tsx + HuntPassModal.tsx, backend activate/confirm routes, Session 81) |
 | QR Codes for Physical Sales | Scannable codes linking to digital inventory at sale location | ✅ COMPLETE (SaleQRCode.tsx, Session 77) |
 
 **Phase 3 — Moat Features (Months 4–6):**
 
 | Feature | What It Does | Claude Path |
 |---------|-------------|-------------|
-| AI Discovery Feed | Personalized item feed using ML on browse/buy signals | CB + CD (embeddings already in schema) |
-| Buyer-to-Sale Matching | ML matches shoppers to sales based on preference history | CB + CD |
-| Dynamic Pricing | AI suggests prices based on comps, condition, demand | CB (PriceSuggestion component exists) |
-| Visual Search | Photo → find similar items across all active sales | CB (Google Vision + embeddings) |
-| Virtual Tours (360°) | Walkable preview of sale space before visiting | CD |
-| City Leaderboards & Badges | Gamification layer for repeat buyers/organizers | CD |
-| Sale Near Me Heat Map | Geo-visual discovery of active/upcoming sales | CD |
-| Organizer Insights Dashboard | Analytics on views, conversions, popular items | CA + CD |
+| AI Discovery Feed | Personalized item feed using ML on browse/buy signals | ✅ COMPLETE (discoveryService.ts, /api/feed route, index.tsx personalized feed, Session 80+) |
+| Buyer-to-Sale Matching | ML matches shoppers to sales based on preference history | ✅ COMPLETE (buyerMatchService.ts, triggered on sale publish, Session 80+) |
+| Dynamic Pricing | AI suggests prices based on comps, condition, demand | ✅ COMPLETE (PriceSuggestion.tsx + /items/ai/price-suggest + DB comps, Session 81) |
+| Visual Search | Photo → find similar items across all active sales | ✅ COMPLETE (VisualSearchButton.tsx + /api/search/visual, Session 80+) |
+| Virtual Tours (360°) | Walkable preview of sale space before visiting | ✅ COMPLETE (SaleTourGallery.tsx — full-screen tour with swipe/keyboard/filmstrip, Session 82) |
+| City Leaderboards & Badges | Gamification layer for repeat buyers/organizers | ✅ COMPLETE (leaderboard.tsx page + leaderboardController.ts, Session 80+) |
+| Sale Near Me Heat Map | Geo-visual discovery of active/upcoming sales | ✅ COMPLETE (map.tsx — Leaflet map with date filters and geolocation, Session 80+) |
+| Organizer Insights Dashboard | Analytics on views, conversions, popular items | ✅ COMPLETE (organizer/insights.tsx, Session 80+) |
 
 **Phase 4 — Market Expansion (Months 7–12):**
 
-| Feature | What It Does | Claude Path |
-|---------|-------------|-------------|
-| Reverse Auction | Declining price on slow inventory — shoppers get alerts | CD (DB migration staged) |
-| Group Buying Pools | Co-buy expensive items (antique sets, furniture collections) | CD |
-| White-label MaaS | Marketplace-as-a-Service for thrift chains and antique dealers | CD + CA |
-| Estate Sale Planning Assistant | AI chatbot guiding executors through the entire process | CB + CD |
-| Consignment Integration | Connect thrift store POS systems to FindA.Sale listings | CD + CA |
-| Wishlist/Registry | Occasion-based wishlists (moving, downsizing, decorating) | CD |
-| Flash Deals & Promotions | Time-limited organizer promotions with push notifications | CD |
-| Organizer Tier Rewards | Bronze/Silver/Gold tiers with reduced fees + priority features | CC + CD |
-| AR Furniture Preview | See items in your space before buying (long-term R&D) | CD |
+| Feature | What It Does | Status |
+|---------|-------------|--------|
+| Reverse Auction | Declining price on slow inventory — daily auto price drop | ✅ COMPLETE (ReverseAuctionBadge.tsx + reverseAuctionJob.ts, Session 80+) |
+| Group Buying Pools | Co-buy expensive items (antique sets, furniture collections) | ✅ COMPLETE (BuyingPoolCard.tsx + buyingPoolController.ts, Session 80+) |
+| Wishlist/Registry | Occasion-based wishlists (moving, downsizing, decorating) | ✅ COMPLETE (wishlists.tsx, Session 80+) |
+| Flash Deals & Promotions | Time-limited organizer promotions with push notifications | ✅ COMPLETE (FlashDealForm.tsx + FlashDealBanner.tsx, Session 80+) |
+| Organizer Tier Rewards | Bronze/Silver/Gold tiers with reduced fees + priority features | ✅ COMPLETE (OrganizerTierBadge.tsx + tierController.ts, Session 80+) |
+| White-label MaaS | Marketplace-as-a-Service for thrift chains and antique dealers | Deferred post-beta |
+| Estate Sale Planning Assistant | AI chatbot guiding executors through the entire process | ✅ COMPLETE (plan.tsx AI chat, Session 80+) |
+| Consignment Integration | Connect thrift store POS systems to FindA.Sale listings | Deferred post-beta |
+| AR Furniture Preview | See items in your space before buying (long-term R&D) | Deferred — hardware not ready |
 
 ### CD3: Cross-Industry Research (ongoing)
 Weekly feature-innovation-scan monitors: real estate, social commerce, gaming, food delivery, dating apps, fitness apps, auction houses.
@@ -221,4 +221,4 @@ Backend on Railway (`backend-production-153c9.up.railway.app`), PostgreSQL on Ne
 
 ---
 
-*v12 updated 2026-03-06. Sessions 78–80 completions reflected. All 35 Neon migrations applied. Batches 7–17 pushed (81 files, 7,471 insertions). push.ps1 + pre-push hook optimization shipped. All CA/CB/CC paths complete. CD2 Phases 2–4 substantially complete.*
+*v13 updated 2026-03-06 (Session 82). CD2 Phase 2+3 complete. CD2 Phase 4 substantially complete (Reverse Auction, Group Buying, Wishlists, Flash Deals, Tier Rewards, Planning Assistant). Remaining deferred: White-label MaaS, Consignment, AR Preview. Health scout: GREEN. SaleTourGallery created. Dynamic pricing with DB comps.*
