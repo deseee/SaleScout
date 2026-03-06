@@ -31,7 +31,13 @@ Phases 1–13 + pre-beta audit + rebrand + Sprints A–X all verified and shippe
 
 ## In Progress
 
-Parallel path model active. Session 66–67 batches complete.
+Parallel path model active. Session 76–77 batches complete.
+
+- **CA7** — ✅ COMPLETE. `/guide` organizer guide page, expanded FAQ (shopper+organizer tabs), footer guide link, webhooks Zapier help link. Session 77.
+- **CB4** — ✅ COMPLETE. Haiku prompt improved (tags field, estate-sale context, category/condition guidance). AITagResult includes `tags[]`. Feedback endpoint `/upload/ai-feedback`. add-items panel shows AI tags. Session 77.
+- **CB5** — ✅ COMPLETE. TAGGER_URL/TAGGER_API_KEY legacy code removed from itemController.ts. analyzeItemTags now uses cloudAIService. .env vars deprecated. Ollama fallback prompt updated to include tags. TS syntax bug in treasureHuntService.ts fixed. Session 77.
+- **CD2-P2 QR Codes** — ✅ COMPLETE. `SaleQRCode.tsx` component (qrserver.com API, download/print/copy). Wired to sale detail page Share sidebar + organizer dashboard per-sale toggle. utm_source=qr_sign tracking already in sales/[id].tsx. Session 77.
+- **Treasure Hunt + Live Drop** — ✅ VERIFIED COMPLETE (prior session). TreasureHuntBanner, service, routes, item page integration, LiveDrop all confirmed shipped.
 
 - **CA1** — ✅ COMPLETE. Full ToS + Privacy Policy + checkout consent checkbox. Pushed 2026-03-05.
 - **CA5** — ✅ COMPLETE. Health scout: GREEN. Medium fixes shipped (M1/M2 message pagination take:200/100, M3 contactLimiter 5/15min). Pushed 2026-03-05.
@@ -54,8 +60,8 @@ Parallel path model active. Session 66–67 batches complete.
 
 ## Pending Manual Action (Blocks Beta Launch)
 
-- **Phase 31 OAuth env vars** — Social login dormant until added to Vercel: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `FACEBOOK_CLIENT_ID`, `FACEBOOK_CLIENT_SECRET`. Configure redirect URIs → `https://finda.sale/api/auth/callback/{google,facebook}`.
-- **Support email** — `support@finda.sale` not yet configured.
+- **Phase 31 OAuth env vars** — ✅ DONE (2026-03-06). GOOGLE_CLIENT_ID/SECRET + FACEBOOK_CLIENT_ID/SECRET added to Vercel. Redirect URIs configured.
+- **Support email** — ✅ DONE (2026-03-06). support@finda.sale email forwarding configured.
 - **Railway migrations** — 4 migrations pending deploy (Live Drop, Treasure Hunt, Reverse Auction, StripeEvent). Run `prisma migrate deploy` via Railway CLI or confirm they auto-ran on last deploy.
 - **Uptime monitoring** — ✅ UptimeRobot done (Patrick confirmed 2026-03-05).
 - **Sentry** — ✅ Fully deployed. DSNs set in Railway + Vercel.
@@ -110,4 +116,4 @@ Sessions 68–69 complete: favicon.ico + CA4 + CA6 shipped. Next: CD2 Phase 2 (e
 - **CA4** — ✅ COMPLETE. User flow audit (shopper/organizer/creator). 10 fixes shipped: search aria-label, purchases error handling, index refetch(), items/[id] retry, referral copy feedback. Open items logged in `claude_docs/ux-spotchecks/ca4-ca6-audit-2026-03-05.md`.
 - **CA6** — ✅ COMPLETE. Feature polish: 5MB photo validation + server error surfacing, push notification toggle in organizer settings, onboarding step 3 copy improved, empty referrals state. Pushed 2026-03-05.
 
-Last Updated: 2026-03-06 (session 76 — GitHub sync COMPLETE. All ~200 source files on main. TS errors in sales/[id].tsx fixed. MCP push rule updated: ≤5 files AND ≤25k tokens. Next: CA7 or CD2 Phase 2.)
+Last Updated: 2026-03-06 (session 77 — CA7, CB4, CB5, CD2-P2 QR Codes shipped. TS bug fixed (treasureHuntService). Legacy image-tagger code removed. 14 files changed. Patrick: push manually, also delete packages/backend/services/image-tagger/ when ready. Next: Streak Challenges + Hunt Pass (CD2-P2), Personalized Weekly Email (CC+CD), CB5 image-tagger dir deletion.)
