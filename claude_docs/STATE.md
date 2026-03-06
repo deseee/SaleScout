@@ -7,7 +7,7 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Active Objective
 
-Parallel path model active (5 tracks). MVP stable in Grand Rapids. Beta target: 6–8 weeks. CA1 (ToS) is next Claude task.
+Parallel path model active (5 tracks). MVP stable in Grand Rapids. Beta target: 6–8 weeks. All CA/CB/CC paths complete. CD2 Phases 2–4 substantially complete. All 35 Neon migrations applied. Batches 7–17 pushed to GitHub. Next: remaining batch 7 (social sharing, print inventory), then batch 8+.
 
 ---
 
@@ -62,7 +62,7 @@ Parallel path model active. Session 76–77 batches complete.
 
 - **Phase 31 OAuth env vars** — ✅ DONE (2026-03-06). GOOGLE_CLIENT_ID/SECRET + FACEBOOK_CLIENT_ID/SECRET added to Vercel. Redirect URIs configured.
 - **Support email** — ✅ DONE (2026-03-06). support@finda.sale email forwarding configured.
-- **Railway migrations** — 4 migrations pending deploy (Live Drop, Treasure Hunt, Reverse Auction, StripeEvent). Run `prisma migrate deploy` via Railway CLI or confirm they auto-ran on last deploy.
+- **Neon migrations** — ✅ ALL 35 migrations applied to Neon production (2026-03-06). No pending migrations.
 - **Uptime monitoring** — ✅ UptimeRobot done (Patrick confirmed 2026-03-05).
 - **Sentry** — ✅ Fully deployed. DSNs set in Railway + Vercel.
 - **STRIPE_WEBHOOK_SECRET** — ✅ Set in Railway (2026-03-05).
@@ -83,14 +83,15 @@ Parallel path model active. Session 76–77 batches complete.
 
 ## Beta Launch Target
 
-Sessions 68–69 complete: favicon.ico + CA4 + CA6 shipped. Next: CD2 Phase 2 (engagement layer), CA7 (human documentation). Patrick: P1 business cards (PNG logo ready in claude_docs/brand/), P2 Stripe/Search Console, P5 OAuth credentials, apply Railway migrations (`prisma migrate deploy` runs on deploy — verify in Railway logs). Beta target: 6–8 weeks. Full roadmap: `claude_docs/roadmap.md`.
+All CA/CB/CC paths complete. CD2 Phases 2–4 substantially complete. All 35 Neon migrations applied. Next Claude work: batch 7 remainder (social sharing, print inventory) then batch 8 (listing card redesign, OAuth, social proof feed, empty states, shopper messaging). Patrick: P1 business cards, P2 Stripe/Search Console, P4 beta recruitment, delete image-tagger directory, confirm 5%/7% fee. Beta target: 6–8 weeks. Full roadmap: `claude_docs/roadmap.md`.
 
 ---
 
 ## Known Gotchas (Production)
 
 - **Railway PORT mismatch** — `PORT=5000` locked in Railway Variables. Must match `EXPOSE 5000` in Dockerfile. Do not remove.
-- **Neon production DB** — `prisma migrate deploy` must be run manually after any new migration. All 26 migrations applied to Neon as of 2026-03-05; 4 more pending (Live Drop, Treasure Hunt, Reverse Auction, StripeEvent).
+- **Neon production DB** — `prisma migrate deploy` must be run manually after any new migration. All 35 migrations applied to Neon as of 2026-03-06.
+- **Git push workflow** — Patrick uses `.\push.ps1` (repo root) instead of raw `git push`. Self-heals: index.lock, CRLF phantoms, fetch+merge (never rebase). See self-healing entry #36.
 - **Dev stack is now native** — As of 2026-03-05, Docker is no longer used for core dev (backend/frontend/postgres run natively on Windows). Docker remains only for `image-tagger` (AI photo feature). See `claude_docs/DEVELOPMENT.md`.
 - **Production seed:**
   ```powershell
@@ -116,4 +117,4 @@ Sessions 68–69 complete: favicon.ico + CA4 + CA6 shipped. Next: CD2 Phase 2 (e
 - **CA4** — ✅ COMPLETE. User flow audit (shopper/organizer/creator). 10 fixes shipped: search aria-label, purchases error handling, index refetch(), items/[id] retry, referral copy feedback. Open items logged in `claude_docs/ux-spotchecks/ca4-ca6-audit-2026-03-05.md`.
 - **CA6** — ✅ COMPLETE. Feature polish: 5MB photo validation + server error surfacing, push notification toggle in organizer settings, onboarding step 3 copy improved, empty referrals state. Pushed 2026-03-05.
 
-Last Updated: 2026-03-06 (session 79 — TS build fixes (flashDeal, leaderboard, wishlist, reverseAuction, itemController). AuthContext notificationPrefs added. Price drop alerts shipped. Accessibility improvements (ARIA, keyboard nav, skip-to-content). Sale countdown timer on cards + detail pages. ROADMAP.md regression fixed: v3 stale→v12 recovered from git history. Self-healing entries 33-35 added (MCP size pre-check, autocrlf rebase, roadmap regression). Remaining batch 7: social sharing, print inventory.)
+Last Updated: 2026-03-06 (session 80 — 15 TS errors fixed (recharts ambient types, React Query v5 onSuccess, SimilarItems args, Item interface). All batches 7–17 pushed to GitHub (81 files, 7,471 insertions). push.ps1 created (self-healing git push replacing raw git push). Pre-push hook auth check optimized (1400→40 subprocesses). All 35 Neon migrations applied. ROADMAP v12 updated. Self-healing entry #36 added.)
