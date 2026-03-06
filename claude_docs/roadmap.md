@@ -88,8 +88,8 @@ Health-scout GREEN. All critical issues resolved.
 ### CA6: Feature Polish — ✅ COMPLETE (Session 70)
 5 fixes shipped across photo upload UX, empty states, and error handling.
 
-### CA7: Human Documentation (2 sessions) ← NEXT
-Organizer guide, shopper FAQ, Zapier webhook API docs, in-app help tooltips. ⚡ **Sync: Patrick reviews before beta launch.**
+### CA7: Human Documentation — ✅ COMPLETE (Session 77)
+`/guide` organizer page, expanded `/faq` (shopper + organizer tabs), footer guide link, webhook Zapier guide link. ⚡ **Sync: Patrick reviews before beta launch.**
 
 ---
 
@@ -106,11 +106,11 @@ Google Vision (labels) + Claude Haiku (structured analysis). Cost at beta: $10�
 ### CB3: Frontend Integration — ✅ COMPLETE (Session 69)
 AI suggestions review panel on add-items page. Accept/edit/reject per suggestion. Rapid-batch upload endpoint live.
 
-### CB4: Quality Tuning — IN PROGRESS
-Test across item categories. Measure organizer acceptance rate. Prompt engineering for Haiku. Feedback loop for rejected suggestions.
+### CB4: Quality Tuning — ✅ COMPLETE (Session 77)
+Tags field added to AITagResult. Haiku prompt improved (estate-sale context, category guidance, condition guidelines). Feedback endpoints `/upload/ai-feedback` + stats. Tags shown as pill badges in add-items panel.
 
-### CB5: Legacy Cleanup (1 session) — PLANNED
-Remove `TAGGER_URL`/`TAGGER_API_KEY` references, Gradio UI remnants, and unused FastAPI service code. Keep Ollama as optional dev-only fallback.
+### CB5: Legacy Cleanup — ✅ COMPLETE (Session 77)
+TAGGER_URL/TAGGER_API_KEY removed from itemController. analyzeItemTags uses cloudAIService. .env vars deprecated. Ollama fallback prompt updated. Note: `packages/backend/services/image-tagger/` directory still needs manual deletion by Patrick.
 
 ---
 
@@ -149,12 +149,12 @@ Fraunces serif + sage-green palette applied. PWA manifest, favicon, app icons up
 
 | Feature | What It Does | Claude Path |
 |---------|-------------|-------------|
-| Smart Inventory Upload | Bulk photo → AI tags → listings in one batch | CB (leverages cloudAIService rapid-batch) |
-| Treasure Hunt Mode | Daily discovery challenges with AI-generated clues | CD + CB (AI generates clues from inventory) |
-| Live Drop Events | Countdown reveals of premium items, FOMO-driven | CD (DB migration already staged) |
-| Personalized Weekly Email | Curated items based on shopper browse/buy history | CC (marketing automation) + CD |
-| Streak Challenges + Hunt Pass | Visit/save/buy streaks with point bonuses, $4.99 premium tier | CD |
-| QR Codes for Physical Sales | Scannable codes linking to digital inventory at sale location | CD (low effort, high organizer value) |
+| Smart Inventory Upload | Bulk photo → AI tags → listings in one batch | ✅ COMPLETE (SmartInventoryUpload.tsx, rapid-batch endpoint) |
+| Treasure Hunt Mode | Daily discovery challenges with AI-generated clues | ✅ COMPLETE (TreasureHuntBanner, service, routes, items/[id] integration) |
+| Live Drop Events | Countdown reveals of premium items, FOMO-driven | ✅ COMPLETE (isLiveDrop/liveDropAt in items/[id].tsx + add-items.tsx) |
+| Personalized Weekly Email | Curated items based on shopper browse/buy history | ✅ COMPLETE (weeklyEmailService personalized picks + weeklyEmailJob.ts) |
+| Streak Challenges + Hunt Pass | Visit/save/buy streaks with point bonuses, $4.99 premium tier | ← NEXT |
+| QR Codes for Physical Sales | Scannable codes linking to digital inventory at sale location | ✅ COMPLETE (SaleQRCode.tsx, Session 77) |
 
 **Phase 3 — Moat Features (Months 4–6):**
 
