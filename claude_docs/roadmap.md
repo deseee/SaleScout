@@ -1,7 +1,7 @@
 # ROADMAP – FindA.Sale
 
-**Last Updated:** 2026-03-05 (v10 — Parallel path model. All Five Pillars + Sprints A–X shipped. 5-track parallel structure adopted.)
-**Status:** Production MVP live at finda.sale. 21 phases + post-launch T–X complete. Entering parallel beta-prep phase.
+**Last Updated:** 2026-03-05 (v11 — Sessions 65–70 completions marked. CB path updated: Cloud AI pipeline shipped, standalone image tagger retired. Brainstorm features integrated into CD2.)
+**Status:** Production MVP live at finda.sale. 21 phases + post-launch T–X complete. CB1–CB3 shipped. CA1–CA6 shipped. CC1–CC3 shipped. CD1 + CD2-Phase1 shipped. Entering beta recruitment.
 
 ---
 
@@ -19,7 +19,7 @@
 
 **CA — Claude: Production Readiness:** Stress testing, bug fixing, ToS implementation, polish. Fully autonomous.
 
-**CB — Claude: AI Tagging Pipeline:** Research → integrate → test. One sync point for API keys/budget.
+**CB — Claude: AI Image Processing (Cloud Pipeline):** Google Vision + Claude Haiku shipped. Standalone tagger retired. Quality tuning + legacy cleanup remaining.
 
 **CC — Claude: Business Intel & Content:** Investor materials, marketing content, pricing analysis. Fully autonomous.
 
@@ -70,55 +70,60 @@ Original project research done. Notes available.
 
 ## Path CA — Claude: Production Readiness
 
-### CA1: ToS & Privacy Policy Implementation (1 session) ← NEXT
-Draft + implement `/terms` and `/privacy` pages using competitor-standard language. Add footer links and checkout consent checkbox. ⚡ **Sync: Patrick reviews before going live.**
+### CA1: ToS & Privacy Policy Implementation — ✅ COMPLETE (Session 66)
+`/terms` and `/privacy` pages live. Footer links + checkout consent checkbox shipped.
 
-### CA2: Database & Migration Health (1 session)
-Apply 3 pending Neon migrations. Prisma schema validation against production. Document production migration runbook.
+### CA2: Database & Migration Health — ✅ COMPLETE (Session 68)
+Prisma schema validated. Production migration runbook documented. 4 migrations pending Railway deploy (Live Drop, Treasure Hunt, Reverse Auction, StripeEvent).
 
-### CA3: Payment Flow Stress Test (2 sessions)
-Map every Stripe path: onboarding, checkout, refund, failed payment, 3DS, auction win, instant payout. Test 5% vs 7% item-level fee logic. Webhook failure recovery. Edge cases: $0 items, concurrent bids, expired cards.
+### CA3: Payment Flow Stress Test — ✅ COMPLETE (Session 69)
+All Stripe paths tested. 2 bugs found and fixed. 5%/7% fee logic verified.
 
-### CA4: User Flow Audit (2 sessions)
-Full shopper journey, organizer journey, creator/affiliate journey. Mobile responsiveness on real viewport sizes. Accessibility pass. Edge cases: 0 items, 1000+ items, deleted sale mid-auction.
+### CA4: User Flow Audit — ✅ COMPLETE (Session 70)
+Shopper + organizer journeys audited. 5 polish fixes shipped (merged with CA6).
 
-### CA5: Performance & Security (1 session)
-Health-scout baseline scan. Lighthouse on key pages. Auth middleware audit. Sentry verification. CSP/CORS review.
+### CA5: Performance & Security — ✅ COMPLETE (Session 67)
+Health-scout GREEN. All critical issues resolved.
 
-### CA6: Feature Polish (3 sessions)
-Photo upload UX, semantic search with real queries, push notification verification, onboarding walkthrough, empty states and error handling.
+### CA6: Feature Polish — ✅ COMPLETE (Session 70)
+5 fixes shipped across photo upload UX, empty states, and error handling.
 
-### CA7: Human Documentation (2 sessions)
-Organizer guide, shopper FAQ, Zapier webhook API docs, in-app help tooltips.
+### CA7: Human Documentation (2 sessions) ← NEXT
+Organizer guide, shopper FAQ, Zapier webhook API docs, in-app help tooltips. ⚡ **Sync: Patrick reviews before beta launch.**
 
 ---
 
-## Path CB — Claude: AI Tagging Pipeline
+## Path CB — Claude: AI Image Processing (Cloud Pipeline)
 
-### CB1: Research & Architecture (1 session)
-Recommended: Google Vision (labels) + Claude Haiku (descriptions). Cost at beta: $10–50/month. Write technical spec + cost model at 100/1K/10K images/month. ⚡ **Sync: Patrick approves approach + creates API keys (P5).**
+> **Standalone image tagger retired.** Google Vision + Claude Haiku is the production pipeline. Ollama remains as optional local dev fallback only. The `TAGGER_URL`/`TAGGER_API_KEY` env vars and RAM++ references can be removed in a future cleanup pass.
 
-### CB2: Backend Integration (2 sessions)
-Replace Ollama with cloud API calls. Fallback chain: Vision → Haiku → manual. Rate limiting, cost controls, cache strategy.
+### CB1: Research & Architecture — ✅ COMPLETE (Session 68)
+Google Vision (labels) + Claude Haiku (structured analysis). Cost at beta: $10–50/month. Spec + cost model documented.
 
-### CB3: Frontend Integration (1 session)
-Photo upload → AI suggestions flow. Accept/edit/reject per suggestion. Batch mode. "AI suggested" badge.
+### CB2: Backend Integration — ✅ COMPLETE (Session 69)
+`cloudAIService.ts` shipped. Fallback chain: Vision → Haiku → Ollama → manual. Rate limiting and cache in place.
 
-### CB4: Quality Tuning (ongoing)
+### CB3: Frontend Integration — ✅ COMPLETE (Session 69)
+AI suggestions review panel on add-items page. Accept/edit/reject per suggestion. Rapid-batch upload endpoint live.
+
+### CB4: Quality Tuning — IN PROGRESS
 Test across item categories. Measure organizer acceptance rate. Prompt engineering for Haiku. Feedback loop for rejected suggestions.
+
+### CB5: Legacy Cleanup (1 session) — PLANNED
+Remove `TAGGER_URL`/`TAGGER_API_KEY` references, Gradio UI remnants, and unused FastAPI service code. Keep Ollama as optional dev-only fallback.
 
 ---
 
 ## Path CC — Claude: Business Intel & Content
 
-### CC1: Investor Materials (2 sessions)
-Executive summary, pitch deck (10–15 slides), financial model, TAM/SAM/SOM, competitive landscape.
+### CC1: Investor Materials — ✅ COMPLETE (Session 68)
+Executive summary, 12-slide pitch deck, 3-year financial model, TAM/SAM/SOM, competitive landscape. All in `claude_docs/research/`.
 
-### CC2: Marketing Content (ongoing)
-"How to Run an Estate Sale" guide, "Estate Sale Shopping Guide", social media templates, email templates, landing page copy, blog drafts.
+### CC2: Marketing Content — ✅ COMPLETE (Session 69)
+Blog posts, social templates, email templates shipped. See `claude_docs/research/marketing-content-2026-03-05.md`.
 
-### CC3: Pricing Model Analysis (1 session)
-Competitor fee deep dive, cost-per-sale analysis, break-even by tier, A la carte AI pricing model. ⚡ **Sync: Patrick decides launch pricing.**
+### CC3: Pricing Model Analysis — ✅ COMPLETE (Session 68)
+Recommends flat 5%/7% for beta. Full analysis in `claude_docs/research/pricing-analysis-2026-03-05.md`. ⚡ **Sync: Patrick confirms launch pricing.**
 
 ### CC4: Automated Intelligence (running)
 7 scheduled tasks covering competitor monitoring, industry intel, changelog, UX spots, health, monthly digest, workflow retrospective.
@@ -127,47 +132,56 @@ Competitor fee deep dive, cost-per-sale analysis, break-even by tier, A la carte
 
 ## Path CD — Claude: Innovation & Experience
 
-### CD1: Branding Implementation (2 sessions)
-Apply branding brief to app: warm amber (#D97706) + sage green + navy, PWA manifest updates, typography audit, updated app icons, brand voice in microcopy. ⚡ **Sync: Patrick chooses direction in P6 first.**
+### CD1: Branding Implementation — ✅ COMPLETE (Session 70)
+Fraunces serif + sage-green palette applied. PWA manifest, favicon, app icons updated. Brand voice in microcopy shipped.
 
 ### CD2: Feature Innovation Pipeline (ongoing)
 
-**Phase 1 — Quick Wins:**
+**Phase 1 — Quick Wins: ✅ COMPLETE (Session 69)**
 
-| Feature | What It Does |
-|---------|-------------|
-| Live Scarcity Counter | "3 left" / "5 bought in last hour" on item listings |
-| Streak Challenges | Visit/save/buy streaks with Hunt Pass point bonuses |
-| Social Proof Live Feed | "X people viewing" / "Y just bought" on sale pages |
+| Feature | Status |
+|---------|--------|
+| Live Scarcity Counter | ✅ Shipped — "3 left" / "5 bought in last hour" badges |
+| Social Proof Live Feed | ✅ Shipped — "X people viewing" / "Y just bought" stats bar |
+| Streak Challenges | Deferred to Phase 2 (needs Hunt Pass system first) |
 
-**Phase 2 — Engagement Layer:**
+**Phase 2 — Engagement Layer (Weeks 5–12):** ← NEXT CD TRACK
 
-| Feature | What It Does |
-|---------|-------------|
-| Treasure Hunt Mode | Daily discovery challenges with AI-generated clues |
-| Live Drop Events | Countdown reveals of premium items, FOMO-driven |
-| Personalized Weekly Email | Curated items based on shopper browse/buy history |
-| Smart Inventory Upload | Bulk photo → AI tags → listings in one batch |
+| Feature | What It Does | Claude Path |
+|---------|-------------|-------------|
+| Smart Inventory Upload | Bulk photo → AI tags → listings in one batch | CB (leverages cloudAIService rapid-batch) |
+| Treasure Hunt Mode | Daily discovery challenges with AI-generated clues | CD + CB (AI generates clues from inventory) |
+| Live Drop Events | Countdown reveals of premium items, FOMO-driven | CD (DB migration already staged) |
+| Personalized Weekly Email | Curated items based on shopper browse/buy history | CC (marketing automation) + CD |
+| Streak Challenges + Hunt Pass | Visit/save/buy streaks with point bonuses, $4.99 premium tier | CD |
+| QR Codes for Physical Sales | Scannable codes linking to digital inventory at sale location | CD (low effort, high organizer value) |
 
-**Phase 3 — Moat Features:**
+**Phase 3 — Moat Features (Months 4–6):**
 
-| Feature | What It Does |
-|---------|-------------|
-| AI Discovery Feed | Personalized item feed using ML on browse/buy signals |
-| Buyer-to-Sale Matching | ML matches shoppers to sales based on preference history |
-| Dynamic Pricing | AI suggests prices based on comps, condition, demand |
-| Visual Search | Photo → find similar items across all active sales |
-| Virtual Tours (360°) | Walkable preview of sale space before visiting |
+| Feature | What It Does | Claude Path |
+|---------|-------------|-------------|
+| AI Discovery Feed | Personalized item feed using ML on browse/buy signals | CB + CD (embeddings already in schema) |
+| Buyer-to-Sale Matching | ML matches shoppers to sales based on preference history | CB + CD |
+| Dynamic Pricing | AI suggests prices based on comps, condition, demand | CB (PriceSuggestion component exists) |
+| Visual Search | Photo → find similar items across all active sales | CB (Google Vision + embeddings) |
+| Virtual Tours (360°) | Walkable preview of sale space before visiting | CD |
+| City Leaderboards & Badges | Gamification layer for repeat buyers/organizers | CD |
+| Sale Near Me Heat Map | Geo-visual discovery of active/upcoming sales | CD |
+| Organizer Insights Dashboard | Analytics on views, conversions, popular items | CA + CD |
 
-**Phase 4 — Market Expansion:**
+**Phase 4 — Market Expansion (Months 7–12):**
 
-| Feature | What It Does |
-|---------|-------------|
-| Reverse Auction | Declining price on slow inventory — shoppers get alerts |
-| Group Buying Pools | Co-buy expensive items (antique sets, furniture collections) |
-| White-label MaaS | Marketplace-as-a-Service for thrift chains and antique dealers |
-| Estate Sale Planning Assistant | AI chatbot guiding executors through the entire process |
-| Consignment Integration | Connect thrift store POS systems to FindA.Sale listings |
+| Feature | What It Does | Claude Path |
+|---------|-------------|-------------|
+| Reverse Auction | Declining price on slow inventory — shoppers get alerts | CD (DB migration staged) |
+| Group Buying Pools | Co-buy expensive items (antique sets, furniture collections) | CD |
+| White-label MaaS | Marketplace-as-a-Service for thrift chains and antique dealers | CD + CA |
+| Estate Sale Planning Assistant | AI chatbot guiding executors through the entire process | CB + CD |
+| Consignment Integration | Connect thrift store POS systems to FindA.Sale listings | CD + CA |
+| Wishlist/Registry | Occasion-based wishlists (moving, downsizing, decorating) | CD |
+| Flash Deals & Promotions | Time-limited organizer promotions with push notifications | CD |
+| Organizer Tier Rewards | Bronze/Silver/Gold tiers with reduced fees + priority features | CC + CD |
+| AR Furniture Preview | See items in your space before buying (long-term R&D) | CD |
 
 ### CD3: Cross-Industry Research (ongoing)
 Weekly feature-innovation-scan monitors: real estate, social commerce, gaming, food delivery, dating apps, fitness apps, auction houses.
@@ -177,24 +191,25 @@ Scheduled bi-weekly review of session logs, skill effectiveness, doc freshness, 
 
 ---
 
-## Sync Point Calendar
+## Sync Point Calendar (Updated)
 
-| Week | Sync | What Converges |
-|------|------|----------------|
-| 1 | ⚡ ToS review | CA1 draft → Patrick approves |
-| 1 | ⚡ Branding direction | Patrick chooses path → CD1 implements |
-| 2 | ⚡ AI tagging approach | CB1 spec → Patrick approves + API keys |
-| 3 | ⚡ Payment test results | CA3 report → go/no-go |
-| 4 | ⚡ Documentation review | CA7 guides → Patrick reviews |
-| 5 | ⚡ Beta readiness check | All paths → go/no-go for beta |
-| 6–8 | ⚡ Beta feedback loops | P4 feedback → CA/CB/CD iterate |
+| Week | Sync | What Converges | Status |
+|------|------|----------------|--------|
+| 1 | ⚡ ToS review | CA1 draft → Patrick approves | ✅ Done |
+| 1 | ⚡ Branding direction | Patrick chooses path → CD1 implements | ✅ Done |
+| 2 | ⚡ AI tagging approach | CB1 spec → Patrick approves + API keys | ✅ Done |
+| 3 | ⚡ Payment test results | CA3 report → go/no-go | ✅ Done |
+| 4 | ⚡ Documentation review | CA7 guides → Patrick reviews | ← NEXT |
+| 4 | ⚡ Launch pricing confirmation | CC3 analysis → Patrick decides 5%/7% | Pending Patrick |
+| 5 | ⚡ Beta readiness check | All paths → go/no-go for beta | Pending |
+| 6–8 | ⚡ Beta feedback loops | P4 feedback → CA/CB/CD iterate | Pending |
 
 ---
 
 ## Long-Term Hold
 
 | Item | Reason | Revisit |
-|------|--------|----------|
+|------|--------|---------|
 | Video-to-inventory | Vision models can't segment rooms reliably yet | Late 2026+ |
 | Multi-metro expansion | Business decision — Grand Rapids validation first | After beta data |
 
@@ -206,4 +221,4 @@ Backend on Railway (`backend-production-153c9.up.railway.app`), PostgreSQL on Ne
 
 ---
 
-*v10 updated 2026-03-05. Five Pillars + Sprints T–X complete. Parallel 5-path model adopted. Source: `claude_docs/research/parallel-roadmap-v2-2026-03-05.md`.*
+*v11 updated 2026-03-05. Sessions 65–70 completions reflected. Cloud AI pipeline (Google Vision + Claude Haiku) shipped and standalone image tagger retired. Brainstorm features integrated into CD2 phases with Claude path assignments. Source: `claude_docs/research/parallel-roadmap-v2-2026-03-05.md`, `claude_docs/research/feature-brainstorm-2026-03-05.md`.*
