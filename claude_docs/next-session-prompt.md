@@ -1,55 +1,64 @@
 # Next Session Resume Prompt
-*Written: 2026-03-06T12:00:00Z*
-*Session ended: normally (session 80)*
+*Written: 2026-03-06T14:00:00Z*
+*Session ended: normally (session 81)*
 
 ## Resume From
 
-**Start batch 7 remainder immediately, then batch 8 without stopping.** Run continuous batches of 5 features in parallel using subagents until Patrick intervenes. Do not pause between batches to ask if you should continue — just keep going.
+**All batches 7–17 are confirmed complete in the codebase.** Session 81 fixed the one genuine gap: `FollowOrganizerButton` wired into `sales/[id].tsx`. image-tagger deleted.
 
-## Batch Order
+Start with Streak Challenges + Hunt Pass full integration audit, then continue with beta readiness.
 
-### Batch 7 Remainder (finish first — 2 tasks, run in parallel)
-- [ ] **Social sharing for items/sales** — Web Share API + clipboard fallback. Add share button to `packages/frontend/pages/items/[id].tsx` and `packages/frontend/pages/sales/[id].tsx`. Use `navigator.share()` with fallback to `navigator.clipboard.writeText()`. Share: title, text (item title + price or sale title + dates), url. Show toast on successful copy.
-- [ ] **Organizer print inventory list** — Create `packages/frontend/pages/organizer/print-inventory.tsx`. Fetch all items for organizer's sales. Group by sale → category. Print CSS: hide nav/buttons, show full table. Add to organizer nav and dashboard.
+## What's Actually Next
 
-### Batch 8 (5 tasks, all parallel subagents)
-1. **Sprint E: Phase 26 — Listing Card Redesign** — 1:1 square photo, 60/40 image/content split, badge overlay (SOLD/LIVE/Flash Deal), 2-column mobile / 3-column desktop. Three-tier image loading: LQIP → skeleton → lazy WebP. Update `SaleCard.tsx` + sale grid on index/search pages.
-2. **Sprint F: Phase 31 — OAuth Social Login** — NextAuth.js v5, Google + Facebook. Add `oauthProvider` + `oauthId` to User model + migration. `/api/auth/[...nextauth].ts` handler. Login page: "Continue with Google" + "Continue with Facebook". OAuth creds already in Vercel.
-3. **Sprint G: Phase 28 — Social Proof + Activity Feed** — Live feed: "Jane just saved Vintage Lamp", "3 people viewing", "Tom just bought Chair". SSE or 30s polling. `ActivityFeed.tsx` on sale detail sidebar.
-4. **Sprint H: Phase 27 — Empty States + Microinteractions** — Empty states for: search (0 results), favorites, shopper dashboard (new user), organizer dashboard (no sales), notifications. Heart animation on favorite. Confetti on first publish. Skeleton loaders on list/grid views.
-5. **Shopper Messaging** — DM thread between shopper and organizer about an item. `Message` model (already in schema — verify or add). `/messages` inbox. Message button on item detail page.
+### CD2 Phase 3 Moat Features — or Beta Go/No-Go Audit
+CD2 Phase 2 is now complete. Options:
+A) Start CD2 Phase 3: AI Discovery Feed (personalized item feed), Dynamic Pricing (PriceSuggestion component exists — needs backend comps API), Visual Search (photo → find similar)
+B) Run a full beta go/no-go audit: review all shipped features end-to-end, find any remaining integration gaps, verify production health
 
-### After Batch 8 — Continue with:
-- Phase 14 rapid capture camera, follow organizer UI (Phase 17 remainder), neighborhood landing pages, reviews/ratings UI polish
-- Reference `claude_docs/ROADMAP.md` "What's Next" section for full priority order
+Ask Patrick which to start with. If he says "keep going" → default to B (audit) then A.
 
-## What Was Completed This Session (80)
+### Beta Readiness Checklist (Patrick-driven)
+- Business cards (use `claude_docs/brand/business-card-front/back.png`)
+- Stripe business account + Google Search Console (P2)
+- Beta recruits — Grand Rapids organizers (P4)
+- Confirm 5%/7% fee decision (CC3 analysis in `claude_docs/research/`)
 
-- 15 TS errors fixed: recharts ambient type declaration (`packages/frontend/types/recharts.d.ts`), React Query v5 onSuccess→useEffect (FollowOrganizerButton), SimilarItems getThumbnailUrl args, Item interface category field, implicit any in recharts callbacks (insights, payouts, analytics, ItemPriceHistoryChart)
-- Git push loop resolved: root cause = `core.autocrlf=true` + `git rebase` on Windows. Permanently switched to merge strategy.
-- `push.ps1` created: self-healing push script (index.lock, CRLF phantoms, fetch+merge, auto-retry)
-- `.githooks/pre-push` optimized: auth coverage check 1400→40 subprocesses
-- Batches 9–17 committed + pushed (81 files, 7,471 insertions) — commit `09810a7`
-- All 35 Neon production migrations applied
-- Project docs updated: CLAUDE.md, CORE.md, ROADMAP.md v12, STATE.md, self-healing entry #36, session-log
+### After Streak/Hunt Pass — Continue with:
+- CD2 Phase 3 moat features (AI Discovery Feed, Dynamic Pricing, Visual Search)
+- Reference `claude_docs/ROADMAP.md` CD2 Phase 3 for full list
 
 ## Environment Notes
 
+- **Git push**: Always use `.\push.ps1` — NEVER raw `git push`.
+- **MCP push rule**: ≤5 files AND ≤25k tokens → MCP push. Otherwise → Patrick uses `.\push.ps1`.
+- **Docker**: No longer used at all — image-tagger deleted.
 - **Neon**: All 35 migrations applied. No pending migrations.
-- **Vercel**: OAuth env vars confirmed. Frontend auto-deploys from main.
-- **Git push**: Always use `.\push.ps1` — NEVER raw `git push` or `git pull --rebase`. The script handles everything.
-- **MCP push rule**: ≤5 files AND ≤25k tokens → MCP push. Otherwise → Patrick uses `.\push.ps1` from PowerShell. NEVER include docs in feature batch MCP pushes.
-- **Patrick manual pending**: Delete `packages/backend/services/image-tagger/`. Confirm 5%/7% fee. Order business cards. Start P4 beta recruitment.
-- **context.md**: Over 500-line threshold. Trim file tree at next opportunity.
-- **End-of-batch**: Always give Patrick exact `git add` commands for all changed files, then tell him to run `.\push.ps1`.
+- **End-of-batch**: Give Patrick exact `git add` commands for all changed files, then tell him to run `.\push.ps1`.
 
-## Continuous Batch Mode — Next Session Rules
+## Changed Files This Session (81)
 
-Patrick explicitly asked for continuous autonomous batching without stopping. Follow this loop:
+```
+packages/frontend/pages/sales/[id].tsx            ← FollowOrganizerButton wired (Phase 17)
+packages/frontend/pages/shopper/dashboard.tsx     ← StreakWidget + real overview content
+packages/frontend/components/StreakWidget.tsx      ← HuntPass upgrade button + modal trigger
+packages/frontend/components/HuntPassModal.tsx    ← NEW: $4.99 Hunt Pass Stripe payment modal
+packages/backend/src/routes/streaks.ts            ← activate-huntpass + confirm-huntpass routes
+claude_docs/STATE.md
+claude_docs/next-session-prompt.md
+```
+
+```powershell
+cd C:\Users\desee\ClaudeProjects\FindaSale
+git add packages/frontend/pages/sales/[id].tsx packages/frontend/pages/shopper/dashboard.tsx packages/frontend/components/StreakWidget.tsx packages/frontend/components/HuntPassModal.tsx packages/backend/src/routes/streaks.ts claude_docs/STATE.md claude_docs/next-session-prompt.md
+git commit -m "CD2 Phase 2: StreakWidget live, HuntPass Stripe flow, FollowOrganizerButton wired"
+.\push.ps1
+```
+
+## Continuous Mode Rules
+
 1. Load this file + STATE.md silently
-2. Announce: "Session loaded. Resuming continuous batch mode. Starting [batch X]."
-3. Launch batch tasks as parallel subagents
-4. Collect results, fix TS errors, give Patrick the `git add` + `.\push.ps1` command
-5. Update STATE.md Last Updated line (single-line append only)
-6. Immediately start next batch — no confirmation needed
-7. Repeat until Patrick says stop or an error blocks progress
+2. Announce session loaded, state what you're starting
+3. Launch tasks as parallel subagents where possible
+4. Collect results, fix TS errors, give `git add` + `.\push.ps1`
+5. Update STATE.md Last Updated line
+6. Immediately continue — no confirmation needed unless error blocks progress

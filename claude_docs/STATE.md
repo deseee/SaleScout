@@ -83,7 +83,7 @@ Parallel path model active. Session 76–77 batches complete.
 
 ## Beta Launch Target
 
-All CA/CB/CC paths complete. CD2 Phases 2–4 substantially complete. All 35 Neon migrations applied. Next Claude work: batch 7 remainder (social sharing, print inventory) then batch 8 (listing card redesign, OAuth, social proof feed, empty states, shopper messaging). Patrick: P1 business cards, P2 Stripe/Search Console, P4 beta recruitment, delete image-tagger directory, confirm 5%/7% fee. Beta target: 6–8 weeks. Full roadmap: `claude_docs/roadmap.md`.
+All CA/CB/CC/CD paths complete. CD2 Phase 2 complete. Batches 7–17 confirmed in codebase. Session 81: FollowOrganizerButton wired, StreakWidget live in shopper dashboard, HuntPass $4.99 Stripe flow shipped. Next Claude work: CD2 Phase 3 moat features (AI Discovery Feed, Dynamic Pricing, Visual Search) OR beta go/no-go audit. Patrick: P1 business cards, P2 Stripe/Search Console, P4 beta recruitment, confirm 5%/7% fee. Beta target: 6–8 weeks. Full roadmap: `claude_docs/ROADMAP.md`.
 
 ---
 
@@ -92,7 +92,7 @@ All CA/CB/CC paths complete. CD2 Phases 2–4 substantially complete. All 35 Neo
 - **Railway PORT mismatch** — `PORT=5000` locked in Railway Variables. Must match `EXPOSE 5000` in Dockerfile. Do not remove.
 - **Neon production DB** — `prisma migrate deploy` must be run manually after any new migration. All 35 migrations applied to Neon as of 2026-03-06.
 - **Git push workflow** — Patrick uses `.\push.ps1` (repo root) instead of raw `git push`. Self-heals: index.lock, CRLF phantoms, fetch+merge (never rebase). See self-healing entry #36.
-- **Dev stack is now native** — As of 2026-03-05, Docker is no longer used for core dev (backend/frontend/postgres run natively on Windows). Docker remains only for `image-tagger` (AI photo feature). See `claude_docs/DEVELOPMENT.md`.
+- **Dev stack is now native** — Docker no longer used at all. `image-tagger/` deleted by Patrick (session 81). Backend/frontend/postgres run natively on Windows. See `claude_docs/DEVELOPMENT.md`.
 - **Production seed:**
   ```powershell
   cd C:\Users\desee\ClaudeProjects\FindaSale\packages\database
@@ -117,4 +117,4 @@ All CA/CB/CC paths complete. CD2 Phases 2–4 substantially complete. All 35 Neo
 - **CA4** — ✅ COMPLETE. User flow audit (shopper/organizer/creator). 10 fixes shipped: search aria-label, purchases error handling, index refetch(), items/[id] retry, referral copy feedback. Open items logged in `claude_docs/ux-spotchecks/ca4-ca6-audit-2026-03-05.md`.
 - **CA6** — ✅ COMPLETE. Feature polish: 5MB photo validation + server error surfacing, push notification toggle in organizer settings, onboarding step 3 copy improved, empty referrals state. Pushed 2026-03-05.
 
-Last Updated: 2026-03-06 (session 80 — 15 TS errors fixed (recharts ambient types, React Query v5 onSuccess, SimilarItems args, Item interface). All batches 7–17 pushed to GitHub (81 files, 7,471 insertions). push.ps1 created (self-healing git push replacing raw git push). Pre-push hook auth check optimized (1400→40 subprocesses). All 35 Neon migrations applied. ROADMAP v12 updated. Self-healing entry #36 added.)
+Last Updated: 2026-03-06 (session 81 — FollowOrganizerButton wired into sales/[id].tsx (Phase 17). StreakWidget wired into shopper dashboard. HuntPassModal.tsx created + backend activate/confirm-huntpass routes added (CD2 Phase 2 complete). image-tagger deleted. 0 TS errors.)
