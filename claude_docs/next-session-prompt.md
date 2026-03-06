@@ -1,10 +1,10 @@
 # Next Session Resume Prompt
-*Written: 2026-03-06T07:30:00Z*
-*Session ended: normally*
+*Written: 2026-03-06T12:00:00Z*
+*Session ended: normally (session 80)*
 
 ## Resume From
 
-**Start batch 8 immediately without stopping.** Run continuous batches of 5 features in parallel using subagents until Patrick intervenes. Do not pause between batches to ask if you should continue — just keep going.
+**Start batch 7 remainder immediately, then batch 8 without stopping.** Run continuous batches of 5 features in parallel using subagents until Patrick intervenes. Do not pause between batches to ask if you should continue — just keep going.
 
 ## Batch Order
 
@@ -23,26 +23,25 @@
 - Phase 14 rapid capture camera, follow organizer UI (Phase 17 remainder), neighborhood landing pages, reviews/ratings UI polish
 - Reference `claude_docs/ROADMAP.md` "What's Next" section for full priority order
 
-## What Was Completed This Session (79)
+## What Was Completed This Session (80)
 
-- TS build errors fixed: flashDealController (pushSubscriptions→in-app only), leaderboardController (city/userBadges removed), wishlistController (shareSlug init), reverseAuctionJob (null check), itemController (err type)
-- AuthContext: added `notificationPrefs?: Record<string, boolean>`
-- Price drop alerts: `priceDropService.ts`, itemController hook, profile.tsx toggle, migration 000019
-- Accessibility: ARIA labels, keyboard nav, skip-to-content, NotificationBell aria-haspopup, SearchFilterPanel role=search, ToastContext aria-live, SaleCard CountdownTimer integrated
-- Sale countdown timer: `CountdownTimer.tsx` enhanced + wired to SaleCard + sales/[id].tsx
-- ROADMAP.md v12: recovered from v3 regression (commit 1061965), restored full parallel path + 35 CD2 features
-- STATE.md, session-log.md updated. Self-healing entries 33-35 added.
-- Archived: beta-readiness-audit-2026-03-05.md, payment-stress-test.md. Deleted junk files.
+- 15 TS errors fixed: recharts ambient type declaration (`packages/frontend/types/recharts.d.ts`), React Query v5 onSuccess→useEffect (FollowOrganizerButton), SimilarItems getThumbnailUrl args, Item interface category field, implicit any in recharts callbacks (insights, payouts, analytics, ItemPriceHistoryChart)
+- Git push loop resolved: root cause = `core.autocrlf=true` + `git rebase` on Windows. Permanently switched to merge strategy.
+- `push.ps1` created: self-healing push script (index.lock, CRLF phantoms, fetch+merge, auto-retry)
+- `.githooks/pre-push` optimized: auth coverage check 1400→40 subprocesses
+- Batches 9–17 committed + pushed (81 files, 7,471 insertions) — commit `09810a7`
+- All 35 Neon production migrations applied
+- Project docs updated: CLAUDE.md, CORE.md, ROADMAP.md v12, STATE.md, self-healing entry #36, session-log
 
 ## Environment Notes
 
-- **Railway**: auto-runs `prisma migrate deploy` on deploy. Migrations 000001–000019 applied.
+- **Neon**: All 35 migrations applied. No pending migrations.
 - **Vercel**: OAuth env vars confirmed. Frontend auto-deploys from main.
-- **Git push rule**: ≤5 files AND ≤25k tokens → MCP push. Otherwise → Patrick PowerShell. NEVER include docs in feature batch MCP pushes.
-- **autocrlf fix**: When `git pull --rebase` fails with CRLF phantom changes → use `git pull --no-rebase origin main`.
-- **Patrick manual pending**: Delete `packages/backend/services/image-tagger/`. Confirm 5%/7% fee. Start P4 beta recruitment.
-- **context.md**: 557 lines — over 500-line threshold. Trim file tree at next opportunity.
-- **End-of-batch**: Always give Patrick exact `git add` commands for all changed files.
+- **Git push**: Always use `.\push.ps1` — NEVER raw `git push` or `git pull --rebase`. The script handles everything.
+- **MCP push rule**: ≤5 files AND ≤25k tokens → MCP push. Otherwise → Patrick uses `.\push.ps1` from PowerShell. NEVER include docs in feature batch MCP pushes.
+- **Patrick manual pending**: Delete `packages/backend/services/image-tagger/`. Confirm 5%/7% fee. Order business cards. Start P4 beta recruitment.
+- **context.md**: Over 500-line threshold. Trim file tree at next opportunity.
+- **End-of-batch**: Always give Patrick exact `git add` commands for all changed files, then tell him to run `.\push.ps1`.
 
 ## Continuous Batch Mode — Next Session Rules
 
@@ -50,7 +49,7 @@ Patrick explicitly asked for continuous autonomous batching without stopping. Fo
 1. Load this file + STATE.md silently
 2. Announce: "Session loaded. Resuming continuous batch mode. Starting [batch X]."
 3. Launch batch tasks as parallel subagents
-4. Collect results, fix TS errors, give Patrick the PowerShell push command
+4. Collect results, fix TS errors, give Patrick the `git add` + `.\push.ps1` command
 5. Update STATE.md Last Updated line (single-line append only)
 6. Immediately start next batch — no confirmation needed
 7. Repeat until Patrick says stop or an error blocks progress
