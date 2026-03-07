@@ -4,14 +4,14 @@
 
 ## 1. Cold Outreach Email
 
-**To:** Estate sale companies in Grand Rapids area
-**Subject:** Free beta access — manage your Grand Rapids estate sales online
+**To:** Estate sale companies in [Region] area
+**Subject:** Free beta access — manage your [City] estate sales online
 
 ---
 
 Hi [Company Name],
 
-We built FindA.Sale specifically for Grand Rapids estate sale organizers like you. It's a free-to-try platform that handles the parts that take the most time: digitizing your inventory, listing items online, and processing payments.
+We built FindA.Sale specifically for estate sale organizers like you. It's a free-to-try platform that handles the parts that take the most time: digitizing your inventory, listing items online, and processing payments.
 
 During our beta, there's no cost to try it. When we launch, the platform fee is just 5% — a fraction of what other services charge.
 
@@ -40,7 +40,7 @@ FindA.Sale — Estate Sales Made Simple
 
 Welcome to FindA.Sale! We're thrilled to have you here.
 
-You're now part of a small group of Grand Rapids organizers helping us shape the platform. Everything you see is still in beta — and that means you can try it completely free with no platform fees charged.
+You're now part of a small group of organizers in [City], [State] helping us shape the platform. Everything you see is still in beta — and that means you can try it completely free with no platform fees charged.
 
 **What you can do right now:**
 

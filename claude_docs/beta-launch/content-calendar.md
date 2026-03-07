@@ -1,8 +1,8 @@
 # FindA.Sale Beta Launch — Content Calendar
 
 **Timeline:** Week -1 (Pre-Launch) through Week 4 (Momentum Building)
-**Brand Voice:** Warm, practical, local — knowledgeable neighbor in Grand Rapids
-**Target Audience:** Estate sale organizers in Grand Rapids, MI + savvy local shoppers
+**Brand Voice:** Warm, practical, local — knowledgeable neighbor in [City]
+**Target Audience:** Estate sale organizers in [City], [State] + savvy local shoppers
 **Key Differentiator:** 5% fee vs competitors at 13-20%
 
 ---
@@ -12,10 +12,10 @@
 ### Day -7: LinkedIn Post
 **Platform:** LinkedIn (Patrick's personal profile + FindA.Sale company page if available)
 **Format:** Short paragraph + link
-**Audience:** Estate sale organizers, small business owners in West Michigan
+**Audience:** Estate sale organizers, small business owners in [Region]
 
 ```
-Estate sale organizers in Grand Rapids: we're looking for 5 of you to try something new.
+Estate sale organizers in [City]: we're looking for 5 of you to try something new.
 
 For 15 years, organizing estate sales meant paying 13–20% in platform fees. We built FindA.Sale to change that.
 
@@ -25,7 +25,7 @@ If you're curious about a better way, I'd love to talk. We're inviting 5 organiz
 
 Reply here or email me: [patrick@email]
 
-#EstateSales #GrandRapids #SmallBusiness
+#EstateSales #[City] #SmallBusiness
 ```
 
 **Notes:** Personal touch critical. Patrick should use his name and contact info. If LinkedIn isn't active, substitute with email to existing contacts.
@@ -33,12 +33,12 @@ Reply here or email me: [patrick@email]
 ---
 
 ### Day -5: Facebook Community Groups Post
-**Platform:** Grand Rapids community Facebook groups (e.g., "Grand Rapids Buy/Sell/Trade," "West Michigan Small Business Owners," "Grand Rapids Estate Sales")
+**Platform:** [City] community Facebook groups (e.g., "[City] Buy/Sell/Trade," "[Region] Small Business Owners," "[City] Estate Sales")
 **Format:** Single post, casual tone
 **Tone:** More conversational than LinkedIn; emphasis on community
 
 ```
-Hey Grand Rapids estate sale folks — quick question for organizers.
+Hey [City] estate sale folks — quick question for organizers.
 
 Have you ever felt like you're paying way too much in platform fees to list your sales online? (Spoiler: you probably are.)
 
@@ -50,10 +50,10 @@ No strings attached. Just honest feedback helps us build the right product.
 
 FindA.Sale — Estate Sales Made Simple
 
-#EstateSales #GrandRapids #Local
+#EstateSales #[City] #Local
 ```
 
-**Notes:** Keep conversational. Post to 3–4 active Grand Rapids community groups. Respond to comments within 24 hours.
+**Notes:** Keep conversational. Post to 3–4 active [City] community groups. Respond to comments within 24 hours.
 
 ---
 
@@ -65,7 +65,7 @@ FindA.Sale — Estate Sales Made Simple
 ```
 Hi [Name],
 
-I'm reaching out because you've been in the estate sale business in Grand Rapids for a while, and I respect your work.
+I'm reaching out because you've been in the estate sale business in [City] for a while, and I respect your work.
 
 We've been building a platform to help organizers like you list and sell faster, with way lower fees than what's out there.
 
@@ -75,7 +75,7 @@ I'm looking for 5 organizers to try it free during private beta, starting this F
 
 If you're interested in giving it a shot, reply to this email. Or if you want to chat by phone first, [YOUR PHONE].
 
-Either way, thanks for being part of the Grand Rapids estate sale community.
+Either way, thanks for being part of the [City] estate sale community.
 
 [PATRICK NAME]
 [YOUR PHONE]
@@ -94,7 +94,7 @@ finda.sale
 
 **Slide 1:**
 ```
-Something's coming to Grand Rapids this week.
+Something's coming to [City] this week.
 
 Estate sales, simplified.
 
@@ -128,7 +128,7 @@ FindA.Sale goes live.
 #### Social Media Post (Copy-Paste Ready)
 
 ```
-FindA.Sale is live in Grand Rapids. 🏡
+FindA.Sale is live in [City]. 🏡
 
 For 15 years, estate sale organizers have been paying 13–20% of their gross sales to big platforms. That ends now.
 
@@ -153,7 +153,7 @@ Ready?
 
 👉 Get started at finda.sale
 
-#FindASale #GrandRapids #EstateSale #WestMichigan #SmallBusiness
+#FindASale #[City] #EstateSale #[Region] #SmallBusiness
 ```
 
 **Image Suggestion:**
@@ -181,7 +181,7 @@ Ready?
 **Title:** "Meet FindA.Sale: Estate Sales Made Simple"
 
 ```
-For 15 years, estate sale organizers in Grand Rapids have had two choices: list manually on a dozen different websites (exhausting) or pay 13–20% in platform fees (expensive). Neither felt right.
+For 15 years, estate sale organizers in [City] have had two choices: list manually on a dozen different websites (exhausting) or pay 13–20% in platform fees (expensive). Neither felt right.
 
 FindA.Sale changes that.
 
@@ -199,17 +199,17 @@ We're a platform built by and for estate sale organizers. We saw the pain points
 
 **For Shoppers:**
 
-Browse estate sales in Grand Rapids without the guesswork. See photos, descriptions, and prices before you leave home. Reserve what you want. Arrive at the sale ready to buy. Discover treasures and support local organizers.
+Browse estate sales in [City] without the guesswork. See photos, descriptions, and prices before you leave home. Reserve what you want. Arrive at the sale ready to buy. Discover treasures and support local organizers.
 
-## Why Grand Rapids Needed This
+## Why [City] Needed This
 
-Grand Rapids has amazing estate sale organizers. We wanted to build something that made their jobs easier and their earnings bigger. Lower fees. Less paperwork. Direct connection with shoppers. That's FindA.Sale.
+[City] has amazing estate sale organizers. We wanted to build something that made their jobs easier and their earnings bigger. Lower fees. Less paperwork. Direct connection with shoppers. That's FindA.Sale.
 
 ## Free to Try, No Credit Card Required
 
 We're in private beta right now, inviting organizers to test it free. No platform fees during beta. No credit card. Just sign up, create a sale, and tell us what you think.
 
-If you're an organizer in West Michigan, we'd love to have you. If you're a shopper looking for deals, you'll find estate sales listed nowhere else.
+If you're an organizer in [Region], we'd love to have you. If you're a shopper looking for deals, you'll find estate sales listed nowhere else.
 
 ## Get Started
 
@@ -292,7 +292,7 @@ Meet [Organizer Name], one of our first estate sale pros using FindA.Sale.
 
 **Slide 2:**
 ```
-"I've been running estate sales in Grand Rapids for [X years].
+"I've been running estate sales in [City] for [X years].
 
 FindA.Sale is the first platform that actually respects our time and our bottom line."
 
@@ -333,7 +333,7 @@ Private beta. 5% fees. AI-powered.
 **Execution Notes:**
 - Ask organizer permission before posting (show them slides first)
 - Use real photos from their sale (with consent)
-- If they don't want their name public, use "Sarah, Grand Rapids Organizer"
+- If they don't want their name public, use "Sarah, [City] Organizer"
 - Repost to Stories with quotes as text overlays
 - Tag the organizer's business account (if they have one)
 - Respond to all comments
@@ -368,7 +368,7 @@ AI item tagging (saves organizers 1–2 hours per sale)
 
 Ready to join? finda.sale — free to try. No credit card.
 
-#FindASale #EstateSales #GrandRapids
+#FindASale #EstateSales #[City]
 ```
 
 **Execution Notes:**
@@ -457,9 +457,9 @@ Estate sales near you, all in one place. 🏠💎
 
 Stop hunting across three different websites. Stop missing the good stuff.
 
-FindA.Sale is where Grand Rapids shoppers find estate sales before anyone else. Browse online, reserve what you want, discover treasures from local organizers.
+FindA.Sale is where [City] shoppers find estate sales before anyone else. Browse online, reserve what you want, discover treasures from local organizers.
 
-This week in Grand Rapids:
+This week in [City]:
 • 7 active sales
 • 200+ items available
 • Everything from vintage furniture to collectibles
@@ -468,7 +468,7 @@ Start browsing: finda.sale
 
 What's your best estate sale find? Comment below. 👇
 
-#EstateSales #GrandRapids #Treasures #VintageFinds
+#EstateSales #[City] #Treasures #VintageFinds
 ```
 
 **Execution Notes:**
@@ -593,7 +593,7 @@ Respect for our time (AI cuts my listing hours in half).
 Respect for our money (5% instead of 15% means real savings).
 Respect for our work (shoppers actually show up ready to buy)."
 
-— [Organizer Name], [Estate Sale Company], Grand Rapids
+— [Organizer Name], [Estate Sale Company], [City]
 
 Ready to experience it? finda.sale — free during beta.
 
@@ -630,7 +630,7 @@ Interested? Email us or comment below.
 
 finda.sale — Estate Sales Made Simple
 
-#FindASale #Beta #GrandRapids
+#FindASale #Beta #[City]
 ```
 
 ---
@@ -782,7 +782,7 @@ If you've been curious, get ready. FindA.Sale launches publicly [DATE].
 | **Google Business Profile updates** | Google Business | Weekly posts | Marketing | Every Monday | Post a new sale, organizer spotlight, or feature. Rotate content themes. Respond to reviews within 24 hours. |
 | **Community replies & DMs** | Instagram / Facebook | Community management | Marketing | Daily | Monitor and respond to DMs within 24 hours. Repost user-generated content (organizer posts, shopper wins) with permission. |
 | **Support email responses** | Email | Email | Support | Daily | Respond to all support@finda.sale inquiries within 24 hours. Track recurring questions for FAQ/blog post ideas. |
-| **Organizer check-ins** | Email | Check-in survey | Support | Bi-weekly | Email active organizers asking "How's it going? Anything we can improve?" Keep relationship warm. |
+| **Organizer check-ins** | Email | Check-in survey | Support | Bi-weekly | Email active organizers asking how it's going. Keep relationship warm. |
 
 ---
 
@@ -802,9 +802,9 @@ If you've been curious, get ready. FindA.Sale launches publicly [DATE].
 ## Content Creation Checklist
 
 **Before Week -1 starts:**
-- [ ] Finalize Patrick's cold outreach email list (15–20 Grand Rapids organizers)
+- [ ] Finalize Patrick's cold outreach email list (15–20 local organizers in [City], [State])
 - [ ] Confirm FindA.Sale Instagram/Facebook business accounts are set up + branded (logo, bio, CTA link)
-- [ ] Create Google Business Profile listing for FindA.Sale in Grand Rapids (if not already done)
+- [ ] Create Google Business Profile listing for FindA.Sale in [City], [State] (if not already done)
 - [ ] Set up feedback form (Typeform or Google Form for collecting organizer feedback)
 - [ ] Prepare template for organizer testimonials (questions + consent form)
 - [ ] Identify 3–5 potential beta organizers for early spotlights (get permission in advance)
@@ -875,7 +875,7 @@ If you've been curious, get ready. FindA.Sale launches publicly [DATE].
 - Support email response time: Under 24 hours (100%)
 
 **Earned Media:**
-- Target: 1–2 local Grand Rapids news mentions (if organizers share wins with local outlets)
+- Target: 1–2 local news mentions in [City] / [Region] (if organizers share wins with local outlets)
 
 ---
 

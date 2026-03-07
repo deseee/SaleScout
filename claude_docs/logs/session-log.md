@@ -8,6 +8,18 @@ Keep only the 5 most recent sessions. Delete older entries — git history and S
 
 ## Recent Sessions
 
+### 2026-03-07 (session 91 — Health Scout pre-beta scan)
+**Worked on:**
+- **Pre-beta health scan:** Comprehensive security and code quality audit using health-scout skill across three areas: (1) Sprint 3 coupon logic (validation, Stripe integration, edge cases); (2) Sprint 3.5 regionConfig completeness and env var fallback behavior; (3) General pre-beta sweep for secrets, console logging, auth gaps, SSR risks, Prisma safety.
+- **Coupon sprint audit:** couponController.ts and stripeController.ts coupon sections reviewed line-by-line. All validation edge cases sound: expired coupon rejection (line 83), wrong-sale prevention (line 77), negative total protection via Math.min capping at $0.50 Stripe minimum (line 229/235). Idempotency key correctly includes coupon context (line 242–243). Fire-and-forget coupon operations have proper error handling (lines 426–427, 431–432). ✓
+- **Region config sprint audit:** regionConfig.ts properly centralizes Grand Rapids defaults as env var fallbacks. DeGR-ification complete — no hardcoded "Grand Rapids" or "Michigan" in controllers, components, or routes. All references safely in config defaults, test fixtures, seed data, comments, and meta tags. Layout.tsx correctly uses NEXT_PUBLIC_DEFAULT_CITY fallback. Graceful fallback to defaults prevents deployment failures. ✓
+- **Security clean checks pass:** 0 hardcoded API keys (sk_live/sk_test/jwt_secret), 0 sensitive console logs (password/token/secret), JWT verification enabled (not skipped), CORS restricted to ALLOWED_ORIGINS env var (not wildcard), webhook signature validation in place (STRIPE_WEBHOOK_SECRET required), auth middleware on all sensitive routes (/coupons, /stripe). Webhook handler properly unauthenticated (public endpoint). ✓
+- **Findings:** 2 HIGH (env var documentation gaps: missing DEFAULT_* in .env.example, missing NEXT_PUBLIC_DEFAULT_CITY reference), 6 MEDIUM (coupon collision retry single-attempt, no redemption audit trail, console logs lack correlation IDs, Stripe Connect ID logged in plain text, admin findMany queries lack pagination, no rate limiter on coupon validation), 10 LOW (all clean checks — no SSR crashes, no alert() in production, no hardcoded regions outside safe zones).
+- **Report saved:** `claude_docs/health-reports/health-scout-pre-beta-2026-03-07.md` with P0/P1/P2/P3 ratings, routing summary for findasale-qa/dev/ops/ux/legal/records, and 8 recommended next actions.
+**Decisions:** No blockers identified. All findings are minor or medium-severity. Pre-beta scan clear to launch. Recommend Patrick address 2 HIGH items (env vars) and 6 MEDIUM items (logging, rate limiting, audit trail) before load testing. P2 items can run parallel to upcoming sprints.
+**Next up:** Implement express-rate-limit on /api/coupons/validate (findasale-dev). Update .env.example with DEFAULT_* vars (findasale-ops). Add coupon redemption audit fields to schema if dispute resolution needed (findasale-qa).
+**Blockers:** None identified. Pre-beta ready.
+
 ### 2026-03-07 (session 90 — push.ps1 hardening + git workflow audit)
 **Worked on:**
 - **push.ps1 Bug 1 (CRLF false-positive):** `git diff` without `--ignore-cr-at-eol` flagged CRLF-only changes as real content changes. Windows autocrlf caused perpetual "uncommitted changes" warnings. Fixed by adding `--ignore-cr-at-eol` to the diff command.

@@ -18,7 +18,7 @@
 ### Text (Copy-Paste Ready)
 
 ```
-FindA.Sale is live in Grand Rapids. 🏡
+FindA.Sale is live. 🏡
 
 For 15 years, estate sale organizers have been paying 13–20% of their gross sales to big platforms. That ends now.
 
@@ -43,7 +43,7 @@ Ready?
 
 👉 Get started at finda.sale
 
-#FindASale #GrandRapids #EstateSale #WestMichigan #SmallBusiness
+#FindASale #[City] #EstateSale #[Region] #SmallBusiness
 ```
 
 **Image Suggestion:**
@@ -60,7 +60,7 @@ Ready?
 **From:** support@finda.sale
 **Subject Line (A/B test):**
 - A: "FindA.Sale is live — start free today" ← Direct
-- B: "Estate sales just got easier in Grand Rapids" ← Benefit-first
+- B: "Estate sales just got easier" ← Benefit-first
 
 **Send Time:** Monday 9 AM (test between 9 AM and Tuesday 8 AM for opens)
 
@@ -73,7 +73,7 @@ Hi [Company Name],
 
 FindA.Sale is live.
 
-For the last three weeks, we've been working with Grand Rapids estate sale organizers to build a platform that cuts through the noise: simple, fast, and fair.
+For the last three weeks, we've been working with organizers to build a platform that cuts through the noise: simple, fast, and fair.
 
 Today, we're opening beta to everyone.
 
@@ -118,7 +118,7 @@ finda.sale
 
 **Platform:** Google Business (FindA.Sale listing)
 **Format:** Text + images (optional)
-**Audience:** People searching "estate sales Grand Rapids" / "estate sales near me"
+**Audience:** People searching "estate sales [City]" / "estate sales near me"
 **Update Frequency:** Once at launch, then weekly rotation
 
 ---
@@ -126,7 +126,7 @@ finda.sale
 ### Launch Announcement Text (Copy-Paste Ready)
 
 ```
-🎉 FindA.Sale is now live in Grand Rapids
+🎉 FindA.Sale is now live
 
 Estate sale organizers now have a better way to list and manage sales online.
 
@@ -140,7 +140,7 @@ What's different:
 👉 Get started at finda.sale
 
 For organizers: Create a free account and list your next sale.
-For shoppers: Browse estate sales in Grand Rapids, reserve items, and discover treasures.
+For shoppers: Browse estate sales in [City], reserve items, and discover treasures.
 
 Questions? Email support@finda.sale
 ```
@@ -148,11 +148,11 @@ Questions? Email support@finda.sale
 ### "About" Section Update (if not already set)
 
 ```
-FindA.Sale is a modern online platform for estate sale organizers and shoppers in Grand Rapids, MI.
+FindA.Sale is a modern online platform for estate sale organizers and shoppers.
 
 Organizers list and manage sales online with 5% platform fees. Shoppers browse items, reserve before doors open, and support local estate sales.
 
-Serving West Michigan including Grand Rapids, Kentwood, Wyoming, and surrounding communities.
+Serving communities across [Region] and beyond.
 
 Visit: finda.sale
 Email: support@finda.sale

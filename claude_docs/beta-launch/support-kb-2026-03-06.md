@@ -976,9 +976,606 @@ This really does get faster after your first sale!
 
 ---
 
+## Issue #16: How Do Coupon Codes Work?
+
+**Applies to:** Shoppers
+**Severity:** Low
+**Expected frequency:** 3–8 per week (beta launch phase)
+
+### Problem Statement
+A shopper earned a coupon code after their first purchase and wants to know how to use it at checkout, or they have questions about when/how coupons can be redeemed.
+
+### Likely Causes
+1. **First-time coupon experience.** This is the Shopper Loyalty Program launch — many will be using coupons for the first time.
+2. **Coupon not visible.** The email with their code arrived but they didn't notice it, or it went to spam.
+3. **Timing confusion.** They want to know if they can stack coupons or when they expire.
+4. **Code entry confusion.** They're unsure where to enter the code in the checkout flow.
+
+### Resolution Steps
+
+**Step 1: Confirm Shopper Has a Coupon**
+- Ask: "Did you receive an email from rewards@finda.sale after your purchase? It should say 'You've earned a $5 coupon!' with a code inside."
+- If **email not received:** Check spam/promotions folder, or have them go to `/shopper/purchases` and look for the "My Coupons" section (codes display there too).
+- If **no coupons appear:** They may not have a completed purchase yet. Coupons are issued only after a successful transaction.
+
+**Step 2: Explain the Coupon Code**
+- "Your coupon is a unique 8-character code (like A3F2C891). It's worth **$5 off your next purchase** and is valid for **90 days** from when you earned it."
+- "You can use it once — after redemption, it's marked as used and can't be reused."
+- "There's no minimum purchase required — it will apply to any order, even small items."
+
+**Step 3: Show How to Redeem**
+- "When you're ready to buy something new on FindA.Sale, add it to your cart and go to checkout."
+- "Before you pay, you'll see a field that says 'Have a coupon code?' — paste or type your code there."
+- "Click 'Continue to Pay' and the discount will be applied to your total."
+- "Your final price will show on the payment screen."
+
+**Step 4: Verify the Code Is Valid**
+- If they say the code **didn't work**, ask:
+  - "Did you type it in uppercase? Codes are all caps (e.g., A3F2C891)."
+  - "What error message did you see?" (Tell me the exact text so I can diagnose.)
+  - "Have you already used this coupon on a different purchase?" (If yes, explain it's now expired.)
+  - "Is the expiration date still valid?" (They can see it in the email or on `/shopper/purchases` under "My Coupons.")
+
+### Response Template
+
+Hi [Name],
+
+Thanks for asking! Here's how your coupon works:
+
+**Your code is:** [CODE] (from your purchase confirmation email)
+
+**How to use it:**
+1. Shop and add an item to your cart
+2. Go to checkout
+3. Paste your code in the "Have a coupon code?" field
+4. Click "Continue to Pay" — the discount applies automatically
+
+**Key details:**
+- **Worth:** $5 off your next purchase
+- **Expires:** [DATE] (90 days from when you earned it)
+- **One-time use:** After you redeem it, it's consumed and can't be used again
+- **No minimum:** Works on any purchase, any amount
+
+You can view all your active coupons anytime at /shopper/purchases under "My Coupons."
+
+Happy shopping!
+
+– Patrick
+
+### When to Escalate
+- Shopper claims they received a coupon email but the code isn't working AND isn't expired (potential data sync issue)
+- Shopper says the same coupon code was charged twice (duplicate redemption — route to dev)
+- Code validation fails with an error message (backend issue, route to dev with the exact error text)
+
+---
+
+## Issue #17: How Do I Create a Coupon for My Sale?
+
+**Applies to:** Organizers
+**Severity:** Low
+**Expected frequency:** 2–5 per week (beta + ongoing)
+
+### Problem Statement
+An organizer wants to issue discount coupons to attract buyers or as part of a promotion (e.g., "10% off for first 10 shoppers," or "loyalty coupon for repeat customers").
+
+### Likely Causes
+1. **Not yet implemented.** Organizer-created coupons aren't in beta launch; only loyalty coupons (issued by the system) are active.
+2. **Product roadmap confusion.** Organizer wants custom coupon creation but feature isn't shipped.
+3. **Promotional strategy.** They want a tool to drive sales during their event.
+
+### Resolution Steps
+
+**Current State (Beta):**
+- **Organizer-created coupons are not available in beta.** Only shoppers receive automatic $5 loyalty coupons after each purchase.
+- Coupons are managed by FindA.Sale (not organizers) to keep redemption simple and fair.
+
+**Why This Design:**
+- "We issue coupons automatically to reward repeat shoppers. This keeps your buyer base growing without requiring you to manage discount codes."
+- "Every completed purchase earns a $5 coupon — it's built into the loyalty program to encourage repeat sales."
+
+**Workaround: Pricing Strategy**
+- If an organizer wants to offer discounts, they can:
+  1. **Lower item prices directly** for a sale (no coupon needed — price change is immediate)
+  2. **Run bundle deals** — list multiple items and price them as a package
+  3. **Time-limited sales** — announce "opening day specials" at lower prices
+
+**Future Enhancement (Product Roadmap):**
+- "Organizer-managed coupons are on our roadmap for Q3 2026. Early feedback suggests this would be valuable, so we're prioritizing it."
+
+### Response Template
+
+Hi [Name],
+
+Thanks for the question! Here's the current state of coupons:
+
+**Beta Phase:** Coupons are automatic and shopper-focused. Every time someone makes a purchase, they get a **$5 off coupon** for their next buy — this rewards loyal customers and brings them back.
+
+**You can't create custom coupons yet,** but this is on our roadmap for later this year.
+
+**In the meantime, to drive sales on your sale:**
+- Lower item prices directly (price changes show immediately)
+- Create bundle deals (combine multiple items at a special price)
+- Announce opening-day specials or time-limited deals in your sale description
+
+The loyalty coupon system is designed to handle the discount mechanics for you — it's one less thing to manage!
+
+Let me know if you'd like tips on pricing strategy or promotions.
+
+– Patrick
+
+### When to Escalate
+- Multiple organizers request coupon creation (high-signal feature request — pass to Product)
+- Organizer insists they have permission to create coupons (clarify and document that it's not available in beta)
+- Organizer wants to retroactively issue refunds as coupons (edge case — discuss with Patrick)
+
+---
+
+## Issue #18: Why Isn't My Coupon Code Working?
+
+**Applies to:** Shoppers
+**Severity:** Medium
+**Expected frequency:** 2–4 per week
+
+### Problem Statement
+A shopper entered a coupon code at checkout, but it was rejected with an error message, or the discount didn't apply.
+
+### Likely Causes
+1. **Code is expired.** 90-day window has passed since the coupon was issued.
+2. **Code already redeemed.** Shopper used it once before and tried to use it again (one-time use only).
+3. **Code typo.** Shopper mistyped or copied the code incorrectly.
+4. **Minimum purchase not met.** (If applicable — though standard loyalty coupons have no minimum.)
+5. **Code belongs to a different account.** Shopper tried to use someone else's coupon.
+6. **Trailing spaces in entry.** Whitespace before/after code prevents validation.
+
+### Resolution Steps
+
+**Step 1: Verify the Code Format**
+- Ask: "What's the exact error message you saw?"
+- Codes should be 8 characters, all uppercase, no spaces (e.g., A3F2C891)
+- Have them check their email for the code and read it back to confirm
+
+**Step 2: Check Expiration**
+- Ask: "When did you earn this coupon?" (They can find the date in the email or on `/shopper/purchases` under "My Coupons")
+- Calculate: Coupons expire **90 days** from the issue date.
+- If **expired:** "Unfortunately, this code expired on [DATE]. But here's the good news — your next purchase will earn you a fresh $5 coupon that's good for another 90 days!"
+
+**Step 3: Check if Already Used**
+- Ask: "Have you used this code on a previous purchase?"
+- Explain: "Each coupon is one-time use. Once redeemed, it can't be used again."
+- If **already used:** "You got another coupon from that purchase, though! Check your email for a new code, or go to `/shopper/purchases` and look under 'My Coupons.'"
+
+**Step 4: Verify Ownership**
+- Ask: "Did you earn this coupon from your own purchase, or did someone else give it to you?"
+- Explain: "Coupons are tied to the account that earned them. You can only use coupons on the same account."
+- If **someone gave them the code:** "Unfortunately, you'll need to use your own coupons. But your next purchase will earn you one!"
+
+**Step 5: Re-enter the Code Carefully**
+- Have them:
+  1. Copy the code directly from the email (avoid typing manually)
+  2. Paste it into the coupon field
+  3. Check for leading/trailing spaces and delete them
+  4. Try checkout again
+
+**Step 6: If Still Failing**
+- Ask: "What's the exact error message?" and share it with me
+- If it's a backend validation error (5xx), escalate to dev
+
+### Response Template
+
+Hi [Name],
+
+Let me help you troubleshoot that coupon code.
+
+Can you tell me:
+1. **What's the error message you're seeing?** (Copy the exact text if you can)
+2. **When did you earn this coupon?** (Check the email or `/shopper/purchases`)
+3. **Have you used this code before on a different purchase?**
+
+Most coupon issues are caused by:
+- **Expired codes** (they're valid for 90 days)
+- **Already redeemed** (one-time use — after you use it once, it's gone but your next purchase earns a new one)
+- **Typos or copy/paste errors** (try pasting directly from the email instead of typing)
+
+Reply with those details and we'll get you sorted!
+
+– Patrick
+
+### When to Escalate
+- Error message is a server error (5xx code) or unclear backend issue → route to dev
+- Shopper claims code is not expired and not used, but validation still fails → potential data corruption
+- Multiple shoppers report the same code failing → systemic coupon validation issue
+
+---
+
+## Issue #19: Can a Coupon Be Used More Than Once?
+
+**Applies to:** Shoppers (and Organizers asking about loyalty mechanics)
+**Severity:** Low
+**Expected frequency:** 1–2 per week
+
+### Problem Statement
+A shopper wants to know if they can use the same coupon code on multiple purchases, or they're confused about one-time-use policy.
+
+### Likely Causes
+1. **Expectation mismatch.** Shopper assumed coupons work like recurring discounts (e.g., subscription benefits).
+2. **Misunderstanding the loyalty model.** They don't realize that *each purchase* earns a *new* coupon.
+3. **Desire for unlimited discounts.** They want to maximize savings and are looking for loopholes.
+
+### Resolution Steps
+
+**Step 1: Clarify the One-Time Use Policy**
+- "Each coupon code is a **single-use token**. Once you redeem it at checkout, it's marked as 'used' and can't be applied to another purchase."
+- "This is how we prevent fraud and keep the program fair for everyone."
+
+**Step 2: Explain the Loyalty Loop**
+- "But here's the good news: **the coupon system is designed so that every purchase earns you a new coupon.**"
+- "Buy item A → get coupon A ($5 off). Use coupon A to buy item B → get coupon B ($5 off). Use coupon B to buy item C → and so on."
+- "Shoppers who buy frequently unlock a continuous stream of discounts."
+
+**Step 3: Show the Math**
+- "If you buy 5 items, you'll earn 5 coupons worth $5 each = $25 in total discounts on future purchases."
+- "This is our way of saying thanks for coming back!"
+
+**Step 4: Clarify They Can't Share**
+- "You can't give your coupon to a friend or family member — each code is tied to the account that earned it."
+- "But they can earn their own coupons by making their first purchase!"
+
+### Response Template
+
+Hi [Name],
+
+Great question! Here's how it works:
+
+**One coupon = one purchase.** Once you use a code at checkout, it's retired and can't be reused.
+
+**BUT** — the loyalty program keeps giving:
+1. You buy something → earn a $5 coupon
+2. Use that coupon on your next buy → earn another $5 coupon
+3. Use that one → earn another...
+4. Keep shopping, keep earning
+
+**The more you shop, the more you save.** If you buy 5 items, you'll have unlocked $25 in discounts.
+
+**Also:** Coupons are personal to your account — you can't transfer them to friends. But your friends can earn their own by making their first purchase!
+
+Happy shopping!
+
+– Patrick
+
+### When to Escalate
+- Shopper insists the system should allow coupon reuse (document as product feedback)
+- Shopper claims they somehow used the same code twice (potential data integrity issue — route to dev)
+- Shopper asks if organizers can manually override one-time-use policy (clarify that they can't; only Patrick/ops can)
+
+---
+
+## Issue #20: Why Does My Sale Show the Wrong Location?
+
+**Applies to:** Organizers
+**Severity:** Low
+**Expected frequency:** 0–2 per week
+
+### Problem Statement
+An organizer filled in their sale address correctly, but the app displays a different city or region name in the header, search filters, or sale preview. For example, it shows "Grand Rapids, MI" when they're in a different city.
+
+### Likely Causes
+1. **Region configuration mismatch.** The app is configured for a specific region via environment variables, and it's defaulting to the configured location instead of using the entered address.
+2. **Address lookup failed.** Geocoding didn't associate their street address with the correct city/state.
+3. **Display vs. stored address.** Their actual address is stored correctly, but the UI is showing a hardcoded default region.
+4. **Beta deployment region issue.** App was deployed with Grand Rapids as the default region, and it's not pulling their custom entry.
+
+### Resolution Steps
+
+**Step 1: Check Their Entered Address**
+- Ask: "In your sale details, what address did you enter? Can you read back the city and state?"
+- They should see *their* city/state next to the address field after they enter it.
+
+**Step 2: Clarify Address vs. Display Region**
+- "There's a difference between your **sale address** (which you control) and the **app's default region** (which we set for the beta)."
+- "What's your sale address? And what region is showing in the sale preview?"
+
+**Step 3: Explain the Backend Config**
+- "The app is currently configured to default to Grand Rapids, MI for the beta. Your address is stored correctly in the system, but the **UI header and search filters** might default to that region if the address lookup isn't complete."
+- "However, shoppers searching for your sale by address *will* find it at the correct location."
+
+**Step 4: Verify Search Still Works**
+- Have them:
+  1. Log out and go to the public search/home page
+  2. Search for their sale by name
+  3. Confirm the address shown in the result matches their actual address
+- If **search result is correct:** The address is stored right; the header display is a UI glitch. Escalate to dev.
+- If **search result is wrong:** Geocoding or address storage failed. Escalate to dev with the address and what's showing instead.
+
+**Step 5: Temporary Workaround**
+- "Until we fix the display, your sale is searchable by your actual address. Shoppers in your area will find you. The location name in the header is just a visual default — your real address is what drives discovery."
+
+### Response Template
+
+Hi [Name],
+
+Thanks for flagging that. Let me help you sort this out.
+
+The app is currently set to a default region for the beta, but your sale should still display correctly based on the address you entered.
+
+Can you tell me:
+1. **What address did you enter for your sale?** (Street, city, state)
+2. **What location is showing in the app header or preview?**
+3. **When you search for your sale from the home page, does the address match what you entered?**
+
+This will help me figure out if it's a display-only issue (UI glitch) or an address storage problem.
+
+– Patrick
+
+### When to Escalate
+- Entered address is correct, but search results show the wrong city/state (geocoding or address storage failure)
+- Organizer's address is being overridden by the default region everywhere (hardcoded region not using stored data — code bug)
+- Multiple organizers report location showing wrong region (systemic region config issue — route to dev)
+- Entered address is being truncated or altered (address parsing issue)
+
+**Note for Internal:** Location/region is controlled by environment variables in `packages/backend/src/config/regionConfig.ts`. Default region is set via `DEFAULT_CITY`, `DEFAULT_STATE`, `DEFAULT_STATE_ABBREV`, etc. If shoppers/organizers in a different region report wrong location after multi-region deployment, check that env vars were set correctly at deploy time.
+
+---
+
+## Issue #21: How Do Coupon Codes Work?
+
+**Applies to:** Shoppers
+**Severity:** Medium
+**Expected frequency:** 2–5 per week (new shopper question)
+
+### Problem Statement
+A shopper received a coupon after their first purchase, sees it in their account, and wants to know how to use it at checkout.
+
+### Explanation
+When a shopper completes a purchase on FindA.Sale, they automatically receive a $5 discount coupon code via email. That code can be applied to their next purchase to save $5. Coupons expire 90 days after they're issued.
+
+### Steps to Apply a Coupon at Checkout
+
+1. **Browse and select an item** to purchase on FindA.Sale.
+2. **Click "Buy Now"** (or the purchase button for that item).
+3. **A checkout modal will appear.** At the top, you'll see a field labeled **"Have a coupon code?"**
+4. **Enter the 8-character code** (it will look like `A3F2C891`). The app will automatically capitalize it.
+5. **Click "Continue to Pay"** to proceed to payment.
+6. **The discount will show in the price breakdown** as "🎟️ Coupon discount" with the $5 amount deducted.
+7. **Complete the payment** with your card. Your coupon is now used and can't be used again.
+
+### Response Template
+
+Hi [Name],
+
+Great question. Here's how to use your coupon:
+
+1. When you're ready to buy something, click **"Buy Now"** on an item.
+2. In the checkout window, you'll see a field for **"Have a coupon code?"** — that's where you paste your code (e.g., `A3F2C891`).
+3. Click **"Continue to Pay"** and you'll see your $5 discount applied to the total.
+4. That's it! Once you complete the payment, the coupon is used.
+
+Each coupon is good for one purchase and expires 90 days after you earn it. You'll see the expiration date in your account.
+
+– Patrick
+
+### When to Escalate
+- Shopper says they entered the code but no discount appeared (check: is the coupon expired? Has it already been used? Does it belong to that user's account?)
+- Shopper says the code is invalid and they're sure they copied it right (coupon lookup failure — route to dev)
+- Shopper received multiple coupons and can't tell which is which (UX issue — they should all be listed with expiration dates)
+
+---
+
+## Issue #22: How Do I Create a Discount Coupon for My Sale?
+
+**Applies to:** Organizers
+**Severity:** Low
+**Expected frequency:** 0–2 per week (organizer request)
+
+### Problem Statement
+An organizer is asking how they can create custom coupon codes or discount offers for *their* sales to attract buyers.
+
+### Explanation
+Coupon codes in Sprint 3 are issued *automatically* by the system to shoppers after they make a purchase. Organizers cannot create custom coupons themselves. This is part of the loyalty program — shoppers get rewarded for buying, and then use those rewards on their next purchase.
+
+If an organizer wants to run a **sale-wide discount** or promotional offer, that would need to be a feature request for a future sprint. Currently, pricing is set per item and is fixed.
+
+### Resolution Steps
+
+1. **Clarify the feature gap.** "Right now, coupons are automatic rewards we send to shoppers after they buy something. Organizers can't create custom codes."
+2. **Explain the loyalty program.** "When someone buys from your sale, they get a $5 coupon code to use on their next purchase here. That's part of how we keep shoppers coming back."
+3. **Explore what they actually want to do.** "What discount or promotion are you trying to run? Is it a limited-time sale, a bulk discount, or something else? That feedback helps us prioritize new features."
+4. **Route feedback to CX.** If they have a concrete use case, note it and pass it to findasale-cx for product consideration.
+
+### Response Template
+
+Hi [Name],
+
+Good thinking. Right now, coupons are automatically generated by our system — shoppers get a $5 coupon after each purchase, which they can use on their next order.
+
+Organizers don't have the ability to create custom coupons yet, but I understand why that would be useful. If you're looking to run a **promotion or discount** for your sale, I'd love to hear more about what you're trying to achieve. That feedback goes directly to our product team and helps us prioritize new features.
+
+Tell me more about your idea, and I'll pass it along.
+
+– Patrick
+
+### When to Escalate
+- Organizer needs a discount feature urgently (route to findasale-cx for product roadmap discussion; assess if it should be a sprint priority)
+- Multiple organizers request custom coupon creation (pattern detected — escalate to findasale-cx for feedback triage)
+
+---
+
+## Issue #23: Why Isn't My Coupon Code Working?
+
+**Applies to:** Shoppers
+**Severity:** High
+**Expected frequency:** 1–3 per week (redemption failures)
+
+### Problem Statement
+A shopper entered their coupon code at checkout, but received an error message and the discount didn't apply.
+
+### Likely Causes
+1. **Code is expired.** The coupon was issued 90+ days ago and is no longer valid.
+2. **Code was already used.** Each coupon can only be used once. Once redeemed, it's marked as used.
+3. **Code was entered incorrectly.** Typo, wrong characters, or case sensitivity issue (though the app auto-capitalizes).
+4. **Code doesn't belong to the user.** They're trying to use someone else's coupon or a code from a different account.
+5. **Minimum order amount not met.** Some future coupon types may have order minimums (current Sprint 3 coupons do not, but check the error message).
+6. **System glitch during validation.** Payment processing error on the backend.
+
+### Resolution Steps
+
+**Step 1: Check the Error Message**
+- Ask: "What error message did you see?"
+- Common messages:
+  - **"Coupon has expired"** → Coupon is past its 90-day expiration.
+  - **"This coupon has already been used"** → Already redeemed; can't use twice.
+  - **"Coupon not found"** → Code wasn't recognized (typo or doesn't exist).
+  - **"This coupon does not belong to your account"** → They're using someone else's code.
+  - **"Minimum purchase of $X required"** → Order total is too low (current coupons don't have minimums; if this appears, note it).
+
+**Step 2: Verify Code Ownership**
+- Ask: "Did you receive that coupon code in an email from us after a previous purchase?"
+- If **yes:** It should be valid (unless expired or already used).
+- If **no:** They may have a code that doesn't belong to them. Don't use it.
+
+**Step 3: Check Expiration**
+- Ask: "When did you receive the email with the code?"
+- Coupons are valid for **90 days from issue date.**
+- If more than 90 days have passed, it's expired and can't be recovered. Apologize and suggest they make another purchase to earn a new coupon.
+
+**Step 4: Check If Already Used**
+- Ask: "Have you used this code before on a previous purchase?"
+- If **yes, they can't use it again.** Each code is one-time only. They'll need to earn a new coupon with their next purchase.
+- If **no:** It may be a system glitch. Have them try again, or proceed without the coupon and escalate.
+
+**Step 5: Confirm Code Entry**
+- Ask: "Can you read the code back to me exactly as it appears in your email?"
+- They'll paste or type it. The app should auto-capitalize, but check for spaces or typos.
+- If they're unsure, have them **copy directly from the email** and paste it into the field.
+
+**Step 6: Offer a Workaround**
+- If the code is valid but the system is rejecting it (step 4, no on all checks), say: "Let's try this purchase without the coupon. I'll follow up with our team and we can manually apply the discount if needed."
+- Process the purchase; escalate to dev for the validation failure.
+
+### Response Template
+
+Hi [Name],
+
+Sorry the coupon didn't work. Let me help you figure out what happened.
+
+Can you tell me:
+1. **What's the error message you saw?** (e.g., "coupon expired", "already used", etc.)
+2. **When did you receive that coupon code?** (Look for the email from us after your purchase.)
+3. **Is this your first time trying to use it, or have you used it before?**
+
+Once I know those details, I can let you know if the code is still good or if we need to issue you a new one.
+
+– Patrick
+
+### Common Responses by Error
+
+**"Coupon has expired"**
+Unfortunately, coupons are only valid for 90 days. Since yours has expired, it can't be used. The good news is you can **earn another $5 coupon** by making a new purchase on FindA.Sale. Sorry about that!
+
+**"Already been used"**
+That code can only be redeemed once, and it looks like you already used it for a previous purchase. When you complete a purchase now, you'll earn a brand new $5 coupon code for your next order.
+
+**"Coupon not found" / "Does not belong to your account"**
+That code either doesn't exist or doesn't belong to your account. Make sure you're using a code from an email we sent you after one of your purchases. If you're not sure which code is yours, let me know and I can help track it down.
+
+### When to Escalate
+- Shopper swears they didn't use the code, code is not expired, but system says "already used" (possible data corruption or double-redemption bug — route to dev with coupon ID)
+- Error message doesn't match any of the above (system validation failure — escalate with full error, code, user ID, and timestamp)
+- Multiple shoppers report the same coupon code not working (systemic issue — route to findasale-qa)
+- Shopper lost the coupon email and wants it resent (feature gap: coupons should be visible in account; for now, ask them to check spam, then manually resend if needed)
+
+---
+
+## Issue #24: Can a Coupon Be Used More Than Once?
+
+**Applies to:** Shoppers
+**Severity:** Low
+**Expected frequency:** 0–2 per week (policy clarification)
+
+### Problem Statement
+A shopper asks if they can use the same coupon code for multiple purchases, or if it's one-time only.
+
+### Policy
+Each coupon code can be used **exactly once.** After a shopper redeems a coupon at checkout and completes the payment, that code is marked as used and cannot be used again.
+
+However, shoppers earn a new $5 coupon after *each* purchase, so they'll always have fresh coupons available as they continue buying.
+
+### Response Template
+
+Hi [Name],
+
+Great question. Each coupon code is good for **one purchase only.** Once you use it at checkout, that code is used up and can't be applied again.
+
+The good news is you earn a **new $5 coupon after every purchase** you make. So the more you buy, the more coupons you'll have to use on future orders.
+
+Happy hunting for deals!
+
+– Patrick
+
+---
+
+## Issue #25: Why Does the Sale Location Show a Different City?
+
+**Applies to:** Organizers
+**Severity:** Low
+**Expected frequency:** 0–2 per week
+
+### Problem Statement
+An organizer entered a correct address for their sale, but the app displays a different city or region name in the header, filters, or sale preview. For example, they're in a different Michigan city, but it shows "Grand Rapids, MI."
+
+### Root Cause
+During beta, the app defaults to displaying **Grand Rapids, MI** as the region in headers and filters. This is set via the `REGION_NAME` environment variable on the backend. However, the organizer's actual address is stored correctly in the system, and **shoppers will find the sale using the correct address.**
+
+This is a **display-only issue** — it doesn't affect search accuracy or shopper ability to find the sale.
+
+### Resolution Steps
+
+**Step 1: Confirm Their Actual Address is Stored**
+- Ask: "What address did you enter for your sale?"
+- Check the backend or database to confirm the address was saved correctly.
+
+**Step 2: Explain the Region vs. Address Distinction**
+- "The **address you entered** is stored correctly. The **region name** that shows in the app header (like 'Grand Rapids, MI') is a default setting for the beta."
+- "They're separate things. Your actual address is what shoppers search for and use to find your sale."
+
+**Step 3: Verify Search Works With Correct Address**
+- Have them:
+  1. Log out of the organizer account.
+  2. Go to the public search/home page.
+  3. Search for their sale by name.
+  4. Confirm the address shown in the result matches what they entered.
+- If search address is correct: The stored address is fine; the header display is cosmetic. No action needed (this is expected for beta).
+- If search address is wrong: Geocoding or address validation failed. Escalate to dev.
+
+**Step 4: Reassure Them**
+- "Your sale is discoverable by the correct address. Shoppers in your area will find you. The location displayed in the header is just a beta default — it won't affect your visibility."
+
+### Response Template
+
+Hi [Name],
+
+Good catch. Let me explain what you're seeing.
+
+We set a **default region name** for the beta to keep things simple, but that doesn't affect where your sale actually shows up. Your **address is stored correctly**, and shoppers will find your sale using that address.
+
+To verify:
+1. Log out and go to the FindA.Sale home page.
+2. Search for your sale by name.
+3. Check if the address in the result matches what you entered.
+
+If it does, you're all set — shoppers in your area will find you just fine. The region name in the header is just a display setting.
+
+Can you try that search and let me know what address shows up?
+
+– Patrick
+
+### Technical Note (for Patrick/Dev)
+The region name that displays across the app is controlled by the `REGION_NAME` environment variable in the backend config. During beta, it defaults to **"Grand Rapids, MI"** because the initial deployment was scoped to that region. Organizers' addresses are stored separately in the database and are accurate. Once we expand to other regions, the `REGION_NAME` env var should be set to reflect the actual deployment region at deploy time. If you see a pattern of organizers in different regions reporting this, it indicates the env var wasn't updated during deployment to a new region.
+
+---
+
 ## Summary & Handoff
 
-This KB covers the most likely support issues in beta. **Next steps:**
+This KB covers the most likely support issues in beta, including the new Sprint 3 coupon features. **Next steps:**
 
 1. **Update this document as new issues emerge.** If the same question comes in twice, it belongs here.
 2. **Monitor patterns.** If 3+ users report the same issue, flag it to the CX/Product team.
@@ -989,5 +1586,5 @@ This KB covers the most likely support issues in beta. **Next steps:**
 
 ---
 
-**Last Updated:** 2026-03-06
+**Last Updated:** 2026-03-07 (Sprint 3 coupons added)
 **Next Review:** After first 100 support tickets or 1 week, whichever comes first
