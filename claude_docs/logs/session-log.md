@@ -60,4 +60,3 @@ Keep only the 5 most recent sessions. Delete older entries — git history and S
 **Decisions:** Beta status upgraded from CONDITIONAL GO to GO — all 4 code criticals resolved. Docs reorganized by tier and purpose. AI sale description writer + branded social templates identified as next sprint work.
 **Next up:** Patrick's 5 manual blocking items: confirm 5%/7% fee, Stripe business account, Search Console verification, business cards, beta organizer outreach, Neon credential rotation. Then: AI sale description writer feature (findasale-dev, 1-2 sprints).
 **Blockers:** Patrick's manual items only. No code blockers.
-

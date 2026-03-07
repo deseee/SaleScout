@@ -1,23 +1,11 @@
 # ROADMAP – FindA.Sale
 
-**Last Updated:** 2026-03-07 (v17 — Phase 2 features 1+2 shipped in session 87)
-**Status:** Production MVP live at finda.sale. Beta: GO. All phases + CA/CB/CC/CD complete. Full history: `claude_docs/strategy/COMPLETED_PHASES.md`.
+**Last Updated:** 2026-03-07 (v18 — roadmap simplified, completed paths archived)
+**Status:** Production MVP live at finda.sale. Beta: GO. Full build history: `claude_docs/strategy/COMPLETED_PHASES.md`.
 
 ---
 
-## Parallel Path Architecture
-
-5 tracks run concurrently. Sync points defined below.
-
-**P — Patrick (Human):** Beta recruitment, API keys, branding decisions, Stripe setup, real-world partnerships.
-**CA — Claude: Production Readiness:** ✅ All tasks complete. See COMPLETED_PHASES.md.
-**CB — Claude: AI Image Processing:** ✅ All tasks complete. See COMPLETED_PHASES.md.
-**CC — Claude: Business Intel & Content:** Ongoing scheduled intelligence tasks.
-**CD — Claude: Innovation & Experience:** Active sprint + deferred items below.
-
----
-
-## Path P — Patrick (Active Items Only)
+## Patrick's Checklist
 
 ### Business Formation + Legal
 - [ ] Set up support@finda.sale email forwarding
@@ -31,9 +19,9 @@
 - [ ] Rotate Neon database credentials (exposed in git history — precaution)
 - [ ] OAuth credentials (Google, Facebook) → Vercel env vars: GOOGLE_CLIENT_ID/SECRET, FACEBOOK_CLIENT_ID/SECRET
 - [ ] VAPID keys confirmed in production
-- [ ] ⚡ **Sync: Confirm 5%/7% platform fee (CC3 analysis complete — Patrick decision pending)**
+- [ ] ⚡ **Sync: Confirm 5%/7% platform fee (pricing analysis complete — Patrick decision pending)**
 
-### P4: Beta Recruitment
+### Beta Recruitment
 - [ ] Identify 5 target beta organizers (`claude_docs/beta-launch/organizer-outreach.md` ready)
 - [ ] Schedule 1-on-1 onboarding sessions
 - [ ] Hand-hold first 3 sales
@@ -42,22 +30,31 @@
 
 ---
 
-## Path CC — Ongoing
+## Running Automations
 
-### CC4: Automated Intelligence (running)
-7 scheduled tasks: competitor monitoring, industry intel, changelog scanning, UX spots, health scout (weekly), monthly digest, workflow retrospective.
+7 scheduled tasks active: competitor monitoring, industry intel, changelog scanning, UX spots, health scout (weekly), monthly digest, workflow retrospective. Managed by Cowork Power User agent.
+
+## Connectors
+
+- [x] **Stripe** — query payment data, manage customers, troubleshoot payment issues directly
+- [x] **MailerLite** — draft, schedule, and send email campaigns directly from Claude
+
+*CRM deferred — Close requires paid trial. Use spreadsheet/markdown for organizer tracking until beta scale warrants it.*
 
 ---
 
-## Path CD — Feature Pipeline
+## Feature Pipeline
 
-### Phase 2 — Post-Beta Stabilization (Next 6–8 Weeks)
+### Sprint 3.5 — Code deGR-ification (Ready to Start)
+51 hardcoded Grand Rapids references across 13 files. Scope doc ready: `claude_docs/feature-notes/sprint-3.5-scope-degr.md`. Dev agent can pick this up with zero ramp time.
+
+### Next Up
 | # | Feature | Est. | Notes |
 |---|---------|------|-------|
-| 1 | ✅ AI Sale Description Writer | done | Shipped session 87 (commit 7b1b71d). generateSaleDescription() + ✨ button on create/edit sale. |
-| 2 | ✅ Branded Social Templates | done | Shipped session 87 (commit 982dd6e). Route wired, dashboard integrated, code quality fixed. |
 | 3 | Shopper Loyalty Program | 1 sprint | Thank-you coupons, coupon tracking, email integration. |
 | 4 | Search by Item Type | 2 sprints | Index items, search UI, result optimization. |
+
+*Recently shipped: AI Sale Description Writer (session 87), Branded Social Templates (session 87). See COMPLETED_PHASES.md.*
 
 ### Phase 3 — Weeks 8–16
 | # | Feature | Est. | Notes |
@@ -75,34 +72,30 @@
 | 11 | Shopper Referral Rewards expansion | 1 sprint | Viral growth loop. |
 | 12 | Verified Organizer Badge | 1–2 sprints | Professional differentiation, trust signal. |
 
-### Deprecated / Deferred Indefinitely
-| Feature | Reason |
-|---------|--------|
-| White-label MaaS | Business decision — beta validation first |
-| Consignment Integration | Thrift store POS — post-beta complexity |
-| AR Furniture Preview | Hardware not ready — long-term R&D |
-| Co-Branded Yard Signs | High operational overhead; low revenue; deprecated per research |
-| QuickBooks Integration | CSV export covers 80% of need; defer until organizer demand |
-| Multi-Format Marketing Kit | Current PDF implementation sufficient |
+---
+
+## Sync Points
+
+| Sync | What's Needed | Status |
+|------|---------------|--------|
+| ⚡ Confirm 5%/7% fee | Pricing analysis done — Patrick decides | Pending Patrick |
+| ⚡ Beta readiness | Patrick's checklist above → first real user | Waiting on Patrick items |
+| ⚡ Beta feedback loops | Beta feedback → Claude iterates on features | Pending beta launch |
 
 ---
 
-## Active Sync Points
+## Deferred & Long-Term Hold
 
-| Sync | What Converges | Status |
-|------|----------------|--------|
-| ⚡ Confirm 5%/7% fee | CC3 analysis → Patrick decides | Pending Patrick |
-| ⚡ Beta readiness | All paths green → first real user | Waiting on P items above |
-| ⚡ Beta feedback loops | P4 feedback → Claude iterates | Pending beta launch |
-
----
-
-## Long-Term Hold
-
-| Item | Reason | Revisit |
-|------|--------|---------|
-| Video-to-inventory | Vision models can’t reliably segment rooms yet | Late 2026+ |
+| Feature | Reason | Revisit |
+|---------|--------|--------|
+| White-label MaaS | Business decision — beta validation first | After beta data |
+| Consignment Integration | Thrift store POS — post-beta complexity | After beta data |
+| QuickBooks Integration | CSV export covers 80% of need | When organizers ask |
+| Video-to-inventory | Vision models can't reliably segment rooms yet | Late 2026+ |
 | Multi-metro expansion | Beta validation first | After beta data |
+| AR Furniture Preview | Hardware not ready | Long-term R&D |
+
+*Deprecated (won't build): Co-Branded Yard Signs, Multi-Format Marketing Kit.*
 
 ---
 
@@ -115,8 +108,8 @@ All infra complete. Backend: Railway. DB: Neon (35 migrations applied 2026-03-06
 ## Maintenance Rules
 
 This document is updated at **every session wrap** when:
-- A P-path item is completed by Patrick
-- A CD sprint feature ships
+- A Patrick checklist item is completed
+- A feature ships
 - Beta status changes
 - A deferred item is activated or cancelled
 
