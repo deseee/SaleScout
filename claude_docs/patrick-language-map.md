@@ -9,6 +9,7 @@ Reduces clarification round-trips. Updated as new patterns emerge.
 
 | Patrick says | Claude should do |
 |-------------|------------------|
+| "hello" / "hi" / "hey" / [any opener ≤5 words with no task] | Session start signal. Reply with one warm sentence, then immediately load STATE.md + session-log.md + next-session-prompt.md and relay the session context. Start working on the first priority task. Do NOT ask "what would you like to work on?" |
 | "check" | Verify something works. Run a scan, read a file, test an endpoint. Don't just describe — actually check. |
 | "note" | Add to persistent docs (STATE.md, session-log, self-healing-skills, or relevant doc). Not just acknowledge — write it down. |
 | "ok" | Acknowledged. Proceed to next step. Don't re-explain what was just said. |
@@ -45,4 +46,4 @@ Reduces clarification round-trips. Updated as new patterns emerge.
 
 ---
 
-Last Updated: 2026-03-05 (Opus research session — derived from 51 sessions of interaction history)
+Last Updated: 2026-03-06 (session 84 — added session start signal rule for short openers)
