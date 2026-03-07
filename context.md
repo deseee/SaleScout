@@ -1,17 +1,17 @@
 # Dynamic Project Context
-*Generated at 2026-03-07T01:16:16.402Z*
+*Generated at 2026-03-07T01:52:13.088Z*
 
 ## Git Status
 - **Branch:** main
-- **Commit:** 2adaf8b
+- **Commit:** e798e14
 - **Remote:** https://github.com/deseee/findasale.git
 
 ## Last Session
 ### 2026-03-06
-**Worked on:** Full subagent fleet audit (15 agents reviewed). Opus fleet audit produced detailed agent-by-agent review. Identified 7 critical gaps: no agent handoff protocol, QA never run, UX never consulted, Legal never consulted, Support+CX have no content, dev-environment still references Docker, no e2e test automation. Expanded .gitattributes from `*.md` only to all text file types (kills 397-file CRLF phantom diff permanently). Scrubbed plaintext Neon credentials from STATE.md entry #28 and self_healing_skills.md (SECURITY violation). Confirmed ROADMAP.md v14 is correct (v12 on GitHub was stale). Diagnosed that push.ps1 reported "Everything up-to-date" because audit work was never committed.
-**Decisions:** .gitattributes must cover all text file types, not just *.md. Credentials must never appear in docs — reference .env location instead. Fleet audit recommendations are the new priority queue before beta launch. Neon credentials should be rotated as precaution.
-**Next up:** Execute 8 audit work paths (QA, UX, Legal, Support KB, CX onboarding, Records cleanup, Marketing calendar, Ops verification). Create Agent Quick Reference cheat sheet. Patrick: rotate Neon credentials, push pending commits.
-**Blockers:** Pending commits must be pushed before any further work. Patrick should rotate Neon credentials.
+**Worked on:** Workflow agent called to fix session-start behavior — "hello"/"hi" now treated as session start signal. Rule 4 added to conversation-defaults skill (installed), entry added to patrick-language-map.md (pushed to GitHub). All 8 audit work paths executed in parallel: QA (4 critical findings), UX (5 blockers), Legal (5 medium risks, no blockers), Support KB (15 issues), CX onboarding toolkit (4 emails + quick-start guide), Records (RECOVERY.md Docker cleanup, pushed), Marketing (2-week pre-launch calendar), Ops (infra GREEN, VAPID yellow). Audit reports written to claude_docs/beta-launch/ and claude_docs/health-reports/.
+**Decisions:** Beta is CONDITIONAL GO — 4 critical code fixes must ship before real user traffic (JWT fallback secret, password reset rate limit, ai-feedback-stats auth, Stripe rotation plan). UX and Legal findings are non-blocking for initial limited beta.
+**Next up:** findasale-dev to fix 4 QA critical issues. Patrick: confirm fee, Stripe account, Search Console, business cards, beta outreach, Neon credential rotation. Fix self_healing_skills.md Docker entries #9/#13/#18.
+**Blockers:** Patrick's 7 manual items (see STATE.md Beta Launch Target). QA criticals must be fixed before inviting real users.
 
 ## Health Status
 Last scan: 2026-03-06
@@ -81,17 +81,25 @@ Docker status unavailable — run update-context.js locally (Windows) to capture
 │   │   ├── pre-beta-audit-2026-03-03.md
 │   │   ├── pre-commit-check.md
 │   │   ├── rebrand-audit.md
+│   │   ├── records-audit-2026-03-06.md
 │   │   ├── subagent-fleet-audit-2026-03-06.md
 │   │   └── workflow-audit-2026-03-03.md
 │   ├── beta-launch/
+│   │   ├── LEGAL_EXEC_SUMMARY.md
 │   │   ├── beta-status.md
 │   │   ├── content-calendar.md
+│   │   ├── cx-onboarding-toolkit-2026-03-06.md
 │   │   ├── e2e-test-checklist.md
 │   │   ├── launch-announcement.md
+│   │   ├── legal-compliance-scan-2026-03-06.md
+│   │   ├── legal-recommendations-for-dev.md
+│   │   ├── marketing-calendar-2026-03-06.md
 │   │   ├── onboarding-emails.md
+│   │   ├── ops-readiness-2026-03-06.md
 │   │   ├── organizer-outreach.md
 │   │   ├── success-criteria.md
-│   │   └── success-tracking.md
+│   │   ├── success-tracking.md
+│   │   └── support-kb-2026-03-06.md
 │   ├── beta-readiness-audit-2026-03-05.md
 │   ├── brand/
 │   │   ├── README.md
@@ -127,7 +135,8 @@ Docker status unavailable — run update-context.js locally (Windows) to capture
 │   │   ├── .gitkeep
 │   │   ├── 2026-03-05-full-scan.md
 │   │   ├── 2026-03-05.md
-│   │   └── 2026-03-06.md
+│   │   ├── 2026-03-06.md
+│   │   └── qa-pre-beta-audit-2026-03-06.md
 │   ├── migration-runbook.md
 │   ├── model-routing.md
 │   ├── monthly-digests/
@@ -157,7 +166,8 @@ Docker status unavailable — run update-context.js locally (Windows) to capture
 │   ├── test_write
 │   ├── ux-spotchecks/
 │   │   ├── .gitkeep
-│   │   └── ca4-ca6-audit-2026-03-05.md
+│   │   ├── ca4-ca6-audit-2026-03-05.md
+│   │   └── ux-pre-beta-audit-2026-03-06.md
 │   └── workflow-retrospectives/
 │       ├── .gitkeep
 │       └── opus-fleet-audit-2026-03-06.md
