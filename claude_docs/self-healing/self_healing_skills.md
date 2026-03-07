@@ -380,4 +380,15 @@ npx prisma migrate dev --name <name>
 **Always do:** Read → Edit → Push. All three steps happen in the VM with no Patrick involvement.
 **Why this exists:** Session 89 — Claude told Patrick to manually fix conflict markers in session-log.md. Patrick: "I shouldn't have to manually fix your mistakes." This is the highest-priority self-healing pattern because it directly violates the non-technical PM principle.
 
-Last Updated: 2026-03-07 (session 89 continued — added entry #50: merge conflict auto-resolution)
+### 51. Non-ASCII Characters in PowerShell Scripts Cause Parse Failure
+**Trigger:** PowerShell script fails with "The string is missing the terminator" or "Missing closing '}'" at a line far from the actual problem
+**Root cause:** Non-ASCII characters (em dash U+2014, curly quotes, etc.) in `.ps1` string literals. PowerShell reads the UTF-8 file using Windows-1252 encoding in some environments. The UTF-8 byte sequence for em dash is E2 80 94 — byte 0x94 in Windows-1252 is the RIGHT DOUBLE QUOTATION MARK, which terminates the string early. All subsequent code is parsed as inside a string, so braces and quotes are miscounted.
+**Fix:** Replace the non-ASCII character with an ASCII equivalent:
+- Em dash `—` → hyphen `-`
+- Curly quotes `"` `"` → straight quotes `"`
+- Any Unicode in string literals → ASCII only
+Push the fixed file via GitHub MCP, then tell Patrick: `git fetch origin && git merge origin/main --no-edit`
+**Prevention:** Never use non-ASCII characters inside PowerShell string literals. Comments are safer but still risky. ASCII-only is the rule for all `.ps1` files.
+**Known instance:** Session 90 — em dash in push.ps1 line 116 caused parser crash, breaking the whole script.
+
+Last Updated: 2026-03-07 (session 90 — added entry #51: non-ASCII characters in PowerShell scripts)
