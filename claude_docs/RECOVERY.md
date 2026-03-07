@@ -33,28 +33,49 @@ Current: Polling via React Query (5-second intervals). Revisit when data shows >
 Fix: Increment version, clear site data, hard refresh, verify offline.html exists.
 For Stripe/third-party script blocking, see self_healing_skills.md #17.
 
-## 10. Docker Backend Crash Loop
-See self_healing_skills.md #9 (pnpm/nodemon), #10 (circular deps), #18 (missing bind mount).
-Also: ENUM→TEXT migration fix (P2032) and migration-not-applied restart sequence.
+## 10. Backend Crash Loop
+Fix: Check nodemon error logs. Ensure `pnpm --filter backend run dev` is running (not `npx nodemon`).
+See self_healing_skills.md #9 (pnpm/nodemon), #10 (circular deps).
 
-## 11. Docker Hot Reload Not Working (Windows 10)
-Backend: nodemon `--legacy-watch`. Frontend: `WATCHPACK_POLLING=true` + `CHOKIDAR_USEPOLLING=true`.
+## 11. Migration Drift (Local Dev)
+Quick fix (wipes data):
+```powershell
+cd packages/database
+npx prisma migrate reset --force
+```
 
-## 12. Migration Drift
-See self_healing_skills.md #10 context. Quick fix (local dev, wipes data):
-`docker exec findasale-backend-1 sh -c "cd /app/packages/database && npx prisma migrate reset --force"`
+## 12. Native Dev Environment Issues
 
-## 13. PowerShell + Docker Quoting Issues
-Assign SQL to variable first: `$sql = 'DELETE FROM "TableName";'` then pass to docker exec.
-For JSON POST, use `Invoke-RestMethod` or browser fetch — never `curl` through `docker exec sh -c`.
-See self_healing_skills.md #14, #15, #16.
+### 12a. Backend Won't Start (Node.js Error)
+Check: Node.js 18+ installed, pnpm 8+, PostgreSQL running on port 5432.
+```powershell
+node --version  # Should be v18+
+pnpm --version  # Should be 8+
+psql -U postgres -c "SELECT version();"  # Verify PostgreSQL
+```
+If PostgreSQL offline: Open Windows Services → PostgreSQL → Restart.
 
-## 14. npx prisma Picks Up Wrong Version
-Never run `npx prisma` from Windows. All Prisma commands via Docker:
-`docker exec findasale-backend-1 sh -c "cd /app/packages/database && npx prisma <cmd>"`
+### 12b. Frontend Hot Reload Not Working
+Windows 10 native: Set polling environment variables before running:
+```powershell
+$env:WATCHPACK_POLLING = "true"
+$env:CHOKIDAR_USEPOLLING = "true"
+pnpm --filter frontend dev
+```
 
-## 15. Docker-from-VM Gap
-Claude VM cannot reach Docker Desktop daemon. Accepted workflow: Claude writes PowerShell command → Patrick pastes → Patrick returns output. Use Claude in Chrome for API smoke tests.
+### 12c. Prisma Client Mismatch After Schema Change
+Regenerate after modifying schema:
+```powershell
+cd packages/database
+npx prisma generate
+```
+
+### 12d. Port Already in Use
+Check what's using port 3000 (frontend) or 5000 (backend):
+```powershell
+netstat -ano | findstr ":3000\|:5000"
+# Kill by PID: taskkill /PID [PID] /F
+```
 
 ---
 
