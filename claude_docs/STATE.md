@@ -7,7 +7,7 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Active Objective
 
-Session 88 complete. Sprint 3 (Shopper Loyalty Program) shipped — 7 files, QA passed. **Coupon migration NOT YET run.** **Sprint 3 files NOT YET committed/pushed.** Workflow hardening done: CORE.md §16, 5 .skill packages (dev-environment, findasale-architect, findasale-dev, findasale-deploy, findasale-marketing) awaiting Patrick install. Global CLAUDE.md final version provided — Patrick must apply. Scope expansion: estate sales + yard sales + auctions + flea markets now in scope; Grand Rapids = beta geography only. BUSINESS_PLAN.md, STATE.md, roadmap.md all updated. Sprint queue: 3.5 (code deGR-ification, ~10 files) → 4 (Search by Item Type) → 5 (Seller Performance Dashboard). NOTE: Use `Skill` tool to invoke findasale-* agents — NOT the `Agent` tool.
+Session 89 complete. Sprint 3 (Shopper Loyalty Program) committed, pushed, and Neon migration deployed (63 migrations total). Workflow hardened: CORE.md §2 sprint queue hold rule added, self-healing entries #46–49 added (CREATEDB, session env var, git status discipline, migration pre-flight), 4 skills updated (conversation-defaults, findasale-dev, findasale-ops, dev-environment) with pre-flight checklists. All doc placeholders eradicated. Sprint queue: 3.5 (code deGR-ification, ~10 files) → 4 (Search by Item Type) → 5 (Seller Performance Dashboard). NOTE: Use `Skill` tool to invoke findasale-* agents — NOT the `Agent` tool.
 
 ---
 
@@ -63,7 +63,7 @@ Parallel path model active. Session 76–77 batches complete.
 
 - **Phase 31 OAuth env vars** — ✅ DONE (2026-03-06). GOOGLE_CLIENT_ID/SECRET + FACEBOOK_CLIENT_ID/SECRET added to Vercel. Redirect URIs configured.
 - **Support email** — ✅ DONE (2026-03-06). support@finda.sale email forwarding configured.
-- **Neon migrations** — ✅ 62 migrations applied to Neon production (last: 20260307000038_add_organizer_website). No pending migrations.
+- **Neon migrations** — ✅ 63 migrations applied to Neon production (last: 20260307153530_add_coupon_model). No pending migrations.
 - **Uptime monitoring** — ✅ UptimeRobot done (Patrick confirmed 2026-03-05).
 - **Sentry** — ✅ Fully deployed. DSNs set in Railway + Vercel.
 - **STRIPE_WEBHOOK_SECRET** — ✅ Set in Railway (2026-03-05).
@@ -109,7 +109,7 @@ Beta checklist: `claude_docs/BETA_CHECKLIST.md`
 ## Known Gotchas (Production)
 
 - **Railway PORT mismatch** — `PORT=5000` locked in Railway Variables. Must match `EXPOSE 5000` in Dockerfile. Do not remove.
-- **Neon production DB** — `prisma migrate deploy` must be run manually after any new migration. 62 migrations applied to Neon as of 2026-03-07. Last: `20260307000038_add_organizer_website`. ⚠️ Pending: `add_coupon_model` migration (Sprint 3) — run `migrate dev` local first, then `migrate deploy` to Neon. Will be migration #63.
+- **Neon production DB** — `prisma migrate deploy` must be run manually after any new migration. 63 migrations applied to Neon as of 2026-03-07. Last: `20260307153530_add_coupon_model` (Sprint 3). No pending migrations.
 - **Dockerfile.production** — ✅ Restored to `--frozen-lockfile` (session 87, commit b82180d). Lockfile is clean.
 - **Git push workflow** — Patrick uses `.\push.ps1` (repo root) instead of raw `git push`. Self-heals: index.lock, CRLF phantoms, fetch+merge (never rebase). See self-healing entry #36.
 - **Dev stack is now native** — Docker no longer used at all. `image-tagger/` deleted by Patrick (session 81). Backend/frontend/postgres run natively on Windows. See `claude_docs/DEVELOPMENT.md`.
@@ -129,4 +129,4 @@ Beta checklist: `claude_docs/BETA_CHECKLIST.md`
 - **CA4** — ✅ COMPLETE. User flow audit (shopper/organizer/creator). 10 fixes shipped: search aria-label, purchases error handling, index refetch(), items/[id] retry, referral copy feedback. Open items logged in `claude_docs/ux-spotchecks/ca4-ca6-audit-2026-03-05.md`.
 - **CA6** — ✅ COMPLETE. Feature polish: 5MB photo validation + server error surfacing, push notification toggle in organizer settings, onboarding step 3 copy improved, empty referrals state. Pushed 2026-03-05.
 
-Last Updated: 2026-03-07 (session 88 — Sprint 3 Shopper Loyalty Program shipped. CORE.md §16 added. 4 .skill packages created. Coupon migration pending. Sprint 3 files pending commit.)
+Last Updated: 2026-03-07 (session 89 — Sprint 3 committed + pushed + Neon migration deployed. Workflow hardened: CORE.md §2 sprint queue rule, self-healing entries 46-49, 4 skills updated.)

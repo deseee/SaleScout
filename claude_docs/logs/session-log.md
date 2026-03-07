@@ -8,6 +8,15 @@ Keep only the 5 most recent sessions. Delete older entries — git history and S
 
 ## Recent Sessions
 
+### 2026-03-07 (session 89 — Sprint 3 shipped + workflow hardening)
+**Worked on:**
+- **Sprint 3 completion:** Fixed P1012 (session env var $env:DATABASE_URL override), P3014 (CREATEDB privilege on native Postgres), P2011 (seed null constraint on embedding — added `embedding: []`). Ran `prisma migrate dev` locally (migration 20260307153530_add_coupon_model), committed Sprint 3 in 3 commits (7eef1a0, 09955b3, b61f394), deployed Neon migration (63 total applied).
+- **Workflow audit (sessions 88+89 failure modes):** Dev, QA, workflow, records, and ops agents analyzed wasted turns: session env var override, shadow DB CREATEDB, git status not checked before add, Docker command issued without dev-environment loaded, STATE.md placeholder propagated, stale duplicate next-session-prompt.md. All patterns documented and hardened.
+- **System hardening:** CORE.md §2 sprint queue hold rule added. Self-healing entries #46 (CREATEDB), #47 (session env var), #48 (git status discipline), #49 (migration pre-flight) added. Entries #28 and #45 updated with Neon URL commented-out detail. All doc placeholders eradicated (ops-readiness, operations/next-session-prompt, STATE.md). 4 skills rebuilt and installed: conversation-defaults (Rule 5 added), findasale-dev (pre-push verification), findasale-ops (migration runbook clarified), dev-environment (pre-flight checklists). Root next-session-prompt.md stale duplicate deleted.
+**Decisions:** Session env var check is now mandatory before any Prisma command (CORE.md + dev-environment skill). Sprint queue hold rule prevents Claude from announcing wrong "next sprint" mid-session.
+**Next up:** Sprint 3.5 — code deGR-ification (~10 files, no schema changes, rename Grand Rapids references to generic location references). Then Sprint 4 (Search by Item Type), Sprint 5 (Seller Performance Dashboard).
+**Blockers:** None — clean tree, all commits pushed, 63 migrations on Neon. Patrick's 5 manual beta items unchanged.
+
 ### 2026-03-07 (session 88 — Sprint 3 + workflow hardening + scope expansion)
 **Worked on:**
 - **Sprint 3 — Shopper Loyalty Program:** Full Architect → Dev → QA pipeline. Coupon model in schema.prisma, couponController.ts (new), routes/coupons.ts (new), stripeController.ts (coupon validation + idempotency fix + webhook), index.ts, CheckoutModal.tsx, purchases.tsx. 4 QA warnings found and fixed.
@@ -51,13 +60,4 @@ Keep only the 5 most recent sessions. Delete older entries — git history and S
 **Decisions:** Beta status upgraded from CONDITIONAL GO to GO — all 4 code criticals resolved. Docs reorganized by tier and purpose. AI sale description writer + branded social templates identified as next sprint work.
 **Next up:** Patrick's 5 manual blocking items: confirm 5%/7% fee, Stripe business account, Search Console verification, business cards, beta organizer outreach, Neon credential rotation. Then: AI sale description writer feature (findasale-dev, 1-2 sprints).
 **Blockers:** Patrick's manual items only. No code blockers.
-
-### 2026-03-06 (session 84 — workflow fix + 8 audit work paths complete)
-**Worked on:** Workflow agent called to fix session-start behavior — "hello"/"hi" now treated as session start signal. Rule 4 added to conversation-defaults skill (installed), entry added to patrick-language-map.md (pushed to GitHub). All 8 audit work paths executed in parallel: QA (4 critical findings), UX (5 blockers), Legal (5 medium risks, no blockers), Support KB (15 issues), CX onboarding toolkit (4 emails + quick-start guide), Records (RECOVERY.md Docker cleanup, pushed), Marketing (2-week pre-launch calendar), Ops (infra GREEN, VAPID yellow). Audit reports written to claude_docs/beta-launch/ and claude_docs/health-reports/.
-**Decisions:** Beta is CONDITIONAL GO — 4 critical code fixes must ship before real user traffic (JWT fallback secret, password reset rate limit, ai-feedback-stats auth, Stripe rotation plan). UX and Legal findings are non-blocking for initial limited beta.
-**Next up:** findasale-dev to fix 4 QA critical issues. Patrick: confirm fee, Stripe account, Search Console, business cards, beta outreach, Neon credential rotation. Fix self_healing_skills.md Docker entries #9/#13/#18.
-**Blockers:** Patrick's 7 manual items (see STATE.md Beta Launch Target). QA criticals must be fixed before inviting real users.
-
-*Re-wrap addendum:* Workflow fixes applied — entry #38 added to self_healing_skills.md, Rule 4 (fetch-at-wrap) added to SESSION_WRAP_PROTOCOL.md + WRAP_PROTOCOL_QUICK_REFERENCE.md, CORE.md §10 updated with MCP coordination warning.
-
 
