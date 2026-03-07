@@ -107,4 +107,4 @@ Before any GitHub push, verify:
 
 ---
 
-Last Updated: 2026-03-05 (Opus research session)
+Last Updated: 2026-03-07 (session 86 — added Production Startup Failures guardrail)

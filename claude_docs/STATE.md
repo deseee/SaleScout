@@ -63,7 +63,7 @@ Parallel path model active. Session 76–77 batches complete.
 
 - **Phase 31 OAuth env vars** — ✅ DONE (2026-03-06). GOOGLE_CLIENT_ID/SECRET + FACEBOOK_CLIENT_ID/SECRET added to Vercel. Redirect URIs configured.
 - **Support email** — ✅ DONE (2026-03-06). support@finda.sale email forwarding configured.
-- **Neon migrations** — ✅ ALL 35 migrations applied to Neon production (2026-03-06). No pending migrations.
+- **Neon migrations** — ✅ 62 migrations applied to Neon production (last: 20260307000038_add_organizer_website). No pending migrations.
 - **Uptime monitoring** — ✅ UptimeRobot done (Patrick confirmed 2026-03-05).
 - **Sentry** — ✅ Fully deployed. DSNs set in Railway + Vercel.
 - **STRIPE_WEBHOOK_SECRET** — ✅ Set in Railway (2026-03-05).

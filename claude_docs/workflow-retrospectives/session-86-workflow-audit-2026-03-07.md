@@ -125,8 +125,9 @@ See self_healing_skills.md — 4 new entries queued below.
 
 ## Quick Wins (implement this session)
 
-1. ✅ Add self-healing entries #41–44 to self_healing_skills.md
-2. ✅ Propose CORE.md §12 addition to findasale-records
+1. ✅ Add self-healing entries #41–45 to self_healing_skills.md
+2. ✅ CORE.md §10 — lockfile co-commit rule added (commit 9ce4a620)
+3. ✅ session-safeguards.md — Production Startup Failures section added (commit a2c152de)
 
 ## For Next Session
 
