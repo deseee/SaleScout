@@ -113,15 +113,7 @@ Beta checklist: `claude_docs/BETA_CHECKLIST.md`
 - **Dockerfile.production** — ✅ Restored to `--frozen-lockfile` (session 87, commit b82180d). Lockfile is clean.
 - **Git push workflow** — Patrick uses `.\push.ps1` (repo root) instead of raw `git push`. Self-heals: index.lock, CRLF phantoms, fetch+merge (never rebase). See self-healing entry #36.
 - **Dev stack is now native** — Docker no longer used at all. `image-tagger/` deleted by Patrick (session 81). Backend/frontend/postgres run natively on Windows. See `claude_docs/DEVELOPMENT.md`.
-- **Production seed:** DB URLs are in `packages/backend/.env`. Copy them into the commands below:
-  ```powershell
-  cd C:\Users\desee\ClaudeProjects\FindaSale\packages\database
-  $env:DATABASE_URL="<from packages/backend/.env>"
-  $env:DIRECT_URL="<from packages/backend/.env>"
-  pnpm run db:generate
-  npx prisma migrate deploy
-  ```
-  ⚠️ Seed clears all data — run intentionally. Never commit credentials to docs.
+- **Production migration deploy (Neon):** Before running `migrate deploy`, Claude must read `packages/backend/.env` directly and extract the actual Neon URLs (currently the commented-out `# DATABASE_URL=` and `# DIRECT_URL=` lines pointing to `neon.tech`). Claude provides the complete `$env:DATABASE_URL="..."` command with the real URL — never placeholder text. Never commit credentials to docs.
 
 ---
 

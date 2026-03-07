@@ -26,7 +26,7 @@ At the start of every session, before any task work:
 1. Check active MCP tools in session context — note GitHub, Slack, Notion, etc. availability
 2. Load `claude_docs/CORE.md` — verify behavior rules haven't drifted
 3. Load `context.md` — filetree, Docker status, last session summary
-4. Load `claude_docs/STATE.md` — current sprint and blockers
+4. Load `claude_docs/STATE.md` — current sprint and blockers. After loading, **extract the sprint queue line and hold it for the session.** Before announcing "next up" at any milestone, re-confirm against STATE.md — do not rely on memory.
 5. Skim `claude_docs/logs/session-log.md` — last 1–2 entries for recent decisions
 6. **GitHub sync check** — read local `STATE.md` `Last Updated` line, then fetch GitHub version via `mcp__github__get_file_contents` (`deseee/findasale`, `claude_docs/STATE.md`). If the `Last Updated` lines differ, stop immediately and tell Patrick:
    > "Local docs are behind GitHub. Run this before we start: `git fetch origin && git merge origin/main --no-edit` (or just `.\push.ps1` which handles this automatically)"
