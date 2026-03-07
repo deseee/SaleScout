@@ -1,20 +1,20 @@
 # Next Session Resume Prompt
-*Written: 2026-03-07T23:00:00Z*
+*Written: 2026-03-07T23:30:00Z*
 *Session ended: normally*
 
 ## Resume From
 Start **Sprint 4 — Search by Item Type**. Consult findasale-architect first for schema/API design, then findasale-dev for implementation.
 
 ## What Was In Progress
-Nothing in progress — Sprint 3.5 fully shipped and hardening complete.
+Nothing in progress — all session 90 git hardening complete and pushed.
 
-## What Was Completed This Session (89 continued)
-- Sprint 3.5 (code deGR-ification): 26 files modified, regionConfig.ts created, 2 QA bugs fixed, all pushed via MCP
-- Cowork Power User skill created and installed (7 responsibilities, roadmap + research doc awareness)
-- Roadmap v18: simplified to plain English (no more CA/CB/CC/CD encoding)
-- Connectors: Stripe + MailerLite connected, Close CRM deferred
-- Workflow failure hardened: self-healing #50 (merge conflict auto-resolution), conversation-defaults Rule 6 (never hand off git issues)
-- Conversation-defaults skill rebuilt with Rule 6
+## What Was Completed This Session (90)
+- push.ps1 fully hardened: CRLF false-positive fix (--ignore-cr-at-eol), em dash encoding fix, doc-conflict auto-resolution (--theirs for claude_docs/ files)
+- Self-healing entry #51 (non-ASCII in PowerShell scripts)
+- Self-healing entry #52 (wrap-only doc files causing merge conflicts)
+- CORE.md section 10: wrap-only docs rule (never MCP-push STATE.md, session-log.md, .last-wrap, next-session-prompt.md mid-session)
+- 4 merge conflicts resolved (session 89/90 MCP vs local drift)
+- Workflow audit: 3 root causes identified and fixed
 
 ## Sprint Queue
 - **Sprint 4** — Search by Item Type
@@ -29,9 +29,10 @@ Nothing in progress — Sprint 3.5 fully shipped and hardening complete.
 6. Rotate Neon credentials
 
 ## Environment Notes
-- **Git sync required:** Patrick needs to run `git merge --abort` then `git reset --hard origin/main` in PowerShell to sync local with MCP pushes. All correct files are on GitHub.
+- **Git sync:** Clean. All local and GitHub in sync as of commit 58ccf08.
 - **Neon:** 63 migrations applied. No pending.
 - **New env vars:** regionConfig.ts uses DEFAULT_CITY, DEFAULT_STATE, DEFAULT_STATE_ABBREV, DEFAULT_LAT, DEFAULT_LNG, DEFAULT_RADIUS_MILES, DEFAULT_COUNTY, DEFAULT_TIMEZONE (all have Grand Rapids defaults). Frontend uses NEXT_PUBLIC_MAP_CENTER_LAT, NEXT_PUBLIC_MAP_CENTER_LNG.
 - **Connectors active:** Stripe MCP, MailerLite MCP, GitHub MCP
 - **Skills:** Use `Skill` tool for findasale-* agents — NOT `Agent` tool
-- **Proposed but not created:** Weekly Power User scheduled task
+- **push.ps1:** Fully hardened. Doc conflicts auto-resolve. No manual intervention needed.
+- **Weekly Power User scheduled task:** Still proposed but not yet created.

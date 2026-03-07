@@ -8,6 +8,17 @@ Keep only the 5 most recent sessions. Delete older entries — git history and S
 
 ## Recent Sessions
 
+### 2026-03-07 (session 90 — push.ps1 hardening + git workflow audit)
+**Worked on:**
+- **push.ps1 Bug 1 (CRLF false-positive):** `git diff` without `--ignore-cr-at-eol` flagged CRLF-only changes as real content changes. Windows autocrlf caused perpetual "uncommitted changes" warnings. Fixed by adding `--ignore-cr-at-eol` to the diff command.
+- **push.ps1 Bug 2 (em dash encoding crash):** Em dash U+2014 in a string literal caused PowerShell parse failure ("string missing terminator"). Byte 0x94 in Windows-1252 = RIGHT DOUBLE QUOTATION MARK. Fixed by replacing with ASCII hyphen. Self-healing entry #51 added.
+- **push.ps1 Bug 3 (doc conflict auto-resolution):** After git merge origin/main, conflicts in claude_docs/ and context.md files now auto-resolve with --theirs strategy. Code file conflicts still route to Cowork. Patrick no longer blocked by doc merge conflicts.
+- **Root cause hardened:** CORE.md section 10 now prohibits MCP-pushing wrap-only docs (STATE.md, session-log.md, .last-wrap, next-session-prompt.md) mid-session. Self-healing entry #52 added.
+- **4 merge conflicts resolved:** .last-wrap, STATE.md, session-log.md, next-session-prompt.md all had conflict markers from session 89/90 MCP vs local drift. Resolved via Read + Edit.
+**Decisions:** Wrap-only docs are never MCP-pushed mid-session. Push.ps1 is now fully self-healing for doc conflicts.
+**Next up:** Sprint 4 (Search by Item Type) — consult findasale-architect for schema/API design first.
+**Blockers:** None. Patrick's 5 manual beta items unchanged.
+
 ### 2026-03-07 (session 89 continued — Sprint 3.5 + Power User + roadmap redesign + workflow hardening)
 **Worked on:**
 - **Sprint 3.5 (code deGR-ification):** 51 hardcoded Grand Rapids references found across 13 files. All replaced with env var-driven `regionConfig.ts` (backend) and `NEXT_PUBLIC_*` env vars (frontend). 26 code files modified, `regionConfig.ts` created. QA caught 2 bugs: hardcoded "Michigan" in cloudAIService.ts line 239, hardcoded map coordinates in map.tsx line 247 — both fixed. All 30 files (code + docs) pushed to GitHub via MCP in batched commits.
