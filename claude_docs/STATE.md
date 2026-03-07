@@ -7,7 +7,7 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Active Objective
 
-Session 89 (continued) complete. Sprint 3.5 (code deGR-ification) shipped — 26 code files + regionConfig.ts pushed to GitHub via MCP. Cowork Power User skill created and installed. Roadmap v18 simplified (removed CA/CB/CC/CD encoding, plain English sections). Connectors: Stripe + MailerLite connected. Workflow failure hardened: self-healing entry #50 (merge conflict auto-resolution), conversation-defaults Rule 6 (never hand off git issues to Patrick). Sprint queue: 4 (Search by Item Type) → 5 (Seller Performance Dashboard). NOTE: Use `Skill` tool to invoke findasale-* agents — NOT the `Agent` tool.
+Session 91 complete. Power User sweep finished (CA/CB/CC/CD paths). Sprint 4 (Search by Item Type) architecture ADR + UX spec produced. All agents dispatched and tasks completed. Session 91 also discovered empirical parallel agent dispatch limit (max 3 per call) — documented in CORE.md §11. Sprint queue: 4 (Search by Item Type) → 5 (Seller Performance Dashboard). NOTE: Use `Skill` tool to invoke findasale-* agents — NOT the `Agent` tool.
 
 ---
 
@@ -32,30 +32,7 @@ Phases 1–13 + pre-beta audit + rebrand + Sprints A–X all verified and shippe
 
 ## In Progress
 
-Parallel path model active. Session 76–77 batches complete.
-
-- **CA7** — ✅ COMPLETE. `/guide` organizer guide page, expanded FAQ (shopper+organizer tabs), footer guide link, webhooks Zapier help link. Session 77.
-- **CB4** — ✅ COMPLETE. Haiku prompt improved (tags field, estate-sale context, category/condition guidance). AITagResult includes `tags[]`. Feedback endpoint `/upload/ai-feedback`. add-items panel shows AI tags. Session 77.
-- **CB5** — ✅ COMPLETE. TAGGER_URL/TAGGER_API_KEY legacy code removed from itemController.ts. analyzeItemTags now uses cloudAIService. .env vars deprecated. Ollama fallback prompt updated to include tags. TS syntax bug in treasureHuntService.ts fixed. Session 77.
-- **CD2-P2 QR Codes** — ✅ COMPLETE. `SaleQRCode.tsx` component (qrserver.com API, download/print/copy). Wired to sale detail page Share sidebar + organizer dashboard per-sale toggle. utm_source=qr_sign tracking already in sales/[id].tsx. Session 77.
-- **Treasure Hunt + Live Drop** — ✅ VERIFIED COMPLETE (prior session). TreasureHuntBanner, service, routes, item page integration, LiveDrop all confirmed shipped.
-
-- **CA1** — ✅ COMPLETE. Full ToS + Privacy Policy + checkout consent checkbox. Pushed 2026-03-05.
-- **CA5** — ✅ COMPLETE. Health scout: GREEN. Medium fixes shipped (M1/M2 message pagination take:200/100, M3 contactLimiter 5/15min). Pushed 2026-03-05.
-- **CC3** — ✅ COMPLETE. Pricing analysis: competitors 13–20% vs FindA.Sale 5%. 4 options. Recommends flat 5%/7% for beta. ⚡ Patrick confirms?
-- **CC1** — ✅ COMPLETE. Investor materials: exec summary, 12-slide pitch deck outline, 3-year financial model, TAM $150M. Pushed 2026-03-05.
-- **CC2** — ✅ COMPLETE. Marketing content: 2 blog posts (organizer + shopper), social templates (IG/FB/GBP), 4 email templates, messaging pillars, hashtag bank. Pushed 2026-03-05.
-- **CD4** — ✅ COMPLETE. Bi-weekly workflow review scheduled task (1st + 15th, 9AM). First run: March 15.
-- **CD2 Phase 1** — ✅ COMPLETE. Scarcity counter + social proof stats bar. Pulsing "Only X left!" + "On Hold" / "Sold" badges. Pushed 2026-03-05.
-- **CB1** — ✅ COMPLETE. `cloudAIService.ts` (Google Vision → Claude Haiku). `uploadController.ts` cloud AI primary, Ollama fallback. Pushed 2026-03-05.
-- **CB3** — ✅ COMPLETE. AI tagging suggestions review panel in add-items. Apply/dismiss/rescan. No silent pre-fill. Pushed 2026-03-05.
-- **P5** — ✅ Google Vision, Anthropic API, UptimeRobot DONE. Remaining: OAuth credentials, VAPID production confirm.
-- **P6** — ✅ AI-generated SVG + PNG logos created (`claude_docs/brand/`). 4 PNG files: logo-icon-512.png, logo-primary.png, business-card-front.png, business-card-back.png — Vistaprint-ready. Pushed 2026-03-05.
-- **P1** — Support email, business cards (use business-card-front/back.png from claude_docs/brand/), Google Business Profile (Patrick)
-- **CA2** — ✅ COMPLETE. Schema validated (4 additive migrations pending Railway deploy). Migration runbook created. Pushed 2026-03-05.
-- **CD1** — ✅ COMPLETE. Fraunces serif font, sage-green color palette added to Tailwind + _document. Pushed 2026-03-05.
-- **CA3** — ✅ COMPLETE. Payment stress test map created. 2 bugs fixed: concurrent purchase auto-refund guard + $0.50 minimum check. Pushed 2026-03-05.
-- **P2** — Stripe business account, Google Voice, Search Console (Patrick)
+All CA/CB/CC/CD parallel path tasks complete (sessions 76–89). Sprint 3 (Shopper Loyalty Program) and Sprint 3.5 (Code deGR-ification) complete. Sprint 4 (Search by Item Type) is next — architecture ADR and UX spec both produced in session 91. Full completed task history: `claude_docs/COMPLETED_PHASES.md`
 
 ---
 

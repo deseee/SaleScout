@@ -214,7 +214,17 @@ This rule is enforced by `claude_docs/SECURITY.md` Section 9.
 
 ---
 
-## 11. Model Routing
+## 11. Parallel Agent Dispatch Limits
+
+Infrastructure constraint: **Max 3 agents may be dispatched in parallel per single tool call.**
+
+Dispatching more than 3 agents simultaneously causes all calls to error. This limit was discovered empirically in session 91 when 7 parallel agents were dispatched and all errored.
+
+**Rule:** When more than 3 agents are needed, dispatch in serial batches of 3 — wait for results of batch 1, then dispatch batch 2, etc. This mirrors the MCP push limits (≤5 files, ≤25k tokens) — infrastructure constraints must be documented and respected.
+
+---
+
+## 12. Model Routing
 
 Before selecting session model or sub-agent model, consult:
 `claude_docs/operations/model-routing.md`
@@ -224,7 +234,7 @@ Sub-agents accept `model: "haiku"` parameter in the Task tool for cost savings.
 
 ---
 
-## 12. Session Safeguards
+## 13. Session Safeguards
 
 Before debugging recurring errors or when stuck in a loop, consult:
 `claude_docs/operations/session-safeguards.md`
@@ -234,7 +244,7 @@ Escalate to Patrick after hitting limits — do not continue silently.
 
 ---
 
-## 13. Patrick's Language Map
+## 14. Patrick's Language Map
 
 When interpreting Patrick's short commands ("check", "note", "ok", "wrap", etc.), consult:
 `claude_docs/operations/patrick-language-map.md`
@@ -243,7 +253,7 @@ Key rule: Patrick's short affirmations ("ok", "that worked") mean proceed — do
 
 ---
 
-## 14. Doc Classification + Anti-Bloat Rules
+## 15. Doc Classification + Anti-Bloat Rules
 
 Every file in `claude_docs/` has a tier. Assign it when creating the file.
 
@@ -264,7 +274,7 @@ Load only when the task requires it. Never preload the whole directory.
 
 ---
 
-## 15. Session Wrap Protocol
+## 16. Session Wrap Protocol
 
 Before ending ANY session, Claude must execute the session wrap protocol:
 
@@ -285,7 +295,7 @@ For detailed protocol steps and edge cases, consult: `claude_docs/WRAP_PROTOCOL_
 
 ---
 
-## 16. Environment Command Hard Gate
+## 17. Environment Command Hard Gate
 
 Before writing any shell command, PowerShell command, Prisma command,
 migration instruction, or environment variable guidance:
@@ -297,6 +307,21 @@ migration instruction, or environment variable guidance:
 No exceptions. This applies mid-sprint, in follow-up corrections,
 and in subagent handoffs. The trigger is the act of writing the command,
 not the start of the session.
+
+---
+
+## 18. Known Tool Constraints
+
+### skill-creator `run_loop.py` — Cowork environment incompatible
+
+The skill-creator's automated evaluation loop (`run_loop.py`) exits with code 255 in the Cowork environment. The script spawns `claude -p` subprocesses which time out or fail to launch. Confirmed twice in session 91.
+
+**Do not retry `run_loop.py`.** Use manual analysis instead:
+1. Write trigger eval queries (10 should-trigger, 8 should-not-trigger near-misses) to a JSON file
+2. Manually analyze gaps between current description and eval set
+3. Write improved description, copy skill to writable location (`chmod u+w`), apply edit, package with `package_skill.py`
+
+Note: Failed loop runs register orphaned skill variants in the VM session context (visible in Claude's available skills list). These are ephemeral — they disappear when the session ends and are NOT saved to Patrick's computer or Cowork UI.
 
 ---
 

@@ -1,38 +1,91 @@
 # Next Session Resume Prompt
-*Written: 2026-03-07T23:30:00Z*
+*Written: 2026-03-07 — Session 91*
 *Session ended: normally*
 
-## Resume From
-Start **Sprint 4 — Search by Item Type**. Consult findasale-architect first for schema/API design, then findasale-dev for implementation.
+## Resume From — AUTONOMOUS MODE
 
-## What Was In Progress
-Nothing in progress — all session 90 git hardening complete and pushed.
+Session 92 should run autonomously without waiting for Patrick's direction. Pick up all open work items below in priority order. Batch agents in groups of ≤3. Report completion when the queue is exhausted.
 
-## What Was Completed This Session (90)
-- push.ps1 fully hardened: CRLF false-positive fix (--ignore-cr-at-eol), em dash encoding fix, doc-conflict auto-resolution (--theirs for claude_docs/ files)
-- Self-healing entry #51 (non-ASCII in PowerShell scripts)
-- Self-healing entry #52 (wrap-only doc files causing merge conflicts)
-- CORE.md section 10: wrap-only docs rule (never MCP-push STATE.md, session-log.md, .last-wrap, next-session-prompt.md mid-session)
-- 4 merge conflicts resolved (session 89/90 MCP vs local drift)
-- Workflow audit: 3 root causes identified and fixed
+---
+
+## Open Work Queue (Priority Order)
+
+### 1. Install improved skill descriptions (Patrick action — remind him)
+Patrick has two `.skill` files to install via the Cowork UI (presented at end of session 91):
+- `health-scout-improved.skill` — tighter NOT-for exclusions, adds "pre-merge review", "scan for [pattern]", "does X look solid/safe"
+- `findasale-dev-improved.skill` — adds "wire up", "write the migration", "add [field] to schema", "update .env.example" triggers
+Tell Patrick to install these at session start before proceeding.
+
+### 2. Legal ToS updates — implement in code
+Spec: `claude_docs/beta-launch/legal-terms-updates-2026-03-07.md`
+Dispatch findasale-dev to apply exact line-level edits to `terms.tsx` / `privacy.tsx`. Scope update: estate sales → yard sales, auctions, flea markets. Plus 4 compliance gap fixes. Estimated $20-60k exposure if unaddressed before beta.
+
+### 3. Health scout findings — route and resolve
+Report: `claude_docs/health-reports/health-scout-pre-beta-2026-03-07.md`
+2 high findings (missing env vars in .env.example, NEXT_PUBLIC_DEFAULT_CITY undocumented) → findasale-dev.
+6 medium findings (coupon rate limiting, audit trail, logging, Stripe ID masking, admin pagination, request correlation IDs) → findasale-qa to triage, then findasale-dev for anything pre-beta critical.
+
+### 4. Sprint 4 — begin implementation
+Architecture ADR: `claude_docs/feature-notes/sprint-4-architecture-2026-03-07.md`
+UX spec: `claude_docs/feature-notes/sprint-4-ux-spec-2026-03-07.md`
+Dispatch findasale-dev for Sprint 4a (PostgreSQL tsvector FTS, schema migration, API endpoint). Consult findasale-architect if schema questions arise.
+
+### 5. MailerLite onboarding automation — spec to Patrick
+CX agent produced the automation spec this session. Summarize the spec for Patrick and flag what he needs to build in MailerLite (this is a Patrick manual action — Claude cannot access MailerLite UI directly).
+
+### 6. Marketing — deGR-ified outreach docs
+findasale-marketing dispatched in session 91. Review output and present any completed outreach docs to Patrick.
+
+---
+
+## What Was Completed This Session (91)
+
+**Power User sweep:**
+- Roadmap updated to v19 (Sprint 3/3.5 removed from queue, migration count 63, task count 8)
+- Weekly Power User sweep scheduled task created (Sundays 10pm)
+- AskUserQuestion tool confirmed working (was broken since Feb 28 — now fixed)
+- conversation-defaults updated: Rule 1 now enables AskUserQuestion
+- Zapier deferred (MailerLite native automations sufficient, free)
+- Ahrefs deferred (Google Search Console first, free)
+- Ecosystem research memo saved: `claude_docs/improvement-memos/ecosystem-research-2026-03-07.md`
+
+**Agent fleet dispatched (6 agents, batched in 3s):**
+- Legal: `claude_docs/beta-launch/legal-terms-updates-2026-03-07.md`
+- UX: `claude_docs/feature-notes/sprint-4-ux-spec-2026-03-07.md`
+- Health Scout: `claude_docs/health-reports/health-scout-pre-beta-2026-03-07.md`
+- Architect: `claude_docs/feature-notes/sprint-4-architecture-2026-03-07.md`
+- Records: CORE.md §11 added (parallel agent limit), STATE.md "In Progress" compressed
+- Marketing, CX, Support dispatched
+
+**Infrastructure improvements:**
+- CORE.md §11: Max 3 parallel agents per call (empirically confirmed, session 91)
+- CORE.md §18: run_loop.py known incompatible with Cowork — do not retry, use manual analysis
+- Pipeline 1 built: competitor-monitor → auto content drafting (3-phase scheduled task)
+- Skill evals: manual gap analysis on health-scout + findasale-dev
+- Improved skill packages created and presented for install
+
+---
 
 ## Sprint Queue
-- **Sprint 4** — Search by Item Type
+- **Sprint 4** — Search by Item Type (ADR + UX spec complete, ready for dev)
 - **Sprint 5** — Seller Performance Dashboard
 
-## Patrick's Manual Beta Items (Unchanged)
-1. Confirm 5%/7% fee
-2. Set up Stripe business account
-3. Google Search Console verification
-4. Order business cards (files in `claude_docs/brand/`)
-5. Start beta organizer outreach
-6. Rotate Neon credentials
+## Patrick's Manual Beta Items
+1. Install health-scout-improved.skill and findasale-dev-improved.skill (Cowork UI)
+2. Confirm 5%/7% fee
+3. Set up Stripe business account
+4. Google Search Console verification
+5. Order business cards (files in `claude_docs/brand/`)
+6. Start beta organizer outreach
+7. Rotate Neon credentials
+8. Set up dedicated FindA.Sale Google account (support@finda.sale) for Google Workspace connectors
+9. Build MailerLite onboarding automation (spec from CX agent)
 
 ## Environment Notes
-- **Git sync:** Clean. All local and GitHub in sync as of commit 58ccf08.
+- **Git sync:** CORE.md edited this session — include in next push.
 - **Neon:** 63 migrations applied. No pending.
-- **New env vars:** regionConfig.ts uses DEFAULT_CITY, DEFAULT_STATE, DEFAULT_STATE_ABBREV, DEFAULT_LAT, DEFAULT_LNG, DEFAULT_RADIUS_MILES, DEFAULT_COUNTY, DEFAULT_TIMEZONE (all have Grand Rapids defaults). Frontend uses NEXT_PUBLIC_MAP_CENTER_LAT, NEXT_PUBLIC_MAP_CENTER_LNG.
 - **Connectors active:** Stripe MCP, MailerLite MCP, GitHub MCP
 - **Skills:** Use `Skill` tool for findasale-* agents — NOT `Agent` tool
-- **push.ps1:** Fully hardened. Doc conflicts auto-resolve. No manual intervention needed.
-- **Weekly Power User scheduled task:** Still proposed but not yet created.
+- **push.ps1:** Fully hardened. Doc conflicts auto-resolve.
+- **Parallel agent limit:** Max 3 per dispatch call. Batch and wait.
+- **run_loop.py:** Do not use — exits code 255 in Cowork environment. See CORE.md §18.

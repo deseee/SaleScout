@@ -1,6 +1,6 @@
 # ROADMAP – FindA.Sale
 
-**Last Updated:** 2026-03-07 (v18 — roadmap simplified, completed paths archived)
+**Last Updated:** 2026-03-07 (v19 — sprint 3 + 3.5 completed, migration count corrected)
 **Status:** Production MVP live at finda.sale. Beta: GO. Full build history: `claude_docs/strategy/COMPLETED_PHASES.md`.
 
 ---
@@ -32,7 +32,7 @@
 
 ## Running Automations
 
-7 scheduled tasks active: competitor monitoring, industry intel, changelog scanning, UX spots, health scout (weekly), monthly digest, workflow retrospective. Managed by Cowork Power User agent.
+8 scheduled tasks active: competitor monitoring, context refresh, context freshness check, UX spots, health scout (weekly), monthly digest, workflow retrospective, weekly Power User sweep. Managed by Cowork Power User agent.
 
 ## Connectors
 
@@ -45,16 +45,12 @@
 
 ## Feature Pipeline
 
-### Sprint 3.5 — Code deGR-ification (Ready to Start)
-51 hardcoded Grand Rapids references across 13 files. Scope doc ready: `claude_docs/feature-notes/sprint-3.5-scope-degr.md`. Dev agent can pick this up with zero ramp time.
-
 ### Next Up
 | # | Feature | Est. | Notes |
 |---|---------|------|-------|
-| 3 | Shopper Loyalty Program | 1 sprint | Thank-you coupons, coupon tracking, email integration. |
 | 4 | Search by Item Type | 2 sprints | Index items, search UI, result optimization. |
 
-*Recently shipped: AI Sale Description Writer (session 87), Branded Social Templates (session 87). See COMPLETED_PHASES.md.*
+*Recently shipped: AI Sale Description Writer (session 87), Branded Social Templates (session 87), Shopper Loyalty Program (session 88), Code deGR-ification (session 89). See COMPLETED_PHASES.md.*
 
 ### Phase 3 — Weeks 8–16
 | # | Feature | Est. | Notes |
@@ -101,7 +97,7 @@
 
 ## Infrastructure
 
-All infra complete. Backend: Railway. DB: Neon (35 migrations applied 2026-03-06). Frontend: Vercel (`finda.sale`). Git: `.\push.ps1` replaces `git push`. See `claude_docs/CORE.md` and `claude_docs/STACK.md`.
+All infra complete. Backend: Railway. DB: Neon (63 migrations applied as of 2026-03-07). Frontend: Vercel (`finda.sale`). Git: `.\push.ps1` replaces `git push`. See `claude_docs/CORE.md` and `claude_docs/STACK.md`.
 
 ---
 
