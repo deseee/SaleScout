@@ -1,89 +1,115 @@
 # Next Session Resume Prompt
 *Written: 2026-03-06*
-*Session ended: session 83 — subagent fleet audit + CRLF root cause fix*
+*Session ended: session 83 — subagent fleet audit, CRLF root cause fix, session wrap protocol*
+
+---
+
+## ⚠️ FIRST ACTION — VERIFY THIS FILE IS CURRENT
+
+**Before doing anything else, check this file's header.**
+
+If it says "session 82" anywhere in the header or Resume From section — STOP. The session wrap protocol failed and work was lost again. Immediately:
+
+1. Spawn `findasale-records` — audit what's on GitHub vs local
+2. Spawn `findasale-workflow` — determine how the wrap protocol was bypassed
+3. Spawn `findasale-dev` — recover any uncommitted local changes
+4. Do NOT proceed with normal work until the drift is diagnosed and resolved
+
+If this file correctly says "session 83" — proceed normally.
+
+---
 
 ## Resume From
 
-**Subagent fleet audit complete. CRLF root cause fixed.** Full fleet audit produced actionable findings. .gitattributes expanded to all file types (was only *.md). Neon credentials scrubbed from docs. ROADMAP v14 is the correct local version.
+**Session wrap protocol now active.** CRLF root cause fixed (.gitattributes covers all file types). Session-wrap verification script live at `scripts/session-wrap-check.ps1`. Subagent fleet audit complete. 8 audit work paths defined and ready to execute.
 
-Announce: "Session loaded. Fleet audit complete. Executing audit recommendations."
+Announce: "Session 84 loaded. Wrap protocol verified. Executing audit work paths."
 
-## What Happened Last Session
+---
 
-1. Full subagent fleet audit completed (15 agents reviewed, 7 gaps identified, 8 work paths defined)
-2. .gitattributes expanded from `*.md` only to all text file types — kills CRLF phantoms permanently
-3. Neon credentials removed from STATE.md and self_healing_skills.md (SECURITY fix)
-4. ROADMAP.md v14 confirmed correct (v12 on GitHub was stale)
-5. Opus fleet audit produced detailed agent-by-agent review with concrete recommendations
+## Verification Test (Run This First)
 
-## Critical Audit Findings (Act On These)
-
-1. **QA agent has never run** — must run pre-beta (payment flows, auth, data writes)
-2. **UX agent never consulted** — audit top 5 user flows before beta
-3. **Legal agent never consulted** — compliance scan needed (ToS, Stripe, Michigan regs)
-4. **Support + CX agents have no content** — bootstrap KB and onboarding materials
-5. **dev-environment skill is stale** — still references Docker (Docker is retired)
-6. **No agent-to-agent handoff protocol** — dispatch protocol needed in CORE.md
-
-## Patrick's Required Actions Before Beta
-
-1. Confirm 5% / 7% fee decision
-2. Set up Stripe business account
-3. Set OAuth env vars in Vercel (GOOGLE_CLIENT_ID/SECRET, FACEBOOK_CLIENT_ID/SECRET)
-4. Set up support@finda.sale email forwarding
-5. Order business cards
-6. Start beta organizer recruitment
-7. Rotate Neon credentials (were exposed in docs — now scrubbed)
-8. Run e2e test checklist
-
-## IMPORTANT: CRLF Push Rule
-
-**Always run `git add + git commit` FIRST in a separate step, THEN run `.\push.ps1` separately.**
-Do NOT chain them — push.ps1's CRLF normalization step reverts uncommitted changes.
-
-```powershell
-# Correct pattern — two separate steps:
-git add [files] && git commit -m "..."
-.\push.ps1
-```
-
-## What's Next for Claude
-
-### Priority 1 — Execute Audit Work Paths
-Run the 8 agent work paths defined in `claude_docs/archive/subagent-fleet-audit-2026-03-06.md` §6:
-- QA audit (payment, auth, data writes)
-- UX audit (top 5 flows)
-- Legal compliance scan
-- Support KB bootstrap
-- CX beta onboarding toolkit
-- Records doc cleanup
-- Marketing content calendar
-- Ops production readiness verification
-
-### Priority 2 — Agent Quick Reference Cheat Sheet
-Create `AGENT_QUICK_REFERENCE.md` — the audit's single most important recommendation.
-
-### Priority 3 — Remaining Feature Work
-Batch 7 remainder (social sharing, print inventory), batch 8+ (listing card redesign, OAuth UI, social proof feed, empty states).
-
-## Pending Git Commit
+Run the session wrap check to confirm the fix held:
 
 ```powershell
 cd C:\Users\desee\ClaudeProjects\FindaSale
-git add .gitattributes
-git commit -m "fix: expand .gitattributes to normalize all text file line endings"
-git add --renormalize .
-git commit -m "chore: normalize CRLF line endings per .gitattributes"
-git add claude_docs/ROADMAP.md claude_docs/STATE.md claude_docs/self_healing_skills.md claude_docs/next-session-prompt.md claude_docs/session-log.md claude_docs/archive/subagent-fleet-audit-2026-03-06.md claude_docs/workflow-retrospectives/opus-fleet-audit-2026-03-06.md
-git commit -m "docs: session 83 — fleet audit, credential scrub, CRLF fix, ROADMAP v14"
-.\push.ps1
+.\scripts\session-wrap-check.ps1
 ```
+
+Expected: **PASS — 6/6 checks green.** If it fails, diagnose before doing anything else.
+
+---
+
+## What Was Fixed This Session (83)
+
+- `.gitattributes` expanded from `*.md` only → all text file types — kills 397-file CRLF phantom diffs permanently
+- `scripts/session-wrap-check.ps1` + `session-wrap-check.sh` — mandatory session-end gate
+- `push.ps1` — safety guard added: blocks `git checkout -- .` if real content changes exist
+- `claude_docs/CORE.md` — §15 added: Session Wrap Protocol is mandatory
+- `self_healing_skills.md` — entry #37 added: Session Ended Without Committing Work
+- Neon credentials scrubbed from STATE.md and self_healing_skills.md (SECURITY fix)
+- ROADMAP.md v14 committed (v12 was stale on GitHub)
+- Full subagent fleet audit output committed to `claude_docs/archive/`
+- Beta-launch content, support KB, incident response guides all committed
+
+---
+
+## Priority Queue for Session 84
+
+### 1. Execute Audit Work Paths (from `claude_docs/archive/subagent-fleet-audit-2026-03-06.md` §6)
+
+These are the 8 agent paths defined by the Opus audit — highest priority before beta:
+
+| Agent | Task | Priority |
+|-------|------|----------|
+| findasale-qa | Pre-beta code audit: payment flows, auth, data writes | HIGH |
+| findasale-ux | Usability audit of top 5 user flows | HIGH |
+| findasale-legal | Compliance scan: ToS, Stripe, Michigan regs | HIGH |
+| findasale-support | Bootstrap support KB (top 15 beta issues) | HIGH |
+| findasale-cx | Beta onboarding toolkit (emails, status dashboard) | HIGH |
+| findasale-records | Doc hygiene: orphan files, RECOVERY.md Docker refs | MEDIUM |
+| findasale-marketing | Beta launch content calendar + launch-week content | MEDIUM |
+| findasale-ops | Production readiness verification | MEDIUM |
+
+Spawn QA, UX, and Legal in parallel first — they're the beta blockers.
+
+### 2. Patrick's Required Actions Before Beta
+
+1. Rotate Neon credentials (were in plaintext in committed history — scrubbed now but credentials should be rotated)
+2. Confirm 5% / 7% fee decision
+3. Set up Stripe business account
+4. Set OAuth env vars in Vercel (GOOGLE_CLIENT_ID/SECRET, FACEBOOK_CLIENT_ID/SECRET)
+5. Set up support@finda.sale email forwarding
+6. Order business cards
+7. Start beta organizer recruitment
+8. Run e2e test checklist (`claude_docs/beta-launch/e2e-test-checklist.md`)
+
+---
+
+## Session Wrap Protocol (Mandatory)
+
+Every session ends with:
+
+```powershell
+.\scripts\session-wrap-check.ps1
+```
+
+Must return PASS before session closes. If it fails — fix the issues, commit, push, re-run.
+
+---
+
+## CRLF Push Rule (Still Active)
+
+Always `git add + git commit` FIRST, then `.\push.ps1` separately. Never chain them.
+
+---
 
 ## Continuous Mode Rules
 
-1. Load this file + STATE.md silently
-2. Announce session loaded + current mode
-3. Launch audit work paths as parallel subagents
-4. Always: `git add + git commit` first, then `.\push.ps1` separately (CRLF rule)
-5. Update STATE.md Last Updated line
-6. Continue without confirmation unless blocked
+1. Load this file + STATE.md silently at session start
+2. Run `.\scripts\session-wrap-check.ps1` — verify PASS before starting work
+3. Check the header of this file — if it says session 82, stop and call in Records + Workflow + Dev
+4. Announce session loaded + what's being worked on
+5. Spawn audit work path agents in parallel
+6. Commit work incrementally — not one giant batch at end
+7. End every session with `.\scripts\session-wrap-check.ps1` — must PASS
