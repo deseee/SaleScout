@@ -250,4 +250,25 @@ Load only when the task requires it. Never preload the whole directory.
 
 ---
 
+## 15. Session Wrap Protocol
+
+Before ending ANY session, Claude must execute the session wrap protocol:
+
+1. **Run verification check:** `bash scripts/session-wrap-check.sh` (or equivalent verification script).
+2. **Do not end session if check fails.** Fix any findings, re-run check, and confirm all checks pass before closing.
+3. **Minimum wrap steps:**
+   - (a) Commit all changed files with descriptive messages: `git add [specific files] && git commit -m "[message]"`
+   - (b) Update `claude_docs/session-log.md` with today's entry (completed work, files changed, notes)
+   - (c) Update `claude_docs/next-session-prompt.md` with context for the next session
+   - (d) Re-run the wrap check to verify all gates pass
+   - (e) Provide Patrick with exact commit hashes and push instructions
+
+4. **Subagent discipline:** Any spawned subagent must follow the same protocol. Before handoff completes, subagent reports "Working tree clean" and lists all changed files.
+
+5. **Documentation push rule:** Never include documentation files in feature-batch MCP pushes. Code changes and doc changes use separate commits to prevent documentation overwriting. See `self_healing_skills.md` entry #35.
+
+For detailed protocol steps and edge cases, consult: `claude_docs/WRAP_PROTOCOL_QUICK_REFERENCE.md` and `claude_docs/SESSION_WRAP_PROTOCOL.md`.
+
+---
+
 Status: Behavioral Authority

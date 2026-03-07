@@ -229,6 +229,12 @@ git push
 **Prevention:** Never give Patrick a raw `git push` command. Never suggest `git pull --rebase`. The push script replaces both.
 **Known instance:** Session 80 — created after 10+ failed manual push attempts caused by autocrlf + rebase conflicts.
 
+### 37. Session Ended Without Committing Work
+**Trigger:** Claude finishes meaningful work, updates documentation, but leaves git status dirty without committing changes.
+**Fix:** Before ending ANY session, commit all changed files: `git add [specific files] && git commit -m "[message]"`. Verify with `git status --short` (should be empty). Run `bash scripts/session-wrap-check.sh` (or equivalent) and confirm it passes. Do not end the session if the check fails.
+**Prevention:** Session wrap protocol (CORE.md §15) is mandatory. Every agent ends with the wrap checklist. Subagents report "Working tree clean" before handoff.
+**Known impact:** Sessions that end dirty cause drift discovery in the next session, wasted recovery time, and GitHub/local sync mismatches.
+
 ---
 
-Last Updated: 2026-03-06 (session 80 — added entry 36: push.ps1 as standard push workflow)
+Last Updated: 2026-03-06 (session: added entry 37 — Session Wrap Protocol enforcement)
