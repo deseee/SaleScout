@@ -46,4 +46,4 @@ Reduces clarification round-trips. Updated as new patterns emerge.
 
 ---
 
-Last Updated: 2026-03-05 (Opus research session — derived from 51 sessions of interaction history)
+Last Updated: 2026-03-06 (session 84 — added session start signal rule for short openers)

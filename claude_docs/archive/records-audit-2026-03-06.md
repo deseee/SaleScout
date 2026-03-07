@@ -20,7 +20,7 @@
   - 12d: Port conflict diagnosis (netstat + taskkill commands)
 - Kept reference to self_healing_skills.md #9 (still valid for pnpm/nodemon patterns)
 
-**File edited:** `/sessions/vigilant-hopeful-brown/mnt/FindaSale/claude_docs/RECOVERY.md`
+**File edited:** `C:\Users\desee\ClaudeProjects\FindaSale\claude_docs\RECOVERY.md`
 **Lines affected:** 32-78 (replaced 15 Docker-specific lines with 43 native dev recovery lines)
 **Diff:** 6 sections removed, 1 new section added (§12 with 4 subsections)
 
