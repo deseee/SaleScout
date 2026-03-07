@@ -7,7 +7,7 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Active Objective
 
-Parallel path model active (5 tracks). MVP stable in Grand Rapids. Beta target: 6–8 weeks. All CA/CB/CC paths complete. CD2 Phases 2–4 substantially complete. All 35 Neon migrations applied. Batches 7–17 pushed to GitHub. Next: remaining batch 7 (social sharing, print inventory), then batch 8+.
+All 8 audit work paths complete (session 84). Beta is CONDITIONAL GO — 4 critical code issues must be fixed before real user traffic, plus Patrick's 5 manual items. Code fixes owned by findasale-dev next session. All CA/CB/CC/CD paths complete. 35 Neon migrations applied. Audit reports in `claude_docs/beta-launch/` and `claude_docs/health-reports/`.
 
 ---
 
@@ -83,7 +83,25 @@ Parallel path model active. Session 76–77 batches complete.
 
 ## Beta Launch Target
 
-All CA/CB/CC/CD paths complete. CD2 Phases 1–4 all complete. Session 82 (batches 9–13): health scout GREEN, Virtual Tours, pricing comps, OG tags (6 pages), plan.tsx planner fix, beta outreach emails, e2e test checklist, tierController admin guard, session log updated, DEVELOPMENT.md cleaned. Beta invite flow fully wired (admin routes, register.tsx, authController, index.ts). All health scout items verified clean. Patrick: confirm 5%/7% fee, Stripe business account, business cards, beta recruit, run e2e checklist. Beta target: 4–6 weeks. Full roadmap: `claude_docs/ROADMAP.md`. Beta checklist: `claude_docs/BETA_CHECKLIST.md`.
+**Status: CONDITIONAL GO.** All 8 audit work paths complete (session 84).
+
+**4 critical code fixes required (findasale-dev session 85):**
+- C1: JWT fallback secret hardcoded — replace `'fallback-secret'` with env var validation on startup
+- C2: Password reset not rate-limited — add express-rate-limit to `/auth/forgot-password`
+- C3: `/api/upload/ai-feedback-stats` has zero auth — add `authenticate` + `requireAdmin` middleware
+- C4: Document Stripe webhook secret rotation plan in OPS.md
+
+**Patrick's 5 blocking items:**
+1. Confirm 5%/7% fee (locked in STACK.md but never verbally confirmed)
+2. Set up Stripe business account
+3. Google Search Console verification
+4. Order business cards (design ready in `claude_docs/brand/`)
+5. Start beta organizer outreach (`claude_docs/beta-launch/organizer-outreach.md` + `marketing-calendar-2026-03-06.md`)
+6. Rotate Neon credentials (were in committed history — scrubbed but should be rotated)
+7. Optional: consult Michigan attorney re estate sale permit (~$300–500)
+
+Full audit reports: `claude_docs/health-reports/qa-pre-beta-audit-2026-03-06.md`, `claude_docs/beta-launch/ops-readiness-2026-03-06.md`
+Beta checklist: `claude_docs/BETA_CHECKLIST.md`
 
 ---
 
@@ -117,4 +135,4 @@ All CA/CB/CC/CD paths complete. CD2 Phases 1–4 all complete. Session 82 (batch
 - **CA4** — ✅ COMPLETE. User flow audit (shopper/organizer/creator). 10 fixes shipped: search aria-label, purchases error handling, index refetch(), items/[id] retry, referral copy feedback. Open items logged in `claude_docs/ux-spotchecks/ca4-ca6-audit-2026-03-05.md`.
 - **CA6** — ✅ COMPLETE. Feature polish: 5MB photo validation + server error surfacing, push notification toggle in organizer settings, onboarding step 3 copy improved, empty referrals state. Pushed 2026-03-05.
 
-Last Updated: 2026-03-06 (session 83 — Fleet audit complete. CRLF root cause fixed (.gitattributes all file types). Session wrap protocol live (scripts/session-wrap-check.ps1). push.ps1 safety guard added. Neon credentials scrubbed from docs. ROADMAP v14 committed. 8 audit work paths defined — QA/UX/Legal/Support/CX/Records/Marketing/Ops. Rotate Neon credentials — were in committed history.)
+Last Updated: 2026-03-06 (session 84 — All 8 audit work paths executed. Workflow fix: session start signal rule added to patrick-language-map.md + conversation-defaults skill. QA: CONDITIONAL GO, 4 criticals to fix. UX: 5 blockers. Legal: 5 medium risks, no blockers. Support KB, CX toolkit, Marketing calendar, Ops readiness all written. RECOVERY.md Docker sections removed. self_healing_skills.md still has 3 stale Docker entries #9/#13/#18 — fix next session.)

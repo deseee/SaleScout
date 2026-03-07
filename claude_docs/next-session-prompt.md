@@ -1,115 +1,96 @@
 # Next Session Resume Prompt
-*Written: 2026-03-06*
-*Session ended: session 83 — subagent fleet audit, CRLF root cause fix, session wrap protocol*
+*Written: 2026-03-06T01:50:00Z*
+*Session ended: session 84 — workflow fix + 8 audit work paths*
 
 ---
 
 ## ⚠️ FIRST ACTION — VERIFY THIS FILE IS CURRENT
 
-**Before doing anything else, check this file's header.**
+Check this file's header. If it says "session 83" — the wrap failed. Spawn findasale-records + findasale-workflow + findasale-dev to recover.
 
-If it says "session 82" anywhere in the header or Resume From section — STOP. The session wrap protocol failed and work was lost again. Immediately:
-
-1. Spawn `findasale-records` — audit what's on GitHub vs local
-2. Spawn `findasale-workflow` — determine how the wrap protocol was bypassed
-3. Spawn `findasale-dev` — recover any uncommitted local changes
-4. Do NOT proceed with normal work until the drift is diagnosed and resolved
-
-If this file correctly says "session 83" — proceed normally.
+If it correctly says "session 84" — proceed normally.
 
 ---
 
 ## Resume From
 
-**Session wrap protocol now active.** CRLF root cause fixed (.gitattributes covers all file types). Session-wrap verification script live at `scripts/session-wrap-check.ps1`. Subagent fleet audit complete. 8 audit work paths defined and ready to execute.
+**Session 85 loaded. Announce: "Executing QA critical fixes."**
 
-Announce: "Session 84 loaded. Wrap protocol verified. Executing audit work paths."
+Spawn `findasale-dev` immediately to fix the 4 QA critical issues. These are beta blockers — no real users until they're patched.
 
 ---
 
-## Verification Test (Run This First)
+## 4 Critical Fixes for findasale-dev
 
-Run the session wrap check to confirm the fix held:
+| ID | File | Fix |
+|----|------|-----|
+| C1 | `packages/backend/src/controllers/authController.ts` | Replace hardcoded `'fallback-secret'` with startup validation — throw if `JWT_SECRET` env var is missing |
+| C2 | `packages/backend/src/routes/authRoutes.ts` (or equivalent) | Add `express-rate-limit` (5 attempts/15min per IP) to the `POST /auth/forgot-password` endpoint |
+| C3 | `packages/backend/src/routes/uploadRoutes.ts` (or equivalent) | Add `authenticate` + `requireAdmin` middleware to `GET /api/upload/ai-feedback-stats` |
+| C4 | `claude_docs/OPS.md` | Add Stripe webhook secret rotation procedure — document rotation steps and recommended cadence |
+
+Full QA report: `claude_docs/health-reports/qa-pre-beta-audit-2026-03-06.md`
+
+---
+
+## What Was Completed This Session (84)
+
+- Workflow fix: "hello/hi/hey" session start signal rule — added to `conversation-defaults` skill (installed) and `patrick-language-map.md` (pushed to GitHub)
+- All 8 audit work paths complete:
+  - **QA**: 4 criticals, 2 highs — `claude_docs/health-reports/qa-pre-beta-audit-2026-03-06.md`
+  - **UX**: 5 blockers (post-signup guidance, Live Drop price visibility, bulk delete confirm, etc.) — `claude_docs/ux-spotchecks/ux-pre-beta-audit-2026-03-06.md`
+  - **Legal**: 5 medium risks, no blockers — `claude_docs/beta-launch/legal-compliance-scan-2026-03-06.md`
+  - **Support KB**: 15 beta issues + response templates — `claude_docs/beta-launch/support-kb-2026-03-06.md`
+  - **CX**: 4 onboarding emails + quick-start guide — `claude_docs/beta-launch/cx-onboarding-toolkit-2026-03-06.md`
+  - **Records**: RECOVERY.md Docker sections removed, pushed to GitHub — `claude_docs/archive/records-audit-2026-03-06.md`
+  - **Marketing**: 2-week pre-launch calendar — `claude_docs/beta-launch/marketing-calendar-2026-03-06.md`
+  - **Ops**: Infra GREEN (VAPID still yellow) — `claude_docs/beta-launch/ops-readiness-2026-03-06.md`
+
+---
+
+## Patrick's Required Actions Before Beta
+
+1. **Rotate Neon credentials** — were in plaintext in committed history (scrubbed, but rotation is overdue)
+2. **Confirm 5%/7% platform fee** — verbally, so it can be locked in STACK.md with a date
+3. **Set up Stripe business account**
+4. **Google Search Console verification**
+5. **Order business cards** — files ready at `claude_docs/brand/business-card-front.png` + `business-card-back.png`
+6. **Start beta organizer outreach** — emails at `claude_docs/beta-launch/organizer-outreach.md`, calendar at `marketing-calendar-2026-03-06.md`
+7. **Optional**: Michigan attorney re estate sale permit (~$300–500)
+
+---
+
+## Environment Notes
+
+- Local git is behind GitHub on `claude_docs/RECOVERY.md` and `claude_docs/patrick-language-map.md` (pushed via MCP). Pull before committing: run `.\push.ps1` from PowerShell (it will fetch+merge automatically).
+- Several new files are untracked locally (`claude_docs/beta-launch/*-2026-03-06.md`, `claude_docs/health-reports/qa-pre-beta-audit-2026-03-06.md`, `claude_docs/ux-spotchecks/ux-pre-beta-audit-2026-03-06.md`, `claude_docs/archive/records-audit-2026-03-06.md`). Stage and commit these:
 
 ```powershell
 cd C:\Users\desee\ClaudeProjects\FindaSale
-.\scripts\session-wrap-check.ps1
+git add claude_docs/STATE.md claude_docs/session-log.md claude_docs/next-session-prompt.md
+git add claude_docs/beta-launch/cx-onboarding-toolkit-2026-03-06.md
+git add claude_docs/beta-launch/legal-compliance-scan-2026-03-06.md
+git add claude_docs/beta-launch/legal-recommendations-for-dev.md
+git add claude_docs/beta-launch/marketing-calendar-2026-03-06.md
+git add claude_docs/beta-launch/ops-readiness-2026-03-06.md
+git add claude_docs/beta-launch/support-kb-2026-03-06.md
+git add claude_docs/beta-launch/LEGAL_EXEC_SUMMARY.md
+git add claude_docs/health-reports/qa-pre-beta-audit-2026-03-06.md
+git add "claude_docs/ux-spotchecks/ux-pre-beta-audit-2026-03-06.md"
+git add claude_docs/archive/records-audit-2026-03-06.md
+git commit -m "docs: session 84 audit reports + wrap docs"
+.\push.ps1
 ```
 
-Expected: **PASS — 6/6 checks green.** If it fails, diagnose before doing anything else.
-
----
-
-## What Was Fixed This Session (83)
-
-- `.gitattributes` expanded from `*.md` only → all text file types — kills 397-file CRLF phantom diffs permanently
-- `scripts/session-wrap-check.ps1` + `session-wrap-check.sh` — mandatory session-end gate
-- `push.ps1` — safety guard added: blocks `git checkout -- .` if real content changes exist
-- `claude_docs/CORE.md` — §15 added: Session Wrap Protocol is mandatory
-- `self_healing_skills.md` — entry #37 added: Session Ended Without Committing Work
-- Neon credentials scrubbed from STATE.md and self_healing_skills.md (SECURITY fix)
-- ROADMAP.md v14 committed (v12 was stale on GitHub)
-- Full subagent fleet audit output committed to `claude_docs/archive/`
-- Beta-launch content, support KB, incident response guides all committed
-
----
-
-## Priority Queue for Session 84
-
-### 1. Execute Audit Work Paths (from `claude_docs/archive/subagent-fleet-audit-2026-03-06.md` §6)
-
-These are the 8 agent paths defined by the Opus audit — highest priority before beta:
-
-| Agent | Task | Priority |
-|-------|------|----------|
-| findasale-qa | Pre-beta code audit: payment flows, auth, data writes | HIGH |
-| findasale-ux | Usability audit of top 5 user flows | HIGH |
-| findasale-legal | Compliance scan: ToS, Stripe, Michigan regs | HIGH |
-| findasale-support | Bootstrap support KB (top 15 beta issues) | HIGH |
-| findasale-cx | Beta onboarding toolkit (emails, status dashboard) | HIGH |
-| findasale-records | Doc hygiene: orphan files, RECOVERY.md Docker refs | MEDIUM |
-| findasale-marketing | Beta launch content calendar + launch-week content | MEDIUM |
-| findasale-ops | Production readiness verification | MEDIUM |
-
-Spawn QA, UX, and Legal in parallel first — they're the beta blockers.
-
-### 2. Patrick's Required Actions Before Beta
-
-1. Rotate Neon credentials (were in plaintext in committed history — scrubbed now but credentials should be rotated)
-2. Confirm 5% / 7% fee decision
-3. Set up Stripe business account
-4. Set OAuth env vars in Vercel (GOOGLE_CLIENT_ID/SECRET, FACEBOOK_CLIENT_ID/SECRET)
-5. Set up support@finda.sale email forwarding
-6. Order business cards
-7. Start beta organizer recruitment
-8. Run e2e test checklist (`claude_docs/beta-launch/e2e-test-checklist.md`)
-
----
-
-## Session Wrap Protocol (Mandatory)
-
-Every session ends with:
-
-```powershell
-.\scripts\session-wrap-check.ps1
-```
-
-Must return PASS before session closes. If it fails — fix the issues, commit, push, re-run.
-
----
-
-## CRLF Push Rule (Still Active)
-
-Always `git add + git commit` FIRST, then `.\push.ps1` separately. Never chain them.
+- Stray file `"2\r"` in repo root — delete it: `Remove-Item '2`r'` (or `git rm "2\r"`)
+- `self_healing_skills.md` still has 3 stale Docker entries (#9, #13, #18) — update next session
 
 ---
 
 ## Continuous Mode Rules
 
 1. Load this file + STATE.md silently at session start
-2. Run `.\scripts\session-wrap-check.ps1` — verify PASS before starting work
-3. Check the header of this file — if it says session 82, stop and call in Records + Workflow + Dev
-4. Announce session loaded + what's being worked on
-5. Spawn audit work path agents in parallel
-6. Commit work incrementally — not one giant batch at end
-7. End every session with `.\scripts\session-wrap-check.ps1` — must PASS
+2. Announce session loaded + QA fixes in progress
+3. Spawn findasale-dev for C1–C4
+4. Commit work incrementally
+5. End every session with session wrap
