@@ -6,7 +6,23 @@
 
 ## 15 Minutes Before Session Close
 
-### Step 1: Verify All Work is Committed
+### Step 1: Fetch Remote Changes (MCP Sync)
+
+If any MCP pushes happened this session, sync local with remote first:
+```bash
+git fetch origin main
+git status --short
+```
+
+**Expected:** Still clean. If conflicts appear, resolve with:
+```bash
+git checkout --theirs [conflicted-file]
+git add [conflicted-file]
+```
+
+**Why:** MCP doesn't update Patrick's local tree. Files pushed via MCP mid-session need fetching before wrap edits them, or merge conflicts happen at wrap time (see entry #38 in self_healing_skills.md).
+
+### Step 2: Verify All Work is Committed
 ```bash
 git status --short
 ```
@@ -16,7 +32,7 @@ git add [files]
 git commit -m "[message]"
 ```
 
-### Step 2: Run Verification Script
+### Step 3: Run Verification Script
 ```bash
 cd /path/to/FindaSale
 node scripts/verify-session-wrap.js
@@ -29,14 +45,14 @@ node scripts/verify-session-wrap.js
 
 **If it fails:** Fix the issue it lists, re-run script.
 
-### Step 3: Verify on GitHub
+### Step 4: Verify on GitHub
 For each commit made this session, visit:
 ```
 https://github.com/deseee/findasale/commits/main
 ```
 **Expected:** Your commits visible in last 10.
 
-### Step 4: Update session-log.md
+### Step 5: Update session-log.md
 **File:** `claude_docs/session-log.md`
 **Add at top:**
 ```markdown
@@ -47,7 +63,7 @@ https://github.com/deseee/findasale/commits/main
 **Blockers:** [Any issues]
 ```
 
-### Step 5: Report Summary to Patrick
+### Step 6: Report Summary to Patrick
 ```
 ## Session Wrap Summary
 - Commits: [number]

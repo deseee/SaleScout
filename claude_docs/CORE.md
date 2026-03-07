@@ -162,6 +162,18 @@ Large batches exceed the output token limit and silently fail or crash the sessi
 This applies to every session wrap and any mid-session push. Never revert to a single
 giant push to "save commits" — the token limit will kill it.
 
+**CRITICAL — MCP Mid-Session → Fetch at Wrap:**
+After any MCP push, **do not edit the same files locally without fetching first.**
+MCP bypasses the local repo (writes directly to GitHub). Remote changes won't sync
+to Patrick's tree until `git fetch`. Pattern:
+
+1. Subagent MCP-pushes files (e.g. `patrick-language-map.md`)
+2. Wrap protocol locally edits those files
+3. At wrap time, run `git fetch origin main` **before** staging wrap files
+4. If conflicts appear, resolve with `git checkout --theirs [file]`
+
+See entry #38 in `self_healing_skills.md` for details and examples.
+
 ### MCP vs PowerShell Decision Rule
 
 Use **MCP** (`push_files`) when ALL of the following are true:

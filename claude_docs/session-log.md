@@ -14,6 +14,8 @@ Keep only the 5 most recent sessions. Delete older entries — git history and S
 **Next up:** findasale-dev to fix 4 QA critical issues. Patrick: confirm fee, Stripe account, Search Console, business cards, beta outreach, Neon credential rotation. Fix self_healing_skills.md Docker entries #9/#13/#18.
 **Blockers:** Patrick's 7 manual items (see STATE.md Beta Launch Target). QA criticals must be fixed before inviting real users.
 
+*Re-wrap addendum:* Workflow fixes applied — entry #38 added to self_healing_skills.md, Rule 4 (fetch-at-wrap) added to SESSION_WRAP_PROTOCOL.md + WRAP_PROTOCOL_QUICK_REFERENCE.md, CORE.md §10 updated with MCP coordination warning.
+
 ### 2026-03-06 (session 83 — subagent fleet audit + CRLF root cause fix)
 **Worked on:** Full subagent fleet audit (15 agents reviewed). Opus fleet audit produced detailed agent-by-agent review. Identified 7 critical gaps: no agent handoff protocol, QA never run, UX never consulted, Legal never consulted, Support+CX have no content, dev-environment still references Docker, no e2e test automation. Expanded .gitattributes from `*.md` only to all text file types (kills 397-file CRLF phantom diff permanently). Scrubbed plaintext Neon credentials from STATE.md entry #28 and self_healing_skills.md (SECURITY violation). Confirmed ROADMAP.md v14 is correct (v12 on GitHub was stale). Diagnosed that push.ps1 reported "Everything up-to-date" because audit work was never committed.
 **Decisions:** .gitattributes must cover all text file types, not just *.md. Credentials must never appear in docs — reference .env location instead. Fleet audit recommendations are the new priority queue before beta launch. Neon credentials should be rotated as precaution.

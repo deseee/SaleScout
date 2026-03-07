@@ -235,6 +235,20 @@ git push
 **Prevention:** Session wrap protocol (CORE.md §15) is mandatory. Every agent ends with the wrap checklist. Subagents report "Working tree clean" before handoff.
 **Known impact:** Sessions that end dirty cause drift discovery in the next session, wasted recovery time, and GitHub/local sync mismatches.
 
+### 38. MCP Push Mid-Session + Local Edit at Wrap = Merge Conflict
+**Trigger:** One agent MCP-pushes files early in session (e.g. `records-audit-*.md`, `patrick-language-map.md`). Wrap protocol later locally edits the same files. Patrick runs `.\push.ps1` → merge conflict when `git merge origin/main` runs.
+**Root cause:** `mcp__github__push_files` writes directly to GitHub without updating Patrick's local tree. When wrap commits local changes to the same files, GitHub has a newer version → `git merge origin/main` detects divergence → conflict.
+**Prevention (primary):** Run `git fetch origin main` immediately before staging wrap files. This syncs local HEAD with GitHub before any local edits happen.
+**Prevention (secondary):** Never MCP-push files that will be edited again at wrap time (session-log.md, context.md, patrick-language-map.md). Push those via PowerShell + `.\push.ps1` instead.
+**Fix (if conflict happens):**
+```powershell
+git checkout --theirs [conflicted-file]
+git add [conflicted-file]
+git commit --no-edit
+.\push.ps1
+```
+**Known instance:** Session 84 — Records agent MCP-pushed `patrick-language-map.md` and `claude_docs/archive/records-audit-2026-03-06.md` early. Wrap protocol locally edited `patrick-language-map.md` + `context.md` later. Patrick had to run `git checkout --theirs` on both files.
+
 ---
 
-Last Updated: 2026-03-06 (session: added entry 37 — Session Wrap Protocol enforcement)
+Last Updated: 2026-03-06 (session 84 — added entry 38: MCP push + local edit merge conflict pattern)

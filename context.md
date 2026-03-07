@@ -1,9 +1,9 @@
 # Dynamic Project Context
-*Generated at 2026-03-07T01:52:13.088Z*
+*Generated at 2026-03-07T02:06:11.155Z*
 
 ## Git Status
 - **Branch:** main
-- **Commit:** e798e14
+- **Commit:** 2d21865
 - **Remote:** https://github.com/deseee/findasale.git
 
 ## Last Session
@@ -12,6 +12,8 @@
 **Decisions:** Beta is CONDITIONAL GO — 4 critical code fixes must ship before real user traffic (JWT fallback secret, password reset rate limit, ai-feedback-stats auth, Stripe rotation plan). UX and Legal findings are non-blocking for initial limited beta.
 **Next up:** findasale-dev to fix 4 QA critical issues. Patrick: confirm fee, Stripe account, Search Console, business cards, beta outreach, Neon credential rotation. Fix self_healing_skills.md Docker entries #9/#13/#18.
 **Blockers:** Patrick's 7 manual items (see STATE.md Beta Launch Target). QA criticals must be fixed before inviting real users.
+
+*Re-wrap addendum:* Workflow fixes applied — entry #38 added to self_healing_skills.md, Rule 4 (fetch-at-wrap) added to SESSION_WRAP_PROTOCOL.md + WRAP_PROTOCOL_QUICK_REFERENCE.md, CORE.md §10 updated with MCP coordination warning.
 
 ## Health Status
 Last scan: 2026-03-06
@@ -40,7 +42,6 @@ Docker status unavailable — run update-context.js locally (Windows) to capture
 │   ├── pre-commit
 │   └── pre-push
 ├── .gitignore
-├── 2
 ├── AGENT_QUICK_REFERENCE.md
 ├── CLAUDE.md
 ├── README.md
@@ -170,7 +171,9 @@ Docker status unavailable — run update-context.js locally (Windows) to capture
 │   │   └── ux-pre-beta-audit-2026-03-06.md
 │   └── workflow-retrospectives/
 │       ├── .gitkeep
-│       └── opus-fleet-audit-2026-03-06.md
+│       ├── opus-fleet-audit-2026-03-06.md
+│       ├── session-84-proposed-diffs.md
+│       └── session-84-wrap-analysis.md
 ├── docker-compose.yml
 ├── docs/
 │   └── CD2_PHASE2_TREASURE_HUNT.md

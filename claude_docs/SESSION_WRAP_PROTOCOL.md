@@ -112,7 +112,33 @@ If any untracked files or modifications exist, **stop immediately** and:
 
 **Why:** By session end, there should be NO untracked or modified files. The moment the session closes, Patrick gets a message "Work is done — here's what changed." If files are unstaged, he has to guess whether they're intentional work or noise.
 
-### Rule 4: MCP Push Discipline
+### Rule 4: Fetch Remote Before Final Wrap Commit
+
+**Trigger:** About to stage and commit wrap files (session-log.md, context.md, .last-wrap)
+
+**Pattern:**
+```bash
+git fetch origin main
+git status --short
+```
+
+Expected: Still clean (no merge conflicts if files are unique to this session).
+
+**Why:** If any MCP pushes happened during the session, Patrick's local repo is behind GitHub. Fetching before wrap commit prevents merge conflicts from files that were pushed via MCP mid-session but not yet pulled locally. Example: Records agent pushes `patrick-language-map.md` early, then wrap protocol edits it locally → fetch prevents collision.
+
+**Timing:** Run IMMEDIATELY before editing session-log.md, context.md, or .last-wrap. Not before feature work — only at wrap time.
+
+**If conflicts appear:**
+```bash
+git status  # see conflicted files
+git checkout --theirs [file]  # take remote version for MCP-pushed files
+git add [file]
+# Then proceed with wrap commit
+```
+
+**Known instance:** Session 84 — Records agent MCP-pushed `patrick-language-map.md` and `claude_docs/archive/records-audit-2026-03-06.md` early in session. Wrap protocol locally edited `patrick-language-map.md` + `context.md` later. Patrick had to manually resolve conflicts. See entry #38 in self_healing_skills.md.
+
+### Rule 5: MCP Push Discipline
 
 **Trigger:** After committing a batch, decide: MCP push or manual push?
 
@@ -152,7 +178,7 @@ git log --oneline -1
 # Now check GitHub: browse to main branch, confirm commit appears in last 5
 ```
 
-### Rule 5: Subagent Handoff Includes Commit Status
+### Rule 6: Subagent Handoff Includes Commit Status
 
 **When spawning a subagent:**
 - Ensure working tree is clean before handing off
