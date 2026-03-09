@@ -32,6 +32,13 @@ git add [files]
 git commit -m "[message]"
 ```
 
+### Step 2a: Subagent Reconciliation (required if subagents were dispatched)
+
+1. Read `claude_docs/operations/MESSAGE_BOARD.json`.
+2. For every file a subagent reported as created or modified, verify it appears in `git status --short`.
+3. A subagent-reported file absent from git status is a drift signal — the subagent may have written outside the repo or the file was overwritten. Investigate before proceeding.
+4. Add any missing subagent files to the running changed-files list before Step 3.
+
 ### Step 3: Run Verification Script
 ```bash
 cd /path/to/FindaSale
@@ -102,6 +109,12 @@ If anything shows up, decide: commit or discard?
 - **If >3 files OR >25k tokens:** Tell Patrick to use `.\push.ps1`
 
 ### Rule 4a: Full Push Instructions Are Required
+Before assembling the push block:
+1. Run `git status --short`.
+2. Cross-check output against the running changed-files list.
+3. Any file in `git status` but absent from the running list is a drift signal — add it and investigate why it was missed.
+4. Issue the push block only after the running list and `git status` output match exactly. Never reconstruct the push block from memory alone.
+
 Whenever `.\push.ps1` is mentioned, provide the complete copy-paste block — every changed file as its own explicit `git add [file]` line. Never `git add -A` or `git add .`. Never reconstruct from memory at wrap time; maintain a running changed-files list throughout the session.
 
 ```powershell
@@ -202,6 +215,7 @@ Before closing, verify:
  ☐ node scripts/verify-session-wrap.js passes
  ☐ All commits visible on GitHub
  ☐ session-log.md updated for today
+ ☐ next-session-prompt.md updated (session number, last session summary, next objective)
  ☐ Summary message to Patrick is ready
 ```
 
