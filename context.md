@@ -1,14 +1,14 @@
 # Dynamic Project Context
-*Generated at 2026-03-09T15:47:21.320Z*
+*Generated at 2026-03-09T16:00:53.380Z*
 *Run `node scripts/update-context.js` on Windows to refresh.*
 
 ## Last Session
 ### 2026-03-09
-**Worked on:** (1) QA+Dev parallel dispatch: A1.3 (geo toast on denied permission), A1.4 (FTS merged into main `/api/search` endpoint), A2.2 (all 13 PWA icons regenerated from `claude_docs/brand/logo-icon-512.png`), A5.1 (double Layout removed from leaderboard.tsx), A5.2 (organizer profile links added), A6.1 (hardcoded "Grand Rapids" → env vars in map/leaderboard/index). (2) Continuous fleet deployment — QA scoped + Architect decided + Dev fixed: A4.1 (dashboard Add Items gating by saleId + analytics NaN fix), A3.3 (× unicode rendering), A3.4 (edit-item error handling by status code), A3.8 (orphan Photo Upload tab removed), A5.3 (backend badge fetch added to leaderboard query), B4 (auctionReservePrice field + migration + frontend conditional input), B8 (webhook registration UI surfaced in organizer dashboard — was already built). (3) TS build error caught mid-deploy: formData missing isAuction/reverseAuction fields — patched immediately.
-**Decisions:** B5 (email reply parsing) DEFERRED — revisit at 500+ active organizers. B8 (Zapier) DEFER indefinitely — generic webhooks already built and sufficient. B4 (auction reserve price) GO — minimal schema addition, unblocked by B1.
-**Token efficiency:** 3 QA subagent dispatches, 1 Architect dispatch, 2 Dev dispatches, 13 icons generated via Python/Pillow, 1 hotfix. ~12 files changed. Medium-high burn. TER estimate: 0.10–0.14 tasks/k-token (good throughput — fleet parallelism working).
-**Next up:** A3.6 (single-item server error — needs Railway production logs). B2 (AI tagging disclosure copy — findasale-marketing + findasale-ux). H1 (UX inspiration research). D3 (map route planning). Neon migration for auctionReservePrice still pending.
-**Blockers:** A3.6 blocked on Railway production logs (Patrick pulls). Neon migration `20260309_add_auction_reserve_price` needs `prisma migrate deploy` (full command in session — see below). Patrick must push all session 110 files.
+**Worked on:** (1) QA+Dev parallel dispatch: A1.3 (geo toast), A1.4 (FTS into main search), A2.2 (13 PWA icons regenerated from brand source), A5.1 (double layout), A5.2 (organizer profile links), A6.1 (hardcoded city → env vars). (2) Fleet continuation: A4.1 (dashboard Add Items gating + NaN), A3.3 (× unicode), A3.4 (edit-item error handling), A3.8 (orphan tab removed), A5.3 (badge fetch), B4 (auctionReservePrice + migration + frontend), B8 (webhook UI surfaced). (3) Two hotfixes post-deploy: TS error (isAuction/reverseAuction missing from formData state); Sentry SW registration failure (stale committed sw.js had old icon hashes after regeneration — fixed by creating `packages/frontend/.gitignore` to exclude all next-pwa build artifacts). Railway Metal outage noted — deploys paused during session.
+**Decisions:** B5 DEFERRED (email reply parsing, trigger at 500 organizers). B8 Zapier DEFER indefinitely. B4 GO. next-pwa build artifacts (sw.js, workbox-*.js, fallback-*.js) must never be committed — now gitignored.
+**Token efficiency:** 3 QA dispatches, 1 Architect, 2 Dev, Python icon gen, 2 hotfixes. ~14 files. TER: 0.10–0.14 tasks/k-token (good — fleet parallelism effective).
+**Next up:** A3.6 (Railway logs → single-item 500 fix). B2 (AI tagging disclosure copy). H1 (UX inspiration). D3 (map route planning). Neon migration for auctionReservePrice.
+**Blockers:** A3.6 waiting on Railway logs. Neon migration `20260309_add_auction_reserve_price` not yet deployed to production (full command in next-session-prompt.md).
 
 ## Health Status
 Last scan: health-scout-pre-beta-2026-03-07
@@ -131,6 +131,7 @@ Overall health is **STRONG** with no critical blockers identified. Sprint 3 (Sho
 │   ├── frontend/
 │   │   ├── .env.local
 │   │   ├── .env.local.example
+│   │   ├── .gitignore
 │   │   ├── CLAUDE.md
 │   │   ├── Dockerfile
 │   │   ├── components/ (92 files)

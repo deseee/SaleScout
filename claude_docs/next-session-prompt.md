@@ -23,6 +23,7 @@ Pull Railway production logs for the single-item server error (A3.6), paste them
 - B4 — `auctionReservePrice Float?` field + migration + backend + frontend (shows when listingType = AUCTION)
 - B8 — webhook registration UI surfaced in organizer dashboard (infrastructure was already built)
 - TS hotfix — `isAuction: false, reverseAuction: false` added to formData state (Vercel build error)
+- SW fix — `packages/frontend/.gitignore` created, next-pwa build artifacts removed from git (sw.js had stale icon hashes causing Sentry AbortError on SW registration)
 
 ## Environment Notes
 - Neon migration `20260309_add_auction_reserve_price` **NOT YET deployed to production**. Full command:
@@ -32,7 +33,8 @@ Pull Railway production logs for the single-item server error (A3.6), paste them
   $env:DIRECT_URL="postgresql://neondb_owner:npg_6CVGh8YvPSHg@ep-plain-sound-aeefcq1y.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
   npx prisma migrate deploy
   ```
-- Session 107 Neon migration `20260311000001_add_sale_type_item_listing_type` — verify this was deployed. If not, run it first (same command — prisma migrate deploy applies all pending in order).
+- Session 107 Neon migration `20260311000001_add_sale_type_item_listing_type` — verify this was deployed. If not, run it first (same command — `prisma migrate deploy` applies all pending in order).
+- Railway Metal outage was active at end of session 110 — verify backend is healthy before testing anything on production.
 
 ## Next Priorities (in order)
 1. **A3.6** — Railway logs → diagnose → fix (findasale-dev)
