@@ -102,4 +102,15 @@ Reference authoritative file instead.
 
 ---
 
+## 7. Skill Roster (Token Efficiency)
+
+Custom `findasale-*` skills always preferred over generic plugin equivalents.
+Full routing rules: CORE.md §9.
+
+**Patrick action (optional):** Disable unused plugin categories from Cowork UI
+to reduce skill list noise. Recommended disables: sales, finance, brand-voice,
+enterprise-search, productivity. Full analysis: `claude_docs/operations/skill-roster-recommendation.md`
+
+---
+
 Status: Project Authority Layer

@@ -158,6 +158,36 @@ vague. (Added 2026-03-09, backlog E11.)
 
 ---
 
+## Rule 7: File creation path validation
+
+Before creating any new file in `claude_docs/`, verify the path against
+`claude_docs/operations/file-creation-schema.md`:
+
+1. **Correct directory?** Research → `research/`, operations → `operations/`, etc.
+2. **Correct naming?** Authority = UPPERCASE, living = kebab-case, one-time = kebab-case-date.
+3. **Research docs?** Must include backlog ID prefix (e.g., `e2-topic.md`).
+4. **Root-level?** Only Tier 1 authority docs go in `claude_docs/` root.
+
+If the path doesn't match the schema, fix it before writing. Don't ask Patrick
+about file paths — just follow the schema.
+
+Why this exists: Session 95 audit (E17) found inconsistent naming across 115 files.
+The schema prevents further drift. (Added 2026-03-09.)
+
+---
+
+## Rule 8: Message board protocol
+
+When invoking a subagent via `Skill` tool, include this instruction in the dispatch:
+"Read `claude_docs/operations/MESSAGE_BOARD.json` on start. Post a status message
+on completion listing all files changed."
+
+After each Skill return, read MESSAGE_BOARD.json for new messages before continuing.
+
+Why this exists: E4 inter-agent communication foundation (session 96). (Added 2026-03-09.)
+
+---
+
 ## Summary
 
 | Rule | Status |
@@ -168,3 +198,5 @@ vague. (Added 2026-03-09, backlog E11.)
 | dev-environment gate before shell commands | Active (added 2026-03-07) |
 | Never hand off git issues to Patrick | Active (added 2026-03-07) |
 | Treat abbreviated language as precise | Active (added 2026-03-09) |
+| File creation path validation | Active (added 2026-03-09) |
+| Message board protocol | Active (added 2026-03-09) |

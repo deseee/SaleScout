@@ -1,0 +1,101 @@
+{
+  "version": "1.0",
+  "created": "2026-03-09",
+  "last_updated": "2026-03-09",
+  "tasks": [
+    {
+      "id": "E4",
+      "title": "Inter-agent message board design + prototype",
+      "state": "complete",
+      "owner": "cowork-power-user",
+      "depends_on": [],
+      "blocked_by": null,
+      "files_changed": [
+        "claude_docs/operations/agent-message-board.md",
+        "claude_docs/operations/MESSAGE_BOARD.json"
+      ],
+      "session": 96,
+      "priority": "P1"
+    },
+    {
+      "id": "E5",
+      "title": "Orchestrator task dependency state machine",
+      "state": "complete",
+      "owner": "findasale-workflow",
+      "depends_on": ["E4"],
+      "blocked_by": null,
+      "files_changed": [
+        "claude_docs/operations/task-state-machine.md",
+        "claude_docs/operations/TASK_REGISTRY.json"
+      ],
+      "session": 96,
+      "priority": "P1"
+    },
+    {
+      "id": "E5-heartbeat",
+      "title": "Heartbeat/timeout monitoring for stuck agents",
+      "state": "in_progress",
+      "owner": "findasale-workflow",
+      "depends_on": ["E5"],
+      "blocked_by": null,
+      "files_changed": [],
+      "session": 96,
+      "priority": "P1"
+    },
+    {
+      "id": "E16",
+      "title": "Worktrees & multi-terminal workflow research",
+      "state": "pending",
+      "owner": "cowork-power-user",
+      "depends_on": [],
+      "blocked_by": null,
+      "files_changed": [],
+      "session": 96,
+      "priority": "P2"
+    },
+    {
+      "id": "E2",
+      "title": "Token budget monitoring research + implementation",
+      "state": "pending",
+      "owner": "cowork-power-user",
+      "depends_on": [],
+      "blocked_by": null,
+      "files_changed": [],
+      "session": 97,
+      "priority": "P1"
+    },
+    {
+      "id": "E10",
+      "title": "Session capacity baselines",
+      "state": "pending",
+      "owner": "findasale-workflow",
+      "depends_on": ["E2"],
+      "blocked_by": null,
+      "files_changed": [],
+      "session": 97,
+      "priority": "P1"
+    },
+    {
+      "id": "E12.5",
+      "title": "Token-per-goal metric formalization",
+      "state": "pending",
+      "owner": "findasale-records",
+      "depends_on": ["E12"],
+      "blocked_by": null,
+      "files_changed": [],
+      "session": 97,
+      "priority": "P1"
+    },
+    {
+      "id": "E6",
+      "title": "Steelman method documentation",
+      "state": "pending",
+      "owner": "findasale-workflow",
+      "depends_on": [],
+      "blocked_by": null,
+      "files_changed": [],
+      "session": 97,
+      "priority": "P2"
+    }
+  ]
+}

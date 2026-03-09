@@ -55,6 +55,8 @@ When Patrick assigns multiple tasks (a batch, a list, or says "work continuously
 3. Between tasks, update the TodoList to mark completion and set the next task in_progress — this is the only pause.
 4. Do not summarize completed work mid-batch unless Patrick asks. Save the full summary for the batch wrap.
 5. If context window pressure is high, compress completed-task context before continuing — do not stop the batch to warn about context.
+6. **Continue until blocked, not until comfortable.** The default is to keep working. Stopping to summarize, ask "shall I continue?", or announce progress mid-batch is a violation unless Patrick explicitly asked for check-ins. The only valid stops are: (a) external dependency (needs Patrick's input or action), (b) ambiguous failure requiring a decision, (c) batch complete.
+7. **Cross-session continuity.** If the session ends mid-batch (context limit, autocompact), the session-wrap must record exactly where the batch stopped and what remains, so the next session can resume at the right task — not restart the batch.
 
 ---
 
@@ -373,6 +375,20 @@ Before writing ANY command for Patrick to run:
 5. **Validate before sending:** Mentally run the command. Would it parse in the target shell? If not, fix it before writing it.
 
 Token cost of one failed command: Patrick runs it, gets an error, pastes it back, Claude debugs, writes a corrected version — minimum 3 turns wasted. Prevention is always cheaper.
+
+### Common PowerShell Traps (Quick Reference)
+
+| Wrong (bash) | Right (PowerShell) | Context |
+|--------------|---------------------|---------|
+| `export VAR=value` | `$env:VAR="value"` | Setting env vars |
+| `./script.sh` | `.\script.ps1` | Running scripts |
+| `cmd1 && cmd2` | `cmd1; cmd2` or separate lines | Chaining commands |
+| `cat file` | `Get-Content file` or `type file` | Reading files |
+| `rm -rf dir` | `Remove-Item -Recurse -Force dir` | Deleting dirs |
+| `grep pattern file` | `Select-String -Pattern pattern file` | Searching |
+| `$HOME/.config` | `$env:USERPROFILE\.config` | Home directory |
+
+If you catch yourself writing a bash-ism for Patrick, stop and translate before sending.
 
 ---
 

@@ -7,7 +7,7 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Active Objective
 
-Session 95 complete. Self-improvement loop Session 95 (Workflow Quick Wins) fully shipped: 10 behavioral rules added/updated across CORE.md, conversation-defaults, session-log template, and WRAP_PROTOCOL. 4 new operations docs created. No code changes. Sprint queue: Sprint 5 (Seller Performance Dashboard) — deferred until self-improvement loop (sessions 95–103) completes. Session 96 next: Inter-Agent Communication Foundation (E4 message board, E5 state machine, E16 worktrees research). NOTE: Use `Skill` tool to invoke findasale-* agents — NOT the `Agent` tool.
+Self-improvement loop sessions 96–102 complete (all in single session). 29 backlog items shipped across 7 planned sessions: E4 message board, E5 state machine, heartbeat protocol, E16 worktrees research, E2 token monitoring, E10 session baselines, E12.5 token-per-goal metric, E6 steelman method, E1.5 continuous batch rule, E9.5 syntax pre-filter, E17 file schema, E15 skill roster, F2 Hacker agent, F1 Pitchman agent, F3 Advisory Board, G-batch platform research, E7 PM design, E14 model routing. Sprint queue: Session 103 (Fleet Optimization Evaluation — BACKLOG §K) → then production bugs (A-section). NOTE: Use `Skill` tool to invoke findasale-* agents — NOT the `Agent` tool.
 
 ---
 
@@ -32,7 +32,7 @@ Phases 1–13 + pre-beta audit + rebrand + Sprints A–X all verified and shippe
 
 ## In Progress
 
-Session 96 — Inter-Agent Communication Foundation (not yet started). Session 95 workflow quick wins shipped. Sprint 5 (Seller Performance Dashboard) intentionally deferred until self-improvement loop (sessions 95–103) completes per BACKLOG_2026-03-08.md §K. Neon migration `20260310000001_add_item_fulltext_search_indexes` still needs `prisma migrate deploy` on production. Full completed task history: `claude_docs/COMPLETED_PHASES.md`
+Sessions 96–102 complete. Self-improvement loop nearly done — Session 103 (Fleet Optimization Evaluation) remains. Sprint 5 (Seller Performance Dashboard) intentionally deferred until evaluation completes per BACKLOG §K. Neon migration `20260310000001_add_item_fulltext_search_indexes` still needs `prisma migrate deploy` on production. Full completed task history: `claude_docs/COMPLETED_PHASES.md`
 
 ---
 
@@ -107,4 +107,4 @@ Beta checklist: `claude_docs/BETA_CHECKLIST.md`
 - **CA4** — ✅ COMPLETE. User flow audit (shopper/organizer/creator). 10 fixes shipped: search aria-label, purchases error handling, index refetch(), items/[id] retry, referral copy feedback. Open items logged in `claude_docs/ux-spotchecks/ca4-ca6-audit-2026-03-05.md`.
 - **CA6** — ✅ COMPLETE. Feature polish: 5MB photo validation + server error surfacing, push notification toggle in organizer settings, onboarding step 3 copy improved, empty referrals state. Pushed 2026-03-05.
 
-Last Updated: 2026-03-09 (session 95 — Workflow Quick Wins shipped: 10 behavioral rules (E1/E3/E8/E9/E11/E12/E13/E15/E17/G8), 4 new ops docs, CORE.md §§3/9/11/15/18 updated, conversation-defaults Rule 6 added, session-log token efficiency field added, CLAUDE.md file limit aligned to ≤3.)
+Last Updated: 2026-03-09 (sessions 96–102 — Self-improvement loop: 29 items shipped. New infrastructure: message board, task state machine, heartbeat protocol. New agents: Hacker, Pitchman, Advisory Board. Research: worktrees, token monitoring, GSD framework, Sentry MCP, GitHub Actions, model routing. CORE.md §3 strengthened with E1.5/E9.5. conversation-defaults Rules 7-8 added. CLAUDE.md §7 skill roster added. 18 new files created in claude_docs/.)
