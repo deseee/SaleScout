@@ -1,4 +1,6 @@
 ---
+version: 1
+last_updated: 2026-03-09 (Session 108)
 name: findasale-hacker
 description: >
   FindA.Sale Security Expert & Red Team subagent. Tests project defenses, identifies

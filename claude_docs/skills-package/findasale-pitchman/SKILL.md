@@ -1,4 +1,6 @@
 ---
+version: 1
+last_updated: 2026-03-09 (Session 108)
 name: findasale-pitchman
 description: >
   FindA.Sale Blue-Sky Thinker & Idea Generator. Responsible for coming up with
