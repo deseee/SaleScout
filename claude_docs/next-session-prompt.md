@@ -3,67 +3,40 @@
 *Session ended: normally*
 
 ## Resume From
+Pull Railway production logs for the single-item server error (A3.6), paste them, and dispatch findasale-dev to fix. Then continue with B2 and H1.
 
-Session 110 — dispatch **findasale-qa** and **findasale-dev** in parallel to hunt and fix P1 bugs.
+## What Was In Progress
+- **A3.6** — Server error on single manual item entry. Blocked: needs Railway production logs. Patrick pulls from Railway dashboard → pastes error → findasale-dev diagnoses and fixes.
 
-## Dispatch Plan (give to both agents)
-
-**findasale-qa — Scoping pass first:**
-Read `claude_docs/BACKLOG_2026-03-08.md` §A items A1.3, A1.4, A2.2, A5.1, A5.2, A6.1.
-For each bug: confirm it still reproduces on finda.sale production, identify the exact file(s) and line(s) responsible, estimate fix complexity (small/medium/large), flag any dependencies between bugs.
-Produce a scoping report before dev starts — do not fix anything yet.
-
-**findasale-dev — Wait for QA scoping, then fix in priority order:**
-Once QA delivers scoping report, implement fixes for all P1 bugs in a single continuous pass.
-Each fix: minimal diff, no unrelated changes, stage file explicitly by name.
-
-**Bug list:**
-- **A1.3** — "Use my location" button broken on map search
-- **A1.4** — Search scope unclear (searches all sales vs nearby?)
-- **A2.2** — SaleScout logo appearing in PWA install banner (should be FindA.Sale)
-- **A5.1/A5.2** — Leaderboard not rendering / data missing
-- **A6.1** — Hardcoded "Grand Rapids" city reference (should be dynamic or removed)
-
-## What Was Completed This Session (109)
-
-- Packaged findasale-advisory-board, findasale-hacker, findasale-pitchman as flat `.skill` archives (Session 108 version frontmatter, `zip -j` from inside source dir)
-- Presented and confirmed install of all 8 Session 108 updated skills
+## What Was Completed This Session (110)
+- A1.3 — geolocation denied now shows toast
+- A1.4 — FTS merged into main `/api/search` (OR logic: sale text + item text)
+- A2.2 — all 13 PWA icons regenerated from `claude_docs/brand/logo-icon-512.png`
+- A5.1 — double Layout removed from leaderboard.tsx
+- A5.2 — organizer names on leaderboard link to `/organizers/[id]`
+- A6.1 — "Grand Rapids" → `NEXT_PUBLIC_DEFAULT_CITY` env var in map, leaderboard, index
+- A4.1 — dashboard Add Items gating by saleId + analytics NaN fix
+- A3.3 — × unicode rendering fixed in ItemPhotoManager
+- A3.4 — edit-item error handling by HTTP status code
+- A3.8 — orphaned Photo Upload tab removed from add-items
+- A5.3 — backend badge fetch added to leaderboard controller
+- B4 — `auctionReservePrice Float?` field + migration + backend + frontend (shows when listingType = AUCTION)
+- B8 — webhook registration UI surfaced in organizer dashboard (infrastructure was already built)
+- TS hotfix — `isAuction: false, reverseAuction: false` added to formData state (Vercel build error)
 
 ## Environment Notes
+- Neon migration `20260309_add_auction_reserve_price` **NOT YET deployed to production**. Full command:
+  ```powershell
+  cd C:\Users\desee\ClaudeProjects\FindaSale\packages\database
+  $env:DATABASE_URL="postgresql://neondb_owner:npg_6CVGh8YvPSHg@ep-plain-sound-aeefcq1y-pooler.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+  $env:DIRECT_URL="postgresql://neondb_owner:npg_6CVGh8YvPSHg@ep-plain-sound-aeefcq1y.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+  npx prisma migrate deploy
+  ```
+- Session 107 Neon migration `20260311000001_add_sale_type_item_listing_type` — verify this was deployed. If not, run it first (same command — prisma migrate deploy applies all pending in order).
 
-**Still pending from Session 107 — Patrick must do before or during Session 110:**
-
-```powershell
-cd C:\Users\desee\ClaudeProjects\FindaSale
-git add packages/shared/src/index.ts
-git add packages/database/prisma/schema.prisma
-git add packages/database/prisma/migrations/20260311000001_add_sale_type_item_listing_type/migration.sql
-git add packages/database/prisma/seed.ts
-git add packages/backend/src/controllers/saleController.ts
-git add packages/backend/src/controllers/itemController.ts
-git add packages/backend/src/controllers/stripeController.ts
-git add packages/backend/src/jobs/auctionJob.ts
-git add packages/frontend/pages/organizer/create-sale.tsx
-git add packages/frontend/pages/organizer/add-items/[saleId].tsx
-git commit -m "Session 107: B1 full implementation — schema + FeeStructure + backend + frontend."
-.\push.ps1
-```
-
-Then run Neon migration:
-```powershell
-# From packages/backend — use real Neon URLs from packages/backend/.env (commented-out lines)
-$env:DATABASE_URL="<neon-url>"; $env:DIRECT_URL="<neon-direct-url>"; npx prisma migrate deploy
-```
-
-**Session 109 wrap docs to push:**
-```powershell
-git add claude_docs/STATE.md
-git add claude_docs/logs/session-log.md
-git add claude_docs/next-session-prompt.md
-git commit -m "Session 109 wrap: skill housekeeping complete, prep session 110 P1 bug blitz"
-.\push.ps1
-```
-
-## Exact Context
-
-Bug details from `claude_docs/BACKLOG_2026-03-08.md` §A — QA should read that file directly rather than relying on this summary. The A3.6 single-item 500 error is still deferred (needs Railway production logs, not yet available).
+## Next Priorities (in order)
+1. **A3.6** — Railway logs → diagnose → fix (findasale-dev)
+2. **B2** — AI tagging disclosure copy update (findasale-marketing + findasale-ux)
+3. **H1** — UX inspiration research: payard.io, festivent.ca, moebix.de (findasale-ux + findasale-rd)
+4. **D3** — Map route planning design (findasale-architect + findasale-ux)
+5. **G-batch** — Cowork platform research: Sentry MCP, GitHub Actions CI, /rewind, /context, status line (cowork-power-user)

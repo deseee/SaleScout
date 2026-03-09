@@ -1,14 +1,14 @@
 # Dynamic Project Context
-*Generated at 2026-03-09T12:06:56.802Z*
+*Generated at 2026-03-09T15:47:21.320Z*
 *Run `node scripts/update-context.js` on Windows to refresh.*
 
 ## Last Session
 ### 2026-03-09
-**Worked on:** Skill update install for Session 108 version-tracking changes. Packaged findasale-advisory-board, findasale-hacker, findasale-pitchman source directories (skills-package/) as flat .skill archives (SKILL.md at root, not nested). Fixed path nesting bug from first packaging attempt. Presented all 8 updated skills via Cowork UI. Patrick confirmed all installed.
-**Decisions:** .skill packaging must use `zip -j` (junk paths) run from inside the source directory to avoid nested paths. Confirmed canonical packaging method for advisory-board, hacker, pitchman going forward.
-**Token efficiency:** No subagents, no code changes. Pure housekeeping. TER estimate: high (minimal token burn, task complete).
-**Next up:** Session 110 — multi-agent P1 bug blitz. Dispatch findasale-qa (scoping) + findasale-dev (parallel fixes) for A1.3, A1.4, A2.2, A5.1/A5.2, A6.1.
-**Blockers:** Session 107 push still pending (10 files — see session 107 push block). Neon migration 20260311000001 still needs `prisma migrate deploy`. Wrap-only docs need Patrick push (session-log.md, next-session-prompt.md, STATE.md).
+**Worked on:** (1) QA+Dev parallel dispatch: A1.3 (geo toast on denied permission), A1.4 (FTS merged into main `/api/search` endpoint), A2.2 (all 13 PWA icons regenerated from `claude_docs/brand/logo-icon-512.png`), A5.1 (double Layout removed from leaderboard.tsx), A5.2 (organizer profile links added), A6.1 (hardcoded "Grand Rapids" → env vars in map/leaderboard/index). (2) Continuous fleet deployment — QA scoped + Architect decided + Dev fixed: A4.1 (dashboard Add Items gating by saleId + analytics NaN fix), A3.3 (× unicode rendering), A3.4 (edit-item error handling by status code), A3.8 (orphan Photo Upload tab removed), A5.3 (backend badge fetch added to leaderboard query), B4 (auctionReservePrice field + migration + frontend conditional input), B8 (webhook registration UI surfaced in organizer dashboard — was already built). (3) TS build error caught mid-deploy: formData missing isAuction/reverseAuction fields — patched immediately.
+**Decisions:** B5 (email reply parsing) DEFERRED — revisit at 500+ active organizers. B8 (Zapier) DEFER indefinitely — generic webhooks already built and sufficient. B4 (auction reserve price) GO — minimal schema addition, unblocked by B1.
+**Token efficiency:** 3 QA subagent dispatches, 1 Architect dispatch, 2 Dev dispatches, 13 icons generated via Python/Pillow, 1 hotfix. ~12 files changed. Medium-high burn. TER estimate: 0.10–0.14 tasks/k-token (good throughput — fleet parallelism working).
+**Next up:** A3.6 (single-item server error — needs Railway production logs). B2 (AI tagging disclosure copy — findasale-marketing + findasale-ux). H1 (UX inspiration research). D3 (map route planning). Neon migration for auctionReservePrice still pending.
+**Blockers:** A3.6 blocked on Railway production logs (Patrick pulls). Neon migration `20260309_add_auction_reserve_price` needs `prisma migrate deploy` (full command in session — see below). Patrick must push all session 110 files.
 
 ## Health Status
 Last scan: health-scout-pre-beta-2026-03-07
@@ -51,12 +51,15 @@ Overall health is **STRONG** with no critical blockers identified. Sprint 3 (Sho
 │   ├── archive/ (20 files)
 │   ├── beta-launch/ (21 files)
 │   ├── brand/ (9 files)
-│   ├── competitor-intel/ (2 files)
+│   ├── competitor-intel/ (3 files)
 │   ├── feature-notes/ (13 files)
 │   ├── guides/ (6 files)
 │   ├── health-reports/ (3 files)
 │   ├── improvement-memos/ (7 files)
 │   ├── logs/ (6 files)
+│   ├── marketing/
+│   │   └── content-pipeline/
+│   │       └── content-2026-03-09.md
 │   ├── next-session-prompt.md
 │   ├── operations/ (23 files)
 │   ├── research/ (20 files)
@@ -121,7 +124,7 @@ Overall health is **STRONG** with no critical blockers identified. Sprint 3 (Sho
 │   │   ├── package-lock.json
 │   │   ├── package.json
 │   │   ├── prisma/
-│   │   │   ├── migrations/ (67 migrations)
+│   │   │   ├── migrations/ (68 migrations)
 │   │   │   ├── schema.prisma
 │   │   │   └── seed.ts
 │   │   └── tsconfig.json
