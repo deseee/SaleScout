@@ -15,6 +15,13 @@ Keep only the 5 most recent sessions. Delete older entries — git history and S
 
 ## Recent Sessions
 
+### 2026-03-10 (session 106 — B1 Linchpin ADR + Fee Structure Deep Dive)
+**Worked on:** (1) B1 Architecture ADR — designed two-track model: `Sale.saleType` (ESTATE/YARD/AUCTION/FLEA_MARKET) for discovery, `Item.listingType` (FIXED/AUCTION/REVERSE_AUCTION/LIVE_DROP/POS) for transacting. `isAuctionSale` deprecated. (2) Full fee structure deep dive — Pitchman (25 ideas), R&D (competitor benchmarking: MaxSold 33%, eBay 17%, Etsy 13%), Architect (FeeStructure DB table design), Advisory Board (stress test + devil's advocate), financial model (4 scenarios across 3 scales). (3) 10% flat fee decision locked. (4) Dev sequence planned: 107A (schema), 107B (backend), 107C (frontend+QA). (5) Session housekeeping: MAILERLITE_API_KEY marked done, STATE.md + STACK.md + MESSAGE_BOARD updated, migration run instructions provided, 18 skill install instructions provided.
+**Decisions:** 10% flat platform fee across all item types — locked 2026-03-10 (replaces 5%/7%). All-in ~13.2% with Stripe. `FeeStructure` DB table — single configurable row, no hardcoded rates. Tier/subscription discounts deferred post-beta. `Sale.saleType` replaces `isAuctionSale`. Organizer picks sale type upfront. `Item.listingType` explicit field (not inferred from nullables). Deprecated fields kept in schema this sprint, removed in future cleanup migration.
+**Token efficiency:** 4 subagent dispatches (pitchman, R&D, advisory-board ×2), financial model script, 6+ file edits. Heavy analysis session — est. TER 0.08–0.12 tasks/k-token. No repair loops.
+**Next up:** Session 107A — B1 schema: migration `20260311000001`, `FeeStructure` model, shared type enums. Continuous mode.
+**Blockers:** Patrick must push Session 105+106 files before 107A dev starts (see next-session-prompt.md for exact file list). Neon migration `20260310000001` FTS indexes still needs deploy if not yet run. Architect skill source needs repackage (fee lock update blocked by read-only installed copy).
+
 ### 2026-03-09 (session 105 — Bug Blitz: 7 P0 fixes shipped)
 **Worked on:** Full P0 bug blitz. QA scoping dispatched first (produced bug-blitz-scoping-2026-03-09.md). Then dev fixes: (1) A1.1/A1.2 map pins — CSP `img-src` missing `raw.githubusercontent.com`; (2) A2.1 install banner over mobile nav — `InstallPrompt.tsx` repositioned `bottom-16`/`bottom-20`; (3) A3.1/A3.2 photo upload field mismatch — `ItemPhotoManager.tsx` `'image'` → `'photo'`; (4) A3.6 bulk route 404 — added `POST /items/bulk` to `items.ts` with full auth+ownership; (5) A3.7 Rapid Capture camera blocked — `Permissions-Policy: camera=()` → `camera=(self)`; (6) A4.1 QR codes blank — CSP `img-src`/`connect-src` missing `api.qrserver.com`; (7) A4.1 tier section invisible — double `/api/` prefix bug in dashboard.tsx; (8) A4.1 FlashDealForm blank dropdown — `getMySales` items select missing `title`+`price`. QA verified PASS. Session wrap complete.
 **Decisions:** P1 bugs deferred to Session 107 (A1.3 my-location, A1.4 search scope, A2.2 logo, A5.1/A5.2 leaderboard, A6.1 hardcoded city, A3.6 single-item 500 needs production logs). Session 106 = B1 Linchpin architecture decision (gates B4/D1/B7).
@@ -36,33 +43,6 @@ Keep only the 5 most recent sessions. Delete older entries — git history and S
 **Next up:** Session 103 evaluation checkpoint (BACKLOG §K). Patrick actions: push all 96–102 files, connect Sentry MCP, set up GitHub Actions, add MAILERLITE_API_KEY, run Neon migration, install new agent .skill files.
 **Blockers:** Patrick push required for all new files. Sentry MCP + GitHub Actions require Patrick to connect in Cowork settings.
 
-### 2026-03-09 (session 95 — Workflow Quick Wins)
-**Worked on:** All 10 Session 95 tasks from BACKLOG_2026-03-08.md §K completed. CORE.md updated with batch continuation rule (E1), subagent file tracking (E3), proactive tool suggestion §15 (E13), pre-command syntax validation §18 (E9), audit coverage ref §9 (E8), skill routing priority (E15), subagent MCP awareness §11 (G8). conversation-defaults Rule 6 added (E11: "etc." interpretation). Session-log and wrap protocol templates updated with token efficiency field (E12). CLAUDE.md file limit aligned from ≤5 to ≤3 (G8). Four new ops docs created: audit-coverage-checklist.md, skill-roster-recommendation.md, file-naming-audit.md, github-mcp-subagent-audit.md.
-**Decisions:** FindA.Sale custom skills always preferred over generic plugin equivalents. MCP push limit is ≤3 files everywhere (CORE.md + CLAUDE.md now aligned). "etc." treated as precise — ask if scope matters. Audit coverage checklist required; <80% = incomplete.
-**Token efficiency:** 10 tasks, 0 subagent calls, all direct edits — low burn for output volume.
-**Next up:** Session 96 — Inter-Agent Communication Foundation: E4 (message board design + prototype), E5 (task dependency state machine), heartbeat monitoring, E16 (worktrees research).
-**Blockers:** Session 93 files still not pushed (Patrick). MAILERLITE_API_KEY pending on Railway. Neon migration 20260310000001 pending on production.
-
-### 2026-03-09 (session 94 — Master backlog creation + fleet review + self-improvement loop planning)
-**Worked on:**
-- **Master backlog:** Parsed Patrick's raw notes into `claude_docs/BACKLOG_2026-03-08.md` — 80+ items across 11 sections (A–K), tagged by type, agent-owned, prioritized P0–P3. Verification pass confirmed zero items dropped.
-- **Fleet review:** Routed backlog sections to 6 agents (Architect, Workflow, Power User, Legal, UX, R&D) for input. Consolidated feedback into priority adjustments and execution recommendations.
-- **Priority changes from fleet:** A4.1 Dashboard → P0; E2 Token monitoring → P2; E14 Model selection → P3; C1+C2 Legal terms → no action for beta; C3+C4+J1 Data monetization → Year 2.
-- **Self-improvement loop:** Reorganized Section K so E/F/G workflow optimization runs first (sessions 95–102) before bugs and features. Added Session 103 evaluation checkpoint with 5 phases, metrics, decision gate, and deliverables.
-- **New backlog items:** E15 (Plugin/skill optimization audit), E16 (Worktrees + multi-terminal), E17 (File creation + naming enforcement) added from Patrick's notes. All slotted into sessions 95–98.5.
-**Decisions:** Fleet executes self-improvement loop before bug blitz. B1 (Sale Type → Item Type) confirmed as linchpin — must be decided before B4/D1/B7. Attorney call required before shipping D1 (quasi-POS) or B7 (referral program).
-**Next up:** Session 95 — Workflow Quick Wins. Load this backlog as primary context. Patrick must push session 93 files and add MAILERLITE_API_KEY to Railway before session 96.
-**Blockers:** Session 93 files not yet pushed (Patrick action). MAILERLITE_API_KEY not in Railway. Neon migration still pending on production.
-
-### 2026-03-07 (session 93 — Sprint 4b frontend + MailerLite wire-up + spec rewrite)
-**Worked on:**
-- **Sprint 4b frontend (5 files):** `hooks/useItemSearch.ts` (React Query hook, `filtersFromQuery`, `useFilterSync` with shallow URL routing), `components/FilterSidebar.tsx` (desktop sticky sidebar + mobile full-screen drawer, 14 categories, 5 conditions, price range, sort, facet counts), `components/ItemSearchResults.tsx` (results grid, 8-card skeleton, empty/error states, pagination up to 7 page buttons), `components/ItemSearch.tsx` (300ms debounce, clear button, mobile filter toggle), `pages/search.tsx` (5 targeted edits integrating FTS into items tab — other tabs unchanged).
-- **MailerLite spec rewrite:** Old spec used Tags tab (doesn't exist), Custom Event condition (doesn't exist), API v1. Rewrote `mailerlite-onboarding-automation-2026-03-07.md` for current UI: drag-and-drop builder, "Joins a group" trigger, Custom Field `sale_published` (not a Tag), exit condition via "Condition → Custom fields → Is set", API v2 endpoint `POST https://connect.mailerlite.com/api/subscribers`.
-- **MailerLite backend wire-up:** Created `packages/backend/src/services/mailerliteService.ts` (upsert subscriber with `fields: { sale_published: "yes" }`, graceful no-op if key not set). Wired into `saleController.ts` PUBLISHED transition block (fire-and-forget `.then()`). Added `MAILERLITE_API_KEY` to `.env.example`.
-- **TypeScript fix (`itemSearchService.ts`):** `ftsSearch` and `ilikeSearch` signatures used `Required<Omit<SearchQuery, 'q'>>` making optional filter fields required. Fixed to `Omit<SearchQuery, 'q'> & Required<Pick<SearchQuery, 'limit' | 'offset' | 'sort'>>`. `pnpm tsc --noEmit` passes clean on both packages.
-**Decisions:** Sprint 4b items tab uses `/api/items/search` (FTS); all/sales tabs keep existing `/api/search` endpoint. No breaking changes to existing search behavior.
-**Next up:** Sprint 5 — Seller Performance Dashboard. Patrick must add `MAILERLITE_API_KEY` to Railway and run `.\push.ps1` before testing.
-**Blockers:** `MAILERLITE_API_KEY` not yet in Railway. Neon migration `20260310000001_add_item_fulltext_search_indexes` not yet deployed (needed for Sprint 4b end-to-end testing). Patrick to run `.\push.ps1`.
 
 
 

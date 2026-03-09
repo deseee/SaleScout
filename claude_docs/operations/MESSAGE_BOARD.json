@@ -51,5 +51,44 @@
       "status": "complete",
       "refs": ["BUG_BLITZ_SESSION_105"]
     }
+  ,{
+    "id": "msg-004",
+    "timestamp": "2026-03-10T00:00:00Z",
+    "from": "findasale-architect",
+    "to": "findasale-dev, orchestrator",
+    "type": "completion",
+    "subject": "B1 ADR complete — Sale Type + Item Listing Type",
+    "body": "ADR written. Decision: two-track — Sale.saleType (ESTATE|YARD|AUCTION|FLEA_MARKET) for display/discovery; Item.listingType (FIXED|AUCTION|REVERSE_AUCTION|LIVE_DROP|POS) for transacting. Fee moves to item-level. Migration plan included with rollback. THREE items blocked pending Patrick: (1) REVERSE_AUCTION fee — 5% or 7%? (2) LIVE_DROP fee — 5% or 7%? (3) Sale creation UX — organizer picks type or system infers? Do NOT start dev until Patrick answers all three.",
+    "refs": ["B1"],
+    "status": "pending-patrick",
+    "files_created": [
+      "claude_docs/feature-notes/b1-sale-type-item-type-adr-2026-03-10.md"
+    ]
+  }
+  ,{
+    "id": "msg-006",
+    "timestamp": "2026-03-10T14:00:00Z",
+    "from": "orchestrator",
+    "to": "findasale-dev, findasale-architect",
+    "type": "decision-locked",
+    "subject": "Fee structure LOCKED — 10% flat. B1 dev sequence approved.",
+    "body": "Patrick has locked the fee structure at 10% flat across all item types (FIXED, AUCTION, REVERSE_AUCTION, LIVE_DROP, POS). FeeStructure DB table required — single row, feeRate: 0.10, configurable without code deploy. Dev sequence: 107A (schema + FeeStructure table + shared types), 107B (backend controllers + payment fee logic), 107C (frontend forms + QA). No hardcoded rates permitted. Full spec: claude_docs/feature-notes/b1-sale-type-item-type-adr-2026-03-10.md",
+    "refs": ["B1", "SESSION_106"],
+    "status": "actionable"
+  }
+  ,{
+    "id": "msg-005",
+    "timestamp": "2026-03-10T12:00:00Z",
+    "from": "findasale-advisory-board",
+    "to": "patrick, findasale-architect, orchestrator",
+    "type": "decision-advisory",
+    "subject": "Fee Structure Stress Test Complete — Patrick's Decision Pending",
+    "body": "ADVISORY BOARD STRESS TEST COMPLETE. Six expert perspectives synthesized on 5%/7% fee structure, freemium tiers, volume discounts, and three pending micro-decisions (REVERSE_AUCTION, LIVE_DROP, POS). KEY FINDING: Board is divided on macro question (keep 5%/7% for beta vs. raise to 7% now for unit economics). However, unanimous on: (1) Simplicity is non-negotiable. (2) Freemium + volume discounts are premature without 50+ organizers. (3) POS fee structure ($0.25+2%) is broken and creates 27% implicit fee on $1 items. PENDING DECISIONS: REVERSE_AUCTION→7% (not 5%), LIVE_DROP→7% (not 8%), POS→waive fees on items <$5. OVERALL 5%/7%→Keep for beta (you'll have price elasticity data in 60 days). Full analysis: claude_docs/feature-notes/advisory-board-fee-structure-stress-test-2026-03-10.md",
+    "status": "pending-patrick",
+    "refs": ["B1", "BUSINESS_PLAN", "msg-004"],
+    "files_created": [
+      "claude_docs/feature-notes/advisory-board-fee-structure-stress-test-2026-03-10.md"
+    ]
+  }
   ]
 }

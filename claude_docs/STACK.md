@@ -69,6 +69,16 @@ No silent library substitutions.
 
 ---
 
+## Fee Structure
+
+- **Rate:** 10% flat — all item types (FIXED, AUCTION, REVERSE_AUCTION, LIVE_DROP, POS)
+- **All-in with Stripe (~3.2%):** ~13.2% — competitive with Etsy, well below eBay/MaxSold
+- **Implementation:** `FeeStructure` DB table (single row, rate configurable without code deploy)
+- **Tier/subscription discounts:** deferred — revisit after beta data collected
+- **Locked:** 2026-03-10. Do not change without Patrick approval.
+
+---
+
 ## Architecture Principles
 
 - Monorepo separation: frontend / backend / database / shared

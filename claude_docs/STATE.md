@@ -9,7 +9,9 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 Session 105 Bug Blitz COMPLETE (2026-03-09). 7 P0 bugs fixed, QA PASS. **Patrick must push 6 files** (see next-session-prompt.md for exact git commands before testing in production).
 
-**Next session (106): Architecture Decisions.** B1 linchpin (Sale Type → Item Type) is the gate for B4/D1/B7. Dispatch findasale-architect first to produce ADR. Patrick reviews and decides. Then proceed to B4 (buyer checkout), Sprint 5 (Seller Dashboard), and Session 107 P1 bug cleanup.
+**Session 106 COMPLETE (2026-03-10):** B1 ADR written and approved. Fee structure locked at 10% flat. Dev sequence planned across 107A/B/C.
+
+**Next: Session 107A — B1 Schema.** Write migration `20260311000001`, add `FeeStructure` table, shared types. See `claude_docs/feature-notes/b1-sale-type-item-type-adr-2026-03-10.md` for full dev sequence. Prerequisite: Patrick pushes Session 105+106 files first.
 
 **Remaining P1 bugs (Session 107):** A1.3 (my-location button), A1.4 (search scope), A2.2 (SaleScout logo in PWA banner), A5.1/A5.2 (leaderboard), A6.1 (hardcoded city), A3.6 single-item 500 (needs Railway production logs).
 
@@ -18,7 +20,7 @@ Session 105 Bug Blitz COMPLETE (2026-03-09). 7 P0 bugs fixed, QA PASS. **Patrick
 ## Locked Decisions
 
 - **BUSINESS_PLAN.md** — Tier 1 Strategic Authority Document (created 2026-03-06). All business strategy, market analysis, financial projections, competitive positioning, and go-to-market strategy defined here. Reference for all strategic decisions.
-- 5% platform fee (regular), 7% platform fee (auction)
+- **Platform fee: 10% flat** across all item types (FIXED, AUCTION, REVERSE_AUCTION, LIVE_DROP, POS) — locked 2026-03-10. `FeeStructure` DB table, single row, rate configurable without code deploy. Replaces 5%/7% split. All-in ~13.2% with Stripe. Tier discounts deferred post-beta. See STACK.md.
 - Stripe Connect Express
 - Leaflet + OSM maps, backend geocoding cache
 - Cloudinary image storage
@@ -45,7 +47,7 @@ Sessions 95–105 complete. Self-improvement loop DONE. Fleet Self-Audit DONE. B
 - **Phase 31 OAuth env vars** — ✅ DONE (2026-03-06). GOOGLE_CLIENT_ID/SECRET + FACEBOOK_CLIENT_ID/SECRET added to Vercel. Redirect URIs configured.
 - **Support email** — ✅ DONE (2026-03-06). support@finda.sale email forwarding configured.
 - **Neon migrations** — ✅ 63 migrations applied to Neon production (last: 20260307153530_add_coupon_model). Pending: `20260310000001_add_item_fulltext_search_indexes` (Sprint 4a — run before Sprint 4b end-to-end testing).
-- **MAILERLITE_API_KEY** — ⏳ Must be added to Railway env vars (MailerLite → Integrations → MailerLite API) before MailerLite automation triggers on sale publish.
+- **MAILERLITE_API_KEY** — ✅ DONE (2026-03-09). Added to Railway env vars by Patrick. MailerLite automation active on sale publish.
 - **Uptime monitoring** — ✅ UptimeRobot done (Patrick confirmed 2026-03-05).
 - **Sentry** — ✅ Fully deployed. DSNs set in Railway + Vercel.
 - **STRIPE_WEBHOOK_SECRET** — ✅ Set in Railway (2026-03-05).
@@ -91,7 +93,7 @@ Beta checklist: `claude_docs/BETA_CHECKLIST.md`
 ## Known Gotchas (Production)
 
 - **Railway PORT mismatch** — `PORT=5000` locked in Railway Variables. Must match `EXPOSE 5000` in Dockerfile. Do not remove.
-- **Neon production DB** — `prisma migrate deploy` must be run manually after any new migration. 63 migrations applied to Neon as of 2026-03-07. Last: `20260307153530_add_coupon_model` (Sprint 3). No pending migrations.
+- **Neon production DB** — `prisma migrate deploy` must be run manually after any new migration. 63 migrations applied as of 2026-03-07. Pending: `20260310000001_add_item_fulltext_search_indexes` — run before Sprint 4b end-to-end testing.
 - **Dockerfile.production** — ✅ Restored to `--frozen-lockfile` (session 87, commit b82180d). Lockfile is clean.
 - **Git push workflow** — Patrick uses `.\push.ps1` (repo root) instead of raw `git push`. Self-heals: index.lock, CRLF phantoms (--ignore-cr-at-eol), fetch+merge (never rebase), doc-file merge conflicts (--theirs auto-resolve). See self-healing entries #36, #51, #52.
 - **Dev stack is now native** — Docker no longer used at all. `image-tagger/` deleted by Patrick (session 81). Backend/frontend/postgres run natively on Windows. See `claude_docs/DEVELOPMENT.md`.

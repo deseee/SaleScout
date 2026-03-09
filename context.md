@@ -1,14 +1,14 @@
 # Dynamic Project Context
-*Generated at 2026-03-09T06:31:44.740Z*
+*Generated at 2026-03-09T10:08:14.414Z*
 *Run `node scripts/update-context.js` on Windows to refresh.*
 
 ## Last Session
 ### 2026-03-09
-**Worked on:** All 10 Session 95 tasks from BACKLOG_2026-03-08.md §K completed. CORE.md updated with batch continuation rule (E1), subagent file tracking (E3), proactive tool suggestion §15 (E13), pre-command syntax validation §18 (E9), audit coverage ref §9 (E8), skill routing priority (E15), subagent MCP awareness §11 (G8). conversation-defaults Rule 6 added (E11: "etc." interpretation). Session-log and wrap protocol templates updated with token efficiency field (E12). CLAUDE.md file limit aligned from ≤5 to ≤3 (G8). Four new ops docs created: audit-coverage-checklist.md, skill-roster-recommendation.md, file-naming-audit.md, github-mcp-subagent-audit.md.
-**Decisions:** FindA.Sale custom skills always preferred over generic plugin equivalents. MCP push limit is ≤3 files everywhere (CORE.md + CLAUDE.md now aligned). "etc." treated as precise — ask if scope matters. Audit coverage checklist required; <80% = incomplete.
-**Token efficiency:** 10 tasks, 0 subagent calls, all direct edits — low burn for output volume.
-**Next up:** Session 96 — Inter-Agent Communication Foundation: E4 (message board design + prototype), E5 (task dependency state machine), heartbeat monitoring, E16 (worktrees research).
-**Blockers:** Session 93 files still not pushed (Patrick). MAILERLITE_API_KEY pending on Railway. Neon migration 20260310000001 pending on production.
+**Worked on:** Full P0 bug blitz. QA scoping dispatched first (produced bug-blitz-scoping-2026-03-09.md). Then dev fixes: (1) A1.1/A1.2 map pins — CSP `img-src` missing `raw.githubusercontent.com`; (2) A2.1 install banner over mobile nav — `InstallPrompt.tsx` repositioned `bottom-16`/`bottom-20`; (3) A3.1/A3.2 photo upload field mismatch — `ItemPhotoManager.tsx` `'image'` → `'photo'`; (4) A3.6 bulk route 404 — added `POST /items/bulk` to `items.ts` with full auth+ownership; (5) A3.7 Rapid Capture camera blocked — `Permissions-Policy: camera=()` → `camera=(self)`; (6) A4.1 QR codes blank — CSP `img-src`/`connect-src` missing `api.qrserver.com`; (7) A4.1 tier section invisible — double `/api/` prefix bug in dashboard.tsx; (8) A4.1 FlashDealForm blank dropdown — `getMySales` items select missing `title`+`price`. QA verified PASS. Session wrap complete.
+**Decisions:** P1 bugs deferred to Session 107 (A1.3 my-location, A1.4 search scope, A2.2 logo, A5.1/A5.2 leaderboard, A6.1 hardcoded city, A3.6 single-item 500 needs production logs). Session 106 = B1 Linchpin architecture decision (gates B4/D1/B7).
+**Token efficiency:** 7 P0 bugs fixed, 1 QA subagent dispatch, 6 files changed, 0 repair loops. TER estimate: ~0.12 tasks/k-token (Good band — targeted fixes, clean session).
+**Next up:** Session 106 — B1 Linchpin. Dispatch findasale-architect to produce ADR on Sale Type → Item Type decision. Patrick must push Session 105 files first.
+**Blockers:** Patrick must push 6 changed files (see next-session-prompt push block). Neon migration 20260310000001 still pending. MAILERLITE_API_KEY pending in Railway. 18 skill files pending install.
 
 ## Health Status
 Last scan: health-scout-pre-beta-2026-03-07
@@ -52,15 +52,30 @@ Overall health is **STRONG** with no critical blockers identified. Sprint 3 (Sho
 │   ├── beta-launch/ (21 files)
 │   ├── brand/ (9 files)
 │   ├── competitor-intel/ (2 files)
-│   ├── feature-notes/ (11 files)
+│   ├── feature-notes/ (13 files)
 │   ├── guides/ (6 files)
-│   ├── health-reports/ (2 files)
-│   ├── improvement-memos/ (5 files)
+│   ├── health-reports/ (3 files)
+│   ├── improvement-memos/ (7 files)
 │   ├── logs/ (6 files)
-│   ├── operations/ (11 files)
-│   ├── research/ (13 files)
+│   ├── next-session-prompt.md
+│   ├── operations/ (22 files)
+│   ├── research/ (20 files)
 │   ├── self-healing/ (1 files)
-│   ├── skills-package/ (21 files)
+│   ├── skill-updates-2026-03-09/
+│   │   ├── zi5EvujG
+│   │   ├── ziHrnm0b
+│   │   ├── ziKnQq8v
+│   │   ├── ziNKzHGC
+│   │   ├── ziPWwhcU
+│   │   ├── zieKBhLR
+│   │   ├── zifGO3j3
+│   │   ├── zifyWCkq
+│   │   ├── zinsKy4l
+│   │   ├── ziuVdr1W
+│   │   ├── ziwLHSE5
+│   │   ├── ziwvxhCc
+│   │   └── zixeEWiT
+│   ├── skills-package/ (26 files)
 │   ├── strategy/ (5 files)
 │   └── workflow-retrospectives/ (2 files)
 ├── docker-compose.yml
@@ -151,7 +166,7 @@ Overall health is **STRONG** with no critical blockers identified. Sprint 3 (Sho
 │   ├── session-wrap-check.sh
 │   ├── stress-test.js
 │   └── update-context.js
-└── test-write.txt
+└── zi3lIz03
 
 ```
 
