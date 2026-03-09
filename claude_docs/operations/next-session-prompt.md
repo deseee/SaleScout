@@ -1,51 +1,37 @@
 # Next Session Resume Prompt
-*Written: 2026-03-07 — Session 93*
+*Written: 2026-03-09 — Session 94*
 *Session ended: normally*
 
 ## Resume From
-Start Sprint 5 — Seller Performance Dashboard. Consult `findasale-architect` first for schema/API design (dashboard metrics, organizer analytics), then `findasale-dev` to implement.
+
+Start Session 95 — Workflow Quick Wins. Load `claude_docs/BACKLOG_2026-03-08.md` as primary context. Execute Section K Session 95 tasks in order using `findasale-workflow`, `findasale-records`, `findasale-qa`, and `cowork-power-user`.
 
 ## What Was In Progress
-Nothing — session 93 queue fully exhausted. All work committed and ready to push.
+
+Nothing — session 94 was planning-only. No code was written. All work is documentation and backlog structure.
 
 ## What Was Completed This Session
 
-- **Sprint 4b frontend (5 files):** `hooks/useItemSearch.ts`, `components/FilterSidebar.tsx`, `components/ItemSearchResults.tsx`, `components/ItemSearch.tsx`, `pages/search.tsx` (items tab wired to FTS; all/sales tabs unchanged)
-- **MailerLite spec rewrite:** `claude_docs/beta-launch/mailerlite-onboarding-automation-2026-03-07.md` fully rewritten for current MailerLite UI (API v2, drag-and-drop builder, Custom Field `sale_published` exit condition — Tags/Custom Events removed)
-- **MailerLite backend wire-up:** `packages/backend/src/services/mailerliteService.ts` (new), `saleController.ts` (PUBLISHED block fires `markSalePublished`), `packages/backend/.env.example` (MAILERLITE_API_KEY added)
-- **TypeScript fix:** `itemSearchService.ts` `ftsSearch`/`ilikeSearch` signatures fixed (`Required<Omit>` → `Omit + Required<Pick>`). Both packages pass `pnpm tsc --noEmit` clean.
-- **Context wrap:** STATE.md, session-log.md, context.md, next-session-prompt.md all updated.
+- `claude_docs/BACKLOG_2026-03-08.md` — master backlog created, fleet-reviewed, priority-adjusted, and finalized. Includes Section K execution plan (sessions 95–105+), Session 103 evaluation checkpoint, Patrick action items.
+- Fleet review conducted: Architect, Workflow, Power User, Legal, UX, R&D all reported. Findings incorporated.
+- New backlog items E15, E16, E17 added and slotted into execution plan.
+- Session log, STATE.md, context.md, and next-session-prompt updated.
 
 ## Environment Notes
 
-**Patrick must do before testing Sprint 4b end-to-end:**
-1. Add `MAILERLITE_API_KEY` to Railway env vars (MailerLite → Integrations → MailerLite API)
-2. Run `.\push.ps1` from repo root to push all session 93 changes
-3. Run Neon migration: `$env:DATABASE_URL="<neon-url>"; $env:DIRECT_URL="<direct-url>"; npx prisma migrate deploy` — migration `20260310000001_add_item_fulltext_search_indexes` still pending on production
+**Patrick must do before Session 96:**
+1. Push session 93 files — run `.\push.ps1` from repo root (10 files listed in session 93 next-session-prompt)
+2. Add `MAILERLITE_API_KEY` to Railway env vars (MailerLite → Integrations → MailerLite API)
+3. Run Neon migration: `$env:DATABASE_URL="<neon-url>"; npx prisma migrate deploy`
 
-**Files to stage for push (10 files):**
-```
-packages/backend/src/services/itemSearchService.ts
-packages/backend/src/services/mailerliteService.ts
-packages/backend/src/controllers/saleController.ts
-packages/backend/.env.example
-packages/frontend/hooks/useItemSearch.ts
-packages/frontend/components/ItemSearch.tsx
-packages/frontend/components/FilterSidebar.tsx
-packages/frontend/components/ItemSearchResults.tsx
-packages/frontend/pages/search.tsx
-claude_docs/beta-launch/mailerlite-onboarding-automation-2026-03-07.md
-```
-
-**⚠ context.md is 729 lines (target: under 500).** Needs `update-context.js` audit — likely file tree or dependency section bloat. Route to `findasale-records` next session.
-
-## Power User Note (Logged This Session)
-Context Checkpoint said "No" at session end, then Patrick's git staging output triggered immediate compression. Pattern: when checkpoint says No, the session is already at the limit — any further input forces compression. Patrick should open a new session immediately when he sees "Context Checkpoint: No" rather than sending additional input. Improvement opportunity for `cowork-power-user`: checkpoint should prompt Patrick to start a new session, not just report status.
+**Session 95 has NO code changes — no push needed at end of session 95.**
 
 ## Exact Context
 
-- Sprint 4b items tab uses `GET /api/items/search` (FTS endpoint from Sprint 4a)
-- Sprint 4b all/sales tabs still use existing `GET /api/search` — no breaking changes
-- MailerLite service gracefully no-ops if `MAILERLITE_API_KEY` is not set (safe to deploy before key is added)
-- `markSalePublished` is fire-and-forget — sale publish response never blocked by MailerLite
-- Neon DB URL is in `packages/backend/.env` (commented-out lines with prefix `# DATABASE_URL=`)
+- Master backlog is at: `claude_docs/BACKLOG_2026-03-08.md`
+- Session 95 task list is Section K, "Session 95: Workflow Quick Wins" (items 1–10)
+- Session 95 agents: `findasale-workflow` (items 1–7), `findasale-qa` (item 7), `cowork-power-user` (items 8, 10), `findasale-records` (item 9)
+- All Session 95 work is behavioral rules + doc edits — targets: CORE.md, conversation-defaults, session-wrap-protocol, `claude_docs/CLAUDE.md`
+- Key linchpin decision pending Patrick: B1 (Sale Type → Item Type) needed before sessions touching B4, D1, B7
+- Key Patrick decision pending: B8 (Zapier/Webhooks — yes or no?)
+- Sprint 5 (Seller Performance Dashboard) is intentionally deferred until self-improvement loop (sessions 95–103) completes

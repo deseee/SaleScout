@@ -8,6 +8,17 @@ Keep only the 5 most recent sessions. Delete older entries — git history and S
 
 ## Recent Sessions
 
+### 2026-03-09 (session 94 — Master backlog creation + fleet review + self-improvement loop planning)
+**Worked on:**
+- **Master backlog:** Parsed Patrick's raw notes into `claude_docs/BACKLOG_2026-03-08.md` — 80+ items across 11 sections (A–K), tagged by type, agent-owned, prioritized P0–P3. Verification pass confirmed zero items dropped.
+- **Fleet review:** Routed backlog sections to 6 agents (Architect, Workflow, Power User, Legal, UX, R&D) for input. Consolidated feedback into priority adjustments and execution recommendations.
+- **Priority changes from fleet:** A4.1 Dashboard → P0; E2 Token monitoring → P2; E14 Model selection → P3; C1+C2 Legal terms → no action for beta; C3+C4+J1 Data monetization → Year 2.
+- **Self-improvement loop:** Reorganized Section K so E/F/G workflow optimization runs first (sessions 95–102) before bugs and features. Added Session 103 evaluation checkpoint with 5 phases, metrics, decision gate, and deliverables.
+- **New backlog items:** E15 (Plugin/skill optimization audit), E16 (Worktrees + multi-terminal), E17 (File creation + naming enforcement) added from Patrick's notes. All slotted into sessions 95–98.5.
+**Decisions:** Fleet executes self-improvement loop before bug blitz. B1 (Sale Type → Item Type) confirmed as linchpin — must be decided before B4/D1/B7. Attorney call required before shipping D1 (quasi-POS) or B7 (referral program).
+**Next up:** Session 95 — Workflow Quick Wins. Load this backlog as primary context. Patrick must push session 93 files and add MAILERLITE_API_KEY to Railway before session 96.
+**Blockers:** Session 93 files not yet pushed (Patrick action). MAILERLITE_API_KEY not in Railway. Neon migration still pending on production.
+
 ### 2026-03-07 (session 93 — Sprint 4b frontend + MailerLite wire-up + spec rewrite)
 **Worked on:**
 - **Sprint 4b frontend (5 files):** `hooks/useItemSearch.ts` (React Query hook, `filtersFromQuery`, `useFilterSync` with shallow URL routing), `components/FilterSidebar.tsx` (desktop sticky sidebar + mobile full-screen drawer, 14 categories, 5 conditions, price range, sort, facet counts), `components/ItemSearchResults.tsx` (results grid, 8-card skeleton, empty/error states, pagination up to 7 page buttons), `components/ItemSearch.tsx` (300ms debounce, clear button, mobile filter toggle), `pages/search.tsx` (5 targeted edits integrating FTS into items tab — other tabs unchanged).
