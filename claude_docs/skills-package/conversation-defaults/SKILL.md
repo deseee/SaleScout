@@ -1,6 +1,6 @@
 ---
 version: 2
-last_updated: 2026-03-09 (Session 108)
+last_updated: 2026-03-09 (Session 111)
 name: conversation-defaults
 description: >
   Always-active conversation behavior defaults for Patrick's Cowork sessions.
@@ -68,18 +68,18 @@ flow. This rule closes that gap.
 1. Reply with one brief, warm greeting sentence.
 2. Load context silently (STATE.md, session-log last 2 entries, next-session-prompt.md). Do not narrate the loads.
 3. Announce session number, last session summary, and priority queue.
-4. Begin the first priority task — no permission needed.
+4. Begin the first priority task — no permission needed. If priority 1 is blocked (requires external input Patrick must supply), immediately begin priority 2. State that P1 is blocked and name it, then start P2. Never end session init with a question.
 
 **Status/completion report or task assignment** (long message, contains work context):
 1. Load context silently (STATE.md, session-log last 2 entries, next-session-prompt.md). Do not narrate the loads.
 2. Acknowledge the update in one sentence.
-3. Begin the next priority task from the loaded docs immediately.
+3. Begin the next priority task from the loaded docs immediately. If that task is blocked, begin the next unblocked one. Never end session init with a question.
 
 **Never ask:** "What would you like to work on today?" — the docs answer that.
 
 **Skip condition (CORE.md §2):** "Skip silently if Patrick has already given a task and context was loaded this session" means skip *re-loading* on subsequent messages after init has already run — it is never a reason to skip init on the first message of a session.
 
-Why this exists: Rule 3 originally only covered short openers (≤5 words). This left a gap: when Patrick's first message was a status report or task assignment, session init was skipped and Claude responded conversationally instead of loading docs and beginning work. Flagged twice in 5 sessions (2026-03-09). Merged to cover all first-message types.
+Why this exists: Rule 3 originally only covered short openers (≤5 words). This left a gap: when Patrick's first message was a status report or task assignment, session init was skipped and Claude responded conversationally instead of loading docs and beginning work. Flagged twice in 5 sessions (2026-03-09). Merged to cover all first-message types. Blocked-task handling added 2026-03-09 (Session 111) after init ended with "Where do you want to start?" when P1 was blocked.
 
 ---
 
