@@ -1,86 +1,115 @@
 # Next Session Resume Prompt
-*Written: 2026-03-10T00:00:00Z*
+*Written: 2026-03-11T23:59:00Z*
 *Session ended: normally*
 
 ## Resume From
 
-Dispatch `findasale-dev` immediately for **Session 107A — B1 Schema**. Run in **continuous mode (E1.5)**: complete 107A → 107B → 107C without stopping between sessions unless Patrick intervenes or a blocker appears.
+Session 107 COMPLETE. B1 implementation shipped (10 files staged). Ready to dispatch **Session 108 — Power User + Workflow Joint Audit**.
 
-## What Was In Progress
+## What Was Completed This Session (107)
 
-Nothing mid-task. Session 106 wrapped cleanly. All decisions locked and documented.
+- **B1 Full Implementation:**
+  - 107A (Schema): SaleType + ListingType enums (shared/src/index.ts), FeeStructure model + migration 20260311000001, seed with 10% flat rate
+  - 107B (Backend): saleController (saleType accept), itemController (listingType accept), stripeController + auctionJob (FeeStructure lookup)
+  - 107C (Frontend): SaleForm (saleType selector), ItemForm (listingType selector + conditional fields)
+- **QA**: Found P0 blocker (auctionJob.ts hardcoded 0.07), dev fixed same session
+- **Meta**: Cowork Power User diagnosed session-init bug in conversation-defaults Rule 3 (too narrow). Fixed by expanding to ALL first-message types, updated source + installed skill, repackaged
+- **All code staged** — 10 files ready for Patrick's push
 
-## What Was Completed This Session (106)
+## Session 108 Objective
 
-- B1 Linchpin ADR written and approved (`claude_docs/feature-notes/b1-sale-type-item-type-adr-2026-03-10.md`)
-- Full fee structure deep dive — Pitchman (25 ideas), R&D (competitor benchmarking), Architect (FeeStructure DB design), Advisory Board (stress test + debate)
-- **10% flat fee LOCKED** across all item types — replaces 5%/7%
-- STACK.md updated with Fee Structure section
-- STATE.md updated: MAILERLITE_API_KEY done, fee lock noted, dev sequence set
-- MESSAGE_BOARD.json updated: msg-004 (architect ADR), msg-005 (advisory board), msg-006 (fee locked, dev sequence approved)
-- session-log.md updated with Session 106 entry
-- context.md regenerated (207 lines — healthy)
+**Dispatch BOTH `findasale-cowork-power-user` AND `findasale-workflow` in the SAME session** to conduct a joint comprehensive audit of sessions 95–107 and produce a consolidated fix plan.
 
-## Environment Notes
+### Exact Tasks (give to both agents)
 
-**Patrick must complete before 107A dev starts:**
-1. Push all Session 105 + 106 files (push block below)
-2. Run Neon migration `20260310000001` if not yet done (FTS indexes)
+**1. Read & Audit (all agents — parallel):**
+   - `claude_docs/logs/session-log.md` (sessions 96–102, 103, 104, 105, 106, 107)
+   - `claude_docs/CORE.md` §2 (Session Init protocol)
+   - `claude_docs/CORE.md` §17 (Session Wrap protocol)
+   - `claude_docs/operations/conversation-defaults/SKILL.md` (current conversation-defaults rules)
 
-**Architect skill installed copy is stale** — read-only, still shows old 5%/7% fee. Not a blocker for 107A dev (ADR is the authoritative spec). Repackage after 107 sprint.
+**2. Power User Focus (findasale-cowork-power-user):**
+   - Identify Cowork feature gaps that cause session-init failures (e.g., Rule 3 scope too narrow → missed status-report/task-assignment first messages; any other init rules that don't fire on expected message types)
+   - Research new Cowork features (e.g., batch-task routing, session metadata injection, MCP capability discovery) relevant to fixing these gaps
+   - Propose 3–5 specific Cowork feature usage improvements (e.g., "use Cowork batch dispatch to auto-initialize agent skills on startup")
+   - Produce: "Power User Findings — Sessions 95–107 Init Analysis" doc
 
-**`SESSION_WRAP_PROTOCOL.md` and `WRAP_PROTOCOL_QUICK_REFERENCE.md`** are in `claude_docs/` root — should be in `claude_docs/operations/` per file-creation-schema. Flag for `findasale-records` to move. Not urgent.
+**3. Workflow Focus (findasale-workflow):**
+   - Identify the 3–5 highest-friction session workflow anti-patterns:
+     - Subagent handoff delays / unclear entry points
+     - Context loss between sessions (missing state capture)
+     - Wrap protocol bottlenecks (which files always cause conflicts, which always get forgotten)
+     - Decision logging gaps (where Patrick's intent is unclear → rework)
+     - File staging errors (wrap-only docs MCP-pushed mid-session → merge conflicts)
+   - For each pattern, propose a specific process fix (e.g., "enforce context compression at session 50% mark", "wrap-only doc checklist attached to every session prompt")
+   - Produce: "Workflow Findings — Sessions 95–107 Anti-Pattern Analysis" doc
 
-## Exact Context — 107A/B/C Dev Instructions
+**4. Joint Synthesis (both agents — collaborate in MESSAGE_BOARD.json):**
+   - Review both findings in MESSAGE_BOARD
+   - Produce **single consolidated document: `claude_docs/operations/session-init-wrap-fix-plan-2026-03-11.md`**
+   - Content:
+     - Executive summary: "13 specific gaps identified across init/wrap. 8 gaps can be closed via conversation-defaults rules + CORE.md. 5 gaps require Cowork feature requests or Patrick workflow change."
+     - For EVERY identified gap: (1) description, (2) root cause, (3) proposed fix, (4) owning agent (conversation-defaults / findasale-workflow / findasale-power-user / Patrick manual action), (5) effort estimate (hours)
+   - Checklist format (JSON) at end: `gaps: [{ id, description, status: "ready-to-implement" | "requires-patrick" | "requires-cowork-upgrade", owner, effort_hours }]`
+   - Example entry:
+     ```
+     {
+       "id": "G1",
+       "description": "Session init Rule 3 fires only on ≤5 word openers, missing status-report/task-assignment long messages",
+       "status": "ready-to-implement",
+       "owner": "conversation-defaults",
+       "effort_hours": 0.5,
+       "proposed_fix": "Expand Rule 3 to fire unconditionally on first session message regardless of word count"
+     }
+     ```
 
-Full spec: `claude_docs/feature-notes/b1-sale-type-item-type-adr-2026-03-10.md`
+**5. Patrick Action Items:**
+   - List all items in the fix-plan doc that require Patrick action (e.g., "enable Cowork batch mode", "add MESSAGE_BOARD wiring to 5 agent skills that are missing it")
+   - Include exact steps where known
 
-**Session 107A — Schema (start here):**
-1. Add `SaleType` + `ListingType` enums to `packages/shared/src/types.ts`
-2. Write migration `20260311000001_add_sale_type_item_listing_type`:
-   - Add `Sale.saleType String @default("ESTATE")` (ESTATE/YARD/AUCTION/FLEA_MARKET)
-   - Add `Item.listingType String @default("FIXED")` (FIXED/AUCTION/REVERSE_AUCTION/LIVE_DROP/POS)
-   - Backfill: `UPDATE Sale SET saleType='AUCTION' WHERE isAuctionSale=true`
-   - Backfill: `UPDATE Item SET listingType='AUCTION' WHERE auctionStartPrice IS NOT NULL AND auctionEndTime IS NOT NULL`
-   - Backfill: `UPDATE Item SET listingType='REVERSE_AUCTION' WHERE reverseAuction=true`
-   - Backfill: `UPDATE Item SET listingType='LIVE_DROP' WHERE isLiveDrop=true`
-3. Add `FeeStructure` model to `schema.prisma`:
-   ```prisma
-   model FeeStructure {
-     id          String   @id @default(cuid())
-     listingType String   @default("*")
-     feeRate     Float    @default(0.10)
-     updatedAt   DateTime @updatedAt
-   }
-   ```
-4. Seed single row: `{ listingType: "*", feeRate: 0.10 }`
-5. Run locally, verify backfill counts, stage for Neon deploy
+## Critical Context
 
-**Session 107B — Backend (continuous, no stop after 107A):**
-5. `saleController` — accept `saleType` on create/update; deprecate `isAuctionSale` write paths (keep read for backwards compat)
-6. `itemController` — accept `listingType` on create/update; map from selection, not from booleans
-7. Purchase/payment flow — read `feeRate` from `FeeStructure` table at transaction time. Query: `WHERE listingType = item.listingType OR listingType = "*" ORDER BY specificity`. NO hardcoded rates anywhere.
-8. Search endpoints — filter by `saleType` instead of `isAuctionSale`
-
-**Session 107C — Frontend + QA (continuous, no stop after 107B):**
-9. `SaleForm` — replace "Is this an auction sale?" toggle with `saleType` selector (ESTATE / YARD / AUCTION / FLEA_MARKET)
-10. `ItemForm` — `listingType` selector driving conditional field groups (auction fields show on AUCTION, reverse fields on REVERSE_AUCTION, live-drop fields on LIVE_DROP)
-11. Search/browse filter params updated to use `saleType`
-12. QA: verify 10% fee on test Purchase records across all item types; verify saleType filters; verify auction bidding flow on `listingType = AUCTION` items
-
-**Do NOT remove** `isAuctionSale`, `reverseAuction`, or `isLiveDrop` from schema this sprint — mark deprecated in code comments only.
-
-## Push Block for Patrick — Session 105 + 106 Files
+**10 files staged from Session 107 — Patrick must push before Session 108 wrap:**
 
 ```powershell
 cd C:\Users\desee\ClaudeProjects\FindaSale
-git add claude_docs/STATE.md
-git add claude_docs/STACK.md
-git add claude_docs/operations/MESSAGE_BOARD.json
-git add claude_docs/feature-notes/b1-sale-type-item-type-adr-2026-03-10.md
-git add claude_docs/logs/session-log.md
-git add context.md
-git add claude_docs/next-session-prompt.md
-git commit -m "Session 106: B1 ADR, 10% flat fee locked, FeeStructure design, dev sequence 107A/B/C"
+git add packages/shared/src/index.ts
+git add packages/database/prisma/schema.prisma
+git add packages/database/prisma/migrations/20260311000001_add_sale_type_item_listing_type/migration.sql
+git add packages/database/prisma/seed.ts
+git add packages/backend/src/controllers/saleController.ts
+git add packages/backend/src/controllers/itemController.ts
+git add packages/backend/src/controllers/stripeController.ts
+git add packages/backend/src/jobs/auctionJob.ts
+git add packages/frontend/pages/organizer/create-sale.tsx
+git add packages/frontend/pages/organizer/add-items/[saleId].tsx
+git commit -m "Session 107: B1 full implementation — schema + FeeStructure + backend + frontend. All controllers read 10% flat fee from DB. Conversation-defaults Rule 3 expanded to all first messages."
 .\push.ps1
 ```
+
+**After push — Patrick must also:**
+1. Run: `prisma generate && prisma migrate deploy` for migration `20260311000001_add_sale_type_item_listing_type` on Neon production
+2. Reinstall `conversation-defaults` skill from `claude_docs/skill-updates-2026-03-09/conversation-defaults-updated.skill/`
+
+## After Session 108 Audit Completes
+
+Once the fix-plan doc is published and Patrick has reviewed it:
+
+1. Implement all "ready-to-implement" fixes in conversation-defaults SKILL.md + CORE.md edits (next session)
+2. Patrick handles all "requires-patrick" items (e.g., Cowork settings, MCP feature requests)
+3. Then resume roadmap: **P1 bugs (A1.3, A1.4, A2.2, A5.1/A5.2, A6.1) → B4 (auction reserves)**
+
+---
+
+## Dispatch Instructions (for orchestrator)
+
+**Dispatch both agents in parallel (one call, max 3 agents rule allows):**
+
+```
+Skill: findasale-cowork-power-user
+Skill: findasale-workflow
+```
+
+**Both receive identical briefing** (this section — "Session 108 Objective" and "Exact Tasks"), then split focus as described above. They collaborate via MESSAGE_BOARD.json messages during the session. Final synthesis = single `session-init-wrap-fix-plan-2026-03-11.md` document.
+
+**Session end:** No session wrap from either agent until orchestrator confirms the fix-plan doc is complete and Patrick has reviewed it. Then normal wrap protocol: STATE.md update, session-log entry, final MESSAGE_BOARD post.
