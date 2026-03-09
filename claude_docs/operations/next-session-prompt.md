@@ -1,68 +1,56 @@
 # Next Session Resume Prompt
-*Written: 2026-03-09 — Session 105 wrap*
+*Written: 2026-03-09 — Session 108 wrap (findasale-records)*
 *Session ended: normally*
 
 ## Resume From
 
-Start **Session 106 — Architecture Decisions (B1 Linchpin)**.
+Start **Session 109**.
 
-## What Was Done Last Session (105)
+## What Was Done Last Session (108)
 
-Session 105 was the Bug Blitz. 7 P0 bugs fixed across 6 files, QA verified PASS.
+Session 108 completed the full session-init-wrap-fix-plan.md execution:
+- Audited sessions 95–107 for init/wrap failure patterns (8 gaps found)
+- CORE.md §2 skip condition clarified — subsequent turns only, never first message
+- WRAP_PROTOCOL_QUICK_REFERENCE.md — 3 gates added (next-session-prompt checklist,
+  git-status-first before push block, subagent reconciliation step)
+- findasale-records SKILL.md source created with Skill Update Protocol section
+- Version lines (version/last_updated YAML frontmatter) added to 8 skill source files
+- session-init-wrap-fix-plan.md written to claude_docs/operations/
 
-**Fixes shipped:**
-- A1.1/A1.2: Map pins invisible → CSP `img-src` added `https://raw.githubusercontent.com` (`next.config.js`)
-- A2.1: Install banner covered mobile nav → `InstallPrompt.tsx` repositioned to `bottom-16/bottom-20`
-- A3.1/A3.2: Photo upload "Unexpected field" → `ItemPhotoManager.tsx` field name `'image'` → `'photo'`
-- A3.6: Bulk item operations 404 → Added `POST /items/bulk` route to `items.ts`
-- A3.7: Rapid Capture camera "Unavailable" → `Permissions-Policy: camera=()` → `camera=(self)` in `next.config.js`
-- A4.1 (QR codes blank): CSP `img-src`/`connect-src` added `https://api.qrserver.com` (`next.config.js`)
-- A4.1 (tier section invisible): `/api/tiers/mine` double-prefix fixed → `/tiers/mine` (`dashboard.tsx`)
-- A4.1 (Flash Deal blank dropdown): `getMySales` items select now includes `title` + `price` (`saleController.ts`)
+All code changes MCP-pushed (5 commits: SHA 415127fe, cce2af05, d19f4de5, 78776e50, da4a7b5d).
+Wrap-only docs (session-log.md, MESSAGE_BOARD.json, next-session-prompt.md) go in push.ps1 block.
 
-**QA verdict: PASS** — all 6 files reviewed by findasale-qa.
+## Session 109 Objective
 
-**Patrick must push before testing:**
-```powershell
-cd C:\Users\desee\ClaudeProjects\FindaSale
-git add packages/frontend/next.config.js
-git add packages/frontend/components/InstallPrompt.tsx
-git add packages/frontend/components/ItemPhotoManager.tsx
-git add packages/backend/src/routes/items.ts
-git add packages/frontend/pages/organizer/dashboard.tsx
-git add packages/backend/src/controllers/saleController.ts
-git commit -m "fix: Session 105 Bug Blitz — 7 P0 fixes (map pins, mobile nav, photo upload, bulk route, camera, QR codes, tier API)"
-.\push.ps1
-```
-
-## Session 106 Objective
-
-**B1 Linchpin — Sale Type → Item Type architecture decision.**
-
-B1 is the gate for B4 (buyer checkout flow), D1 (quasi-POS mode), and B7 (referral program). Cannot ship those without resolving B1 first.
-
-The question: Should FindA.Sale support multiple sale types (estate sale vs. yard sale vs. auction vs. flea market) with different item behaviors? Or keep a unified model?
-
-**Dispatch findasale-architect first** to analyze the schema and produce an ADR. Then Patrick reviews and decides.
-
-After B1 is decided, proceed to:
-1. **B4** — buyer checkout flow improvements
-2. **D1** — quasi-POS mode (attorney check first — see STATE.md)
-3. Sprint 5 — Seller Performance Dashboard (was deferred from Session 105)
-
-## Still Pending From Previous Sessions
-
-1. **Neon migration** — `20260310000001_add_item_fulltext_search_indexes` — run `npx prisma migrate deploy` against Neon before Sprint 4b end-to-end testing
-2. **MAILERLITE_API_KEY** — must be added to Railway env vars
-3. **18 skill files** from `claude_docs/skill-updates-2026-03-09/` — Patrick must install all 18
-
-## Remaining P1 Bugs (Not Done in Session 105)
-
-From bug-blitz-scoping-2026-03-09.md:
+**Track 1 — P1 Bug fixes:**
 - A1.3: "My location" button on /map does nothing
 - A1.4: Search only queries sales, not items
 - A2.2: "Add to Home Screen" banner shows old SaleScout logo
-- A5.1: Duplicate header/footer on leaderboard
-- A5.2: Leaderboard organizer names not clickable
-- A6.1: "Grand Rapids" hardcoded across multiple pages (scope: many files)
-- A3.6 single-item server error: root cause unclear — needs production logs from Railway
+- A5.1/A5.2: Leaderboard duplicate header + non-clickable organizer names
+- A6.1: "Grand Rapids" hardcoded across multiple pages
+
+**Track 2 (after P1 bugs):** B4 — auction reserves (unblocked by Session 107 fee structure).
+
+**Track 3 (lower priority):** findasale-ops to add next-session-prompt.md check to
+`scripts/verify-session-wrap.js` (Init Gap #2 / Wrap Gap #1 verify script portion).
+
+## Still Pending from Previous Sessions
+
+1. **Patrick must push 10 files from Session 107** (schema, migrations, controllers,
+   job, frontend pages, shared types, seed) — push block in Session 107 session-log.
+2. **Prisma migration deploy** — `prisma generate && prisma migrate deploy` for
+   `20260311000001_add_sale_type_item_listing_type` on Neon production.
+3. **Patrick reinstall 8 updated skill source files** from `claude_docs/skills-package/`:
+   conversation-defaults, findasale-records, findasale-dev, dev-environment,
+   findasale-advisory-board, findasale-hacker, findasale-ops, findasale-pitchman.
+   (Each has a new version + last_updated frontmatter and findasale-records has new
+   Skill Update Protocol section.)
+4. **18 skill files** from `claude_docs/skill-updates-2026-03-09/` — Patrick
+   must install all 18 (pending from Session 104, still uninstalled).
+5. **Neon migration** — `20260310000001_add_item_fulltext_search_indexes`
+   still needs `prisma migrate deploy` if not yet run.
+
+## Fix Plan Reference
+
+Session 108 fix work complete. Reference doc (for audit trail only):
+`claude_docs/operations/session-init-wrap-fix-plan.md`

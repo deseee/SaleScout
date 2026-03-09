@@ -115,6 +115,33 @@
     ]
   }
   ,{
+    "id": "msg-009",
+    "timestamp": "2026-03-09T23:59:00Z",
+    "from": "findasale-records",
+    "to": "patrick, orchestrator",
+    "type": "completion",
+    "subject": "Session 108 Records Wrap Complete — Init/Wrap Fix Plan Applied",
+    "body": "SESSION 108 RECORDS WRAP COMPLETE. All session-init-wrap-fix-plan.md changes applied and MCP-pushed to GitHub. FIXES APPLIED: (1) CORE.md §2 skip condition clarified — subsequent turns only, never first message (SHA: 415127fe). (2) WRAP_PROTOCOL_QUICK_REFERENCE.md — 3 gates added: next-session-prompt.md checklist item, git-status-first before push block, subagent reconciliation step (SHA: cce2af05). (3) findasale-records source SKILL.md created with Skill Update Protocol section (two-file reality, failure modes A/B). (4) Version lines (version/last_updated) added to 8 skill source files: conversation-defaults, findasale-records, findasale-dev, dev-environment, findasale-advisory-board, findasale-hacker, findasale-ops, findasale-pitchman. (5) session-init-wrap-fix-plan.md created in claude_docs/operations/. GITHUB COMMITS: Batch 1 d19f4de5, Batch 2 78776e50, Batch 3 da4a7b5d. WRAP-ONLY DOCS (Patrick push.ps1 block required): claude_docs/logs/session-log.md, claude_docs/operations/MESSAGE_BOARD.json, claude_docs/operations/next-session-prompt.md. PATRICK PENDING: Reinstall 8 updated skill source files from claude_docs/skills-package/ via Cowork UI.",
+    "status": "complete",
+    "refs": ["SESSION_108", "session-init-wrap-fix-plan.md"],
+    "files_changed": [
+      "claude_docs/CORE.md",
+      "claude_docs/WRAP_PROTOCOL_QUICK_REFERENCE.md",
+      "claude_docs/skills-package/findasale-records/SKILL.md",
+      "claude_docs/skills-package/conversation-defaults/SKILL.md",
+      "claude_docs/skills-package/findasale-dev/SKILL.md",
+      "claude_docs/skills-package/dev-environment/SKILL.md",
+      "claude_docs/skills-package/findasale-advisory-board/SKILL.md",
+      "claude_docs/skills-package/findasale-hacker/SKILL.md",
+      "claude_docs/skills-package/findasale-ops/SKILL.md",
+      "claude_docs/skills-package/findasale-pitchman/SKILL.md",
+      "claude_docs/operations/session-init-wrap-fix-plan.md",
+      "claude_docs/logs/session-log.md",
+      "claude_docs/operations/MESSAGE_BOARD.json",
+      "claude_docs/operations/next-session-prompt.md"
+    ]
+  }
+  ,{
     "id": "msg-008",
     "timestamp": "2026-03-11T23:59:00Z",
     "from": "findasale-records",
