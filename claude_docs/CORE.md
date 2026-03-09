@@ -91,7 +91,12 @@ Compression format:
 - Constraints
 - Decisions Made
 - Open Variables
+- Operational Anchors (environment-specific commands, paths, conventions active this session)
 - Next Step
+
+If dev-environment skill was loaded pre-compression, preserve its key constraints
+(package paths, script names, shell syntax) as anchors. Losing these causes
+wrong-package and wrong-command errors post-compression.
 
 Replace narrative history with structured summary.
 
@@ -242,6 +247,17 @@ Right: grep for `loading.*useAuth\|useAuth.*loading` across all files,
 fix all 6 hits, push one commit.
 
 This rule is enforced by `claude_docs/SECURITY.md` Section 9.
+
+### Pre-Push Type Verification (Railway Deploy Budget)
+
+Before pushing ANY TypeScript fix via MCP:
+1. Read the function/type signature of any imported function being used.
+2. Verify the call site matches the signature (argument types, return type).
+3. If the fix involves express middleware (rate limiters, validators), read
+   the middleware's type definitions or source to confirm the expected interface.
+
+Each Railway push triggers a full rebuild (~2-3 min). Three bad pushes = 8 min
+wasted + 3x context token cost. Prevention: one Read call (~100 tokens).
 
 ---
 
