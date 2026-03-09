@@ -4,6 +4,13 @@ Cross-session memory for Claude. Updated at every session end.
 Read this at session start to understand recent context without loading extra files.
 Keep only the 5 most recent sessions. Delete older entries — git history and STATE.md are the durable record.
 
+**Entry template (all fields required):**
+- **Worked on:** (what was done)
+- **Decisions:** (choices made)
+- **Token efficiency:** (tasks completed ÷ estimated effort — e.g., "10 doc edits, no subagents, low token burn" or "3 features, 2 subagent calls, medium burn" — qualitative until measurement tooling exists)
+- **Next up:** (what comes next)
+- **Blockers:** (what's stuck)
+
 ---
 
 ## Recent Sessions

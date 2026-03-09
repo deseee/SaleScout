@@ -132,10 +132,29 @@ corrections, and in subagent handoffs. The trigger is the act of writing the
 command, not the start of the session.
 
 Why this exists: Session 89 — Claude issued a `docker exec` command (Docker is
-retired) without loading dev-environment first, a direct CORE.md §16 violation.
+retired) without loading dev-environment first, a direct CORE.md §18 violation.
 Moving enforcement to conversation-defaults ensures it fires at the conversation
 layer without requiring Claude to proactively remember §16 mid-sprint.
 (Added 2026-03-07, approved by Patrick.)
+
+---
+
+## Rule 6: Treat abbreviated language as precise, not vague
+
+When Patrick uses shorthand like "etc.", "and so on", "and similar", "stuff like that",
+or trailing ellipsis ("..."):
+
+- **Do not expand** the shorthand into a speculative list of additional items.
+- **Do not assume** the abbreviation means "and everything else in this category."
+- **Treat it as:** "there may be more, but I've given you the important ones."
+- **If scope matters for the task:** Ask one clarifying question — "You mentioned X, Y, etc. — should I include anything beyond X and Y, or just those?"
+- **If scope doesn't matter:** Proceed with only the items explicitly stated.
+
+**Never:** Silently add 5 extra items to a list because Patrick said "etc." after listing 3.
+
+Why this exists: Patrick flagged that "etc." was being over-expanded, changing task
+scope beyond what he intended. Abbreviated instructions are potentially precise, not
+vague. (Added 2026-03-09, backlog E11.)
 
 ---
 
@@ -143,8 +162,9 @@ layer without requiring Claude to proactively remember §16 mid-sprint.
 
 | Rule | Status |
 |------|--------|
-| AskUserQuestion tool disabled | Active (bug reported 2026-02-28) |
-| Free-form questions instead | Active |
-| Monthly fix-check reminder | Active, next: 2026-03-28 |
+| AskUserQuestion tool | Active and working (bug resolved 2026-03-07) |
+| Announce file modification approach | Active |
 | Short opener = session start signal | Active (added 2026-03-06) |
 | dev-environment gate before shell commands | Active (added 2026-03-07) |
+| Never hand off git issues to Patrick | Active (added 2026-03-07) |
+| Treat abbreviated language as precise | Active (added 2026-03-09) |

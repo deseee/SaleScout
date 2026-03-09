@@ -47,6 +47,15 @@ During Survey: check `context.md` filetree before using any file-location tool (
 
 Do not skip verification.
 
+### Batch Continuation Rule
+
+When Patrick assigns multiple tasks (a batch, a list, or says "work continuously"):
+1. After completing each task, immediately begin the next one without pausing for confirmation.
+2. Only stop when: (a) blocked by a dependency requiring Patrick's input, (b) a task fails and the fix is ambiguous, or (c) the batch is complete.
+3. Between tasks, update the TodoList to mark completion and set the next task in_progress — this is the only pause.
+4. Do not summarize completed work mid-batch unless Patrick asks. Save the full summary for the batch wrap.
+5. If context window pressure is high, compress completed-task context before continuing — do not stop the batch to warn about context.
+
 ---
 
 ## 4. Diff-Only Rule
@@ -137,6 +146,26 @@ Before production deploys or after large sprints, run the health-scout skill.
 Recent scan results: `claude_docs/health-reports/` (newest file = latest report).
 Weekly scan runs automatically Sunday 11pm via `findasale-health-scout` task.
 
+**Coverage requirement:** Every "comprehensive" audit must use
+`claude_docs/operations/audit-coverage-checklist.md`. Check off each section,
+note N/A items with justification, and include coverage % in the report header.
+If coverage < 80%, the audit is incomplete.
+
+### Skill Routing Priority
+
+When a FindA.Sale custom skill exists for a domain, always prefer it over generic
+plugin equivalents. Custom skills have project context; generic plugins don't.
+
+- Marketing → `findasale-marketing` (not `marketing:*`)
+- UX/Design → `findasale-ux` (not `design:*`)
+- Code review/QA → `findasale-qa` (not `engineering:code-review`)
+- Ops → `findasale-ops` (not `operations:*`)
+- Support → `findasale-support` (not `customer-support:*`)
+- Architecture → `findasale-architect` (not `engineering:system-design`)
+
+Generic plugin skills are fallbacks only — use when no custom skill covers the need.
+Full audit: `claude_docs/operations/skill-roster-recommendation.md`
+
 ---
 
 ## 10. GitHub Push Batching Rule
@@ -220,7 +249,9 @@ Infrastructure constraint: **Max 3 agents may be dispatched in parallel per sing
 
 Dispatching more than 3 agents simultaneously causes all calls to error. This limit was discovered empirically in session 91 when 7 parallel agents were dispatched and all errored.
 
-**Rule:** When more than 3 agents are needed, dispatch in serial batches of 3 — wait for results of batch 1, then dispatch batch 2, etc. This mirrors the MCP push limits (≤5 files, ≤25k tokens) — infrastructure constraints must be documented and respected.
+**Rule:** When more than 3 agents are needed, dispatch in serial batches of 3 — wait for results of batch 1, then dispatch batch 2, etc. This mirrors the MCP push limits (≤3 files per call) — infrastructure constraints must be documented and respected.
+
+**Subagent MCP awareness:** When dispatching a subagent that may need to push files to GitHub, include MCP limits in the dispatch instructions: max 3 files per push, files >200 lines pushed solo via `create_or_update_file`, wrap-only docs never MCP-pushed mid-session. Subagents don't inherit CORE.md knowledge — they must be told.
 
 ---
 
@@ -253,7 +284,25 @@ Key rule: Patrick's short affirmations ("ok", "that worked") mean proceed — do
 
 ---
 
-## 15. Doc Classification + Anti-Bloat Rules
+## 15. Proactive Tool & Skill Suggestion
+
+When conversation context suggests a tool, skill, command, or plugin would help —
+suggest it to Patrick without waiting for him to ask. Patrick may not know what's
+available.
+
+Examples:
+- Patrick describes a UX concern → suggest `findasale-ux` skill
+- Patrick mentions a competitor → suggest `findasale-rd` or competitive analysis skill
+- Patrick asks about deployment → suggest `findasale-deploy` skill
+- Patrick describes a bug → suggest `findasale-dev` skill and offer to invoke it
+- A connected MCP (Stripe, GitHub) could answer the question → use it directly
+
+**Do not:** List every available skill. Pick the 1–2 most relevant and explain why
+in one sentence. If Patrick declines, drop it.
+
+---
+
+## 16. Doc Classification + Anti-Bloat Rules
 
 Every file in `claude_docs/` has a tier. Assign it when creating the file.
 
@@ -274,7 +323,7 @@ Load only when the task requires it. Never preload the whole directory.
 
 ---
 
-## 16. Session Wrap Protocol
+## 17. Session Wrap Protocol
 
 Before ending ANY session, Claude must execute the session wrap protocol:
 
@@ -289,13 +338,19 @@ Before ending ANY session, Claude must execute the session wrap protocol:
 
 4. **Subagent discipline:** Any spawned subagent must follow the same protocol. Before handoff completes, subagent reports "Working tree clean" and lists all changed files.
 
+5. **Subagent file tracking (hard rule):** When any subagent (via `Skill` tool) creates, modifies, or deletes files, the main session must:
+   - (a) Record every file path returned by the subagent in a running "changed files" list for the session.
+   - (b) At session wrap, cross-reference this list against `git status` output — any file the subagent reported but `git status` doesn't show is a drift signal (subagent may have written to a path outside the repo or the file was overwritten).
+   - (c) Include ALL subagent-reported files in the wrap file list given to Patrick for `.\push.ps1`.
+   Never assume the main session's `git status` alone captures subagent work — subagents may write files the main session never touched.
+
 5. **Documentation push rule:** Never include documentation files in feature-batch MCP pushes. Code changes and doc changes use separate commits to prevent documentation overwriting. See `claude_docs/self-healing/self_healing_skills.md` entry #35.
 
 For detailed protocol steps and edge cases, consult: `claude_docs/WRAP_PROTOCOL_QUICK_REFERENCE.md` and `claude_docs/SESSION_WRAP_PROTOCOL.md`.
 
 ---
 
-## 17. Environment Command Hard Gate
+## 18. Environment Command Hard Gate
 
 Before writing any shell command, PowerShell command, Prisma command,
 migration instruction, or environment variable guidance:
@@ -308,9 +363,20 @@ No exceptions. This applies mid-sprint, in follow-up corrections,
 and in subagent handoffs. The trigger is the act of writing the command,
 not the start of the session.
 
+### Pre-Command Syntax Validation
+
+Before writing ANY command for Patrick to run:
+1. **Identify the target shell.** Patrick runs PowerShell on Windows. The Cowork VM runs bash on Linux. Never mix them.
+2. **PowerShell commands for Patrick:** Use `$env:VAR` (not `export VAR`), backslash paths, `.\script.ps1` (not `./script.ps1`), semicolons for chaining (not `&&`).
+3. **Bash commands in Cowork VM:** Standard Linux syntax — `export VAR`, forward slashes, `&&` chaining.
+4. **Never guess OS.** If unsure whether a command is for Patrick or for the VM, state which environment it targets.
+5. **Validate before sending:** Mentally run the command. Would it parse in the target shell? If not, fix it before writing it.
+
+Token cost of one failed command: Patrick runs it, gets an error, pastes it back, Claude debugs, writes a corrected version — minimum 3 turns wasted. Prevention is always cheaper.
+
 ---
 
-## 18. Known Tool Constraints
+## 19. Known Tool Constraints
 
 ### skill-creator `run_loop.py` — Cowork environment incompatible
 

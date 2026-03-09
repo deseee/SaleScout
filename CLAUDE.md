@@ -67,7 +67,7 @@ at session start and not visible in any file — missing them causes wasted fall
 
 **GitHub MCP (`mcp__github__*`):**
 Use `mcp__github__push_files` for **small targeted changes only** with two hard limits:
-1. **≤5 files per push**
+1. **≤3 files per push** (CORE.md §10 is authoritative — stricter than earlier 5-file guidance)
 2. **Total file content ≤ 25,000 tokens combined** — read each file before pushing and estimate token count. If the batch would exceed ~25k tokens, split or hand off to Patrick.
 
 The VM cannot run `git push` (no HTTPS auth), but the MCP bypasses this for small batches.

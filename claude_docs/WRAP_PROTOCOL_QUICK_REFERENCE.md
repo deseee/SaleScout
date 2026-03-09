@@ -59,6 +59,7 @@ https://github.com/deseee/findasale/commits/main
 ### 2026-03-06 (session XXX — [2-3 word summary])
 **Worked on:** [1–2 sentences what was accomplished]
 **Decisions:** [Key decisions made]
+**Token efficiency:** [tasks completed, subagent calls, qualitative burn assessment]
 **Next up:** [What's next]
 **Blockers:** [Any issues]
 ```
