@@ -1,14 +1,14 @@
 # Dynamic Project Context
-*Generated at 2026-03-09T10:08:14.414Z*
+*Generated at 2026-03-09T12:06:56.802Z*
 *Run `node scripts/update-context.js` on Windows to refresh.*
 
 ## Last Session
 ### 2026-03-09
-**Worked on:** Full P0 bug blitz. QA scoping dispatched first (produced bug-blitz-scoping-2026-03-09.md). Then dev fixes: (1) A1.1/A1.2 map pins — CSP `img-src` missing `raw.githubusercontent.com`; (2) A2.1 install banner over mobile nav — `InstallPrompt.tsx` repositioned `bottom-16`/`bottom-20`; (3) A3.1/A3.2 photo upload field mismatch — `ItemPhotoManager.tsx` `'image'` → `'photo'`; (4) A3.6 bulk route 404 — added `POST /items/bulk` to `items.ts` with full auth+ownership; (5) A3.7 Rapid Capture camera blocked — `Permissions-Policy: camera=()` → `camera=(self)`; (6) A4.1 QR codes blank — CSP `img-src`/`connect-src` missing `api.qrserver.com`; (7) A4.1 tier section invisible — double `/api/` prefix bug in dashboard.tsx; (8) A4.1 FlashDealForm blank dropdown — `getMySales` items select missing `title`+`price`. QA verified PASS. Session wrap complete.
-**Decisions:** P1 bugs deferred to Session 107 (A1.3 my-location, A1.4 search scope, A2.2 logo, A5.1/A5.2 leaderboard, A6.1 hardcoded city, A3.6 single-item 500 needs production logs). Session 106 = B1 Linchpin architecture decision (gates B4/D1/B7).
-**Token efficiency:** 7 P0 bugs fixed, 1 QA subagent dispatch, 6 files changed, 0 repair loops. TER estimate: ~0.12 tasks/k-token (Good band — targeted fixes, clean session).
-**Next up:** Session 106 — B1 Linchpin. Dispatch findasale-architect to produce ADR on Sale Type → Item Type decision. Patrick must push Session 105 files first.
-**Blockers:** Patrick must push 6 changed files (see next-session-prompt push block). Neon migration 20260310000001 still pending. MAILERLITE_API_KEY pending in Railway. 18 skill files pending install.
+**Worked on:** Skill update install for Session 108 version-tracking changes. Packaged findasale-advisory-board, findasale-hacker, findasale-pitchman source directories (skills-package/) as flat .skill archives (SKILL.md at root, not nested). Fixed path nesting bug from first packaging attempt. Presented all 8 updated skills via Cowork UI. Patrick confirmed all installed.
+**Decisions:** .skill packaging must use `zip -j` (junk paths) run from inside the source directory to avoid nested paths. Confirmed canonical packaging method for advisory-board, hacker, pitchman going forward.
+**Token efficiency:** No subagents, no code changes. Pure housekeeping. TER estimate: high (minimal token burn, task complete).
+**Next up:** Session 110 — multi-agent P1 bug blitz. Dispatch findasale-qa (scoping) + findasale-dev (parallel fixes) for A1.3, A1.4, A2.2, A5.1/A5.2, A6.1.
+**Blockers:** Session 107 push still pending (10 files — see session 107 push block). Neon migration 20260311000001 still needs `prisma migrate deploy`. Wrap-only docs need Patrick push (session-log.md, next-session-prompt.md, STATE.md).
 
 ## Health Status
 Last scan: health-scout-pre-beta-2026-03-07
@@ -58,7 +58,7 @@ Overall health is **STRONG** with no critical blockers identified. Sprint 3 (Sho
 │   ├── improvement-memos/ (7 files)
 │   ├── logs/ (6 files)
 │   ├── next-session-prompt.md
-│   ├── operations/ (22 files)
+│   ├── operations/ (23 files)
 │   ├── research/ (20 files)
 │   ├── self-healing/ (1 files)
 │   ├── skill-updates-2026-03-09/
@@ -75,7 +75,7 @@ Overall health is **STRONG** with no critical blockers identified. Sprint 3 (Sho
 │   │   ├── ziwLHSE5
 │   │   ├── ziwvxhCc
 │   │   └── zixeEWiT
-│   ├── skills-package/ (26 files)
+│   ├── skills-package/ (28 files)
 │   ├── strategy/ (5 files)
 │   └── workflow-retrospectives/ (2 files)
 ├── docker-compose.yml
@@ -121,7 +121,7 @@ Overall health is **STRONG** with no critical blockers identified. Sprint 3 (Sho
 │   │   ├── package-lock.json
 │   │   ├── package.json
 │   │   ├── prisma/
-│   │   │   ├── migrations/ (66 migrations)
+│   │   │   ├── migrations/ (67 migrations)
 │   │   │   ├── schema.prisma
 │   │   │   └── seed.ts
 │   │   └── tsconfig.json
@@ -160,13 +160,12 @@ Overall health is **STRONG** with no critical blockers identified. Sprint 3 (Sho
 ├── pnpm-workspace.yaml
 ├── push.ps1
 ├── railway.toml
-├── scripts/
-│   ├── health-check.ts
-│   ├── session-wrap-check.ps1
-│   ├── session-wrap-check.sh
-│   ├── stress-test.js
-│   └── update-context.js
-└── zi3lIz03
+└── scripts/
+    ├── health-check.ts
+    ├── session-wrap-check.ps1
+    ├── session-wrap-check.sh
+    ├── stress-test.js
+    └── update-context.js
 
 ```
 
