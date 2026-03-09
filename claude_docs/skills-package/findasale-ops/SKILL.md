@@ -1,4 +1,6 @@
 ---
+version: 1
+last_updated: 2026-03-09 (Session 108)
 name: findasale-ops
 description: >
   FindA.Sale Operations Manager subagent. Handles Railway deployment, Vercel
