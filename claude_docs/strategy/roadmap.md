@@ -48,13 +48,15 @@
 ### Next Up
 | # | Feature | Est. | Notes |
 |---|---------|------|-------|
-| 4 | Search by Item Type | 2 sprints | Index items, search UI, result optimization. |
+| 9 | Payout Transparency Dashboard | 1 sprint | Item-level fee breakdown (item sold → fee → net payout). Builds organizer trust. High ROI. (Pitchman #3) |
+| 10 | Serendipity Search | 1 sprint | "Surprise me" — random items with filters (location, price). Drives repeat opens + discovery dopamine loop. (Pitchman #5) |
 
-*Recently shipped: AI Sale Description Writer (session 87), Branded Social Templates (session 87), Shopper Loyalty Program (session 88), Code deGR-ification (session 89). See COMPLETED_PHASES.md.*
+*Recently shipped: Feature #4 Search by Item Type (session 116 — /categories index page), Feature #12 SEO Description Optimization (session 116 — Haiku prompt updated). AI Sale Description Writer (session 87), Branded Social Templates (session 87), Shopper Loyalty Program (session 88), Code deGR-ification (session 89). See COMPLETED_PHASES.md.*
 
 ### Phase 3 — Weeks 8–16
 | # | Feature | Est. | Notes |
 |---|---------|------|-------|
+| 4 | ~~Search by Item Type~~ | ✅ Done | /categories index page shipped (session 116). [category].tsx existed (Phase 29). |
 | 5 | Stripe Terminal POS | 2 sprints | In-person checkout. No monthly fees. Works with existing Stripe Connect. |
 | 6 | Seller Performance Dashboard | 2 sprints | Analytics, benchmarks, pricing recommendations. |
 | 7 | Shopper Referral Rewards | 1–2 sprints | Referral tracking, rewards distribution, email notifications. |
@@ -62,7 +64,7 @@
 | 9 | Payout Transparency Dashboard | 1 sprint | Item-level fee breakdown (item sold → fee → net payout). Builds organizer trust. High ROI. (Pitchman #3) |
 | 10 | Serendipity Search | 1 sprint | "Surprise me" — random items with filters (location, price). Drives repeat opens + discovery dopamine loop. (Pitchman #5) |
 | 11 | Organizer Referral Reciprocal | 1 sprint | Refer-an-organizer = 3-month fee discount for both parties. Viral growth lever. Extends existing referral program. (Pitchman sweep) |
-| 12 | SEO Description Optimization | 0.5 sprints | Update Claude Haiku prompt to bias AI descriptions toward high-intent search terms. Marketing identifies terms. (Pitchman sweep) |
+| 12 | ~~SEO Description Optimization~~ | ✅ Done | Haiku prompt updated — title/description/tags now bias toward high-intent search terms (session 116). |
 
 ### Phase 4 — Post-16 Weeks
 | # | Feature | Est. | Notes |
