@@ -16,6 +16,14 @@ Keep only the 5 most recent sessions. Delete older entries — git history and S
 
 ## Recent Sessions
 
+### 2026-03-09 (session 119 — Records Audit 110–118 + Manifest Test)
+**Worked on:** (1) Scope change: Patrick shifted audit from sessions 108–116 to "previous 9" → 110–118. (2) Full records audit: session-log, STATE.md, roadmap, git history cross-check. (3) 4 drift corrections: earningsPDF fix (bd34de4) and Feature #10 Serendipity Search (5473c14) were already shipped but listed as open in STATE.md + next-session-prompt; Features #9/#10/#11 Phase 3 table now marked ✅ Done; pre-beta agent queue corrected. (4) A3.6 single-item 500 marked resolved (Patrick confirmed no errors in latest Railway deploy). (5) Patrick confirmed all 3 Neon migrations deployed (69 total), session 117/118 wrap docs pushed, conversation-defaults v3 reinstalled. (6) STATE.md "In Progress" migrations section updated to all-deployed. (7) Manifest test: `.checkpoint-manifest.json` read, currentSession updated, checkpoint written — PASS. First full session using manifest from init.
+**Decisions:** Audit scope shifted to 110–118 (most recent 9). Session 108 fixes lifecycle closed — original 6 items superseded by Session 113 CORE.md v2 governance overhaul. No Tier 1 changes required.
+**Token efficiency:** No subagents. ~11 file reads, multiple targeted edits, 2 git log queries. Low-medium token burn. No repair loops.
+**Token burn:** ~40k tokens (est.), 1 checkpoint logged to manifest.
+**Next up:** VAPID keys confirm in Railway production (Patrick says done — verify if needed). Feature backlog: Phase 4 (#13–#23). Spring content push (findasale-marketing). Beta organizer outreach. Full-Text Search Migration Rollback Plan (architect, still open pre-beta task). Beta Dry Run.
+**Blockers:** Stripe business account still pending (Patrick action). Google Search Console still pending (Patrick action). Beta organizer email sequence (findasale-cx, still open).
+
 ### 2026-03-09 (session 118 — Context Loss Audit + 5-Fix Implementation)
 **Worked on:** Full context-loss audit triggered by Patrick after observing checkpoint inconsistency. (1) 6-agent parallel audit (architect, dev, qa, cowork-power-user, pitchman, workflow) — each wrote independent findings to `claude_docs/operations/context-audit/`. (2) Advisory board synthesized all findings → `claude_docs/operations/context-audit/advisory-board-final.md`. (3) 5 fixes implemented and MCP-pushed (commit 68b25b64): `.checkpoint-manifest.json` NEW at repo root (persistent JSON token state store — survives compressions + session transitions); CORE.md §3 updated (compression events write to manifest IMMEDIATELY, pre-dispatch checkpoint rule, manifest init step); `conversation-defaults` v3 (Rule 3 merged to single unified path — no more branching, Rule 10 manifest reads/writes, Rule 11 pre-dispatch budget gate); `next-session-prompt.md` hard-gate checklist added at top.
 **Decisions:** File-based manifest over Anthropic Memory Tool (Windows injection bug #29022 + 200-line limit). Two-branch Rule 3 eliminated — single path for all first messages regardless of type. Pre-dispatch checkpoint now required before 3+ agent batches. Compression events write to manifest immediately (not deferred to wrap). Advisory board dissent noted: adoption requires both persistence AND culture change (enforcement is equally critical to the JSON fix).
@@ -47,11 +55,4 @@ Keep only the 5 most recent sessions. Delete older entries — git history and S
 **Next up:** Deploy 2 new migrations. Delete conflicting old migration dirs. Implement token tracking (CORE.md + conversation-defaults). A3.6 (Railway logs from Patrick). Continue roadmap backlog (D4/D5/H2).
 **Blockers:** A3.6 still blocked on Railway production logs. 2 old misnamed migration dirs need deletion (20260309000001_add_token_version, 20260309_p0_payment_edge_cases).
 
-### 2026-03-09 (session 114 — D3/B2/H1 + Agent Fleet)
-**Worked on:** (1) D3 (Buyer Saved Searches): `savedSearchController.ts` NEW — 5 endpoints (create, list, delete, trigger, stats). `savedSearchJob.ts` NEW — cron job checks saved searches vs new items every 15 min, fires push notifications. `schema.prisma` — SavedSearch model added. Migration created. (2) B2 (Multi-Photo Items): `ItemPhoto` model, `photoController.ts` (upload, list, delete, reorder), `ItemPhotoManager.tsx` (drag-drop reorder, max 10 photos). (3) H1 (Stripe Connect Onboarding): `stripeConnectController.ts` — account create + onboarding link + webhook for account.updated. `ConnectOnboarding.tsx` — status display. (4) Agent fleet: findasale-cx, findasale-legal, findasale-support created. findasale-architect, findasale-qa expanded. CORE.md §9 routing matrix updated.
-**Decisions:** Saved search triggers push notification (not email) — faster, more appropriate for mobile-first PWA. Multi-photo stored as separate model (not JSON array) for query efficiency. Stripe Connect uses standard (not express) for full organizer control.
-**Token efficiency:** 3 parallel subagent dispatches, ~18 file reads. High-output session. No repair loops.
-**Next up:** Session 115 — P0 security audit (hacker agent), P0 payment edge cases, token tracking feasibility study.
-**Blockers:** A3.6 single-item 500 error still waiting on Railway production logs.
-
-*(session 113 archived — see git history)*
+*(sessions 113–114 archived — see git history)*

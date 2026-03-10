@@ -1,6 +1,6 @@
 # ROADMAP – FindA.Sale
 
-**Last Updated:** 2026-03-09 (v21 — Session 114 sync: completed checklist items marked, migration count updated)
+**Last Updated:** 2026-03-09 (v22 — Session 119 records audit: Features #9/#10/#11 marked done, pre-beta queue updated, VAPID + wrap docs resolved)
 **Status:** Production MVP live at finda.sale. Beta: GO. Full build history: `claude_docs/strategy/COMPLETED_PHASES.md`.
 
 ---
@@ -46,12 +46,9 @@
 ## Feature Pipeline
 
 ### Next Up
-| # | Feature | Est. | Notes |
-|---|---------|------|-------|
-| 9 | Payout Transparency Dashboard | 1 sprint | Item-level fee breakdown (item sold → fee → net payout). Builds organizer trust. High ROI. (Pitchman #3) |
-| 10 | Serendipity Search | 1 sprint | "Surprise me" — random items with filters (location, price). Drives repeat opens + discovery dopamine loop. (Pitchman #5) |
+*No features queued. All Phase 3 features shipped. See Phase 4 for next build candidates.*
 
-*Recently shipped: Feature #4 Search by Item Type (session 116 — /categories index page), Feature #12 SEO Description Optimization (session 116 — Haiku prompt updated). AI Sale Description Writer (session 87), Branded Social Templates (session 87), Shopper Loyalty Program (session 88), Code deGR-ification (session 89). See COMPLETED_PHASES.md.*
+*Recently shipped: Features #9/#10/#11 (sessions 116–117), Feature #4 Search by Item Type (session 116), Feature #12 SEO Description Optimization (session 116). AI Sale Description Writer (session 87), Branded Social Templates (session 87), Shopper Loyalty Program (session 88). See COMPLETED_PHASES.md.*
 
 ### Phase 3 — Weeks 8–16
 | # | Feature | Est. | Notes |
@@ -61,9 +58,9 @@
 | 6 | Seller Performance Dashboard | 2 sprints | Analytics, benchmarks, pricing recommendations. |
 | 7 | Shopper Referral Rewards | 1–2 sprints | Referral tracking, rewards distribution, email notifications. |
 | 8 | Batch Operations Toolkit | 1 sprint | Bulk pricing, status updates, photo uploads. |
-| 9 | Payout Transparency Dashboard | 1 sprint | Item-level fee breakdown (item sold → fee → net payout). Builds organizer trust. High ROI. (Pitchman #3) |
-| 10 | Serendipity Search | 1 sprint | "Surprise me" — random items with filters (location, price). Drives repeat opens + discovery dopamine loop. (Pitchman #5) |
-| 11 | Organizer Referral Reciprocal | 1 sprint | Refer-an-organizer = 3-month fee discount for both parties. Viral growth lever. Extends existing referral program. (Pitchman sweep) |
+| 9 | ~~Payout Transparency Dashboard~~ | ✅ Done | Item-level fee breakdown shipped session 116. `GET /api/stripe/earnings` + payouts page. |
+| 10 | ~~Serendipity Search~~ | ✅ Done | `/api/search/random` + `/surprise-me` page shipped sessions 116–117. |
+| 11 | ~~Organizer Referral Reciprocal~~ | ✅ Done | Fee bypass + referralDiscountExpiry shipped session 117. Migration pending deploy. |
 | 12 | ~~SEO Description Optimization~~ | ✅ Done | Haiku prompt updated — title/description/tags now bias toward high-intent search terms (session 116). |
 
 ### Phase 4 — Post-16 Weeks
@@ -90,11 +87,11 @@ Proactive tasks assigned to the fleet. Not product features — operational work
 ### Pre-Beta (Block on these before first real organizer)
 | Task | Agent | Priority | Brief |
 |------|-------|----------|-------|
-| OAuth Security Red-Team | findasale-hacker | P0 | Red-team state CSRF, redirect_uri hijack, account takeover before OAuth ships |
-| Payment Edge-Case QA Pass | findasale-qa | P0 | Run $0.50/$99,999/decimal/refund/chargeback vectors on production payment flow |
+| ~~OAuth Security Red-Team~~ | findasale-hacker | ✅ Done | Session 115 — account-takeover, redirect_uri allowlist, tokenVersion fixes shipped. |
+| ~~Payment Edge-Case QA Pass~~ | findasale-qa | ✅ Done | Session 115 — chargeback handler, idempotency, negative price guards, buyer-own-item guard. |
 | Full-Text Search Migration Rollback Plan | findasale-architect | P0 | Document down() steps + playbook for migration 20260310000001 + last 4 |
 | Beta Organizer Email Sequence | findasale-cx | P1 | 3-email triggered sequence (welcome / day-3 nudge / day-7 help) → load via MailerLite MCP |
-| Fee Decision Brief | findasale-advisory-board | P1 | Compare 5%/7% vs. alternatives using BUSINESS_PLAN.md; give Patrick something to decide against |
+| ~~Fee Decision Brief~~ | findasale-advisory-board | ✅ Done | Session 106 — 10% flat locked. Advisory board stress test complete (msg-005). |
 
 ### Beta Support (Run during/after first organizers activate)
 | Task | Agent | Priority | Brief |
@@ -144,7 +141,7 @@ Proactive tasks assigned to the fleet. Not product features — operational work
 
 ## Infrastructure
 
-All infra complete. Backend: Railway. DB: Neon (66 migrations applied as of 2026-03-09). Frontend: Vercel (`finda.sale`). Git: `.\push.ps1` replaces `git push`. See `claude_docs/CORE.md` and `claude_docs/STACK.md`.
+All infra complete. Backend: Railway. DB: Neon (69 migrations applied as of 2026-03-09). Frontend: Vercel (`finda.sale`). Git: `.\push.ps1` replaces `git push`. See `claude_docs/CORE.md` and `claude_docs/STACK.md`.
 
 ---
 

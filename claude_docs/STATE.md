@@ -37,12 +37,17 @@ Session 105 Bug Blitz COMPLETE. Session 106 B1 ADR COMPLETE. Session 107 B1 impl
 - Feature #12 (SEO Description Optimization): `cloudAIService.ts` Haiku prompt — titles now format "[Type], [Material], [Maker]"; tags 5–8 terms biased toward material/era/maker keywords
 - Feature #9 (Payout Transparency Dashboard): `GET /api/stripe/earnings` + `payouts.tsx` — per-item breakdown: sale price → 10% platform fee → est. Stripe fee → net payout. Summary totals + full item table on payouts page.
 
-**Session 117 COMPLETE (2026-03-09):** Feature #11 + Vercel build fix.
+**Session 117 COMPLETE (2026-03-09):** Feature #11 + Vercel build fix + Feature #10 + earningsPDF fix.
 - Feature #11 (Organizer Referral Reciprocal): `stripeController.ts` — fee bypass when `referralDiscountExpiry > now` (0% instead of 10%); `routes/organizers.ts` — `GET /organizers/me` exposes `referralDiscountActive` + `referralDiscountExpiry`; `payouts.tsx` — green referral discount banner when active. MCP commit 3243091.
 - Vercel build fix: `pages/items/[id].tsx` — renamed `triggerToast` → `showToast` (6 occurrences). MCP commit 949d743.
+- Feature #10 (Serendipity Search): `packages/backend/src/routes/search.ts` — `GET /api/search/random`; `packages/frontend/pages/surprise-me.tsx` — /surprise-me page with filters. Commit 5473c14.
+- earningsPdfController fee fix: footer updated from "5%/7%" to "Platform fee: 10% flat." Commit bd34de4.
+- A3.6 single-item 500: ✅ RESOLVED — no errors in latest Railway deploy (confirmed by Patrick, session 119).
 - New migration: `20260312000001_add_organizer_referral_discount` — adds `referralDiscountExpiry DateTime?` to Organizer. Patrick must deploy.
 
-**Remaining open:** A3.6 single-item 500 (needs production logs). B3/B7/D1/C1/C2 (deferred/attorney). VAPID keys confirm in prod. Vercel MCP not yet leveraged. `earningsPdfController.ts` footer still says "5%/7%" — needs update to 10% flat. Feature #10 (Serendipity Search) is next up.
+**Session 119 COMPLETE (2026-03-09):** Records audit sessions 110–118. 4 drift items corrected (earningsPDF fix, Feature #10, roadmap checkmarks, A3.6). Manifest test PASS — first full live session with `.checkpoint-manifest.json`.
+
+**Remaining open:** B3/B7/D1/C1/C2 (deferred/attorney). VAPID keys confirm in prod. Vercel MCP not yet leveraged. Feature #11 Referral Discount requires Neon migration deploy before active in production.
 
 ---
 
@@ -67,16 +72,14 @@ Phases 1–13 + pre-beta audit + rebrand + Sprints A–X all verified and shippe
 
 ## In Progress
 
-**5 Neon migrations — 3 awaiting deploy (Sessions 115 + 117).** 66 applied + 3 pending.
-Previously deployed (66 total):
+**All migrations deployed.** 69 total applied as of 2026-03-09 (confirmed Patrick, session 119).
+Previously deployed (69 total):
 1. `20260309_add_auction_reserve_price`
 2. `20260310000001_add_item_fulltext_search_indexes`
 3. `20260311000001_add_sale_type_item_listing_type`
-
-Pending (Patrick must run `prisma migrate deploy` from `packages/database`):
-4. `20260309000002_add_token_version` — adds tokenVersion to User (session invalidation) [Session 115]
-5. `20260309200001_add_processed_webhook_event` — adds ProcessedWebhookEvent table (webhook idempotency) [Session 115]
-6. `20260312000001_add_organizer_referral_discount` — adds referralDiscountExpiry to Organizer [Session 117 / Feature #11]
+4. `20260309000002_add_token_version` — ✅ Deployed session 119
+5. `20260309200001_add_processed_webhook_event` — ✅ Deployed session 119
+6. `20260312000001_add_organizer_referral_discount` — ✅ Deployed session 119
 
 For future migration deploys, see `claude_docs/DEVELOPMENT.md` and `packages/backend/.env` (commented-out Neon URLs). Never embed credentials in committed files (CORE.md §17.3c).
 
@@ -88,7 +91,7 @@ For future migration deploys, see `claude_docs/DEVELOPMENT.md` and `packages/bac
 - **Support email** — ✅ DONE (2026-03-06). support@finda.sale email forwarding configured.
 - **Neon migrations** — ✅ 66 applied (Session 112). All caught up.
 - **Neon credentials** — ✅ Rotated (Session 111). Old exposed password scrubbed from git history.
-- **conversation-defaults skill** — ✅ v2 installed (Session 111).
+- **conversation-defaults skill** — ✅ v3 reinstalled (Session 119). v3: Rule 3 unified single-path, Rules 10 & 11 added (manifest reads + pre-dispatch checkpoint).
 
 ---
 
@@ -146,4 +149,4 @@ Full audit reports: archived (git history, sessions 84–85). Beta checklist: ar
 
 ---
 
-Last Updated: 2026-03-09 (session 117 — Feature #11 pushed, Vercel triggerToast fix)
+Last Updated: 2026-03-09 (session 119 — records audit 110–118, drift corrections, A3.6 resolved)
