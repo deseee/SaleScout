@@ -1,5 +1,5 @@
 # Dynamic Project Context
-*Generated at 2026-03-10T12:54:08.645Z*
+*Generated at 2026-03-10T20:53:19.794Z*
 *Run `node scripts/update-context.js` on Windows to refresh.*
 
 ## Last Session
@@ -52,8 +52,10 @@ Last scan: records-audit-sessions-110-118-2026-03-09
 │   ├── archive/ (0 files)
 │   ├── audits/
 │   │   ├── chrome-audit-session-124.md
+│   │   ├── next-audit-brief-126-dashboard-items.md
 │   │   ├── next-audit-brief-add-edit-item.md
-│   │   └── session-125-edit-item-photo-audit.md
+│   │   ├── session-125-edit-item-photo-audit.md
+│   │   └── session-126-dashboard-items-audit.md
 │   ├── beta-launch/ (5 files)
 │   ├── brand/ (8 files)
 │   ├── competitor-intel/ (1 files)

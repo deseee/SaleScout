@@ -45,6 +45,18 @@ Session 105 Bug Blitz COMPLETE. Session 106 B1 ADR COMPLETE. Session 107 B1 impl
 - A3.6 single-item 500: ✅ RESOLVED — no errors in latest Railway deploy (confirmed by Patrick, session 119).
 - New migration: `20260312000001_add_organizer_referral_discount` — adds `referralDiscountExpiry DateTime?` to Organizer. Patrick must deploy.
 
+**Session 129 COMPLETE (2026-03-10):** Dashboard/UX polish + build error chain resolved.
+- BUG-1 (P1): Edit Sale 404 fixed — route corrected to `/organizer/edit-sale/${id}`
+- BUG-2 (P2): Stale fee copy fixed across dashboard + tierService (all tiers → 10% flat)
+- CSVImportModal prop mismatch fixed (`onSuccess` → `onImportComplete`, added `isOpen`)
+- Backend TypeScript error: removed `quantity` from Prisma `item.update()` (field not in schema); `bulkUpdateItems` extended to support `isActive` and `price` operations
+- `sales/[id].tsx` restored (was truncated to 100 lines by prior MCP push — restored full 923-line file)
+- BUG-3 (/organizer/items 404): Advisory Board + Pitchman consulted. Manage Holds button removed from dashboard as interim. Full feature deferred.
+- Dashboard Analytics tab removed (duplicate of Insights page). Tabs reduced to Overview + Sales.
+- Tier Rewards card cleaned up: removed fee sub-card, removed "better rates" copy, added tier descriptions.
+- Print Inventory fixed: was calling `/organizer/sales` (404) → corrected to `/sales/mine`.
+- ⚠️ Add-items page: two versions exist. Old single-form version at `/organizer/add-items` (no saleId). New tabbed version (Rapid Capture, Camera, CSV Import) at `/organizer/add-items/[saleId]`. Camera tab shows "coming soon" — needs audit next session.
+
 **Session 126 COMPLETE (2026-03-10):** Docs correction + session 125 fix verification + item list audit.
 - Session 125 fixes verified live in Chrome: BUG-1 (PUT fix) ✅, BUG-2 (organizer null crash) ✅, BUG-3 (dropdown case) ✅
 - Organizer item list audit: all bulk actions pass (hide, show, set price, checkboxes). Per-item edit + delete pass.
@@ -169,4 +181,22 @@ Full audit reports: archived (git history, sessions 84–85). Beta checklist: ar
 
 ---
 
-Last Updated: 2026-03-10 (session 126 — session 125 fixes verified ✅; item list audit complete; 3 new P2 findings)
+**Session 128 COMPLETE (2026-03-10):** Chrome QA audit of session 127/128 changes. FINDING-3 fixed. CSV import 500 bug found and fixed.
+- Chrome audit PASS: tab labels ✅, click-to-edit item titles ✅, inline delete confirm ✅, CSV modal opens ✅, camera fullscreen overlay ✅
+- FINDING-3 (stale 5%/7% fee copy on organizer settings.tsx) → fixed (committed 9d6bfda)
+- CSV import 500 bug: `importItemsFromCSV` called `createMany()` without `embedding: []` → NOT NULL constraint violation. Fixed in `itemController.ts` (committed a670457)
+- Root cause: `DEFAULT '{}'` dropped from `embedding Float[]` column in coupon migration `20260307153530`. All new item create paths must supply `embedding: []`.
+- Settings.tsx build error (hallucinated `lastName` field from push_files) resolved — correct file pushed via create_or_update_file (committed 9d6bfda)
+- add-items full rewrite (session 127 carry-forward): committed c0831bf — camera fullscreen overlay, flash/torch toggle, tab labels, click-to-edit titles, inline delete confirm
+- CSV import fix pending Railway redeploy verification (Chrome disconnected before re-test)
+
+**Session 127 COMPLETE (2026-03-10):** Chrome QA — add-items photo upload flow. 2 bugs found and fixed.
+- Bug 1: Manual Entry tab had no photo upload field. Fixed — standard file input added (no AI, preserves AI as paid feature).
+- Bug 2: Camera tab Analyze button fired API call but discarded response — toast appeared, nothing happened. Fixed — `uploadCapturedPhoto` now consumes response, pre-fills form, switches to Manual tab. Auto-create (⚡) checkbox added above Start Camera button.
+- UX decision: Manual Entry = standard upload only. Camera = AI pre-fill (with option to auto-create immediately).
+- Merge conflict resolved (agents had done full-file rewrites across multiple commits). Final file: 989 lines, all auction fields intact.
+- Commits: 451b1de, db0e1b8, 4d61bcf, 1f4cada (MCP), 202127c (local), afc280a (conflict resolution).
+- FINDING-3 (stale fee copy on dashboard) — deferred from session 126, still open.
+- 4 new QA findings queued — all resolved in Session 128: camera fullscreen/flash ✅, tab labels ✅, click-to-edit ✅, CSV import tested + fixed ✅.
+
+Last Updated: 2026-03-10 (session 128 — Chrome audit PASS; CSV import 500 fixed; FINDING-3 resolved; 3 commits pushed)
