@@ -1,6 +1,6 @@
 # Next Session Resume Prompt
-*Written: 2026-03-09 — Session 118 (updated mid-session: context-audit fixes)*
-*Session ended: in progress*
+*Written: 2026-03-10T00:00:00Z*
+*Session ended: normally — Session 120 complete*
 
 ---
 
@@ -22,83 +22,75 @@ If `.checkpoint-manifest.json` is missing: create it from schema in CORE.md §3 
 
 ## Resume From
 
-Start **Session 120**.
+Start **Session 121**. Patrick must run `git stash && git pull` first — local is pre-session, all Session 120 fixes are on GitHub only.
 
-## What Was Done Last Session (119)
+## What Was Done Last Session (120)
 
-**Records Audit 110–118 (complete):**
-- Scope change from 108–116 to previous 9 (110–118) per Patrick
-- 4 drift items corrected: earningsPDF (already done bd34de4), Feature #10 (already done 5473c14), roadmap Phase 3 checkmarks, A3.6 resolved
-- Patrick confirmed: 3 Neon migrations deployed (69 total), wrap docs pushed, v3 skill reinstalled
-- STATE.md, roadmap.md, session-log.md all updated
-- `.checkpoint-manifest.json` first full live session — PASS
+**Beta Dry Run Friction Blitz:**
+- 13/15 friction items implemented via 5 parallel dev agents (wizard auto-launch, listing type consolidation, edit-sale badges/toggle/dates, checkout ToS/fee/retry/receipt, UX copy)
+- Items 7 (bulk edit) and 13 (neighborhood autocomplete) deferred
 
-## Session 120 Objectives
+**Vercel Build Cascade Fixed:**
+- Dev D hallucinated full 200-line rewrite of `items/[id].tsx` — restored from local disk
+- 6 TypeScript errors fixed across 4 commits: CountdownTimer null guard, ReverseAuctionBadge prop, ItemShareButton/BuyingPoolCard/PhotoLightbox props (full audit), dashboard `user.createdAt` removed
+- `onboardingComplete` flag is now the sole wizard gate (24hr createdAt check removed — field not in JWT User type)
 
-### Priority 1 — Full-Text Search Migration Rollback Plan
-
-Still open pre-beta task. `findasale-architect` owns this.
-Document `down()` steps + recovery playbook for migration `20260310000001_add_item_fulltext_search_indexes` + last 4 most recent migrations. Output: `claude_docs/feature-notes/migration-rollback-plan-2026-03-09.md`.
+**QA P2 fixes:** z-index z-10→z-50 on sale selector, reverse auction onBlur per-field validation
 
 ---
 
-### Priority 2 — Beta Organizer Email Sequence
+## Session 121 Objectives
 
-`findasale-cx` owns this. 3-email triggered sequence: welcome / day-3 nudge / day-7 help.
-Load the sequence via MailerLite MCP after drafting. Reference `claude_docs/beta-launch/organizer-email-sequence.md` as starting point.
+### Priority 1 — Deferred Friction Items
 
----
+**Item 7 — Bulk Edit on Items List:** Add checkboxes to item rows in the organizer items list, allow batch status/price update. No files touched yet.
 
-### Priority 3 — Spring Content Push
+**Item 13 — Neighborhood Autocomplete:** Integrate neighborhood autocomplete into sale create/edit form. No files touched yet.
 
-`findasale-marketing` — "Spring Estate Sales 2026" blog post + 3 social posts.
-Peak demand is NOW. Publish this week via MailerLite or direct copy.
+### Priority 2 — Beta Organizer Outreach
 
----
+Materials archived in `claude_docs/beta-launch/`. `findasale-cx` owns execution. First 5 organizer targets needed from Patrick.
 
-### Priority 4 — Beta Dry Run
+### Priority 3 — Phase 4 Feature Backlog (#13–#23)
 
-`findasale-cx` + `findasale-ux` — impersonate first-time organizer through full create-sale flow.
-Log every friction point before real beta users do. Output a friction log in `claude_docs/beta-launch/`.
-
----
-
-### Priority 5 — VAPID Keys Confirm
-
-Patrick said "done" in session 119 — verify `VAPID_PUBLIC_KEY` and `VAPID_PRIVATE_KEY` are in Railway Variables. If confirmed, mark checklist item complete.
+See `claude_docs/strategy/roadmap.md` for full list. Architect consult before any schema-touching feature.
 
 ---
 
 ## Pending Patrick Actions
 
+- **`git stash && git pull`** — REQUIRED before any local dev work
 - **Stripe business account** — blocks beta monetization ⚠️ highest priority
 - **Google Search Console verification** — blocks SEO visibility
-- **Beta organizer outreach** — first 5 targets (materials in `claude_docs/beta-launch/`)
+- **Beta organizer outreach** — first 5 targets needed
+- **Order business cards** — design ready in `claude_docs/brand/`
 
-## Push Block (Session 119)
+## Push Block (Session 120 Wrap)
 
-Session 119 files changed locally (push with wrap):
+These wrap-only files were NOT pushed via MCP. Patrick must push them:
 ```
 git add claude_docs/STATE.md
-git add claude_docs/strategy/roadmap.md
 git add claude_docs/logs/session-log.md
+git add claude_docs/self-healing/self_healing_skills.md
 git add claude_docs/next-session-prompt.md
-git add claude_docs/health-reports/records-audit-sessions-110-118-2026-03-09.md
-git add .checkpoint-manifest.json
+git add context.md
+git add claude_docs/.last-wrap
+git commit -m "chore: session 120 wrap — state, session log, self-healing, context"
 .\push.ps1
 ```
 
 ## Environment
 
-- Railway: GREEN (A3.6 resolved — confirmed session 119)
-- Neon: 69 migrations applied ✅ (all 3 pending from sessions 115+117 deployed)
-- Vercel: build passing
+- Railway: GREEN
+- Neon: 69 migrations applied ✅
+- Vercel: build passing ✅ (cascade fixed this session)
 - conversation-defaults: v3 installed ✅
+- Feature #11 Referral Discount: migration deployed, live in production
 
-## Session Scoreboard — Session 119
+## Session Scoreboard — Session 120
 
-Files changed: 6 (STATE.md, roadmap.md, session-log.md, next-session-prompt.md, audit report, manifest)
-Compressions: 0
-Subagents: 0 (records skill inline)
-Push method: Patrick PS1 (session wrap)
-Manifest test: PASS — first live use of .checkpoint-manifest.json
+Files changed: multiple (13 friction items + 5 Vercel type fixes + 2 QA P2 fixes)
+Compressions: 1 (mid-session)
+Subagents: 7 (5 parallel dev agents + QA + UX)
+Push method: MCP (code) + Patrick PS1 (wrap docs)
+Notable: Dev D full-rewrite hallucination — self-healing entry #53 added

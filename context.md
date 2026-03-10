@@ -1,18 +1,19 @@
 # Dynamic Project Context
-*Generated at 2026-03-09T16:00:53.380Z*
+*Generated at 2026-03-10T02:11:51.991Z*
 *Run `node scripts/update-context.js` on Windows to refresh.*
 
 ## Last Session
-### 2026-03-09
-**Worked on:** (1) QA+Dev parallel dispatch: A1.3 (geo toast), A1.4 (FTS into main search), A2.2 (13 PWA icons regenerated from brand source), A5.1 (double layout), A5.2 (organizer profile links), A6.1 (hardcoded city → env vars). (2) Fleet continuation: A4.1 (dashboard Add Items gating + NaN), A3.3 (× unicode), A3.4 (edit-item error handling), A3.8 (orphan tab removed), A5.3 (badge fetch), B4 (auctionReservePrice + migration + frontend), B8 (webhook UI surfaced). (3) Two hotfixes post-deploy: TS error (isAuction/reverseAuction missing from formData state); Sentry SW registration failure (stale committed sw.js had old icon hashes after regeneration — fixed by creating `packages/frontend/.gitignore` to exclude all next-pwa build artifacts). Railway Metal outage noted — deploys paused during session.
-**Decisions:** B5 DEFERRED (email reply parsing, trigger at 500 organizers). B8 Zapier DEFER indefinitely. B4 GO. next-pwa build artifacts (sw.js, workbox-*.js, fallback-*.js) must never be committed — now gitignored.
-**Token efficiency:** 3 QA dispatches, 1 Architect, 2 Dev, Python icon gen, 2 hotfixes. ~14 files. TER: 0.10–0.14 tasks/k-token (good — fleet parallelism effective).
-**Next up:** A3.6 (Railway logs → single-item 500 fix). B2 (AI tagging disclosure copy). H1 (UX inspiration). D3 (map route planning). Neon migration for auctionReservePrice.
-**Blockers:** A3.6 waiting on Railway logs. Neon migration `20260309_add_auction_reserve_price` not yet deployed to production (full command in next-session-prompt.md).
+### 2026-03-10
+**Worked on:** (1) Parallel P1–P4 dispatch: migration rollback plan, beta organizer email sequence, spring content pipeline, beta dry run friction log (15 items catalogued). P5 VAPID confirmed done by Patrick. (2) 13/15 friction items implemented via 5 parallel agents: dashboard wizard auto-launch + add-items sale selector (Dev A), add-items listing type consolidated to single select (Dev B), edit-sale DRAFT/LIVE badge + publish toggle + date TZ normalization (Dev C), checkout ToS/fee display/retry/receipt (Dev D), UX copy spec (UX). Items 7 (bulk edit) and 13 (neighborhood autocomplete) deferred. (3) Vercel build cascade: Dev D hallucinated a full 200-line rewrite of items/[id].tsx replacing 563-line file with non-existent imports (`@findasale/shared`, `@/lib/apiClient`). Restored from local disk, then resolved 6 cascading TypeScript errors across 4 commits (Skeleton height prop, getOptimizedUrl arity, CountdownTimer null guard, ReverseAuctionBadge/ItemShareButton/BuyingPoolCard missing/wrong props, PhotoLightbox startIndex→initialIndex, dashboard user.createdAt non-existent on JWT User). (4) QA P2: sale selector dropdown z-10→z-50, reverse auction validation onBlur per-field.
+**Decisions:** Dev agents require explicit "diff-only, no full rewrites" in every dispatch prompt — Dev D violation proved this is mandatory. onboardingComplete flag is the sole wizard gate (dropped 24hr `user.createdAt` check — field not in JWT User). Self-healing entry #53 added.
+**Token efficiency:** 5 parallel agent dispatches (friction items) + 7 sequential hotfix commits. High output but 6 Vercel build cycles consumed significant overhead due to agent hallucination. No repair loops after restore.
+**Token burn:** ~150k tokens (est.), 2 checkpoints logged.
+**Next up:** Patrick `git stash && git pull` to sync local. Deferred friction items 7 (bulk edit) + 13 (neighborhood autocomplete). Beta organizer outreach. Stripe business account setup.
+**Blockers:** Patrick git sync needed (local is pre-session, all fixes on GitHub). Stripe business account still pending. Google Search Console still pending.
 
 ## Health Status
-Last scan: health-scout-pre-beta-2026-03-07
-Overall health is **STRONG** with no critical blockers identified. Sprint 3 (Shopper Loyalty Program with coupons) and Sprint 3.5 (code deGR-ification) are production-ready. All coupon validation logic correctly prevents negative totals, enforces minimum charge thresholds, and handles edge cases (expired coupons, wrong user, already-used). Region configuration successfully externalizes Grand Rapids defaults via environment variables with graceful fallbacks. The codebase shows consistent error handling, proper authentication on all sensitive endpoints, and secure webhook verification. Two minor recommendations relate to environment variable documentation completeness and a missing frontend env var reference.
+Last scan: records-audit-sessions-110-118-2026-03-09
+3 documentation drift items found. 2 are HIGH priority — features marked as open that
 
 ## Environment
 - GitHub CLI: ✗ not authenticated (not required when GitHub MCP is active — check MCP tools at session start)
@@ -25,6 +26,7 @@ Overall health is **STRONG** with no critical blockers identified. Sprint 3 (Sho
 
 ## Project File Tree
 ```
+├── .checkpoint-manifest.json
 ├── .env
 ├── .env.example
 ├── .gitattributes
@@ -40,7 +42,6 @@ Overall health is **STRONG** with no critical blockers identified. Sprint 3 (Sho
 │   └── global-instructions.md
 ├── claude_docs/
 │   ├── .last-wrap
-│   ├── BACKLOG_2026-03-08.md
 │   ├── CORE.md
 │   ├── RECOVERY.md
 │   ├── SECURITY.md
@@ -48,40 +49,29 @@ Overall health is **STRONG** with no critical blockers identified. Sprint 3 (Sho
 │   ├── STACK.md
 │   ├── STATE.md
 │   ├── WRAP_PROTOCOL_QUICK_REFERENCE.md
-│   ├── archive/ (20 files)
-│   ├── beta-launch/ (21 files)
-│   ├── brand/ (9 files)
-│   ├── competitor-intel/ (3 files)
-│   ├── feature-notes/ (13 files)
-│   ├── guides/ (6 files)
-│   ├── health-reports/ (3 files)
-│   ├── improvement-memos/ (7 files)
-│   ├── logs/ (6 files)
+│   ├── beta-launch/ (4 files)
+│   ├── brand/ (8 files)
+│   ├── competitor-intel/ (1 files)
+│   ├── feature-notes/ (6 files)
+│   ├── guides/ (0 files)
+│   ├── health-reports/ (1 files)
+│   ├── improvement-memos/ (0 files)
+│   ├── logs/ (2 files)
 │   ├── marketing/
-│   │   └── content-pipeline/
-│   │       └── content-2026-03-09.md
+│   │   ├── content-pipeline/
+│   │   │   └── spring-content-2026-03-09.md
+│   │   └── spring-2026-content.md
 │   ├── next-session-prompt.md
-│   ├── operations/ (23 files)
-│   ├── research/ (20 files)
+│   ├── operations/ (13 files)
+│   ├── qa/
+│   │   └── payment-edge-cases-2026-03-09.md
+│   ├── research/ (1 files)
+│   ├── security/
+│   │   └── oauth-redteam-2026-03-09.md
 │   ├── self-healing/ (1 files)
-│   ├── skill-updates-2026-03-09/
-│   │   ├── zi5EvujG
-│   │   ├── ziHrnm0b
-│   │   ├── ziKnQq8v
-│   │   ├── ziNKzHGC
-│   │   ├── ziPWwhcU
-│   │   ├── zieKBhLR
-│   │   ├── zifGO3j3
-│   │   ├── zifyWCkq
-│   │   ├── zinsKy4l
-│   │   ├── ziuVdr1W
-│   │   ├── ziwLHSE5
-│   │   ├── ziwvxhCc
-│   │   └── zixeEWiT
-│   ├── skills-package/ (28 files)
-│   ├── strategy/ (5 files)
-│   └── workflow-retrospectives/ (2 files)
-├── docker-compose.yml
+│   ├── skills-package/ (27 files)
+│   ├── strategy/ (4 files)
+│   └── workflow-retrospectives/ (0 files)
 ├── docs/
 │   └── CD2_PHASE2_TREASURE_HUNT.md
 ├── next
@@ -105,14 +95,14 @@ Overall health is **STRONG** with no critical blockers identified. Sprint 3 (Sho
 │   │   │   ├── _triggerDigest.ts
 │   │   │   ├── config/
 │   │   │   │   └── regionConfig.ts
-│   │   │   ├── controllers/ (51 files)
+│   │   │   ├── controllers/ (52 files)
 │   │   │   ├── index.ts
 │   │   │   ├── instrument.ts
 │   │   │   ├── jobs/ (11 files)
 │   │   │   ├── lib/ (3 files)
 │   │   │   ├── middleware/ (2 files)
 │   │   │   ├── models/ (1 files)
-│   │   │   ├── routes/ (53 files)
+│   │   │   ├── routes/ (54 files)
 │   │   │   ├── services/ (19 files)
 │   │   │   └── utils/ (2 files)
 │   │   └── tsconfig.json
@@ -124,7 +114,7 @@ Overall health is **STRONG** with no critical blockers identified. Sprint 3 (Sho
 │   │   ├── package-lock.json
 │   │   ├── package.json
 │   │   ├── prisma/
-│   │   │   ├── migrations/ (68 migrations)
+│   │   │   ├── migrations/ (72 migrations)
 │   │   │   ├── schema.prisma
 │   │   │   └── seed.ts
 │   │   └── tsconfig.json
@@ -134,16 +124,16 @@ Overall health is **STRONG** with no critical blockers identified. Sprint 3 (Sho
 │   │   ├── .gitignore
 │   │   ├── CLAUDE.md
 │   │   ├── Dockerfile
-│   │   ├── components/ (92 files)
+│   │   ├── components/ (93 files)
 │   │   ├── context/ (1 files)
 │   │   ├── contexts/ (1 files)
 │   │   ├── hooks/ (8 files)
-│   │   ├── lib/ (2 files)
+│   │   ├── lib/ (3 files)
 │   │   ├── next-env.d.ts
 │   │   ├── next-sitemap.config.js
 │   │   ├── next.config.js
 │   │   ├── package.json
-│   │   ├── pages/ (47 files)
+│   │   ├── pages/ (48 files)
 │   │   ├── postcss.config.js
 │   │   ├── public/ (14 files)
 │   │   ├── sentry.client.config.ts

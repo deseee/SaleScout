@@ -45,6 +45,8 @@ Session 105 Bug Blitz COMPLETE. Session 106 B1 ADR COMPLETE. Session 107 B1 impl
 - A3.6 single-item 500: ✅ RESOLVED — no errors in latest Railway deploy (confirmed by Patrick, session 119).
 - New migration: `20260312000001_add_organizer_referral_discount` — adds `referralDiscountExpiry DateTime?` to Organizer. Patrick must deploy.
 
+**Session 120 COMPLETE (2026-03-10):** Beta dry run friction blitz. 13/15 items implemented (items 7 + 13 deferred). Vercel build cascade fixed (6 type errors in items/[id].tsx after agent full-file rewrite). QA P2 fixes: z-index, per-field validation. Docs: migration rollback plan, beta organizer email, spring content, dry run friction log.
+
 **Session 119 COMPLETE (2026-03-09):** Records audit sessions 110–118. 4 drift items corrected (earningsPDF fix, Feature #10, roadmap checkmarks, A3.6). Manifest test PASS — first full live session with `.checkpoint-manifest.json`.
 
 **Remaining open:** B3/B7/D1/C1/C2 (deferred/attorney). VAPID keys confirm in prod. Vercel MCP not yet leveraged. Feature #11 Referral Discount requires Neon migration deploy before active in production.
@@ -149,4 +151,4 @@ Full audit reports: archived (git history, sessions 84–85). Beta checklist: ar
 
 ---
 
-Last Updated: 2026-03-09 (session 119 — records audit 110–118, drift corrections, A3.6 resolved)
+Last Updated: 2026-03-10 (session 120 — beta dry run friction blitz, Vercel build cascade fixed, QA P2)

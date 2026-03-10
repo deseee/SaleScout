@@ -400,3 +400,14 @@ Push the fixed file via GitHub MCP, then tell Patrick: `git fetch origin ; git m
 **Known instance:** Session 90 - all four wrap-only doc files MCP-pushed mid-session, then conflicted at wrap commit. Required manual resolution across 4 files before push could succeed.
 
 Last Updated: 2026-03-07 (session 90 - added entry #52: wrap-only doc files causing merge conflicts; resolved entry #51 conflict markers)
+
+### 53. Agent Full-File Rewrite Overwrites Working Code (Dev Agent Hallucination)
+**Trigger:** Vercel build fails with import errors for non-existent modules immediately after an agent touches a file (e.g., `Cannot find module '@findasale/shared'`, `Property 'x' does not exist`).
+**Root cause:** A dev subagent was not explicitly constrained to diff-only and rewrote the entire file from memory, hallucinating imports and component structure. The file diff shows a ~70% line-count reduction as the telltale sign.
+**Fix:** Read the correct version from local disk (via Read tool or `cat`) — not GitHub, which already has the bad version. Restore via `mcp__github__create_or_update_file` with the correct content. Then apply targeted fixes for any remaining type errors.
+**Prevention:** Every dev subagent dispatch prompt must include: "Diff-only. Do NOT rewrite entire files. If you need to see the full file first, read it." Also: before any hotfix, check line count of the current GitHub file vs expected — a sudden drop is a rewrite signal.
+**Known instance:** Session 120 — Dev D rewrote items/[id].tsx (563→~200 lines), injecting `@findasale/shared`, `@/lib/apiClient`, `@/lib/toast` (all non-existent). Required restore + 6 targeted hotfix commits to clear the build.
+**Test:** After any agent edits a large file, compare line counts: `wc -l <file>` before vs after.
+**Confidence:** HIGH (immediate fix confirmed, pattern will recur without explicit constraint)
+
+Last Updated: 2026-03-10 (session 120 — added entry #53: agent full-file rewrite hallucination)
