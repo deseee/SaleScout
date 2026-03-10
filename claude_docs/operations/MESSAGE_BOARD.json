@@ -168,5 +168,85 @@
       "claude_docs/next-session-prompt.md"
     ]
   }
+  ,{
+    "id": "msg-115-security",
+    "timestamp": "2026-03-09T23:45:00Z",
+    "from": "security-agent",
+    "to": "patrick, orchestrator",
+    "type": "completion",
+    "subject": "P0 Security fixes complete — OAuth red-team 3 findings resolved",
+    "body": "SECURITY FIXES COMPLETE. All 3 P0/P1 findings from oauth-redteam-2026-03-09.md implemented and tested. (1) FIX 1 P0 — Account Takeover via Email-Linking: Removed auto-link logic from oauthLogin (lines 193-203). Now rejects OAuth login if email already exists with error: 'An account with this email already exists. Please sign in with your email and password.' Prevents silent account takeover. (2) FIX 2 P0 — Missing Redirect URI Allowlist: Added ALLOWED_REDIRECT_URIS constant + isValidRedirectUri() validator. OAuth callback now accepts returnTo param, validates against allowlist [FRONTEND_URL, FRONTEND_URL/organizer/dashboard, FRONTEND_URL/browse], returns validated URI or null. Prevents open redirect attacks. (3) FIX 3 P1 — Missing Session Invalidation on Password Change: Added tokenVersion field to User model (default 0). On password change, tokenVersion incremented (line 58). JWT payload includes tokenVersion. Authenticate middleware validates JWT tokenVersion matches current user.tokenVersion — rejects if mismatch (password changed after token issued). Invalidates all prior JWTs on password change. Prisma migration created: 20260309000001_add_token_version. FILES CHANGED: 4. DB migration required before deploy.",
+    "status": "complete",
+    "files_changed": [
+      "packages/backend/src/controllers/authController.ts",
+      "packages/backend/src/routes/auth.ts",
+      "packages/backend/src/middleware/auth.ts",
+      "packages/database/prisma/schema.prisma"
+    ],
+    "files_created": [
+      "packages/database/prisma/migrations/20260309000001_add_token_version/migration.sql"
+    ],
+    "migration_required": "20260309000001_add_token_version",
+    "next_steps": "Patrick: Run 'prisma generate && prisma migrate deploy' to apply tokenVersion migration. No frontend changes required for these security fixes."
+  }
+  ,{
+    "id": "msg-115-payment",
+    "timestamp": "2026-03-09T23:59:00Z",
+    "from": "payment-agent",
+    "to": "patrick, orchestrator",
+    "type": "completion",
+    "subject": "P0 Payment edge case fixes complete",
+    "body": "PAYMENT EDGE CASE FIXES COMPLETE. All 4 P0 findings from payment-edge-cases-2026-03-09.md implemented. (1) FIX 1 P0 — Chargeback Webhook Unhandled: Added handler for charge.dispute.created event in stripeController.ts webhook switch (lines 490-515). Handler retrieves charge, finds associated payment intent, looks up Purchase, updates status to DISPUTED, and logs dispute + purchase IDs to console. (2) FIX 2 P0 — Webhook Retry Idempotency: Added ProcessedWebhookEvent model to schema.prisma (lines 509-517) with unique eventId + processedAt timestamp. Webhook handler now checks idempotency at line 332-347: if event.id already in ProcessedWebhookEvent, skips processing + returns early. After successful processing, records event at line 520-528. (3) FIX 3 P0 — Negative Prices in DB: Added price validation to itemController.ts createItem (lines 273-290) and updateItem (lines 359-383). All price fields (price, auctionStartPrice, auctionReservePrice, shippingPrice) validated >= 0 before DB write. Returns 400 with descriptive error if negative. (4) FIX 4 P0 — Buyer Can Purchase Own Sale Items: Added self-purchase guard to stripeController.ts createPaymentIntent (lines 186-189). After fetching item + organizer, checks if item.sale.organizer.userId === req.user.id. If match, returns 400: 'You cannot purchase items from your own sale.' FILES CHANGED: 3. MIGRATION CREATED: packages/database/prisma/migrations/20260309_p0_payment_edge_cases/migration.sql (ProcessedWebhookEvent table + indices).",
+    "status": "complete",
+    "files_changed": [
+      "packages/backend/src/controllers/stripeController.ts",
+      "packages/backend/src/controllers/itemController.ts",
+      "packages/database/prisma/schema.prisma"
+    ],
+    "files_created": [
+      "packages/database/prisma/migrations/20260309_p0_payment_edge_cases/migration.sql"
+    ],
+    "migration_required": "20260309_p0_payment_edge_cases",
+    "blockers_or_notes": "No blockers. All fixes are non-breaking. Migration adds ProcessedWebhookEvent table + indices (no schema changes to existing models except Purchase status comment update which doesn't require migration). Patrick: Run 'prisma generate && prisma migrate deploy' to apply ProcessedWebhookEvent table before deploying stripeController changes."
+  }
+  ,{
+    "id": "msg-115-research",
+    "timestamp": "2026-03-09T23:59:00Z",
+    "from": "research-agent",
+    "to": "patrick, orchestrator",
+    "type": "completion",
+    "subject": "Token tracking feasibility research complete",
+    "body": "RESEARCH COMPLETE: Token tracking IS partially feasible via hybrid client-side self-estimation + manual checkpoint logging. No API exposure in Cowork for real-time counts, but estimates accurate to ±10-15% using tiktoken approximations on file sizes and tool outputs. Recommendation: Implement hybrid approach with 3 components (checkpoint logging macro + session-start budget briefing + turn-by-turn self-estimates). Overhead <1% of session burn, benefit = visibility into context usage and early warning at 85% threshold to prevent surprise compressions. Full assessment: claude_docs/operations/token-tracking-feasibility.md.",
+    "status": "complete",
+    "files_created": [
+      "claude_docs/operations/token-tracking-feasibility.md"
+    ]
+  }
+  ,{
+    "id": "msg-116-feature4",
+    "timestamp": "2026-03-09T22:49:00Z",
+    "from": "findasale-dev",
+    "to": "orchestrator, patrick",
+    "type": "completion",
+    "subject": "Feature #4 — /categories index page created and pushed",
+    "body": "Feature #4 COMPLETE. Created packages/frontend/pages/categories/index.tsx — category listing page at /categories. Calls GET /api/items/categories, displays cards sorted by count descending with emoji icons and item counts. Links to /categories/[category]. Handles loading/error/empty states. Matches warm palette from existing [category].tsx. Note: [category].tsx already existed (Phase 29) and functionally works — no changes needed there. The only missing piece was this index page. Pushed to GitHub commit f60066651e946a3d6f8c7afb89c3bd65b3bc36ad.",
+    "status": "complete",
+    "files_created": [
+      "packages/frontend/pages/categories/index.tsx"
+    ]
+  }
+  ,{
+    "id": "msg-118-advisory-board-context-audit",
+    "timestamp": "2026-03-09T23:59:00Z",
+    "from": "findasale-advisory-board",
+    "to": "patrick, orchestrator",
+    "type": "completion",
+    "subject": "Context Loss Audit Complete — Advisory Board Final Verdict",
+    "body": "ADVISORY BOARD CONTEXT AUDIT COMPLETE. Six independent audits synthesized (Architect, Developer, QA, PowerUser, Pitchman, Workflow). CORE FINDING: Compression problem is real (costs ~20% of session capacity) but 95% solvable via non-invasive fixes. NO REDESIGN NEEDED. Current checkpoint system is sound in design; it fails only on enforcement and persistence. VERDICT: Implement persistent .checkpoint-manifest.json at repo root (survives compressions), tighten Rule 3 (merge task-assignment branch to eliminate ambiguity), embed budget checklist in next-session-prompt.md (turn init into hard gate). Total implementation: 4–6 hours across 2 sessions. Token overhead: <100 per session. KEEP: checkpoint format, estimation formulas (accurate ±10%), thresholds (170k warn, 190k stop), subagent capacity rule, wrap protocol. DROP: in-conversation checkpoints alone (move to external JSON), Rule 3 task-assignment branch ambiguity (merge rules), manual compression trigger detection (focus on pre-compression warnings instead). BUILD (P0–P2): (1) .checkpoint-manifest.json — persistent store, survives compressions, 2 hrs. (2) Rule 3 enforcement fix — merge branches, 1 hr. (3) Budget checklist in next-session-prompt.md — hard gate, 1 hr. (4) Compression detection hook — logs to manifest, 30 min. (5) Pre-dispatch checkpoint — validate budget before 3+ agents, 30 min. RISK FLAGS: (1) Memory Tool dependency (PowerUser suggested) vs. file-based (Dev recommended) — board chose files (faster, no Anthropic dependencies). (2) Scheduled task injection issue (#29022 Windows) — use files instead. (3) Adoption requires culture change (Rule 3 + checklist enforcement, not just persistence). All mitigations provided. ROADMAP: Session 119 (create manifest template, fix Rule 3, embed checklist), Session 120 (implement write logic + compression hook), Session 121+ (analyze patterns, refine prediction rules). Full analysis: claude_docs/operations/context-audit/advisory-board-final.md",
+    "status": "complete",
+    "files_created": [
+      "claude_docs/operations/context-audit/advisory-board-final.md"
+    ]
+  }
   ]
 }

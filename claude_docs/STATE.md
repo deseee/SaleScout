@@ -19,14 +19,30 @@ Session 105 Bug Blitz COMPLETE. Session 106 B1 ADR COMPLETE. Session 107 B1 impl
 **Session 112 COMPLETE (2026-03-09):** Security fix + workflow audit + H1 quick win.
 - Scrubbed live Neon credentials, workflow audit + 3 CORE.md fixes, H1 "How It Works" card shipped.
 
+**Session 115 COMPLETE (2026-03-09):** P0 security + payment fixes shipped. Token tracking research complete.
+- Security fixes: OAuth account-takeover removed (no auto-link by email), redirect_uri allowlist added, tokenVersion-based session invalidation on password change
+- Payment fixes: chargeback webhook handler (DISPUTED status), webhook idempotency (ProcessedWebhookEvent), negative price guards in itemController, buyer-own-item purchase guard
+- Migrations: `20260309000002_add_token_version`, `20260309200001_add_processed_webhook_event` (Patrick must deploy)
+- Research: token-tracking-feasibility.md — IMPLEMENT YES (hybrid approach: budget briefing + checkpoints)
+- Migration naming fix: corrected two agent-generated migrations with conflicting names
+
 **Session 114 COMPLETE (2026-03-09):** D3 + B2 + H1 shipped. Agent fleet (6 workers) completed.
 - D3: Map route planning — OSRM backend controller, routes.ts, routeApi.ts, RouteBuilder.tsx, wired into map.tsx
 - B2: AI tagging disclosure — items/[id].tsx, organizer/add-items/[saleId].tsx, organizer/settings.tsx updated with approved copy
 - H1: Compact mobile header — search bar py-1.5, main content pt-[92px]
-- Track 3: roadmap.md v21, STATE.md stale entries pruned
-- Security/QA fleet: OAuth red-team (2 P0s), Payment QA (4 P0 blockers), Migration rollback plan, Support KB, RECOVERY.md decision trees, Spring 2026 marketing content
 
-**Remaining open:** A3.6 single-item 500 (needs production logs). P0 security fixes (OAuth account-takeover, redirect_uri allowlist, chargeback webhook, buyer-own-item purchase prevention). B3/B7/D1/C1/C2 (deferred/attorney). VAPID keys confirm in prod. Vercel MCP not yet leveraged.
+**Session 116 COMPLETE (2026-03-09):** Token tracking + 3 features shipped.
+- Token tracking (P1): CORE.md §3 updated with checkpoint format, `operations/token-checkpoint-guide.md` created, conversation-defaults skill v3 packaged
+- Feature #4 (Search by Item Type): `categories/index.tsx` created — /categories landing page with category cards sorted by item count. `[category].tsx` already existed (Phase 29).
+- Feature #12 (SEO Description Optimization): `cloudAIService.ts` Haiku prompt — titles now format "[Type], [Material], [Maker]"; tags 5–8 terms biased toward material/era/maker keywords
+- Feature #9 (Payout Transparency Dashboard): `GET /api/stripe/earnings` + `payouts.tsx` — per-item breakdown: sale price → 10% platform fee → est. Stripe fee → net payout. Summary totals + full item table on payouts page.
+
+**Session 117 COMPLETE (2026-03-09):** Feature #11 + Vercel build fix.
+- Feature #11 (Organizer Referral Reciprocal): `stripeController.ts` — fee bypass when `referralDiscountExpiry > now` (0% instead of 10%); `routes/organizers.ts` — `GET /organizers/me` exposes `referralDiscountActive` + `referralDiscountExpiry`; `payouts.tsx` — green referral discount banner when active. MCP commit 3243091.
+- Vercel build fix: `pages/items/[id].tsx` — renamed `triggerToast` → `showToast` (6 occurrences). MCP commit 949d743.
+- New migration: `20260312000001_add_organizer_referral_discount` — adds `referralDiscountExpiry DateTime?` to Organizer. Patrick must deploy.
+
+**Remaining open:** A3.6 single-item 500 (needs production logs). B3/B7/D1/C1/C2 (deferred/attorney). VAPID keys confirm in prod. Vercel MCP not yet leveraged. `earningsPdfController.ts` footer still says "5%/7%" — needs update to 10% flat. Feature #10 (Serendipity Search) is next up.
 
 ---
 
@@ -51,10 +67,16 @@ Phases 1–13 + pre-beta audit + rebrand + Sprints A–X all verified and shippe
 
 ## In Progress
 
-**3 Neon migrations — ✅ DEPLOYED (Session 112, confirmed by Patrick).** 66 total applied.
+**5 Neon migrations — 3 awaiting deploy (Sessions 115 + 117).** 66 applied + 3 pending.
+Previously deployed (66 total):
 1. `20260309_add_auction_reserve_price`
 2. `20260310000001_add_item_fulltext_search_indexes`
 3. `20260311000001_add_sale_type_item_listing_type`
+
+Pending (Patrick must run `prisma migrate deploy` from `packages/database`):
+4. `20260309000002_add_token_version` — adds tokenVersion to User (session invalidation) [Session 115]
+5. `20260309200001_add_processed_webhook_event` — adds ProcessedWebhookEvent table (webhook idempotency) [Session 115]
+6. `20260312000001_add_organizer_referral_discount` — adds referralDiscountExpiry to Organizer [Session 117 / Feature #11]
 
 For future migration deploys, see `claude_docs/DEVELOPMENT.md` and `packages/backend/.env` (commented-out Neon URLs). Never embed credentials in committed files (CORE.md §17.3c).
 
@@ -124,4 +146,4 @@ Full audit reports: archived (git history, sessions 84–85). Beta checklist: ar
 
 ---
 
-Last Updated: 2026-03-09 (session 114 — D3/B2/H1 shipped, agent fleet complete)
+Last Updated: 2026-03-09 (session 117 — Feature #11 pushed, Vercel triggerToast fix)
