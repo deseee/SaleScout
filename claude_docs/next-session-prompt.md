@@ -1,6 +1,6 @@
 # Next Session Resume Prompt
 *Written: 2026-03-10 (Session 126)*
-*Session ended: normally — Session 126 in progress / Chrome audit underway*
+*Session ended: normally — session 126 complete*
 
 ---
 
@@ -26,35 +26,32 @@ Start **Session 127**.
 
 ## What Was Done Last Session (126)
 
-**Docs correction + Chrome audit of organizer backend:**
-- STATE.md corrected: session 125 edit-item fixes marked as pushed-but-untested (not complete)
-- session-log.md updated with session 126 entry
-- Session 125 wrap files pushed by Patrick (commit d0ba503)
-- schema.prisma has uncommitted `tags String[]` field — flagged for migration (see alert below)
-- Chrome audit of organizer backend continued — see audit report for findings
-
-**Session 125 fixes verification status:**
-- ⚠️ VERIFY IN 127: Did the session 125 fixes (PUT mismatch, organizer null, dropdown case) pass live verification in Chrome? Update STATE.md at session wrap.
+**Docs correction + session 125 fix verification + item list audit:**
+- STATE.md + session-log corrected from session 125 (fixes marked as pushed-but-untested)
+- Session 125 fixes all verified live in Chrome: BUG-1 (PUT fix), BUG-2 (organizer null), BUG-3 (dropdown case) — all ✅
+- Item list + bulk actions audited: hide, show, set price, delete all working
+- 3 new P2 findings logged in `claude_docs/audits/session-126-dashboard-items-audit.md`
+- schema.prisma has uncommitted `tags String[]` field — migration needed (see alert below)
 
 ---
 
 ## Session 127 Objectives
 
-### Priority 1 — Verify Session 125 Fixes in Chrome
+### Priority 1 — Fix FINDING-3: Stale fee copy on dashboard
 
-Navigate to `https://finda.sale/organizer/edit-item/cmmcz9r3q00bawh91ngkyr473` (Coat Rack #2) logged in as Ivan. Verify:
-1. Save Changes sends PUT (not PATCH) — no 404
-2. Category and Condition dropdowns populate correctly on load
-3. Navigate to `https://finda.sale/items/cmmcz9r3q00bawh91ngkyr473` as shopper — no TypeError crash
+**What:** Tier Rewards card on organizer dashboard still shows "5% | 7%" — should reflect 10% flat fee (locked session 106).
+**File:** `packages/frontend/pages/organizer/dashboard.tsx` — find Tier Rewards card copy and update.
+**Scope:** Copy-only change, no logic. Small MCP push after fix.
 
-### Priority 2 — Continue Chrome Audit (Organizer Dashboard Item List)
+### Priority 2 — Continue Chrome Audit (CSV Export/Import + Batch Upload AI tab)
 
-**What to audit:** Item list view on organizer dashboard. Flows: view all items in a sale, filter by status/category, bulk actions (status change, price edit, delete), photo grid navigation.
+**What to audit:**
+1. Export CSV — does it download a file? Does it contain correct item data?
+2. Import CSV — does the upload flow work? What happens with bad data?
+3. Batch Upload (AI) tab — photo batch flow, AI analysis, item pre-fill
 
 **Test account:** Ivan (organizer, Grand Rapids)
-**Test sale:** "Eastside Collector's Estate Sale 11" (PUBLISHED, has items)
-
-Create brief file: `claude_docs/audits/next-audit-brief-127-dashboard-items.md` before starting.
+**Test sale:** Eastside Collector's Estate Sale 11 (PUBLISHED, now 11 items after session 126 delete test)
 
 ### Priority 3 — Deferred Friction Items (#7, #13)
 
@@ -83,34 +80,32 @@ Architect consult before schema changes.
 
 ## ⚠️ Schema Drift Alert
 
-`packages/database/prisma/schema.prisma` has a `tags String[] @default([])` field on Item that exists locally but has no corresponding migration. Before pushing schema.prisma, Patrick must run:
+`packages/database/prisma/schema.prisma` has a `tags String[] @default([])` field on Item that exists locally but has no corresponding migration. At session 127 start, check migrations folder for `add_item_tags`. If missing:
 ```powershell
 # Check for env var override first
 $env:DATABASE_URL
-# Clear if set to non-local: $env:DATABASE_URL=""
+# Clear if needed: $env:DATABASE_URL=""
 
 cd C:\Users\desee\ClaudeProjects\FindaSale\packages\database
 npx prisma migrate dev --name add_item_tags
 ```
-Then commit both `schema.prisma` and the new migration folder, then deploy to Neon.
+Then deploy to Neon after verifying locally.
 
 ---
 
 ## Push Status
 
-**All session 126 files pushed via MCP** (checkpoint-manifest + next-session-prompt). No pending Patrick action required on docs.
-
-**Pending:** schema.prisma + migration (see schema drift alert above).
+**All session 126 files pushed.** No pending Patrick action required.
 
 ## Environment Status
 
 - **Railway:** GREEN — backend running
-- **Neon:** 69 migrations applied ✅ (tags field migration needed — see schema alert)
+- **Neon:** 69 migrations applied ✅ (tags field migration may be needed — see schema alert)
 - **Vercel:** Build passing ✅
-- **GitHub:** Main at d0ba503 (session 125 wrap) + session 126 MCP pushes
+- **GitHub:** Main at session 126 wrap commit
 - **conversation-defaults:** v3 installed ✅
 - **Dev stack:** Native (no Docker) ✅
 
 ---
 
-*Ready for Session 127. Verify session 125 fixes first, then continue Chrome audit.*
+*Ready for Session 127. Fix stale fee copy first (small), then continue Chrome audit.*
