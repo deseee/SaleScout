@@ -1,5 +1,5 @@
 # Dynamic Project Context
-*Generated at 2026-03-11T02:48:56.113Z*
+*Generated at 2026-03-11T12:04:14.873Z*
 *Run `node scripts/update-context.js` on Windows to refresh.*
 
 ## Last Session
@@ -112,7 +112,7 @@ Last scan: records-audit-sessions-110-118-2026-03-09
 │   │   │   │   └── itemQueries.ts
 │   │   │   ├── index.ts
 │   │   │   ├── instrument.ts
-│   │   │   ├── jobs/ (12 files)
+│   │   │   ├── jobs/ (13 files)
 │   │   │   ├── lib/ (3 files)
 │   │   │   ├── middleware/ (2 files)
 │   │   │   ├── models/ (1 files)
