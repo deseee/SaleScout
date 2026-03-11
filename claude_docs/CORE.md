@@ -81,6 +81,8 @@ package.json and pnpm-lock.yaml always committed together.
 
 **After MCP push:** Do not edit those files locally without `git fetch` first.
 
+**Commit block format (always):** Any time git commit instructions are given to Patrick — mid-session or at wrap — provide a complete copy-paste block. Never give a file list and stop. The block must always include explicit `git add [file]` lines, a `git commit -m "..."` line, and `.\push.ps1`. Never `git add -A`. Never omit the commit message. Never omit `.\push.ps1`. This rule applies to every git instruction in every session, not just at wrap.
+
 ---
 
 ## 5. Session Wrap
