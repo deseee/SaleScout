@@ -16,6 +16,23 @@ Keep only the 5 most recent sessions. Delete older entries — git history and S
 
 ## Recent Sessions
 
+## Session 138 — 2026-03-11 — Plugin Skill Fleet Audit & Routing Update
+
+**Cowork Power User audit complete.** All 15 findasale-* SKILL.md files updated with Plugin Skill Delegation sections. Two stale data bugs fixed (5%/7% fee → 10% flat in architect + qa; Docker reference removed from architect). plugin-skill-routing.md created at claude_docs/operations/.
+
+**Advisory board** approved for forward strategic lens: added product-management:roadmap-management and data:create-viz.
+
+**Main session** routing documented: plugin-skill-routing.md is now the routing reference for when to use findasale-* vs. plugin skills directly.
+
+**Deferred for planning session:** findasale-sales-ops agent (organizer outreach, pipeline review, trial-to-insight). Proposed stack: sales:call-prep, sales:pipeline-review, sales:daily-briefing, sales:account-research, customer-support:customer-research, data:explore-data. Patrick to evaluate post-beta.
+
+**Files changed:**
+- /mnt/.skills/skills/findasale-*/SKILL.md (all 15 — delegation sections added)
+- claude_docs/operations/plugin-skill-routing.md (created)
+- claude_docs/logs/session-log.md (this entry)
+
+---
+
 ### 2026-03-10 (sessions 121–123 — Friction Items 7+13 + AI Upload Pipeline)
 **Worked on:** (Session 121) Friction items 7 (bulk edit) + 13 (neighborhood autocomplete): backend `/bulk` endpoint extended for isActive/price ops, `add-items/[saleId].tsx` bulk UI (Select All, per-item checkboxes, amber highlight, Hide/Price toolbar), `create-sale.tsx` + `edit-sale/[id].tsx` neighborhood input+datalist. New schema field `isActive Boolean @default(true)` + migration `20260309000003_add_item_is_active`. Build fixes: template literal + Set spread errors, dashboard.tsx newline corruption (literal `\n` sequences). (Session 122) AI tagging architecture review documented (`claude_docs/feature-notes/ai-tagging-architecture.md`). Webcam capture added to add-items page (MediaDevices API, canvas JPEG, rapid-batch upload). Public item listing now filters `isActive=true` across all search paths (FTS, ILIKE, filtered, counts, getItemById, getItemsBySaleId). Upload pipeline P0/P1 fixes: Cloudinary URL validation, Haiku timeout/parse/rate-limit error capture, `isAiTagged` only set on AI success, feedback endpoint wired (CB4), retry button for failed analysis. **Overwrite incident:** dev agent replaced `itemController.ts` with stub (build broken) — restored via commit `7f6f2ebd`. (Session 123) Two follow-on fixes: `SmartInventoryUpload` isAiTagged Boolean() cast, `embedding: []` added to `createItem` (fixes P2011 null constraint on `Float[]` field).
 **Decisions:** `isActive` added to Item schema to support hide/show without deletion. Webcam capture uses canvas JPEG compression before Cloudinary upload. Haiku error types distinguished (timeout vs parse vs rate-limit) for better retry UX. `embedding: []` is the correct default — `scheduleItemEmbedding` fills async after record creation.
