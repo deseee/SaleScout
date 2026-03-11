@@ -97,3 +97,29 @@ Recurring bugs and their confirmed fixes. Add an entry when a pattern has been s
 - The `.skills/skills/` directory is read-only from the VM — always output to `/sessions/*/skill-output/` or the workspace folder
 
 **Confidence:** HIGH — validator is deterministic; any non-standard frontmatter key will always fail.
+
+---
+
+## SH-007: "Operation not permitted" on rm/delete in FindaSale workspace
+
+**Trigger:** `rm: cannot remove '/sessions/.../mnt/FindaSale/...': Operation not permitted`
+
+**Environment:** Any session attempting to delete files in the mounted FindaSale workspace (`/sessions/*/mnt/FindaSale/`).
+
+**Pattern:** The FindaSale workspace is a mounted directory from the user's computer. The VM does not have delete permissions by default. Bash `rm` and Python `os.remove()` will fail with "Operation not permitted" until the user grants explicit delete access via the MCP tool.
+
+**Known instance:** Session 144 — attempting to delete junk files (MESSAGE_BOARD.json.tmp, test.tmp, zikpWboU, etc.) during file governance cleanup.
+
+**Steps:**
+1. When `rm` fails with "Operation not permitted" on any file under `/sessions/*/mnt/FindaSale/`
+2. Call `mcp__cowork__allow_cowork_file_delete` with the `file_path` of the file you're trying to delete
+3. User approves the permission grant in the Cowork UI
+4. Retry the `rm` or delete operation — it will succeed
+
+**Edge Cases:**
+- Permission is granted per-file — if deleting multiple files, you may need to call the tool once per file or call it with a representative file to unlock the directory
+- Git-tracked files that were never committed produce harmless `fatal: pathspec` errors on `git rm` — these are safe to ignore (the file was created and deleted in the same session)
+
+**Test Command:** `rm /sessions/*/mnt/FindaSale/<any-file>` — if it fails, call `mcp__cowork__allow_cowork_file_delete` first.
+
+**Confidence:** HIGH — workspace mount restriction is consistent; always required before any delete in FindaSale directory.
