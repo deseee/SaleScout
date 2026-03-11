@@ -83,13 +83,21 @@ Never:
 - Log API keys.
 - Commit secrets.
 - Paste full production tokens.
+- Output placeholder values (<paste X here>), [YOUR_DATABASE_URL], or similar placeholder syntax in shell commands, Prisma commands, or environment variable guidance.
 
 Use:
 - .env files
 - .env.example templates
 - Environment-based configuration
+- Inline actual values read from the VM when available
+
+If a secret file cannot be read, stop and tell Patrick explicitly — do not proceed with a placeholder.
+
+Test fixtures and .env.example templates are permitted; live credentials in any form are not.
 
 Rotate keys if exposed.
+
+(Rule added 2026-03-11, Session 137.)
 
 ---
 
@@ -145,4 +153,4 @@ Mitigation for Claude sessions:
 ---
 
 Status: Operational
-Last Revised: 2026-03-04 (added Vercel deploy limit after hitting 100/day cap)
+Last Revised: 2026-03-11 (added placeholder-credentials rule, Session 137)
