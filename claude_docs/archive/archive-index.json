@@ -1,0 +1,207 @@
+{
+  "_schema": "Archive Index v1 — Records-only write access. All agents may read to check existence. To retrieve a file, dispatch findasale-records.",
+  "_lastUpdated": "2026-03-11",
+  "_archivedBy": "advisory-board session 144 — initial vault creation",
+  "entries": [
+    {
+      "file": "audits/chrome-audit-session-124.md",
+      "topic": "Chrome extension browser audit",
+      "archivedFrom": "claude_docs/audits/",
+      "originSession": 124,
+      "dateArchived": "2026-03-11",
+      "summary": "Chrome audit findings from session 124 browser testing"
+    },
+    {
+      "file": "audits/cowork-power-user-session-init-audit-2026-03-11.md",
+      "topic": "Power user session init compliance audit",
+      "archivedFrom": "claude_docs/audits/",
+      "originSession": 140,
+      "dateArchived": "2026-03-11",
+      "summary": "Audit of session initialization compliance across fleet"
+    },
+    {
+      "file": "audits/next-audit-brief-126-dashboard-items.md",
+      "topic": "Dashboard items audit brief",
+      "archivedFrom": "claude_docs/audits/",
+      "originSession": 126,
+      "dateArchived": "2026-03-11",
+      "summary": "Pre-audit brief for dashboard items page review"
+    },
+    {
+      "file": "audits/next-audit-brief-add-edit-item.md",
+      "topic": "Add/edit item audit brief",
+      "archivedFrom": "claude_docs/audits/",
+      "originSession": 126,
+      "dateArchived": "2026-03-11",
+      "summary": "Pre-audit brief for add/edit item flow review"
+    },
+    {
+      "file": "audits/session-125-edit-item-photo-audit.md",
+      "topic": "Edit item photo audit",
+      "archivedFrom": "claude_docs/audits/",
+      "originSession": 125,
+      "dateArchived": "2026-03-11",
+      "summary": "Audit of photo editing workflow in item editor"
+    },
+    {
+      "file": "audits/session-126-dashboard-items-audit.md",
+      "topic": "Dashboard items audit results",
+      "archivedFrom": "claude_docs/audits/",
+      "originSession": 126,
+      "dateArchived": "2026-03-11",
+      "summary": "Full audit results for organizer dashboard items page"
+    },
+    {
+      "file": "marketing/spring-content-2026-03-09.md",
+      "topic": "Spring 2026 content pipeline",
+      "archivedFrom": "claude_docs/marketing/content-pipeline/",
+      "originSession": 110,
+      "dateArchived": "2026-03-11",
+      "summary": "Content calendar and pipeline for spring 2026 marketing push"
+    },
+    {
+      "file": "marketing/spring-2026-content.md",
+      "topic": "Spring 2026 content strategy",
+      "archivedFrom": "claude_docs/marketing/",
+      "originSession": 110,
+      "dateArchived": "2026-03-11",
+      "summary": "Duplicate/related spring content planning doc"
+    },
+    {
+      "file": "qa/payment-edge-cases-2026-03-09.md",
+      "topic": "Payment edge case test scenarios",
+      "archivedFrom": "claude_docs/qa/",
+      "originSession": 112,
+      "dateArchived": "2026-03-11",
+      "summary": "Edge case scenarios for Stripe payment flow testing"
+    },
+    {
+      "file": "security/oauth-redteam-2026-03-09.md",
+      "topic": "OAuth red team findings",
+      "archivedFrom": "claude_docs/security/",
+      "originSession": 112,
+      "dateArchived": "2026-03-11",
+      "summary": "Red team security assessment of OAuth implementation"
+    },
+    {
+      "file": "session-wraps/session-124-wrap.md",
+      "topic": "Session 124 wrap report",
+      "archivedFrom": "claude_docs/session-wraps/",
+      "originSession": 124,
+      "dateArchived": "2026-03-11",
+      "summary": "End-of-session wrap report for session 124"
+    },
+    {
+      "file": "ux-spotchecks/2026-03-11.md",
+      "topic": "UX spotcheck 2026-03-11",
+      "archivedFrom": "claude_docs/ux-spotchecks/",
+      "originSession": 136,
+      "dateArchived": "2026-03-11",
+      "summary": "UX spotcheck findings from March 11 session"
+    },
+    {
+      "file": "ux-spotchecks/rapidfire-mode-ux-spec.md",
+      "topic": "Rapidfire mode UX specification",
+      "archivedFrom": "claude_docs/ux-spotchecks/",
+      "originSession": 135,
+      "dateArchived": "2026-03-11",
+      "summary": "Full UX specification for Rapidfire capture mode"
+    },
+    {
+      "file": "context-audit/advisory-board-final.md",
+      "topic": "Context audit — advisory board findings",
+      "archivedFrom": "claude_docs/operations/context-audit/",
+      "originSession": 113,
+      "dateArchived": "2026-03-11",
+      "summary": "Advisory board review of context audit results"
+    },
+    {
+      "file": "context-audit/architect-findings.md",
+      "topic": "Context audit — architect findings",
+      "archivedFrom": "claude_docs/operations/context-audit/",
+      "originSession": 113,
+      "dateArchived": "2026-03-11",
+      "summary": "Architect agent findings during context cleanup audit"
+    },
+    {
+      "file": "context-audit/dev-findings.md",
+      "topic": "Context audit — dev findings",
+      "archivedFrom": "claude_docs/operations/context-audit/",
+      "originSession": 113,
+      "dateArchived": "2026-03-11",
+      "summary": "Developer agent findings during context cleanup audit"
+    },
+    {
+      "file": "context-audit/pitchman-findings.md",
+      "topic": "Context audit — pitchman findings",
+      "archivedFrom": "claude_docs/operations/context-audit/",
+      "originSession": 113,
+      "dateArchived": "2026-03-11",
+      "summary": "Pitchman agent findings during context cleanup audit"
+    },
+    {
+      "file": "context-audit/poweruser-findings.md",
+      "topic": "Context audit — power user findings",
+      "archivedFrom": "claude_docs/operations/context-audit/",
+      "originSession": 113,
+      "dateArchived": "2026-03-11",
+      "summary": "Power user agent findings during context cleanup audit"
+    },
+    {
+      "file": "context-audit/qa-findings.md",
+      "topic": "Context audit — QA findings",
+      "archivedFrom": "claude_docs/operations/context-audit/",
+      "originSession": 113,
+      "dateArchived": "2026-03-11",
+      "summary": "QA agent findings during context cleanup audit"
+    },
+    {
+      "file": "context-audit/workflow-findings.md",
+      "topic": "Context audit — workflow findings",
+      "archivedFrom": "claude_docs/operations/context-audit/",
+      "originSession": 113,
+      "dateArchived": "2026-03-11",
+      "summary": "Workflow agent findings during context cleanup audit"
+    },
+    {
+      "file": "improvement-memos/POWER_USER_AUDIT_SUMMARY.md",
+      "topic": "Power user audit summary",
+      "archivedFrom": "claude_docs/improvement-memos/",
+      "originSession": 140,
+      "dateArchived": "2026-03-11",
+      "summary": "Summary of power user fleet-wide audit findings"
+    },
+    {
+      "file": "improvement-memos/POWER_USER_SUMMARY_2026-03-11.md",
+      "topic": "Power user summary March 11",
+      "archivedFrom": "claude_docs/improvement-memos/",
+      "originSession": 140,
+      "dateArchived": "2026-03-11",
+      "summary": "Power user improvement summary from March 11 sessions"
+    },
+    {
+      "file": "improvement-memos/session-138-workflow-failure-analysis.md",
+      "topic": "Session 138 workflow failure analysis",
+      "archivedFrom": "claude_docs/improvement-memos/",
+      "originSession": 138,
+      "dateArchived": "2026-03-11",
+      "summary": "Post-mortem analysis of session 138 context bloat incident"
+    },
+    {
+      "file": "improvement-memos/session-init-enforcement-improvements-2026-03-11.md",
+      "topic": "Session init enforcement improvements",
+      "archivedFrom": "claude_docs/improvement-memos/",
+      "originSession": 140,
+      "dateArchived": "2026-03-11",
+      "summary": "Proposed improvements to session initialization enforcement"
+    },
+    {
+      "file": "improvement-memos/skill-changes-for-session-138-fix.md",
+      "topic": "Skill changes for session 138 fix",
+      "archivedFrom": "claude_docs/improvement-memos/",
+      "originSession": 139,
+      "dateArchived": "2026-03-11",
+      "summary": "Skill modifications needed to prevent session 138 repeat"
+    }
+  ]
+}

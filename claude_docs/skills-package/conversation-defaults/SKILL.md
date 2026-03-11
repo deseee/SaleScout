@@ -1,6 +1,4 @@
 ---
-version: 6
-last_updated: 2026-03-11 (Session 143)
 name: conversation-defaults
 description: >
   Always-active conversation behavior defaults for Patrick's Cowork sessions.
@@ -337,6 +335,53 @@ Why this exists: Fleet redesign session 141 — intelligence was siloed in agent
 
 ---
 
+## Rule 20: Zero temp files in claude_docs
+
+Before writing ANY file to `claude_docs/`:
+
+- Ask: "Is this a temp, scratch, draft, or working file?"
+  - YES → Write to `/sessions/[session-id]/` (VM working directory) instead. Never `claude_docs/`.
+  - NO → Proceed with Rule 7 path validation.
+
+**Banned patterns in `claude_docs/`:** `*.tmp`, `*.bak`, `*.backup`, `test.*`, random-named files, `*-proposed.*` (keep drafts in VM dir until finalized).
+
+**Hard rule:** If a file matching a banned pattern is found in `claude_docs/` at any point, delete it immediately or route to Records.
+
+Why this exists: Session 144 advisory board audit — found `test.tmp`, `MESSAGE_BOARD.json.tmp`, `conversation-defaults-v4-proposed.md.tmp.*`, and a random-named `zikpWboU` file in `claude_docs/`. Temp files burn tokens and create noise. (Added 2026-03-11, Session 144.)
+
+---
+
+## Rule 21: Locked directory structure
+
+**No new directories may be created in `claude_docs/` without Patrick's explicit approval.**
+
+Before creating any directory:
+- Check `claude_docs/operations/file-creation-schema.md` Locked Folder Map.
+- If the directory exists in the map → proceed.
+- If not → place the file in the most appropriate existing directory, or escalate to Patrick.
+
+**Exception:** Subdirectories within `claude_docs/archive/` are allowed (Records manages the vault structure).
+
+**At session wrap:** Scan for directories not in the Locked Folder Map. Flag any unauthorized directories to Records for correction.
+
+Why this exists: Session 144 advisory board audit — found 9 non-schema directories created ad hoc (`audits/`, `marketing/`, `qa/`, `security/`, `session-wraps/`, `ux-spotchecks/`, `improvement-memos/`, `operations/context-audit/`, `marketing/content-pipeline/`). All archived and removed. (Added 2026-03-11, Session 144.)
+
+---
+
+## Rule 22: Archive vault access control
+
+`claude_docs/archive/` is **Records-only territory**.
+
+- **All agents:** May read `archive/archive-index.json` to check if a document exists.
+- **Only findasale-records:** May read, write, move, or delete files in `archive/`.
+- **Retrieval:** Any agent needing an archived file must dispatch `findasale-records` with the request. Records retrieves and passes content via handoff block.
+
+**At session wrap:** If any one-time artifact (Tier 3) was created during the session, dispatch Records to archive it and update `archive-index.json`.
+
+Why this exists: Session 144 advisory board — archive vault established to keep working-file overhead and token usage low. Historical docs don't need to be loaded every session. (Added 2026-03-11, Session 144.)
+
+---
+
 ## Summary
 
 | Rule | Status |
@@ -360,3 +405,6 @@ Why this exists: Fleet redesign session 141 — intelligence was siloed in agent
 | Budget-first session planning | Active (added 2026-03-11, Session 143) |
 | DA/Steelman co-fire | Active (added 2026-03-11, Session 143) |
 | Feedback loop routing | Active (added 2026-03-11, Session 143) |
+| Zero temp files in claude_docs | Active (added 2026-03-11, Session 144) |
+| Locked directory structure | Active (added 2026-03-11, Session 144) |
+| Archive vault access control | Active (added 2026-03-11, Session 144) |

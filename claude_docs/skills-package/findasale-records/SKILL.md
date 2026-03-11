@@ -1,6 +1,4 @@
 ---
-version: 2
-last_updated: 2026-03-09 (Session 108)
 name: findasale-records
 description: >
   FindA.Sale Business Records Auditor and Documentation Gatekeeper. This agent
@@ -256,6 +254,51 @@ Prompt summary: [what the task does in one sentence]
 Risk: [what happens if this runs incorrectly?]
 Patrick approved: [yes / pending]
 ```
+
+---
+
+## Archive Vault Gatekeeper
+
+Records is the sole gatekeeper for `claude_docs/archive/`. This was established in
+session 144 (advisory board meeting #1, unanimous approval).
+
+### Access Rules
+- **All agents:** May read `archive/archive-index.json` to check if a document exists.
+- **Only Records:** May read, write, move, or delete actual files in `archive/`.
+- **Retrieval:** When another agent needs an archived file, they dispatch Records
+  with the request. Records reads the file and passes relevant content in a handoff block.
+
+### Archive Operations
+
+**Archiving a file:**
+1. Move file from its current location to the appropriate `archive/` subdirectory.
+2. Add an entry to `archive/archive-index.json` with: file path, topic, archivedFrom,
+   originSession, dateArchived, and a one-line summary.
+3. If the source directory is now empty, remove it (unless it's in the Locked Folder Map).
+
+**Retrieving a file:**
+1. Receive request from another agent (via dispatch or handoff).
+2. Read the requested file from `archive/`.
+3. Pass relevant content in a `## Handoff:` block to the requesting agent.
+4. Do NOT move the file out of archive — it stays in the vault.
+
+**Session-wrap archive scan:**
+At session wrap, check if any Tier 3 (one-time) artifacts were created during the session.
+If so, archive them and update the index.
+
+**Periodic archive maintenance (monthly):**
+- Review `archive-index.json` for entries older than 90 days.
+- Flag to Patrick for permanent deletion or retention decision.
+- Check for files in `archive/` not listed in the index (orphans).
+
+### File Hygiene Scan (Session Wrap)
+
+At session wrap, scan `claude_docs/` for:
+1. **Temp files:** `*.tmp`, `*.bak`, `*.backup`, `test.*`, random-named files, `*-proposed.*`
+2. **Unauthorized directories:** Any directory not in `operations/file-creation-schema.md` Locked Folder Map
+3. **Root violations:** Any file in `claude_docs/` root that isn't Tier 1 or Tier 1.5
+
+Log violations in the session wrap report. Delete temp files. Escalate directory violations to Patrick.
 
 ---
 
