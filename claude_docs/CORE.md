@@ -49,9 +49,7 @@ Write-without-read is a rule violation, not a guideline.
 stops: (a) needs Patrick's input, (b) ambiguous failure, (c) batch complete.
 Do not ask "shall I continue?" mid-batch.
 
-**Environment gate:** Before any shell/PowerShell/Prisma command, verify
-dev-environment skill is loaded this session. Patrick = PowerShell on Windows.
-Cowork VM = bash on Linux. Never mix them.
+**Environment gate:** Before any shell, PowerShell, or Prisma command — STOP. Verify dev-environment skill is loaded this session. If not, invoke Skill('dev-environment') immediately. Do not proceed without it active.
 
 **Compression logging:** When context is compressed (auto or manual), log:
 `[COMPRESS] Session N turn M: kept [what], lost [what], ~Xk→Yk tokens`
