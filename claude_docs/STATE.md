@@ -7,6 +7,13 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Active Objective
 
+**Sessions 147–148 COMPLETE (2026-03-12) — RAPIDFIRE UI P1 FIXES + PHASE 5 WIRING:**
+Two bugs diagnosed and fixed in the Rapidfire camera UI:
+1. **Nested `<button>` HTML invalidity** (`RapidCarousel.tsx`) — browsers eject inner `<button>` elements from outer `<button>` wrappers, making the "+" button and photo-count badge invisible. Fix: changed outer wrapper from `<button>` to `<div>`, preserving all touch/mouse handlers. Pushed via GitHub MCP (SHA: `622195faa8fdd410bb9347231469af8bb4b560c5`).
+2. **Phase 5 add-photo-to-item never wired** (`add-items/[saleId].tsx`) — `onAddPhotoToItem` was a no-op stub, `addingToItemId` was hardcoded `null`. Fix: added `addingToItemId` state, full toggle logic, Phase 5 append pipeline using `/upload/sale-photos` → `POST /items/:id/photos`. Skip optimistic temp entry in append-mode. Pushed by Patrick via push.ps1 (merge commit `a7eb375`).
+**Deployment status:** Both fixes confirmed on GitHub main. Vercel (frontend) GitHub App integration appears disconnected — latest Vercel deployment (March 11 ~15:15 UTC) predates the new commits (March 12 02:53 UTC). Patrick needs to reconnect GitHub App in Vercel dashboard → findasale → Settings → Git, OR manually trigger a new production deployment using "Use latest commit from main."
+**Railway** is backend-only (`packages/backend/Dockerfile.production`) — frontend-only changes never trigger Railway rebuilds. This is expected behavior.
+
 **Session 146 COMPLETE (2026-03-11) — CAMERA WORKFLOW v2 + PUBLISHING PAGE DESIGN SPRINT:**
 Full interactive mockup built (`camera-mode-mockup.jsx` in repo root — two-screen React component). Camera screen: Rapidfire multi-photo via "+" button on carousel thumbnails, 4:3 crop guide overlay, auto-enhance ✨ badges, add-mode banner above shutter, mode toggle pill, torch/shutter/flip/gallery row. Publishing screen: AI confidence color tinting (green/amber/red), per-item expand panel with photo tools (aspect ratio 4:3/1:1/16:9, background removal, auto-enhance toggle, brightness/contrast sliders), batch toolbar (select all, bulk price, bulk category, bulk BG removal), buyer preview mode (light-mode buyer-facing grid). Innovation + UX + Customer Champion consulted for feature ideas — shortlist: real-time quality warning, retake toast, face detection flag, duplicate detection (future), batch context injection. Feature spec written: `claude_docs/feature-notes/camera-workflow-publishing-spec.md`. Ready for architecture review + Ship-Ready subcommittee before implementation.
 
@@ -227,6 +234,10 @@ Full audit reports: archived (git history, sessions 84–85). Beta checklist: ar
 - **Git push workflow** — Patrick uses `.\push.ps1` (repo root) instead of raw `git push`. Self-heals: index.lock, CRLF phantoms (--ignore-cr-at-eol), fetch+merge (never rebase), doc-file merge conflicts (--theirs auto-resolve). See self-healing entries #36, #51, #52.
 - **Dev stack is now native** — Docker no longer used at all. `image-tagger/` deleted by Patrick (session 81). Backend/frontend/postgres run natively on Windows. See `claude_docs/DEVELOPMENT.md`.
 - **Production migration deploy (Neon):** Claude reads `packages/backend/.env` from the VM, extracts the commented-out Neon URLs, and provides a ready-to-paste command with real credentials in chat output (ephemeral — never committed). Never embed credentials in any committed file. See SECURITY.md §3 and CORE.md §17.3(c).
+- **Vercel GitHub App integration** — As of session 148 (2026-03-12), Vercel is not auto-deploying on push. GitHub App connection may be broken. Check Vercel dashboard → findasale → Settings → Git to reconnect, or manually trigger deployment. Railway and Vercel use GitHub App integration (Settings → Applications), NOT traditional webhooks.
+- **Railway is backend-only** — `railway.toml` builds from `packages/backend/Dockerfile.production`. Frontend-only changes (Next.js pages, components) never trigger Railway builds. All frontend deploys go to Vercel only.
+- **P0 QA bug (open):** `review.tsx` (publishing page) calls `GET /items?saleId=...&draftStatus=...` but backend GET /items does NOT support `draftStatus` filter — should use `/items/drafts`. Not yet fixed.
+- **Migration `20260311000003_add_camera_workflow_v2_fields` (status unclear):** Adds `aiConfidence`, `backgroundRemoved`, `faceDetected`, `autoEnhanced` to Item + new Photo table. Created in session 147 to fix potential P2022 auction job crash. Verify whether Patrick deployed this via `prisma migrate deploy`.
 
 ---
 
@@ -271,4 +282,4 @@ Full audit reports: archived (git history, sessions 84–85). Beta checklist: ar
 - FINDING-3 (stale fee copy on dashboard) — deferred from session 126, still open.
 - 4 new QA findings queued — all resolved in Session 128: camera fullscreen/flash ✅, tab labels ✅, click-to-edit ✅, CSV import tested + fixed ✅.
 
-Last Updated: 2026-03-11 (session 146 — camera workflow v2 + publishing page design sprint, feature spec written, mockup complete)
+Last Updated: 2026-03-12 (sessions 147–148 — Rapidfire P1 nested-button fix + Phase 5 add-photo-to-item wiring; Vercel deployment not triggered)
