@@ -7,26 +7,24 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Active Objective
 
-<<<<<<< HEAD
-**Session 153 COMPLETE (2026-03-12) — POS v2: MULTI-ITEM CART + CASH PAYMENT + NUMPAD:**
-- **Multi-item cart:** React client-side state only (no DB model/migration). `CartItem[]` with `id` (client UUID), optional `itemId`, `title`, `amount`. One PaymentIntent per cart total, one Purchase record per cart item. `Purchase.itemId` already nullable — no schema change needed.
-- **Quick-add misc buttons:** 25¢, 50¢, $1, $2, $5, $10 — adds unnamed misc items to cart with labels like "Misc $1".
-- **Cash payment:** New `POST /stripe/terminal/cash-payment` endpoint. Validates items + saleId + cashReceived ≥ total. Creates PAID Purchase records with `cash_${randomUUID()}` as `stripePaymentIntentId` (UUID v4 — collision-safe, `@unique` constraint safe). Marks items SOLD. Returns change amount.
-- **Collapsible numpad:** 12-key numpad for custom price entry (NumpadMode: 'price') and cash received entry (NumpadMode: 'cash'). Stores cents as string to avoid float drift.
-- **QA blockers fixed (3):** (1) Misc-only carts: frontend now sends `saleId` in PI request, backend falls back to `bodySaleId` + ownership check. (2) UUID collision risk: replaced `Date.now() + random` with `randomUUID()`. (3) Ownership bypass: capture endpoint now checks `purchases[0].saleId → prisma.sale` when no item-linked purchase exists.
-- **Commit:** `afa28c1` on `main` (3 files: pos.tsx, terminalController.ts, stripe.ts)
-- **Migration deployed to Neon:** `20260312000002_add_purchase_pos_fields` ✅ (Session 153, confirmed by Patrick)
-**Last Updated:** 2026-03-12 (session 153 — POS v2 complete, migration deployed to Neon)
-=======
-**Session 152 COMPLETE (2026-03-12) — POS v2 POST-GO-LIVE FIXES:**
-- **Duplicate itemId guard:** Both `createTerminalPaymentIntent` and `cashPayment` now reject requests with duplicate itemIds. Error: "Duplicate items in cart. Each item can only be charged once per transaction." (commit `3119821`)
-- **Error messages humanized:** `terminalController.ts` error strings now use `item.title` instead of raw DB UUIDs (e.g., `"Oak Dresser" is sold or unavailable` vs `Item cmmksgzs5... is not available`). Added `title: true` to `cashPayment` dbItems select (commit `3957771`).
-- **POS item search fixed:** `getItemsBySaleId` previously ignored all query params except `saleId`. Now supports `q` (title/SKU substring match via Prisma `contains` + `insensitive`), `status` (AVAILABLE filter), and `limit`. Sold items no longer appear in POS search. Added `sku: true` to select (commit `e0f4287`).
-- **Inline cash numpad:** Cash received section replaced with always-visible inline 3×4 numpad in the cash payment card. `cashNumpadValue` state live-syncs to `cashReceived` via useEffect. Real-time change/short display. Global numpad now price-only; dead cash branch removed from `handleNumpadConfirm` (commit `9b813dc`).
-- **Files changed:** `packages/backend/src/controllers/terminalController.ts`, `packages/backend/src/controllers/itemController.ts`, `packages/frontend/pages/organizer/pos.tsx`
-- **Open question for session 153:** Cash fee collection mechanism — card sales auto-collect 10% via Stripe Connect; cash sales have no equivalent. Options A–E defined in `next-session-prompt.md`. Decision needed before beta with real organizers.
-**Last Updated:** 2026-03-12 (session 152 — POS post-go-live fixes: duplicate guard, error messages, item search, inline cash numpad)
->>>>>>> origin/main
+**Session 154 COMPLETE (2026-03-12) — CASH FEE MIGRATION + RAILWAY UNBLOCK:**
+- **Root cause resolved:** Railway logging P2022 `Organizer.cashFeeBalance does not exist` — migration `20260312_add_cash_fee_balance_to_organizer` had never been applied to Neon production.
+- **Migration deployed:** `prisma migrate deploy` against Neon. Columns `cashFeeBalance Float` + `cashFeeBalanceUpdatedAt DateTime?` now on Organizer table. Railway errors cleared — confirmed working by Patrick.
+- **Git unblock:** Stale HEAD.lock file blocked all commits. Fixed with `Remove-Item .git\HEAD.lock -Force`.
+- **Merge conflict cleanup:** STATE.md and next-session-prompt.md had outstanding conflict markers from session 153/152 collision. Resolved in this wrap.
+- **Push completed:** All session 153 + 154 code on `main` (last commit `13a19b7`). Railway redeployed on push.
+**Last Updated:** 2026-03-12 (session 154 — cash fee migration deployed, Railway unblocked, all systems green)
+
+**Session 153 COMPLETE (2026-03-12) — POS v2: MULTI-ITEM CART + CASH PAYMENT + NUMPAD + CASH FEE SYSTEM:**
+- **Multi-item cart:** React client-side state only. CartItem[] with id (client UUID), optional itemId, title, amount. One PaymentIntent per cart total, one Purchase per cart item. Purchase.itemId already nullable — no schema change needed.
+- **Quick-add misc buttons:** 25c, 50c, $1, $2, $5, $10 — adds unnamed misc items to cart.
+- **Cash payment:** New POST /stripe/terminal/cash-payment endpoint. Validates items + saleId + cashReceived >= total. Creates PAID Purchase records with cash_${randomUUID()} as stripePaymentIntentId. Marks items SOLD. Returns change amount.
+- **Cash platform fee tracking:** 10% fee on cash POS transactions tracked as cashFeeBalance Float on Organizer model. Deducted from next Stripe payout. Migration `20260312_add_cash_fee_balance_to_organizer` deployed Neon (session 154).
+- **Collapsible numpad:** 12-key numpad for custom price entry and cash received entry. Stores cents as string to avoid float drift.
+- **QA blockers fixed (3):** (1) Misc-only carts — frontend sends saleId, backend falls back to bodySaleId. (2) UUID collision risk — replaced Date.now()+random with randomUUID(). (3) Ownership bypass — capture endpoint checks purchases[0].saleId => prisma.sale when no item-linked purchase exists.
+- **Commit:** afa28c1 on main (3 files: pos.tsx, terminalController.ts, stripe.ts)
+- **Migration deployed to Neon:** 20260312000002_add_purchase_pos_fields (Session 153)
+
 
 **Session 151 COMPLETE (2026-03-12) — STRIPE TERMINAL POS BUILD FIXES + QA AUDIT:**
 - **Build error fixes (3 TypeScript/module errors resolved):**
@@ -286,7 +284,7 @@ Full audit reports: archived (git history, sessions 84–85). Beta checklist: ar
 - **Railway is backend-only** — `railway.toml` builds from `packages/backend/Dockerfile.production`. Frontend-only changes (Next.js pages, components) never trigger Railway builds. All frontend deploys go to Vercel only.
 - ✅ **P0 QA bug (FIXED session 149):** `review.tsx` now calls `GET /items/drafts?saleId=...` — previously called `GET /items?...&draftStatus=DRAFT,PENDING_REVIEW` which was silently returning only PUBLISHED items. Commit b578cca.
 - **Migration `20260311000003_add_camera_workflow_v2_fields` (status unclear):** Adds `aiConfidence`, `backgroundRemoved`, `faceDetected`, `autoEnhanced` to Item + new Photo table. Created in session 147 to fix potential P2022 auction job crash. Verify whether Patrick deployed this via `prisma migrate deploy`.
-- **Cash fee collection — UNRESOLVED:** The 10% platform fee is not collected on cash sales. Card sales auto-collect via Stripe Connect. Cash sales record the transaction but no fee is captured. Decision on collection mechanism (invoice post-sale, deduct from next payout, upfront balance, or free for beta) needed before scaling cash POS usage.
+- **Cash fee collection — RESOLVED (session 153/154):** 10% platform fee on cash sales tracked as cashFeeBalance Float on Organizer model. Incremented per cash sale, deducted from next Stripe payout automatically. Migration 20260312_add_cash_fee_balance_to_organizer deployed to Neon (session 154). payouts.tsx shows cash fee balance card + deduction preview.
 
 ---
 
@@ -331,4 +329,4 @@ Full audit reports: archived (git history, sessions 84–85). Beta checklist: ar
 - FINDING-3 (stale fee copy on dashboard) — deferred from session 126, still open.
 - 4 new QA findings queued — all resolved in Session 128: camera fullscreen/flash ✅, tab labels ✅, click-to-edit ✅, CSV import tested + fixed ✅.
 
-Last Updated: 2026-03-12 (session 152 — POS post-go-live fixes: duplicate guard, error messages, item search, inline cash numpad)
+Last Updated: 2026-03-12 (session 154 — cash fee migration deployed, Railway unblocked)
