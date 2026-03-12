@@ -16,6 +16,17 @@ Keep only the 5 most recent sessions. Delete older entries — git history and S
 
 ## Recent Sessions
 
+## Session 152 — 2026-03-12 — POS v2 Post-Go-Live Fixes
+
+**Worked on:** Four targeted fixes to the Stripe Terminal POS after go-live testing revealed issues: (1) **Duplicate itemId guard** — both `createTerminalPaymentIntent` and `cashPayment` now reject duplicate itemIds (each physical item can only be charged once per transaction). (2) **Error messages humanized** — `terminalController.ts` was surfacing raw DB UUIDs in error strings. Fixed to use `item.title` in both payment flows; required adding `title: true` to the cashPayment `dbItems` select since it previously only fetched `id` and `status`. (3) **POS item search fixed** — `getItemsBySaleId` was ignoring all query params except `saleId`. The frontend was already sending the correct `?q=...&status=AVAILABLE&limit=10` — the backend simply discarded them. Fixed with Prisma `contains` + `insensitive` for title/SKU search, status filter, limit cap, and added `sku: true` to select. (4) **Inline cash numpad** — replaced the cash received button (which opened the shared global numpad at top of page) with an always-visible inline 3×4 numpad inside the cash payment card. Independent `cashNumpadValue` state syncs to `cashReceived` via useEffect. Real-time change/short display. Global numpad simplified to price-only.
+**Decisions:** Cash numpad is fully independent from the price numpad — separate state, no mode switching needed. Search bug was entirely backend-side; no frontend changes required. Error humanization required touching both card and cash flows separately since each had its own dbItems select shape.
+**Token efficiency:** All inline work — no subagent dispatches for code. Session wrap via findasale-records. Low burn.
+**Token burn:** ~35k tokens (est.), 0 checkpoints.
+**Next up:** Cash collection mechanism decision — how does FindA.Sale collect 10% platform fee on cash sales? Card sales auto-collected via Stripe Connect; cash sales have no fee collection path today. Needs findasale-investor + advisory board analysis before implementing.
+**Blockers:** Business decision on cash fee collection outstanding. Neon migration `20260312000002_add_purchase_pos_fields` still pending deploy.
+
+---
+
 ## Sessions 147–148 — 2026-03-12 — Rapidfire P1 Fixes + Phase 5 Wiring
 
 **Worked on:** Diagnosed and fixed two bugs in the Rapidfire camera UI that caused "+" buttons and photo-count badges to be invisible on mobile. Bug 1: Outer thumbnail wrapper in `RapidCarousel.tsx` was a `<button>` — browsers eject inner `<button>` elements during HTML parsing (invalid HTML per spec), destroying absolute positioning context. Fix: changed to `<div>`, all touch/mouse handlers preserved. Bug 2: `add-items/[saleId].tsx` had Phase 5 (add-photo-to-item) wired as a stub — `onAddPhotoToItem={() => {}}` was a no-op, `addingToItemId` hardcoded to `null`. Fix: added state, full toggle logic, and Phase 5 append pipeline using `/upload/sale-photos` → `POST /items/:id/photos` (endpoint already existed as `addItemPhoto` controller). Skip optimistic temp entry in append-mode to prevent flicker. Also diagnosed Railway vs Vercel platform confusion — Railway is backend-only and correctly did not redeploy. Vercel appears to have a broken GitHub App integration (deployment predates latest commits).
@@ -62,13 +73,3 @@ Keep only the 5 most recent sessions. Delete older entries — git history and S
 **Token burn:** ~60k (121) + ~90k (122) + ~20k (123) est. Session wrap logs missing from GitHub.
 **Next up:** Session 124 — Chrome audit of AI tagging + add-item flow (continuation). Deploy `20260309000003_add_item_is_active` migration to Neon. Session wrap docs push (STATE.md, session-log.md, next-session-prompt.md for sessions 121–123).
 **Blockers:** Neon migration `20260309000003_add_item_is_active` not deployed. Session 122–123 wrap docs not pushed to GitHub.
-
-### 2026-03-10 (session 120 — Beta Dry Run Friction Blitz + Vercel Build Cascade)
-**Worked on:** (1) Parallel P1–P4 dispatch: migration rollback plan, beta organizer email sequence, spring content pipeline, beta dry run friction log (15 items catalogued). P5 VAPID confirmed done by Patrick. (2) 13/15 friction items implemented via 5 parallel agents: dashboard wizard auto-launch + add-items sale selector (Dev A), add-items listing type consolidated to single select (Dev B), edit-sale DRAFT/LIVE badge + publish toggle + date TZ normalization (Dev C), checkout ToS/fee display/retry/receipt (Dev D), UX copy spec (UX). Items 7 (bulk edit) and 13 (neighborhood autocomplete) deferred. (3) Vercel build cascade: Dev D hallucinated a full 200-line rewrite of items/[id].tsx replacing 563-line file with non-existent imports (`@findasale/shared`, `@/lib/apiClient`). Restored from local disk, then resolved 6 cascading TypeScript errors across 4 commits (Skeleton height prop, getOptimizedUrl arity, CountdownTimer null guard, ReverseAuctionBadge/ItemShareButton/BuyingPoolCard missing/wrong props, PhotoLightbox startIndex→initialIndex, dashboard user.createdAt non-existent on JWT User). (4) QA P2: sale selector dropdown z-10→z-50, reverse auction validation onBlur per-field.
-**Decisions:** Dev agents require explicit "diff-only, no full rewrites" in every dispatch prompt — Dev D violation proved this is mandatory. onboardingComplete flag is the sole wizard gate (dropped 24hr `user.createdAt` check — field not in JWT User). Self-healing entry #53 added.
-**Token efficiency:** 5 parallel agent dispatches (friction items) + 7 sequential hotfix commits. High output but 6 Vercel build cycles consumed significant overhead due to agent hallucination. No repair loops after restore.
-**Token burn:** ~150k tokens (est.), 2 checkpoints logged.
-**Next up:** Patrick `git stash && git pull` to sync local. Deferred friction items 7 (bulk edit) + 13 (neighborhood autocomplete). Beta organizer outreach. Stripe business account setup.
-**Blockers:** Patrick git sync needed (local is pre-session, all fixes on GitHub). Stripe business account still pending. Google Search Console still pending.
-
-*(sessions 113–119 archived — see git history and COMPLETED_PHASES.md)*

@@ -7,6 +7,15 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Active Objective
 
+**Session 152 COMPLETE (2026-03-12) — POS v2 POST-GO-LIVE FIXES:**
+- **Duplicate itemId guard:** Both `createTerminalPaymentIntent` and `cashPayment` now reject requests with duplicate itemIds. Error: "Duplicate items in cart. Each item can only be charged once per transaction." (commit `3119821`)
+- **Error messages humanized:** `terminalController.ts` error strings now use `item.title` instead of raw DB UUIDs (e.g., `"Oak Dresser" is sold or unavailable` vs `Item cmmksgzs5... is not available`). Added `title: true` to `cashPayment` dbItems select (commit `3957771`).
+- **POS item search fixed:** `getItemsBySaleId` previously ignored all query params except `saleId`. Now supports `q` (title/SKU substring match via Prisma `contains` + `insensitive`), `status` (AVAILABLE filter), and `limit`. Sold items no longer appear in POS search. Added `sku: true` to select (commit `e0f4287`).
+- **Inline cash numpad:** Cash received section replaced with always-visible inline 3×4 numpad in the cash payment card. `cashNumpadValue` state live-syncs to `cashReceived` via useEffect. Real-time change/short display. Global numpad now price-only; dead cash branch removed from `handleNumpadConfirm` (commit `9b813dc`).
+- **Files changed:** `packages/backend/src/controllers/terminalController.ts`, `packages/backend/src/controllers/itemController.ts`, `packages/frontend/pages/organizer/pos.tsx`
+- **Open question for session 153:** Cash fee collection mechanism — card sales auto-collect 10% via Stripe Connect; cash sales have no equivalent. Options A–E defined in `next-session-prompt.md`. Decision needed before beta with real organizers.
+**Last Updated:** 2026-03-12 (session 152 — POS post-go-live fixes: duplicate guard, error messages, item search, inline cash numpad)
+
 **Session 151 COMPLETE (2026-03-12) — STRIPE TERMINAL POS BUILD FIXES + QA AUDIT:**
 - **Build error fixes (3 TypeScript/module errors resolved):**
   1. `terminalController.ts` line 162: `stripeConnectId` `null` → `undefined` mismatch — added `!` non-null assertion
@@ -265,6 +274,7 @@ Full audit reports: archived (git history, sessions 84–85). Beta checklist: ar
 - **Railway is backend-only** — `railway.toml` builds from `packages/backend/Dockerfile.production`. Frontend-only changes (Next.js pages, components) never trigger Railway builds. All frontend deploys go to Vercel only.
 - ✅ **P0 QA bug (FIXED session 149):** `review.tsx` now calls `GET /items/drafts?saleId=...` — previously called `GET /items?...&draftStatus=DRAFT,PENDING_REVIEW` which was silently returning only PUBLISHED items. Commit b578cca.
 - **Migration `20260311000003_add_camera_workflow_v2_fields` (status unclear):** Adds `aiConfidence`, `backgroundRemoved`, `faceDetected`, `autoEnhanced` to Item + new Photo table. Created in session 147 to fix potential P2022 auction job crash. Verify whether Patrick deployed this via `prisma migrate deploy`.
+- **Cash fee collection — UNRESOLVED:** The 10% platform fee is not collected on cash sales. Card sales auto-collect via Stripe Connect. Cash sales record the transaction but no fee is captured. Decision on collection mechanism (invoice post-sale, deduct from next payout, upfront balance, or free for beta) needed before scaling cash POS usage.
 
 ---
 
@@ -309,4 +319,4 @@ Full audit reports: archived (git history, sessions 84–85). Beta checklist: ar
 - FINDING-3 (stale fee copy on dashboard) — deferred from session 126, still open.
 - 4 new QA findings queued — all resolved in Session 128: camera fullscreen/flash ✅, tab labels ✅, click-to-edit ✅, CSV import tested + fixed ✅.
 
-Last Updated: 2026-03-12 (session 149 — review page P0 + shopper 404 fixes; Vercel reconnect still pending Patrick)
+Last Updated: 2026-03-12 (session 152 — POS post-go-live fixes: duplicate guard, error messages, item search, inline cash numpad)

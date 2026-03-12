@@ -1,67 +1,57 @@
 # Next Session Resume Prompt
-*Written: 2026-03-12T18:45:00Z*
+*Written: 2026-03-12*
 *Session ended: normally*
 
 ## Resume From
 
-Patrick tests Stripe Terminal POS in simulated mode (`NEXT_PUBLIC_STRIPE_TERMINAL_SIMULATED=true`). If tests pass, feature is ready for beta organizers with real hardware.
+**Decision needed: How does FindA.Sale collect the 10% platform fee on cash sales?**
 
-## What Was In Progress
+Card payments are handled automatically — Stripe Connect captures the full cart total, transfers `amount - 10%` to the organizer's connected account, and FindA.Sale retains the fee. No manual work required.
 
-Nothing mid-task. All build errors and QA findings fixed. Feature complete and tested by findasale-qa. Waiting on Patrick testing + git push before next dev work.
+Cash payments have no equivalent mechanism. The `/stripe/terminal/cash-payment` endpoint records the sale and marks items SOLD, but the 10% platform fee is never collected. FindA.Sale is currently providing cash payment recording as a free feature with no revenue attached.
 
-## What Was Completed This Session (151)
+## The Question
 
-- Fixed 3 TypeScript/module errors from session 150 dev work
-- Fixed 4 QA findings (1 BLOCKER + 3 WARNs) — all code changes shipped
-- **Files changed:**
-  - `packages/backend/src/controllers/terminalController.ts` — removed conflicting Stripe args, added capture ownership check, added concurrent purchase guard
-  - `packages/frontend/pages/organizer/pos.tsx` — added import path fix, added AuthContext property fix, added payment state sync, added null guards
+What is the intended collection mechanism for cash sales?
 
-## Patrick Action Plan (Blocks POS Testing)
+**Option A — Invoice post-sale:** At sale close, generate an invoice to the organizer for 10% of total cash sales. Organizer pays manually (bank transfer, card, etc.).
 
-**Must complete before session 152 dev work:**
-1. From PowerShell (project root):
-   ```powershell
-   pnpm --filter frontend add @stripe/terminal-js
-   ```
-2. Add to Vercel env vars AND local `.env`:
-   ```
-   NEXT_PUBLIC_STRIPE_TERMINAL_SIMULATED=true
-   ```
-3. Deploy Neon migration (critical):
-   - `cd packages/database`
-   - Read commented-out `DATABASE_URL` from `packages/backend/.env`
-   - Run: `npx prisma migrate deploy` (with Neon URL)
-4. Push to GitHub:
-   ```powershell
-   git add packages/backend/src/controllers/terminalController.ts
-   git add packages/frontend/pages/organizer/pos.tsx
-   git commit -m "Session 151: Terminal POS QA fixes"
-   .\push.ps1
-   ```
+**Option B — Deduct from next card payout:** When an organizer receives their next Stripe Connect payout, reduce it by the accumulated cash fee balance. Requires tracking `cashFeeOwed` on the Organizer record.
 
-**Then test locally in simulated mode:**
-- Open `/organizer/pos` in browser
-- Select a sale + item
-- Verify payment flow (connect reader → charge → capture)
-- Check that cancels work
+**Option C — Upfront deposit / prepaid balance:** Organizers pre-fund an account balance; cash sale fees are debited in real-time. Blocks sale start until balance is sufficient.
+
+**Option D — Cash sales are free (0% fee):** Platform fee only applies to card transactions. Cash recording is a free feature to drive adoption.
+
+**Option E — Honor system for beta:** Don't build infrastructure now. Collect manually during beta, decide based on real organizer cash-to-card ratio data.
+
+## What Was Completed Last Session (152)
+
+- Duplicate itemId guard in both POS payment flows — commit `3119821`
+- Error messages now show item titles, not raw DB UUIDs — commit `3957771`
+- POS item search now filters by q/status/limit — sold items no longer appear — commit `e0f4287`
+- Inline cash received numpad — live change/short display, independent from price numpad — commit `9b813dc`
+
+## Files Changed (All on GitHub via MCP)
+
+- `packages/backend/src/controllers/terminalController.ts`
+- `packages/backend/src/controllers/itemController.ts`
+- `packages/frontend/pages/organizer/pos.tsx`
+
+All 4 commits already on GitHub main — no push needed unless local diverged.
+
+## Suggested Session 153 Approach
+
+1. **findasale-investor** — quick ROI/cost-benefit on Options A–E (revenue per option, build cost, expected cash-to-card ratio for estate sales)
+2. **findasale-advisory-board** (Ship-Ready subcommittee) — decision recommendation
+3. **Patrick decides** — lock the approach
+4. If non-trivial (Options B or C): **findasale-architect** → schema + API design, then **findasale-dev** → implement
 
 ## Environment Status
 
-**GitHub:** Session 151 files are ready for staging and push.
+**GitHub:** All session 152 commits on main (via MCP).
 
-**Neon:** Migration `20260312000002_add_purchase_pos_fields` NOT YET deployed — required for POS to work.
+**Neon:** Migration `20260312000002_add_purchase_pos_fields` **STILL PENDING** — required for POS to work in production. Deploy before real-hardware testing.
 
-**Stripe:** Business account still needed for real hardware testing (optional for simulated mode).
+**Vercel:** Should be auto-deploying. Session 152 pos.tsx change (inline numpad) pending Vercel deploy confirmation.
 
-**Vercel:** GitHub App reconnected — auto-deploy should work after next push.
-
-## Known QA Results
-
-- BLOCKER: Removed `on_behalf_of` + `transfer_data` from terminal PI creation (was conflicting with `stripeAccount` header) — FIXED
-- WARN 1: Capture endpoint now checks purchase ownership — FIXED
-- WARN 2: Cancel endpoint now syncs state to component — FIXED
-- WARN 3: Concurrent purchase guard added to capture endpoint — FIXED
-
-All fixes verified by findasale-dev. Feature is code-complete.
+**POS:** Code-complete and tested in simulated mode (session 151). Session 152 fixes are incremental improvements on top of working code.
