@@ -7,22 +7,22 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Active Objective
 
-**Session 150 COMPLETE (2026-03-12) — STRIPE TERMINAL POS (ROADMAP #5):**
-- **Ship-Ready subcommittee** reviewed POS feature: approved for implementation. Reader selected: BBPOS WisePOS E / S700 (WiFi, `internet` discovery) — M2 Bluetooth rejected (unsupported in iOS Safari/PWA).
-- **Architect** produced ADR: `claude_docs/feature-notes/stripe-terminal-pos-adr.md`. v1 scope: 1 item per transaction (multi-item cart deferred — needs POSTransaction model).
-- **Dev implemented all 7 steps:**
-  1. `packages/database/prisma/schema.prisma` — `Purchase.userId` nullable, added `source` (default `'ONLINE'`) and `buyerEmail` fields
-  2. `packages/database/prisma/migrations/20260312000002_add_purchase_pos_fields/migration.sql` — safe additive migration
-  3. `packages/backend/src/controllers/terminalController.ts` — NEW: connection token, create PI, capture, cancel endpoints
-  4. `packages/backend/src/routes/stripe.ts` — 4 terminal routes added
-  5. `packages/backend/src/controllers/stripeController.ts` — webhook `isPOS` guard; buyer-only ops skipped for POS purchases
-  6. `packages/frontend/pages/organizer/pos.tsx` — NEW: full POS UI (sale selector, item search, reader connect, charge flow)
-  7. `packages/frontend/pages/organizer/dashboard.tsx` — 💳 POS quick-action link added
-- **Migration pending Neon deploy:** `20260312000002_add_purchase_pos_fields`
-- **Patrick action required:** `pnpm --filter frontend add @stripe/terminal-js`, add `NEXT_PUBLIC_STRIPE_TERMINAL_SIMULATED=true` env var, deploy migration, push to GitHub via `.\push.ps1`
-- **QA flag:** Payment flow changes — flag `findasale-qa` before enabling for beta organizers.
-- **Vercel reconnect:** Patrick confirmed GitHub App reconnected this session (no further deploy blockers from that issue).
-**Last Updated:** 2026-03-12 (session 150 — Stripe Terminal POS implementation complete, awaiting Patrick push + Neon migration)
+**Session 151 COMPLETE (2026-03-12) — STRIPE TERMINAL POS BUILD FIXES + QA AUDIT:**
+- **Build error fixes (3 TypeScript/module errors resolved):**
+  1. `terminalController.ts` line 162: `stripeConnectId` `null` → `undefined` mismatch — added `!` non-null assertion
+  2. `pos.tsx` line 17: import path `../../utils/api` → `../../lib/api`
+  3. `pos.tsx` line 44: `loading` → `isLoading: loading` (AuthContextType property name)
+  4. `pos.tsx` line 231: `purchase.item` null guard added
+- **QA audit by findasale-qa:** Found 1 BLOCKER + 3 WARNs (all documented in MESSAGE_BOARD + findasale-qa report)
+- **Dev fixes for all QA findings by findasale-dev:**
+  1. **BLOCKER (resolved):** Removed `on_behalf_of` + `transfer_data` from terminal PI creation (conflicted with `stripeAccount` direct charge header)
+  2. **WARN 1 (resolved):** Capture endpoint now verifies purchase ownership (sale.organizerId === organizer.id)
+  3. **WARN 2 (resolved):** `paymentIntentId` stored in component state; `handleCancel` now calls backend cancel endpoint
+  4. **WARN 3 (resolved):** Concurrent purchase guard added to capture endpoint — re-checks item status, cancels PI + fails purchase if already SOLD
+- **Migration still pending Neon deploy:** `20260312000002_add_purchase_pos_fields`
+- **Patrick actions still required (blocks POS go-live):** `pnpm --filter frontend add @stripe/terminal-js`, add `NEXT_PUBLIC_STRIPE_TERMINAL_SIMULATED=true` env var, deploy migration, push to GitHub via `.\push.ps1`
+- **QA status:** POS flow audit complete — ready for Patrick testing in simulated mode. Once tests pass, ready for beta organizers with real hardware.
+**Last Updated:** 2026-03-12 (session 151 — Terminal POS build fixes + QA audit complete, migration pending deploy)
 
 **Session 149 COMPLETE (2026-03-12) — REVIEW PAGE P0 FIX + SHOPPER 404 FIXES:**
 - **P0 fixed:** `review.tsx` was calling `GET /items?saleId=...&draftStatus=DRAFT,PENDING_REVIEW` — backend `getItemsBySaleId` hardcodes `PUBLIC_ITEM_FILTER={draftStatus:'PUBLISHED'}` and ignores all query params, so the page always returned published items instead of drafts. Fixed: switched to `GET /items/drafts?saleId=...` (`getDraftItemsBySaleId` — correct organizer-only endpoint). Commit b578cca.

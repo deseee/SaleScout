@@ -2,6 +2,14 @@
 
 ## Recent Sessions
 
+### 2026-03-12 · Session 151
+**Worked on:** Terminal POS build fixes + QA audit completion. Started with 3 TypeScript/module errors from session 150 dev work: `terminalController.ts` null/undefined mismatch, `pos.tsx` import path, AuthContextType property name. All fixed. Dispatched findasale-qa to audit Stripe Terminal POS payment flow (terminalController.ts, stripeController.ts webhook guard, pos.tsx charge flow). QA found 1 BLOCKER + 3 WARNs: BLOCKER = conflicting Stripe PI creation args (on_behalf_of + transfer_data incompatible with stripeAccount header); WARN1 = missing capture ownership check; WARN2 = missing cancel state sync; WARN3 = missing concurrent purchase guard. All 4 issues fixed by findasale-dev. POS now ready for Patrick testing in simulated mode.
+**Decisions:** All QA findings fixed immediately. POS goes to beta only after Patrick tests in simulated mode.
+**Files changed:** `packages/backend/src/controllers/terminalController.ts` (BLOCKER + WARN1 + WARN3 fixes), `packages/frontend/pages/organizer/pos.tsx` (WARN2 + import + null guards)
+**Scoreboard:** Files changed: 2 | Build errors fixed: 4 | QA findings: 4 (all resolved) | Subagents: 2 (findasale-qa, findasale-dev) | Push method: MCP (planned)
+**Next up:** Patrick tests POS in simulated mode. If tests pass, POS ready for beta organizers with real hardware.
+**Blockers:** Neon migration `20260312000002_add_purchase_pos_fields` not yet deployed. Patrick still needs to run `pnpm --filter frontend add @stripe/terminal-js` and add env vars.
+
 ### 2026-03-12 · Session 150
 **Worked on:** Stripe Terminal POS — roadmap item #5, full implementation across 3 agent phases. Ship-Ready subcommittee approved (reader: WisePOS E/S700 WiFi, `internet` discovery; M2 Bluetooth rejected for iOS PWA incompatibility). Architect produced ADR. Dev implemented: schema migration (Purchase nullable userId + source + buyerEmail), terminalController.ts (4 endpoints: connection token, create PI, capture, cancel), 4 new stripe routes, webhook isPOS null-safety guard, pos.tsx frontend page (full charge flow with @stripe/terminal-js dynamic import), POS quick-action link on dashboard. Context hit limit mid-session; resumed cleanly in continuation.
 **Decisions:** v1 = 1 item per POS transaction (multi-item cart deferred — needs POSTransaction model, Architect sign-off). `internet` discovery mode only (no Bluetooth). Same 10% platform fee + referral discount logic as online flow.
