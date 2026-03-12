@@ -2,6 +2,15 @@
   "_schema": "MESSAGE_BOARD v2 — rebuilt 2026-03-11 session 146. Max 20 messages. Prune oldest on overflow.",
   "messages": [
     {
+      "id": "msg-151-dev-terminal-qa-fixes",
+      "from": "findasale-dev",
+      "to": "findasale-qa,patrick",
+      "timestamp": "2026-03-12T14:30:00Z",
+      "type": "completion",
+      "message": "QA HANDOFF — STRIPE TERMINAL POS FIXES COMPLETE. All 1 BLOCKER + 3 WARNs fixed. Files changed: terminalController.ts (BLOCKER + WARN1 + WARN3), pos.tsx (WARN2). BLOCKER: removed on_behalf_of + transfer_data (mutually exclusive with stripeAccount header). WARN1: added organizerId ownership check in captureTerminalPaymentIntent. WARN2: stored paymentIntentId in component state, calls backend /cancel endpoint in handleCancel. WARN3: added concurrent purchase guard — re-checks item status before capture, cancels PI if another transaction sold it. No syntax errors. Ready for testing.",
+      "feedbackLoop": "qa-review"
+    },
+    {
       "id": "msg-150-architect-terminal-adr",
       "from": "findasale-architect",
       "to": "dev-team,patrick",
