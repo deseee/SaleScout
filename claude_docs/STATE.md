@@ -7,22 +7,22 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Active Objective
 
+**Session 146 COMPLETE (2026-03-11) — CAMERA WORKFLOW v2 + PUBLISHING PAGE DESIGN SPRINT:**
+Full interactive mockup built (`camera-mode-mockup.jsx` in repo root — two-screen React component). Camera screen: Rapidfire multi-photo via "+" button on carousel thumbnails, 4:3 crop guide overlay, auto-enhance ✨ badges, add-mode banner above shutter, mode toggle pill, torch/shutter/flip/gallery row. Publishing screen: AI confidence color tinting (green/amber/red), per-item expand panel with photo tools (aspect ratio 4:3/1:1/16:9, background removal, auto-enhance toggle, brightness/contrast sliders), batch toolbar (select all, bulk price, bulk category, bulk BG removal), buyer preview mode (light-mode buyer-facing grid). Innovation + UX + Customer Champion consulted for feature ideas — shortlist: real-time quality warning, retake toast, face detection flag, duplicate detection (future), batch context injection. Feature spec written: `claude_docs/feature-notes/camera-workflow-publishing-spec.md`. Ready for architecture review + Ship-Ready subcommittee before implementation.
+
+**Session 146 carry-forward:** Desktop nav parity subagent was dispatched in session 145 — confirm which file was edited and that changes are staged for git.
+
 **Session 144 COMPLETE (2026-03-11) — FILE GOVERNANCE OVERHAUL (ADVISORY BOARD MEETING #1):**
 Advisory Board Meeting #1 convened (full 12-seat board). Agenda: (1) audit sessions 142-143 — strategic deliverables confirmed, file hygiene failures identified; (2) hard-gated file/folder rules — 5-point plan approved unanimously and implemented. Implementation: deleted 10 junk/deprecated files, rebuilt MESSAGE_BOARD.json (68KB corrupted → clean 600-byte JSON), archived 25 files from 9 unauthorized directories (audits/, marketing/, qa/, security/, session-wraps/, ux-spotchecks/, improvement-memos/, operations/context-audit/), created archive-index.json (Records-only vault with manifest visible to all agents), rewrote file-creation-schema.md with hard gates + Locked Folder Map + Archive Vault section + Tier system + banned temp patterns, added Rules 20-22 to conversation-defaults SKILL.md (temp gate, locked dirs, archive vault), added Archive Vault Gatekeeper section to findasale-records SKILL.md. Both skills packaged and presented to Patrick.
-**ACTION REQUIRED (Patrick):**
-1. Install updated skills (presented as .skill files): `conversation-defaults` (v7, Rules 20-22) + `findasale-records` (Archive Vault Gatekeeper)
-2. Complete git push: `git add claude_docs/self-healing/self_healing_skills.md && git add claude_docs/archive/ && git add claude_docs/operations/ && git commit -m "Session 144: file governance overhaul" && .\push.ps1`
-
 **Session 143 COMPLETE (2026-03-11) — FLEET REDESIGN PHASE 2 IMPLEMENTATION:**
-Phase 2 fully executed. 5 new agents: `findasale-sales-ops`, `findasale-devils-advocate`, `findasale-steelman`, `findasale-investor`, `findasale-competitor`. Advisory board rewritten to 12 seats + 6 subcommittees + async voting. 4 infrastructure docs: budget-first-session-planning, trial-rollback-protocol, cross-agent-feedback-loops, async-decision-voting. 2 scheduled tasks: daily-friction-audit (8:30am Mon-Fri), weekly-pipeline-briefing (Mon 9am). conversation-defaults v6: Rules 17-19 (budget-first, DA/Steelman co-fire, feedback loop routing). All 5 new agents on 2-week trial.
-**Skills still pending Patrick install from session 143:** `findasale-sales-ops`, `findasale-devils-advocate`, `findasale-steelman`, `findasale-investor`, `findasale-competitor`, `findasale-advisory-board` (rewritten)
+Phase 2 fully executed. 5 new agents: `findasale-sales-ops`, `findasale-devils-advocate`, `findasale-steelman`, `findasale-investor`, `findasale-competitor`. Advisory board rewritten to 12 seats + 6 subcommittees + async voting. 4 infrastructure docs: budget-first-session-planning, trial-rollback-protocol, cross-agent-feedback-loops, async-decision-voting. 2 scheduled tasks: daily-friction-audit (8:30am Mon-Fri), weekly-pipeline-briefing (Mon 9am). conversation-defaults v6: Rules 17-19 (budget-first, DA/Steelman co-fire, feedback loop routing). All 5 new agents on 2-week trial. ✅ All skills installed (session 145).
 
 **Sessions 140-142:** Fleet redesign Phase 1 complete + plugin-skill awareness upgrade. See session-log for details.
 
 **Session 137 COMPLETE (2026-03-11) — RAPIDFIRE BUG FIX + ENFORCEMENT HARDENING:**
 Two critical bugs fixed: (1) Prisma P2022 — `Item.draftStatus` missing from Neon production DB — fixed by deploying migration `20260311000002_add_item_draft_status`; (2) Rapidfire camera button bug — clicking Rapidfire opened regular camera flow instead of rapid capture flow — fixed with `handleRapidCameraComplete` handler in add-items/[saleId].tsx, creates optimistic DRAFT items per photo. Workflow improvements: skill enforcement gates hardened across `conversation-defaults` and `dev-environment`, CORE.md env gate upgraded to hard STOP gate with explicit `Skill()` invocation, SECURITY.md §6 updated with no-placeholder-credential rule, skill packaging workflow fixed. Global CLAUDE.md updated with subagent-first rule. Files changed: `packages/frontend/pages/organizer/add-items/[saleId].tsx`, plus docs/skills already pushed to GitHub.
 
-**ACTION REQUIRED (Patrick):** Deploy migration `20260311000002_add_item_draft_status` to Neon with: `cd packages/database && npx prisma migrate deploy` (with real credentials from packages/backend/.env).
+✅ Migration `20260311000002_add_item_draft_status` deployed to Neon (session 145 confirmed — applied 2026-03-11 12:30 UTC, committed c921313).
 
 **Session 136 COMPLETE (2026-03-10) — RAPIDFIRE MODE IMPLEMENTATION:**
 Phases 1A–3C fully built and pushed to GitHub. QA verdict: PASS WITH NOTES. One migration pending Neon deploy — everything else is live on Railway/Vercel once Patrick deploys.
@@ -40,11 +40,7 @@ Phases 1A–3C fully built and pushed to GitHub. QA verdict: PASS WITH NOTES. On
 - Frontend: ModeToggle, CaptureButton, RapidCarousel, PreviewModal, useUploadQueue hook
 - Frontend: review.tsx page, add-items/[saleId].tsx Phase 3C integration
 
-**⚠️ ACTION REQUIRED (Patrick):**
-1. `git pull` to get all MCP-pushed commits
-2. `cd packages/database && npx prisma generate && npx prisma migrate deploy` on Neon
-3. Railway will redeploy automatically after pull+push (or trigger manually)
-4. Test Rapidfire flow end-to-end after Neon deploy
+✅ Migration deployed and Rapidfire unblocked (session 145 confirmed).
 
 **Known Phase 3C gaps (post-beta):**
 - `useUploadQueue` not fully wired to camera blob capture (upload queue scaffolded, wiring incomplete)
@@ -103,7 +99,7 @@ Session 105 Bug Blitz COMPLETE. Session 106 B1 ADR COMPLETE. Session 107 B1 impl
 - Dashboard Analytics tab removed (duplicate of Insights page). Tabs reduced to Overview + Sales.
 - Tier Rewards card cleaned up: removed fee sub-card, removed "better rates" copy, added tier descriptions.
 - Print Inventory fixed: was calling `/organizer/sales` (404) → corrected to `/sales/mine`.
-- ⚠️ Add-items page: two versions exist. Old single-form version at `/organizer/add-items` (no saleId). New tabbed version (Rapid Capture, Camera, CSV Import) at `/organizer/add-items/[saleId]`. Camera tab shows "coming soon" — needs audit next session.
+- Add-items page: old single-form version redirects to dashboard. New tabbed version (Rapid Capture, Camera, CSV Import) at `/organizer/add-items/[saleId]` is canonical. Camera tab fully wired (confirmed session 145 — no "coming soon" regression).
 
 **Session 131 COMPLETE (2026-03-10):** Print inventory fix + per-sale insights filter. Verified live.
 - Print Inventory 500 error fixed: `getItemsBySaleId` was returning `embedding Float[]` (thousands of floats per item), crashing JSON serialization. Added `select` clause excluding embedding. Commit 10c66a5.
@@ -118,7 +114,7 @@ Session 105 Bug Blitz COMPLETE. Session 106 B1 ADR COMPLETE. Session 107 B1 impl
 - All 3 pages fixed and pushed to GitHub (commits 926a2d7 + 726146f). Vercel deployed — confirmed live via Chrome.
 - Old `add-items.tsx` (48KB static page, no saleId) replaced with redirect to `/organizer/dashboard` — eliminates routing conflict with `add-items/[saleId].tsx`
 - Backend tierService.ts perks text confirmed correct on GitHub ("10% flat") — Railway deploy pending (stale instance still shows 5%/7% in dashboard tier perks card)
-- ⚠️ Carry-forward: Camera tab "coming soon" regression on add-items/[saleId].tsx not yet investigated
+- ✅ Camera tab "coming soon" regression resolved — fully wired in current code (confirmed session 145).
 
 
 **Session 126 COMPLETE (2026-03-10):** Docs correction + session 125 fix verification + item list audit.
@@ -166,10 +162,7 @@ Phases 1–13 + pre-beta audit + rebrand + Sprints A–X all verified and shippe
 
 ## In Progress
 
-**Pending Neon migration deploy (Session 137):**
-- `20260311000002_add_item_draft_status` — PENDING DEPLOY. Adds `draftStatus` + `aiErrorLog` + `optimisticLockVersion` to Item schema. Unblocks auction end job and completes rapidfire feature. Patrick must run: `cd packages/database && npx prisma migrate deploy` (with real Neon URL from packages/backend/.env)
-
-**All other migrations deployed.** 70 total applied as of session 137. Previously deployed:
+**All migrations deployed.** 71 total applied as of session 145. Previously deployed:
 1. `20260309_add_auction_reserve_price`
 2. `20260310000001_add_item_fulltext_search_indexes`
 3. `20260311000001_add_sale_type_item_listing_type`
@@ -278,4 +271,4 @@ Full audit reports: archived (git history, sessions 84–85). Beta checklist: ar
 - FINDING-3 (stale fee copy on dashboard) — deferred from session 126, still open.
 - 4 new QA findings queued — all resolved in Session 128: camera fullscreen/flash ✅, tab labels ✅, click-to-edit ✅, CSV import tested + fixed ✅.
 
-Last Updated: 2026-03-11 (session 144 — Advisory Board Meeting #1, file governance overhaul, archive vault created, conversation-defaults v7 + Records skill updated)
+Last Updated: 2026-03-11 (session 146 — camera workflow v2 + publishing page design sprint, feature spec written, mockup complete)

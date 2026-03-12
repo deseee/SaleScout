@@ -1,62 +1,83 @@
-# Next Session Resume Prompt
-*Written: 2026-03-11*
-*Session ended: normally — session 144 complete*
+# Next Session Prompt — Session 147
+*Written: 2026-03-11 · Session 146 complete*
 
-## Hard Gate Checklist
-- [ ] Read context.md (regenerate if >24h old)
-- [ ] Read STATE.md
-- [ ] Read this file completely
-- [ ] Check .checkpoint-manifest.json
-- [ ] Read decisions-log.md (Rule 16)
-- [ ] Note active MCP tools
-- [ ] Apply budget-first session planning (Rule 17)
+## Priority: Camera Workflow v2 — Architecture Review + Implementation
 
-## Resume From
+### Context to load first
+1. `claude_docs/STATE.md`
+2. `claude_docs/feature-notes/camera-workflow-publishing-spec.md` — full feature spec from session 146
+3. `camera-mode-mockup.jsx` (repo root) — interactive React mockup; show Patrick if needed
 
-Patrick has installs and a git push to complete before the next work session. Confirm those are done first, then move to beta launch blockers.
+---
 
-## Patrick Action Required (Before Next Session)
+## Step 1 — Confirm session 145 + 146 git push
 
-1. **Install 2 updated skills** (presented via present_files at end of session 144):
-   - `conversation-defaults.skill` (v7 — Rules 20-22: temp file gate, locked dir structure, archive vault access)
-   - `findasale-records.skill` (updated — Archive Vault Gatekeeper section added)
+Patrick may have uncommitted changes from sessions 145 and 146. Confirm before starting new work.
 
-2. **Complete git push** for session 144 doc changes:
-   ```powershell
-   git add claude_docs/self-healing/self_healing_skills.md
-   git add claude_docs/archive/
-   git add claude_docs/operations/
-   git commit -m "Session 144: file governance overhaul — archive vault, locked dirs, Rules 20-22"
-   .\push.ps1
-   ```
+**Session 145 + 146 combined commit block (if not yet pushed):**
 
-3. **Skills from session 143 still pending install** (if not yet done):
-   `findasale-sales-ops`, `findasale-devils-advocate`, `findasale-steelman`, `findasale-investor`, `findasale-competitor`, `findasale-advisory-board`
+```powershell
+git add claude_docs/CORE.md
+git add claude_docs/STATE.md
+git add claude_docs/session-log.md
+git add claude_docs/next-session-prompt.md
+git add claude_docs/skills-package/findasale-records/SKILL.md
+git add claude_docs/skills-package/findasale-records.skill
+git add claude_docs/feature-notes/camera-workflow-publishing-spec.md
+git add packages/frontend/pages/organizer/add-items/[saleId].tsx
+git add camera-mode-mockup.jsx
+git commit -m "Sessions 145-146: CORE commit block rule, records skill audit+wrap fix, STATE cleared, select-all bottom, camera mockup v2 + publishing page, feature spec"
+.\push.ps1
+```
 
-## What Was Completed This Session (144)
+Also confirm: which file did the **desktop nav parity subagent** from session 145 edit? Verify and add to the staging block above if not already included.
 
-- Advisory Board Meeting #1 (full 12-seat board)
-- Sessions 142-143 audit: strategic deliverables confirmed, file hygiene failures identified
-- File governance 5-point plan fully implemented:
-  - Deleted 10 junk/deprecated files
-  - Rebuilt MESSAGE_BOARD.json (68KB corrupted → 600-byte clean JSON)
-  - Archived 25 files from 9 unauthorized directories
-  - Created `claude_docs/archive/archive-index.json` (Records-only vault)
-  - Rewrote `file-creation-schema.md` (Tier system, Locked Folder Map, Archive Vault, banned patterns, soft caps)
-  - Added Rules 20-22 to conversation-defaults SKILL.md
-  - Added Archive Vault Gatekeeper to findasale-records SKILL.md
-  - Added SH-007 to self_healing_skills.md (allow_cowork_file_delete pattern)
-- Both skills packaged and presented to Patrick
+---
 
-## Priority Queue (Next Session)
+## Step 2 — Architecture Review (findasale-architect)
 
-1. Confirm Patrick's installs + push completed (above)
-2. Deploy Neon migration `20260311000002_add_item_draft_status` (blocks Rapidfire) — `cd packages/database && npx prisma migrate deploy`
-3. Beta-blocking items: Stripe business account, Google Search Console, business cards, beta organizer outreach
-4. First daily-friction-audit will fire 8:30am Mon-Fri — verify it works correctly
+Dispatch `findasale-architect` with:
+- `claude_docs/feature-notes/camera-workflow-publishing-spec.md`
+- Focus: §Technical Notes for Architecture Review (7 open questions)
 
-## Carry-Forward Blockers
+Architect must produce:
+1. Decisions on all 7 open questions (BG removal API, image processing pipeline, face detection, AI confidence schema, photo angle labeling, aspect ratio crop location, draftStatus confirmation)
+2. Phased implementation plan
+3. Any new risks or blockers
 
-- Neon migration `20260311000002_add_item_draft_status` still pending deploy
-- Patrick's 5 beta-blocking items (Stripe, GSC, cards, outreach, attorney)
-- Camera tab "coming soon" regression on add-items/[saleId].tsx (carried from session 130)
+---
+
+## Step 3 — Ship-Ready Subcommittee (findasale-advisory-board)
+
+After architect signs off, dispatch Ship-Ready subcommittee to validate scope, sequencing, and flag any features that should slip to v2.1.
+
+---
+
+## Step 4 — Implementation (findasale-dev)
+
+Key files expected:
+
+**Backend:**
+- `uploadController.ts` — image processing endpoints (auto-enhance, BG removal, face detection flag)
+- AI response payload — add `confidence` field
+- Item schema — `photoCount`, photo angle label anticipation
+
+**Frontend:**
+- `add-items/[saleId].tsx` — camera screen enhancements (aspect ratio overlay, enhanced badges, + button, add-mode banner, quality warning, retake toast)
+- Publishing page — new or enhanced review page
+
+Load `dev-environment` skill before any shell/Prisma/database commands.
+
+---
+
+## Step 5 — QA (findasale-qa)
+
+Run against user stories in the feature spec after dev completes.
+
+---
+
+## Other Items (if time permits)
+
+- Desktop nav parity — confirm session 145 subagent changes are correct and live
+- Beta blockers (Patrick-side): Stripe business account, Google Search Console, business cards, organizer outreach
+- Prompt-level audit for `daily-friction-audit` and `weekly-pipeline-briefing` scheduled tasks (in Windows OneDrive — Patrick must open and share)
