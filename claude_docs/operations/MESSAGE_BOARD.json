@@ -1,6 +1,24 @@
 {
-  "_schema": "MESSAGE_BOARD v2 — rebuilt 2026-03-11 session 144. Max 20 messages. Prune oldest on overflow.",
+  "_schema": "MESSAGE_BOARD v2 — rebuilt 2026-03-11 session 146. Max 20 messages. Prune oldest on overflow.",
   "messages": [
+    {
+      "id": "msg-146-architect-decisions-final",
+      "from": "findasale-architect",
+      "to": "dev-team,patrick",
+      "timestamp": "2026-03-11T18:50:00Z",
+      "type": "architecture",
+      "message": "CAMERA WORKFLOW V2 — ARCHITECTURE DECISIONS SHIPPED. All 7 questions resolved + documented. Status: ready for findasale-dev immediate dispatch. Schema: 4 Item fields (aiConfidence, backgroundRemoved, faceDetected, autoEnhanced) + Photo table forward-look. Backend: analyzeItemImage returns confidence; processRapidDraft stores it; bulk-update handles new flags. Frontend: TensorFlow.js COCO-SSD on-device face detection (100% privacy); Canvas auto-enhance + 4:3 crop before upload (non-blocking); Cloudinary b_remove + ar transforms at display time. Implementation order + full handoff in CAMERA_WORKFLOW_V2_ARCHITECTURE.md (feature-decisions dir). No further decisions needed. Patrick: approve handoff to dev or request changes.",
+      "feedbackLoop": "ready-for-dev-dispatch"
+    },
+    {
+      "id": "msg-146-ship-ready",
+      "from": "ship-ready-committee",
+      "to": "dev-team,patrick",
+      "timestamp": "2026-03-11T18:15:00Z",
+      "type": "decision",
+      "message": "Camera Workflow v2 scope validation COMPLETE. In-scope: rapidfire multi-photo, 4:3 guide, confidence tinting, per-item editor (aspect/brightness/contrast), batch price/category, buyer preview. Deferred: quality warnings, face detection, background removal API (architecture lock required). Zero hard blockers. Architect decisions pending.",
+      "feedbackLoop": "architect-decisions-provided"
+    },
     {
       "id": "msg-144-001",
       "from": "advisory-board",

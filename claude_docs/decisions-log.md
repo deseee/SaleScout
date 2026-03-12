@@ -5,6 +5,16 @@ Only decisions that affect future sessions — not implementation details.
 
 ---
 
+## 2026-03-11 — Session 146 (Camera Workflow v2 Architecture)
+
+- DECIDED: Background removal via Cloudinary server-side lazy transform (b_remove). Rationale: cost-efficient, no on-device WASM bloat, reduces network roundtrips vs. Remove.bg cloud API.
+- DECIDED: Auto-enhance (brightness/saturation) on-device Canvas before upload, non-blocking. Rationale: spotty mobile wifi context, eliminates 2x network latency vs. server-side, enables immediate ✨ badge.
+- DECIDED: Face detection on-device TensorFlow.js COCO-SSD (100% privacy). No cloud API. Rationale: spec requirement (private homes), no data sent off-device, organizer confirms before upload.
+- DECIDED: AI confidence as `aiConfidence: Float` field on Item, sourced from Vision API in processRapidDraft. Rationale: enables color-coded confidence tinting (green/amber/red) on publishing page.
+- DECIDED: Create Photo model (forward-looking, not used until v3), keep photoUrls array backward-compat for v2. Rationale: anticipates future per-photo labels/crops without schema re-migration.
+- DECIDED: Aspect ratio crop client-side Canvas before upload + Cloudinary ar:4:3 display transform. Rationale: faster (local), reduces storage, consistent rendering.
+- DECIDED: draftStatus enum unchanged (DRAFT → PENDING_REVIEW → PUBLISHED). No schema change required. Rationale: existing implementation already supports workflow.
+
 ## 2026-03-11 — Session 143 (Fleet Redesign Phase 2 Execution)
 
 - EXECUTED: All 5 new standalone agents created and on 2-week trial. Rollback conditions defined in trial-rollback-protocol.md.
