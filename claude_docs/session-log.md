@@ -2,6 +2,13 @@
 
 ## Recent Sessions
 
+### 2026-03-12 · Session 155
+**Worked on:** Full roadmap strategic review. Cleaned up roadmap.md — marked shipped features (POS, Rapidfire, Camera v2), fixed stale agent refs, updated migration count. Expanded #27 from photo watermark to Listing Factory (AI tag auto-suggestion, Listing Health Score, multi-platform export, social templates). Locked priority order (#24→#27→#8→#28→#6). Locked 7 design decisions (holds expiry, health score gate, tag vocabulary, social template tones, heatmap density, background removal, holds grouping). Innovation proposed 9 new ideas; DA and Steelman debated all 9. Patrick promoted 5 to Phase 4 (#29 Loyalty Passport, #30 AI Valuations, #31 Brand Kit, #32 Wishlist Alerts, #17 Bid Bot validated) and deferred 4 (Flash Auctions, Livestream, Insurance Badge, Pop-Up Clusters). Added Brand Voice session to upcoming work.
+**Decisions:** Priority order locked (P1–P5). 7 UX design decisions locked. 5 Innovation ideas promoted, 4 deferred. #26 merged into #6. #24 moved to Next Up P1.
+**Files changed:** `claude_docs/strategy/roadmap.md`, `claude_docs/STATE.md`, `claude_docs/session-log.md`, `claude_docs/next-session-prompt.md`
+**Next up:** Brand Voice session (before Listing Factory ships). Then start #24 (Holds-Only Item View) — 1 sprint, trust blocker for beta.
+**Blockers:** None. Roadmap locked and ready for execution.
+
 ### 2026-03-12 · Session 154
 **Worked on:** Unblocked Railway + deployed missing Neon migration. Railway was crashing on every request with P2022 `Organizer.cashFeeBalance does not exist` — the migration `20260312_add_cash_fee_balance_to_organizer` (cash fee system from session 153) had never been applied to Neon production. Read `.env` for Neon credentials, confirmed migration file existed, ran `prisma migrate deploy` with inlined env vars — columns added, Railway errors cleared. Also cleared stale HEAD.lock file that was blocking all git commits, and resolved leftover merge conflict markers in STATE.md and next-session-prompt.md.
 **Decisions:** None — pure infrastructure fix.
@@ -31,11 +38,4 @@
 **Next up:** Patrick: install @stripe/terminal-js, add NEXT_PUBLIC_STRIPE_TERMINAL_SIMULATED=true, deploy migration 20260312000002_add_purchase_pos_fields to Neon, push to GitHub via .\push.ps1. Then findasale-qa reviews payment flow before enabling for beta organizers.
 **Blockers:** Stripe business account (Patrick still needs to open one for live hardware). Migration not yet on Neon. pnpm-lock.yaml needs update after @stripe/terminal-js install.
 
-### 2026-03-12 · Session 149
-**Worked on:** Daily friction audit (scheduled task — ran automatically); P0 review page bug fix; shopper API 404 fixes. Friction audit identified: Vercel GitHub App disconnected (P0 — frontend not deploying), .checkpoint-manifest.json stale for 5 sessions, camera v2 MESSAGE_BOARD handoff aging at 24h+, recurring "Patrick needs to push" blocker pattern. Report: `claude_docs/operations/friction-audit-2026-03-12.md`. Review page P0: `review.tsx` was hitting `GET /items` (returns only PUBLISHED via PUBLIC_ITEM_FILTER) instead of `GET /items/drafts` — new rapidfire items were invisible, all published items appeared as pending with broken AI confidence. One-line fix, b578cca. Shopper 404s: 3 pages calling non-existent `/shopper/purchases`, `/shopper/favorites`, `/sales/subscribed` routes — corrected to real backend endpoints. Layout.tsx nav spacing cleaned up.
-**Decisions:** None — all bug fixes with no architectural choices.
-**Files changed:** `packages/frontend/pages/organizer/add-items/[saleId]/review.tsx` (endpoint fix), `packages/frontend/components/ActivitySummary.tsx`, `packages/frontend/components/Layout.tsx`, `packages/frontend/pages/shopper/dashboard.tsx`, `packages/frontend/pages/shopper/purchases.tsx` (API 404 fixes)
-**Scoreboard:** Files changed: 5 | Subagents: 0 | Push method: Patrick PS1 | Commits: b578cca, 816c352
-**Next up:** Planning committee (Ship-Ready subcommittee) reviews Stripe Terminal POS (roadmap item #5) → findasale-architect designs → findasale-dev implements.
-**Blockers:** Vercel GitHub App disconnected — frontend fixes not deploying to production. Patrick needs to reconnect in Vercel dashboard → findasale → Settings → Git.
 

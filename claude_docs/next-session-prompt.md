@@ -1,42 +1,26 @@
 # Next Session Resume Prompt
-*Written: 2026-03-12T00:00:00Z*
+*Written: 2026-03-12T23:00:00Z*
 *Session ended: normally*
 
 ## Resume From
-Test the POS end-to-end in the browser — card flow, cash flow, and misc items — confirming cash fee balance appears on the payouts page after a cash transaction.
+Brand Voice session — use brand-voice plugin (discover-brand → guideline-generation → brand-voice-enforcement) to establish FindA.Sale's documented voice, tone, and messaging pillars. This is needed before Listing Factory (#27) ships social templates.
 
 ## What Was In Progress
-Nothing — session 154 was a pure infrastructure fix. All code work is complete.
+Nothing mid-task. Session 155 was a strategic planning session — all roadmap edits complete.
 
 ## What Was Completed This Session
-- Cleared stale HEAD.lock file that was blocking git commits
-- Committed remaining doc files (STATE.md, next-session-prompt.md) to unblock push.ps1
-- Ran `prisma migrate deploy` against Neon with inlined credentials — applied migration `20260312_add_cash_fee_balance_to_organizer` (adds cashFeeBalance Float + cashFeeBalanceUpdatedAt DateTime? to Organizer table)
-- Railway P2022 errors on Organizer.cashFeeBalance cleared — Patrick confirmed working
-- Resolved leftover merge conflict markers in STATE.md
+- Roadmap v25: cleaned up stale refs, marked shipped features, expanded #27 to Listing Factory
+- Locked priority order: #24 → #27 → #8 → #28 → #6
+- Locked 7 design decisions (holds, health score, tags, social templates, heatmap, BG removal, holds grouping)
+- DA/Steelman debate on 9 Innovation ideas — 5 promoted (#29 Loyalty Passport, #30 AI Valuations, #31 Brand Kit, #32 Wishlist Alerts, #17 Bid Bot validated), 4 deferred
+- Added Brand Voice session to upcoming work
 
 ## Environment Notes
-- All systems green: Vercel and Railway both deployed on current main branch (last commit 13a19b7).
-- No pending migrations. All 73 migrations applied to Neon production.
-- No pending git pushes. Everything is on main.
+- No code changes this session — docs only. Patrick needs to push doc changes via `.\push.ps1`.
+- Files changed: `claude_docs/strategy/roadmap.md`, `claude_docs/STATE.md`, `claude_docs/session-log.md`, `claude_docs/next-session-prompt.md`
+- Vercel GitHub App may still be disconnected (flagged session 148) — check before next code deploy.
 
 ## Exact Context
-Current main branch state (as of session 154 wrap):
-- pos.tsx: POS v2 with multi-item cart, quick-add misc, cash payment, inline numpad, cash fee display in success UI
-- payouts.tsx: cash fee balance card (conditional on cashFeeBalance > 0), payout deduction preview
-- terminalController.ts: cash payment endpoint with fee tracking, duplicate item guard, humanized error messages
-- stripe.ts: cash-payment route registered
-- schema.prisma: Organizer has cashFeeBalance + cashFeeBalanceUpdatedAt; Purchase has userId nullable + source + buyerEmail
-
-POS testing checklist for Patrick:
-1. Open /organizer/pos in browser
-2. Card flow: add items to cart -> connect reader -> charge -> capture -> verify purchases
-3. Cash flow: add items -> enter cash amount -> submit -> verify change displayed + items marked SOLD
-4. Misc items: use quick-add buttons ($1, $5, etc.) -> verify they appear in cart
-5. Payouts page: after cash sale, verify cashFeeBalance card appears with correct amount
-
-Beta blockers still open:
-- Stripe business account (Patrick)
-- Google Search Console verification
-- Business cards / organizer outreach
-- Real Stripe Terminal hardware for live testing
+- Roadmap is at v25 in `claude_docs/strategy/roadmap.md`
+- Next execution work: #24 Holds-Only Item View (1 sprint) — needs Architect → Dev → QA cycle
+- Brand Voice session should happen before #27 Listing Factory starts (social templates need brand pillars)
