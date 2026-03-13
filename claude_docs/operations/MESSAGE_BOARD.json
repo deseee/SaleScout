@@ -2,6 +2,24 @@
   "_schema": "MESSAGE_BOARD v2 — rebuilt 2026-03-11 session 146. Max 20 messages. Prune oldest on overflow.",
   "messages": [
     {
+      "id": "msg-158-workflow-capture-findings",
+      "from": "findasale-workflow",
+      "to": "patrick",
+      "timestamp": "2026-03-13T14:00:00Z",
+      "type": "analysis",
+      "message": "96-HOUR I/O CAPTURE DESIGN COMPLETE — AUDIT FINDINGS. Document: `claude_docs/workflow-retrospectives/96h-io-capture-design.md`. Key findings from sessions 150–157: (1) CONTEXT LOST: Subagent research outputs completed (innovation-round3-2026-03-13.md) but selection rationale not in decisions-log. (2) ASYNC BOUNDARY: Migration pending Neon deploy mentioned in STATE.md but no timestamp/deadline; session 154 had to diagnose P2022 error that should have been flagged at start. (3) LARGE CODE CHANGES UNLOGGED: add-items 989-line rewrite committed but not in session-log; test coverage unclear until session 128 QA ran. (4) DECISION RATIONALE GAP: Organizer Mode Tiers framework decision exists, but no link to feature dependencies or trade-offs. (5) ISOLATED ASYNC: Friction audit (session 149) found P0 but didn't propagate to session 150 start. (6) COMPRESSION BOUNDARY: Session 150 hit context limit mid-POS build; session 151 resumed but STATE.md sync was unclear. Solution: Rolling 96h event log (append-only JSONL) + 12-hour analysis task detecting 7 heuristic patterns (orphaned dispatch, integration gaps, unlogged changes, broken rationale, compression boundaries, isolated async results, uncommitted work). Analysis runs daily 8am + 8pm, produces markdown report with findings + recommendations. No new CLAUDE.md rules — captures logged passively via findasale-records + conversation-defaults. Implementation: Phase 1 (capture infrastructure), Phase 2 (analysis task), Phase 3 (session-start integration). Ready to build.",
+      "feedbackLoop": null
+    },
+    {
+      "id": "msg-158-poweruser-io-capture-design",
+      "from": "cowork-power-user",
+      "to": "patrick",
+      "timestamp": "2026-03-13T16:30:00Z",
+      "type": "research",
+      "message": "96-HOUR SESSION I/O CAPTURE SYSTEM — DESIGN ANALYSIS COMPLETE. Research output: `claude_docs/operations/96h-session-io-capture-system-design.md` (10,000 words). Key findings: (1) Claude cannot access its own conversation history — no raw transcript capture possible. (2) Practical alternative: capture work artifacts (files, commits, handoffs) + have agents log I/O explicitly as JSONL. (3) Architecture: append-only `session-io-capture.jsonl` (400–800 KB rolling 96h buffer) + 12-hour analysis task detecting context loss, auto-compression, orphaned work, post-session orphans. (4) Expected file size: negligible (10 MB/month). (5) Integration: additive to STATE.md, complementary to MESSAGE_BOARD, orthogonal to session-log. (6) CLAUDE.md changes: minimal (1 new rule in conversation-defaults, 1 section in CORE.md). (7) Value: catches ~1–2 invisible issues/sprint (currently silent). (8) Cost: 2 hours setup + automated via scheduled task. Recommendation: BUILD THIS — low cost, high fidelity. Next step: Patrick greenlight Phase 1 (schema + logging). If approved, findasale-records owns scheduled-task skill; findasale-dev owns analysis script.",
+      "feedbackLoop": "awaiting-patrick-decision"
+    },
+    {
       "id": "msg-154-dev-cash-fee-frontend",
       "from": "findasale-dev",
       "to": "patrick",

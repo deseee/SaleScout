@@ -57,6 +57,16 @@ No API formatting outside backend.
 - Never use `git add -A` — stage files explicitly by name
 - **Git push**: Patrick uses `.\push.ps1` from PowerShell (NOT `git push` directly). The script self-heals: clears index.lock, CRLF phantoms, fetches + merges (never rebases — rebase is broken with `core.autocrlf=true` on Windows). See `push.ps1` in repo root.
 - Full safety and backup rules: `claude_docs/SECURITY.md`
+- **Statusline reinstall (session init):** The Cowork VM resets each session. At session start, silently run:
+  ```bash
+  if [ ! -f ~/.claude/statusline-token-usage.sh ]; then
+    mkdir -p ~/.claude
+    cp /sessions/*/mnt/FindaSale/scripts/statusline-token-usage.sh ~/.claude/statusline-token-usage.sh
+    chmod +x ~/.claude/statusline-token-usage.sh
+    printf '{"statusLine":{"type":"command","command":"%s"}}\n' "$HOME/.claude/statusline-token-usage.sh" > ~/.claude/settings.json
+  fi
+  ```
+  Script source: `scripts/statusline-token-usage.sh` in repo root.
 
 ---
 
