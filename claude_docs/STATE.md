@@ -7,6 +7,13 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Active Objective
 
+**Session 158 COMPLETE (2026-03-13) — REPO ROOT CLEANUP + TOKEN STATUSLINE:**
+- **Token statusline:** Investigated Cowork token bar (statusline approach). Confirmed Cowork desktop UI does not pass `context_window` JSON to statusline scripts — outputs `Tokens: waiting...` indefinitely. Dead end for visual bar. Statusline script persisted to `scripts/statusline-token-usage.sh` + CLAUDE.md §4 reinstall rule added for VM ephemerality. Token estimates calibrated from 19 sessions (S118–S157): avg ~13.6k/agent (prior default 5k was 2.6× too low). Updated conversation-defaults Rule 17 packaged as installable .skill.
+- **Repo root audit (findasale-records):** 5 unauthorized orphaned files removed from repo root: `AGENT_QUICK_REFERENCE.md` (stale, eliminated agents), `CAMERA_WORKFLOW_V2_IMPLEMENTATION_STATUS.md` (completed handoff), `STRIPE_WEBHOOK_HARDENING.md` (completed record), `fleet-redesign-proposal-v1.md` (implemented), `docs/CD2_PHASE2_TREASURE_HUNT.md` (completed feature spec). All archived to `claude_docs/archive/` with index entries. `docs/` and `skill-updates/` directories removed. Repo root is now clean.
+- **Commits:** c962720 (archive+index), 7f20537 (CLAUDE.md+checkpoint), e217236 (deletions)
+- **Files changed:** `claude_docs/archive/archive-index.json`, 5 new archive entries, `CLAUDE.md` (statusline reinstall rule), `scripts/statusline-token-usage.sh` (new).
+**Last Updated:** 2026-03-13 (session 158 — repo root cleanup, token statusline research, records audit)
+
 **Session 157 COMPLETE (2026-03-13) — INNOVATION ROUND 3 (10 CREATIVE LENSES):**
 - **Innovation Round 3:** 30 new ideas across 10 lenses (casino/gambling, microtransactions, big box retail, mobile trends, international, progressive disclosure, GitHub/open source, Reddit/social, Zapier/automation, emerging). Web research completed across all lenses.
 - **11 BUILD ideas → Phase 4 (#61–#71):** Near-Miss Nudges, Digital Receipt + Returns, Dark Mode + Accessibility, Condition Grading System, Organizer Mode Tiers (Simple/Pro/Enterprise), Open Data Export, Social Proof Notifications, Command Center Dashboard, Local-First Offline Mode, Live Sale Feed, Organizer Reputation Score.

@@ -16,6 +16,17 @@ Keep only the 5 most recent sessions. Delete older entries — git history and S
 
 ## Recent Sessions
 
+## Session 158 — 2026-03-13 — Repo Root Cleanup + Token Statusline Research
+
+**Worked on:** (1) Token statusline investigation — confirmed Cowork desktop UI does not pass `context_window` JSON to statusline scripts; bar stays at `Tokens: waiting...` indefinitely. Statusline script stored in `scripts/statusline-token-usage.sh`, CLAUDE.md §4 updated with session-init reinstall block to handle VM ephemerality. Token estimates calibrated from 19 sessions: avg ~13.6k/agent (prior 5k default was 2.6× too low), updated in conversation-defaults Rule 17, packaged as installable .skill. (2) Records audit of repo root — 5 unauthorized orphaned files identified and removed: `AGENT_QUICK_REFERENCE.md`, `CAMERA_WORKFLOW_V2_IMPLEMENTATION_STATUS.md`, `STRIPE_WEBHOOK_HARDENING.md`, `fleet-redesign-proposal-v1.md`, `docs/CD2_PHASE2_TREASURE_HUNT.md`. All archived with index entries. `docs/` directory and `skill-updates/` directory removed.
+**Decisions:** Token statusline is a dead end for Cowork (no JSON feed). Per-agent token estimates locked: simple 5–8k, mid-weight 10–15k, heavy 15–25k, unknown 13k average. Repo root should contain only project infrastructure files (CLAUDE.md, README.md, package.json, push.ps1, railway.toml, pnpm files, scripts/, claude_docs/, packages/).
+**Token efficiency:** Two subagent dispatches (findasale-records). Inline research for statusline. Low-medium burn.
+**Token burn:** ~40k tokens (est.), 0 checkpoints.
+**Next up:** Resume feature work — next priority per roadmap is #24 (Holds, 1 sprint). See roadmap.md for Phase 4 queue.
+**Blockers:** Vercel GitHub App integration still needs reconnect (flagged session 149). Migration `20260311000003_add_camera_workflow_v2_fields` deploy status still unclear.
+
+---
+
 ## Session 152 — 2026-03-12 — POS v2 Post-Go-Live Fixes
 
 **Worked on:** Four targeted fixes to the Stripe Terminal POS after go-live testing revealed issues: (1) **Duplicate itemId guard** — both `createTerminalPaymentIntent` and `cashPayment` now reject duplicate itemIds (each physical item can only be charged once per transaction). (2) **Error messages humanized** — `terminalController.ts` was surfacing raw DB UUIDs in error strings. Fixed to use `item.title` in both payment flows; required adding `title: true` to the cashPayment `dbItems` select since it previously only fetched `id` and `status`. (3) **POS item search fixed** — `getItemsBySaleId` was ignoring all query params except `saleId`. The frontend was already sending the correct `?q=...&status=AVAILABLE&limit=10` — the backend simply discarded them. Fixed with Prisma `contains` + `insensitive` for title/SKU search, status filter, limit cap, and added `sku: true` to select. (4) **Inline cash numpad** — replaced the cash received button (which opened the shared global numpad at top of page) with an always-visible inline 3×4 numpad inside the cash payment card. Independent `cashNumpadValue` state syncs to `cashReceived` via useEffect. Real-time change/short display. Global numpad simplified to price-only.
@@ -64,12 +75,3 @@ Keep only the 5 most recent sessions. Delete older entries — git history and S
 - claude_docs/operations/plugin-skill-routing.md (created)
 - claude_docs/logs/session-log.md (this entry)
 
----
-
-### 2026-03-10 (sessions 121–123 — Friction Items 7+13 + AI Upload Pipeline)
-**Worked on:** (Session 121) Friction items 7 (bulk edit) + 13 (neighborhood autocomplete): backend `/bulk` endpoint extended for isActive/price ops, `add-items/[saleId].tsx` bulk UI (Select All, per-item checkboxes, amber highlight, Hide/Price toolbar), `create-sale.tsx` + `edit-sale/[id].tsx` neighborhood input+datalist. New schema field `isActive Boolean @default(true)` + migration `20260309000003_add_item_is_active`. Build fixes: template literal + Set spread errors, dashboard.tsx newline corruption (literal `\n` sequences). (Session 122) AI tagging architecture review documented (`claude_docs/feature-notes/ai-tagging-architecture.md`). Webcam capture added to add-items page (MediaDevices API, canvas JPEG, rapid-batch upload). Public item listing now filters `isActive=true` across all search paths (FTS, ILIKE, filtered, counts, getItemById, getItemsBySaleId). Upload pipeline P0/P1 fixes: Cloudinary URL validation, Haiku timeout/parse/rate-limit error capture, `isAiTagged` only set on AI success, feedback endpoint wired (CB4), retry button for failed analysis. **Overwrite incident:** dev agent replaced `itemController.ts` with stub (build broken) — restored via commit `7f6f2ebd`. (Session 123) Two follow-on fixes: `SmartInventoryUpload` isAiTagged Boolean() cast, `embedding: []` added to `createItem` (fixes P2011 null constraint on `Float[]` field).
-**Decisions:** `isActive` added to Item schema to support hide/show without deletion. Webcam capture uses canvas JPEG compression before Cloudinary upload. Haiku error types distinguished (timeout vs parse vs rate-limit) for better retry UX. `embedding: []` is the correct default — `scheduleItemEmbedding` fills async after record creation.
-**Token efficiency:** Sessions 121–123 used parallel agents. Overwrite incident in session 122 required restore + hotfix cycle. Session wrap docs not pushed — records gap for sessions 121–123.
-**Token burn:** ~60k (121) + ~90k (122) + ~20k (123) est. Session wrap logs missing from GitHub.
-**Next up:** Session 124 — Chrome audit of AI tagging + add-item flow (continuation). Deploy `20260309000003_add_item_is_active` migration to Neon. Session wrap docs push (STATE.md, session-log.md, next-session-prompt.md for sessions 121–123).
-**Blockers:** Neon migration `20260309000003_add_item_is_active` not deployed. Session 122–123 wrap docs not pushed to GitHub.

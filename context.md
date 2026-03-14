@@ -1,5 +1,5 @@
 # Dynamic Project Context
-*Generated at 2026-03-12T22:37:26.034Z*
+*Generated at 2026-03-14T00:43:00.731Z*
 *Run `node scripts/update-context.js` on Windows to refresh.*
 
 ## Last Session
@@ -17,7 +17,7 @@ Last scan: records-audit-sessions-110-118-2026-03-09
 ## Signals
 ⚠ Env drift — in .env.example but missing from .env: MAILERLITE_API_KEY, DEFAULT_CITY, DEFAULT_STATE, DEFAULT_STATE_ABBREV, DEFAULT_LAT, DEFAULT_LNG, DEFAULT_RADIUS_MILES, DEFAULT_COUNTY, DEFAULT_TIMEZONE
 ⚠ 1+ TODO/FIXME markers in source (showing up to 5):
-  /sessions/serene-sharp-noether/mnt/FindaSale/packages/frontend/pages/organizer/add-items/[saleId].tsx:152:// TODO: Implement face detection with @tensorflow-models/coco-ssd
+  /sessions/gifted-zen-euler/mnt/FindaSale/packages/frontend/pages/organizer/add-items/[saleId].tsx:152:// TODO: Implement face detection with @tensorflow-models/coco-ssd
 
 ## Project File Tree
 ```
@@ -39,11 +39,8 @@ Last scan: records-audit-sessions-110-118-2026-03-09
 │       │   └── SKILL.md
 │       └── skill-creator/
 │           └── SKILL.md
-├── AGENT_QUICK_REFERENCE.md
-├── CAMERA_WORKFLOW_V2_IMPLEMENTATION_STATUS.md
 ├── CLAUDE.md
 ├── README.md
-├── STRIPE_WEBHOOK_HARDENING.md
 ├── ai-config/
 │   └── global-instructions.md
 ├── camera-mode-mockup.jsx
@@ -54,7 +51,7 @@ Last scan: records-audit-sessions-110-118-2026-03-09
 │   ├── SECURITY.md
 │   ├── STACK.md
 │   ├── STATE.md
-│   ├── archive/ (9 files)
+│   ├── archive/ (13 files)
 │   ├── beta-launch/ (5 files)
 │   ├── brand/ (8 files)
 │   ├── competitor-intel/ (1 files)
@@ -69,16 +66,13 @@ Last scan: records-audit-sessions-110-118-2026-03-09
 │   ├── health-reports/ (1 files)
 │   ├── logs/ (2 files)
 │   ├── next-session-prompt.md
-│   ├── operations/ (24 files)
-│   ├── research/ (3 files)
+│   ├── operations/ (27 files)
+│   ├── research/ (4 files)
 │   ├── self-healing/ (1 files)
 │   ├── session-log.md
 │   ├── skills-package/ (30 files)
 │   ├── strategy/ (4 files)
-│   └── workflow-retrospectives/ (0 files)
-├── docs/
-│   └── CD2_PHASE2_TREASURE_HUNT.md
-├── fleet-redesign-proposal-v1.md
+│   └── workflow-retrospectives/ (1 files)
 ├── next
 ├── package.json
 ├── packages/
@@ -161,29 +155,14 @@ Last scan: records-audit-sessions-110-118-2026-03-09
 ├── pnpm-workspace.yaml
 ├── push.ps1
 ├── railway.toml
-├── scripts/
-│   ├── health-check.ts
-│   ├── package-skill.sh
-│   ├── session-wrap-check.ps1
-│   ├── session-wrap-check.sh
-│   ├── stress-test.js
-│   └── update-context.js
-└── skill-updates/
-    ├── zi0JKDFh
-    ├── zi0ZAsNh
-    ├── zi5C2Zsb
-    ├── ziEM3pic
-    ├── ziK18NL3
-    ├── ziMOvrz4
-    ├── ziXJ1M6C
-    ├── ziheNXAk
-    ├── zihmC4Xj
-    ├── ziipsPq3
-    ├── zio1ID9B
-    ├── zis6sZdE
-    ├── zisKPUAA
-    ├── zivGh9XE
-    └── ziy2i7m2
+└── scripts/
+    ├── health-check.ts
+    ├── package-skill.sh
+    ├── session-wrap-check.ps1
+    ├── session-wrap-check.sh
+    ├── statusline-token-usage.sh
+    ├── stress-test.js
+    └── update-context.js
 
 ```
 

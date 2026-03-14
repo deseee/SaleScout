@@ -1,26 +1,29 @@
 # Next Session Resume Prompt
-*Written: 2026-03-12T23:00:00Z*
+*Written: 2026-03-13T00:00:00Z*
 *Session ended: normally*
 
 ## Resume From
-Brand Voice session — use brand-voice plugin (discover-brand → guideline-generation → brand-voice-enforcement) to establish FindA.Sale's documented voice, tone, and messaging pillars. This is needed before Listing Factory (#27) ships social templates.
+Resume feature work. Next priority per roadmap is **#24 Holds** (1 sprint). Load STATE.md and roadmap.md, then route to findasale-architect for the Holds schema decision before dev starts.
 
 ## What Was In Progress
-Nothing mid-task. Session 155 was a strategic planning session — all roadmap edits complete.
+Nothing in active development — session 158 was governance/research only.
 
 ## What Was Completed This Session
-- Roadmap v25: cleaned up stale refs, marked shipped features, expanded #27 to Listing Factory
-- Locked priority order: #24 → #27 → #8 → #28 → #6
-- Locked 7 design decisions (holds, health score, tags, social templates, heatmap, BG removal, holds grouping)
-- DA/Steelman debate on 9 Innovation ideas — 5 promoted (#29 Loyalty Passport, #30 AI Valuations, #31 Brand Kit, #32 Wishlist Alerts, #17 Bid Bot validated), 4 deferred
-- Added Brand Voice session to upcoming work
+- Token statusline confirmed dead end for Cowork (no JSON feed from desktop UI)
+- Token estimates calibrated: avg ~13.6k/agent; conversation-defaults Rule 17 updated + packaged as .skill (installed)
+- CLAUDE.md §4 updated with statusline reinstall block for VM ephemerality
+- `scripts/statusline-token-usage.sh` added to repo
+- Repo root audit (findasale-records): 5 orphaned files archived + deleted
+- `docs/` and `skill-updates/` directories removed from repo root
+- All changes pushed to main (commits c962720, 7f20537, e217236)
 
 ## Environment Notes
-- No code changes this session — docs only. Patrick needs to push doc changes via `.\push.ps1`.
-- Files changed: `claude_docs/strategy/roadmap.md`, `claude_docs/STATE.md`, `claude_docs/session-log.md`, `claude_docs/next-session-prompt.md`
-- Vercel GitHub App may still be disconnected (flagged session 148) — check before next code deploy.
+- **Vercel GitHub App integration** — still needs reconnect (flagged session 149). Check Vercel dashboard → findasale → Settings → Git before assuming frontend changes are deployed.
+- **Migration `20260311000003_add_camera_workflow_v2_fields`** — deploy status to Neon still unclear. Verify before any camera workflow v2 work.
+- All other migrations current. Repo root is clean.
 
 ## Exact Context
-- Roadmap is at v25 in `claude_docs/strategy/roadmap.md`
-- Next execution work: #24 Holds-Only Item View (1 sprint) — needs Architect → Dev → QA cycle
-- Brand Voice session should happen before #27 Listing Factory starts (social templates need brand pillars)
+- Roadmap next priority: #24 Holds → #27 Listing Factory → #8 Batch Ops → #28 Heatmap → #6 Seller Dashboard
+- Roadmap is at v27 in `claude_docs/strategy/roadmap.md`
+- Brand Voice session still on the upcoming list (needed before #27 Listing Factory ships social templates)
+- conversation-defaults Rule 17 calibrated token estimates are installed this session
