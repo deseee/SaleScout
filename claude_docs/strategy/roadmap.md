@@ -208,7 +208,7 @@ Proactive tasks assigned to the fleet. Not product features — operational work
 ## Deferred & Long-Term Hold
 
 | Feature | Reason | Revisit |
-|---------|--------|--------|
+|---------|--------|---------|
 | White-label MaaS | Business decision — beta validation first | After beta data |
 | Consignment Integration | Thrift store POS — post-beta complexity | After beta data |
 | QuickBooks Integration | CSV export covers 80% of need | When organizers ask |
