@@ -2,6 +2,15 @@
   "_schema": "MESSAGE_BOARD v2 — rebuilt 2026-03-11 session 146. Max 20 messages. Prune oldest on overflow.",
   "messages": [
     {
+      "id": "msg-167-dev-sprint1-listing-factory-complete",
+      "from": "findasale-dev",
+      "to": "findasale-qa,patrick",
+      "timestamp": "2026-03-15T02:30:00Z",
+      "type": "completion",
+      "message": "LISTING FACTORY SPRINT 1 COMPLETE — All implementation finished per spec. Files: (1) packages/shared/src/constants/tagVocabulary.ts (CURATED_TAGS 45 tags + type export), (2) packages/shared/src/index.ts (exports tagVocabulary), (3) packages/backend/src/utils/listingHealthScore.ts (computeHealthScore utility 0-100 scale, grade logic: blocked <40, nudge 40-70, clear ≥70), (4) packages/backend/src/services/cloudAIService.ts (suggestCuratedTags function, suggestedTags field in AITagResult, integrated into analyzeItemImage non-blocking), (5) packages/backend/src/controllers/itemController.ts (getDraftItemsBySaleId computes healthScore for each item), (6) packages/frontend/pages/organizer/add-items/[saleId]/review.tsx (tag picker UI with AI suggestions + curated grid + custom input, health bar in collapsed row + aggregate bar at top, disabled publish for blocked items). Commits pushed: f046098 (shared+utils), b396f19 (cloudAI), 5eb0e8d (itemController). NOTE: review.tsx file size >25k tokens — use git add + .\\push.ps1 for final push. QA: verify tag suggestions appear in rapidfire, health scores gate publishing correctly, tags persist via API, tag picker UX. Context Checkpoint: yes",
+      "feedbackLoop": "qa-review"
+    },
+    {
       "id": "msg-166-architect-listing-factory-spec",
       "from": "findasale-architect",
       "to": "findasale-dev,patrick",
@@ -16,35 +25,8 @@
       "to": "patrick",
       "timestamp": "2026-03-14T23:59:30Z",
       "type": "wrap-complete",
-      "message": "SESSION 162 WRAP COMPLETE. Comprehensive Review & Publish page rebuild + Chrome audit + P1 bug fixes. Inline edit panel upgraded from 3 fields to full feature parity with edit-item page: ItemPhotoManager, description, condition, quantity, PriceSuggestion, per-item Publish/Unpublish toggle, Full Edit Page link. draftStatus badge added to item cards (Published/Pending/Draft). Chrome audit all 7 checks passed. Two P1 bugs fixed: (1) unicode separator `\u00B7` rendering as literal text (fixed with `{' · '}`), (2) Manual Entry items showing \"Low (50%)\" instead of \"Manual\" (fixed via `isAiTagged` field check). Backend updated: isAiTagged + aiConfidence added to getDraftItemsBySaleId and getItemDraftStatus selects. Merge conflict in review.tsx resolved (kept HEAD). CORE.md updated with §3 rule: re-read §4 Push Rules after compression. Files changed: packages/frontend/pages/organizer/add-items/[saleId]/review.tsx, packages/backend/src/controllers/itemController.ts, claude_docs/CORE.md. All on GitHub main, Vercel auto-deploying. STATE.md, session-log.md, next-session-prompt.md updated. Ready for next session.",
+      "message": "SESSION 162 WRAP COMPLETE. Comprehensive Review & Publish page rebuild + Chrome audit + P1 bug fixes. Inline edit panel upgraded from 3 fields to full feature parity with edit-item page: ItemPhotoManager, description, condition, quantity, PriceSuggestion, per-item Publish/Unpublish toggle, Full Edit Page link. draftStatus badge added to item cards (Published/Pending/Draft). Chrome audit all 7 checks passed. Two P1 bugs fixed: (1) unicode separator `\\u00B7` rendering as literal text (fixed with `{' ·'}`), (2) Manual Entry items showing \"Low (50%)\" instead of \"Manual\" (fixed via `isAiTagged` field check). Backend updated: isAiTagged + aiConfidence added to getDraftItemsBySaleId and getItemDraftStatus selects. Merge conflict in review.tsx resolved (kept HEAD). CORE.md updated with §3 rule: re-read §4 Push Rules after compression. Files changed: packages/frontend/pages/organizer/add-items/[saleId]/review.tsx, packages/backend/src/controllers/itemController.ts, claude_docs/CORE.md. All on GitHub main, Vercel auto-deploying. STATE.md, session-log.md, next-session-prompt.md updated. Ready for next session.",
       "feedbackLoop": null
-    },
-    {
-      "id": "msg-163-review-jsx-wired",
-      "from": "findasale-dev",
-      "to": "patrick",
-      "timestamp": "2026-03-14T23:15:00Z",
-      "type": "completion",
-      "message": "REVIEW & PUBLISH PAGE JSX WIRED — COMPLETE.",
-      "feedbackLoop": null
-    },
-    {
-      "id": "msg-162-wrap-complete",
-      "from": "findasale-records",
-      "to": "patrick",
-      "timestamp": "2026-03-14T23:59:00Z",
-      "type": "wrap-complete",
-      "message": "SESSION 162 WRAP COMPLETE (Chrome audit + P1 bugs).",
-      "feedbackLoop": null
-    },
-    {
-      "id": "msg-158-poweruser-io-capture-design",
-      "from": "cowork-power-user",
-      "to": "patrick",
-      "timestamp": "2026-03-13T16:30:00Z",
-      "type": "research",
-      "message": "96-HOUR SESSION I/O CAPTURE SYSTEM — DESIGN ANALYSIS COMPLETE. Awaiting Patrick greenlight for Phase 1 build.",
-      "feedbackLoop": "awaiting-patrick-decision"
     }
   ]
 }
