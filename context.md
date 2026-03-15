@@ -1,5 +1,5 @@
 # Dynamic Project Context
-*Generated at 2026-03-15T18:38:24.232Z*
+*Generated at 2026-03-15T19:48:14.906Z*
 *Run `node scripts/update-context.js` on Windows to refresh.*
 
 ## Last Session
@@ -16,9 +16,10 @@ Last scan: records-audit-sessions-110-118-2026-03-09
 
 ## Signals
 ⚠ Env drift — in .env.example but missing from .env: MAILERLITE_API_KEY, DEFAULT_CITY, DEFAULT_STATE, DEFAULT_STATE_ABBREV, DEFAULT_LAT, DEFAULT_LNG, DEFAULT_RADIUS_MILES, DEFAULT_COUNTY, DEFAULT_TIMEZONE
-⚠ 2+ TODO/FIXME markers in source (showing up to 5):
-  /sessions/upbeat-relaxed-ritchie/mnt/FindaSale/packages/backend/src/controllers/itemController.ts:927:        description: null, // TODO: Add description to schema if needed
-  /sessions/upbeat-relaxed-ritchie/mnt/FindaSale/packages/frontend/pages/organizer/add-items/[saleId].tsx:159:// TODO: Implement face detection with @tensorflow-models/coco-ssd
+⚠ 3+ TODO/FIXME markers in source (showing up to 5):
+  /sessions/friendly-laughing-dirac/mnt/FindaSale/packages/backend/src/controllers/heatmapController.ts:26:    // TODO: Validate lat/lng/zoom bounds if needed in Phase 2
+  /sessions/friendly-laughing-dirac/mnt/FindaSale/packages/backend/src/controllers/itemController.ts:927:        description: null, // TODO: Add description to schema if needed
+  /sessions/friendly-laughing-dirac/mnt/FindaSale/packages/frontend/pages/organizer/add-items/[saleId].tsx:159:// TODO: Implement face detection with @tensorflow-models/coco-ssd
 
 ## Project File Tree
 ```
@@ -71,12 +72,12 @@ Last scan: records-audit-sessions-110-118-2026-03-09
 │   │   ├── MANAGER_SUBAGENT_ARCHITECTURE.md
 │   │   ├── PUSH_COORDINATOR_DELIVERY_SUMMARY.md
 │   │   └── PUSH_COORDINATOR_IMPLEMENTATION_NOTES.md
-│   ├── feature-notes/ (15 files)
+│   ├── feature-notes/ (16 files)
 │   ├── guides/ (0 files)
-│   ├── health-reports/ (1 files)
+│   ├── health-reports/ (2 files)
 │   ├── logs/ (2 files)
 │   ├── next-session-prompt.md
-│   ├── operations/ (30 files)
+│   ├── operations/ (31 files)
 │   ├── research/ (9 files)
 │   ├── self-healing/ (1 files)
 │   ├── session-log.md
@@ -108,7 +109,7 @@ Last scan: records-audit-sessions-110-118-2026-03-09
 │   │   │   ├── _triggerDigest.ts
 │   │   │   ├── config/
 │   │   │   │   └── regionConfig.ts
-│   │   │   ├── controllers/ (57 files)
+│   │   │   ├── controllers/ (58 files)
 │   │   │   ├── helpers/
 │   │   │   │   └── itemQueries.ts
 │   │   │   ├── index.ts
@@ -118,7 +119,7 @@ Last scan: records-audit-sessions-110-118-2026-03-09
 │   │   │   ├── middleware/ (2 files)
 │   │   │   ├── models/ (1 files)
 │   │   │   ├── routes/ (58 files)
-│   │   │   ├── services/ (19 files)
+│   │   │   ├── services/ (20 files)
 │   │   │   └── utils/ (4 files)
 │   │   └── tsconfig.json
 │   ├── database/
@@ -140,10 +141,10 @@ Last scan: records-audit-sessions-110-118-2026-03-09
 │   │   ├── CLAUDE.md
 │   │   ├── Dockerfile
 │   │   ├── FEATURE_33_OG_META_WIRING.md
-│   │   ├── components/ (108 files)
+│   │   ├── components/ (110 files)
 │   │   ├── context/ (1 files)
 │   │   ├── contexts/ (1 files)
-│   │   ├── hooks/ (9 files)
+│   │   ├── hooks/ (10 files)
 │   │   ├── lib/ (4 files)
 │   │   ├── next-env.d.ts
 │   │   ├── next-sitemap.config.js
@@ -158,7 +159,7 @@ Last scan: records-audit-sessions-110-118-2026-03-09
 │   │   ├── styles/ (2 files)
 │   │   ├── tailwind.config.js
 │   │   ├── tsconfig.json
-│   │   ├── types/ (3 files)
+│   │   ├── types/ (4 files)
 │   │   └── utils/ (1 files)
 │   └── shared/
 │       ├── CLAUDE.md

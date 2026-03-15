@@ -2,6 +2,33 @@
   "_schema": "MESSAGE_BOARD v2 — rebuilt 2026-03-11 session 146. Max 20 messages. Prune oldest on overflow.",
   "messages": [
     {
+      "id": "msg-173-dev-backend-p1-bugs-fixed",
+      "from": "findasale-dev",
+      "to": "patrick",
+      "timestamp": "2026-03-15T16:00:00Z",
+      "type": "completion",
+      "message": "5 BACKEND P1 BUGS FIXED (Session 173) — From bug-blitz-2026-03-15.md P1 section. All diffs applied to items.ts, reservationController.ts, stripeController.ts. (1) Bulk operation partial success (items.ts POST /api/items/bulk): Changed response shape to { succeeded: [], failed: [{ itemId, reason }], skipped: [] }. Returns HTTP 207 Multi-Status if any items failed/skipped, 200 if all succeed. Applied to all 9 operation cases (delete, status, category, price, price_adjust, isActive, backgroundRemoved, draftStatus, tags). (2) Category validation whitelist (items.ts category case, lines 334–358): Added ALLOWED_CATEGORIES const with 14 values (furniture, decor, vintage, textiles, collectibles, art, antiques, jewelry, books, tools, electronics, clothing, home, other). Returns 400 + allowed list if category not in whitelist. (3) Bulk photo limit feedback (items.ts POST /api/items/bulk/photos lines 598–657): Added skipped array for items that would exceed 5 photos. Returns 207 if skipped.length > 0. Response now: { succeeded, operation, skipped? }. (4) Batch hold actions transactional re-verification (reservationController.ts lines 183–247): Wrapped entire batchUpdateHolds in prisma.$transaction. Re-verifies each hold's organizerId ownership inside transaction before update. Added ownership filter to updateMany where clauses (item.sale.organizerId check). (5) Stripe Connect error detection (stripeController.ts lines 119–163): Changed catch block to detect error.type and return appropriate status: 400 for invalid_request_error (validation), 503 for rate_limit_error, 500 for all others. Frontend receives actionable error message (e.g., 'Service temporarily unavailable, please try again in a moment'). QA: Auth/payment flows flagged for review. Flags: Bugs 2 & 3 touch auth/payment — needs findasale-qa test pass before merge.",
+      "feedbackLoop": "qa-review"
+    },
+    {
+      "id": "msg-173-dev-p1-bulk-fixes",
+      "from": "findasale-dev",
+      "to": "patrick",
+      "timestamp": "2026-03-15T15:30:00Z",
+      "type": "completion",
+      "message": "4 FRONTEND P1 BUGS FIXED (Session 173) — From bug-blitz-2026-03-15.md P1 section. All diffs applied, TypeScript clean, no errors. (1) Bulk operation partial failure feedback (add-items [saleId].tsx): Updated bulkUpdateMutation.onSuccess to check for `failed[]` array and show warning toast with item counts. Shows warning banner: '{succeeded}/{total} items updated — {failed} skipped'. (2) Draft item cache invalidation (add-items [saleId].tsx): Added queryClient.invalidateQueries(['draft-items', saleId]) after rapid item creation success (line 646) to prevent stale cache on navigation. (3) saleId validation on load (add-items [saleId].tsx): Added useEffect that runs when router.isReady, validates saleId is non-empty string, redirects to /organizer/dashboard with toast 'Sale not found' if invalid. (4) Entrance pin distance warning (edit-sale [id].tsx): Added distance helper (computeDistance + checkEntrancePinDistance), state flag (entrancePinTooFar), updated EntrancePinPicker onChange to check if pin > 0.005 degrees (~0.55 km) from sale coords, displays yellow warning banner if distance exceeded. Files changed: packages/frontend/pages/organizer/add-items/[saleId].tsx (lines 328–378, 633–646, 727–741), packages/frontend/pages/organizer/edit-sale/[id].tsx (lines 31, 48–60, 391–415). Ready for push.",
+      "feedbackLoop": null
+    },
+    {
+      "id": "msg-173-architect-perf-dashboard-spec",
+      "from": "findasale-architect",
+      "to": "findasale-dev,patrick",
+      "timestamp": "2026-03-15T14:45:00Z",
+      "type": "architecture",
+      "message": "SELLER PERFORMANCE DASHBOARD SPEC COMPLETE — #6 + #26 (merged). ADR at claude_docs/feature-notes/seller-performance-dashboard-spec-2026-03-15.md. ARCHITECTURE: No schema changes for MVP. Metrics computed on-demand from Stripe API (list_payment_intents, server-side) + existing DB tables (Purchase, Item, ItemReservation, Sale). 8 metrics: Revenue per Sale, Top-Selling Items, Conversion Rate, Category Breakdown, Hold/No-Show Rate, Item Health Score, Sell-Through Rate, Seasonal Price Recommendations. Caching: node-cache with 1h TTL (in-memory, fallback to cached data if Stripe unavailable). API: GET /api/organizer/performance?saleId=&range=7d|30d|custom. Frontend: 8 new components (PerformanceDashboard, MetricsGrid, TopItemsTable, CategoryBreakdownChart, HoldMetricsCard, RecommendationsPanel, DateRangeSelector, SaleSelector) + Recharts (BarChart, LineChart, PieChart) — all existing deps. PHASES: S1 backend (2–3d: controller + service + caching + auth gate), S2 frontend (2–3d: components + charts + polish). FLAGGED FOR PATRICK: (1) Include both online + POS sources in revenue (recommended), (2) Show all seasonal recommendations with confidence scores, (3) 25% no-show threshold for action items, (4) Cache seasonal pricing at 6h, (5) MVP vs Phase 2 scope defined in spec. Zero env var changes. Rollback plan included (for future snapshot table optimization). Ready for findasale-dev dispatch.",
+      "feedbackLoop": "ready-for-dev-dispatch"
+    },
+    {
       "id": "msg-171-sitemap-sprint3-fix",
       "from": "findasale-main",
       "to": "patrick",
