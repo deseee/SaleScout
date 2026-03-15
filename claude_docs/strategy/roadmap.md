@@ -1,6 +1,6 @@
 # ROADMAP – FindA.Sale
 
-**Last Updated:** 2026-03-14 (v28 — Session 163: #33 Share Card Factory shipped. FB Sharing Debugger clean. transpilePackages fix for @tanstack/react-query ESM/CJS crash on Node.js 24.)\
+**Last Updated:** 2026-03-14 (v29 — Session 164: #24 Holds-Only Item View shipped. Configurable hold duration per sale, batch operations, grouped-by-buyer UI, dashboard badge. Neon migration 78.)\
 **Previous:** 2026-03-13 (v27 — Session 157: Innovation Round 3. 30 new ideas across 10 creative lenses (casino/gambling, microtransactions, big box retail, mobile trends, international, progressive disclosure, GitHub/open source, Reddit/social, Zapier/automation, emerging). 11 rated BUILD → added to Phase 4 (#61–#71). 19 rated DEFER → added to Deferred. Total: 71 active features + 65 deferred items. Research: `claude_docs/research/innovation-round3-2026-03-13.md`.)
 **Status:** Production MVP live at finda.sale. Beta: GO. Full build history: `claude_docs/strategy/COMPLETED_PHASES.md`.
 
@@ -62,7 +62,7 @@
 
 | Priority | # | Feature | Est. | Notes |
 |----------|---|---------|------|-------|
-| 1 | 24 | Holds-Only Item View | 1 sprint | Trust blocker — organizers must see which items have holds across sales before real users. Manage Holds button removed from dashboard until this ships. |
+| ~~1~~ | ~~24~~ | ~~Holds-Only Item View~~ | ✅ Done | Configurable hold duration per sale, batch ops (release/extend/markSold), grouped-by-buyer accordion, dashboard badge. Shipped session 164. |
 | 2 | 27 | Listing Factory (Photo Export + Social + Tags) | 2–3 sprints | **Full listing export engine.** Watermark photos with organizer branding/sale info. AI-generated + organizer-editable item tags ("mid century", "vintage", "Art Deco") for SEO and cross-platform keywords. **Smart tag auto-suggestion:** during Rapidfire, AI detects visual attributes and suggests style/era/material tags (e.g., "teak", "Danish modern", "1960s") — not just "chair." **Listing Health Score:** per-item quality grade (photo count + description completeness + tag count + price set) displayed as progress indicator on review page — nudges organizers to improve weak listings before publishing. Export-ready packages for EstateSales.NET import, organizer websites, Facebook Marketplace, Craigslist. Templated social media posts (Instagram, Facebook) with sale details + hashtags auto-filled from tags. One-click shareable links. Tag-based browsable landing pages (/tags/mid-century-modern) for long-tail SEO. Reduces organizer cross-posting from hours to minutes. Positioning: "Your listing factory — photograph it once, sell it everywhere." |
 | 3 | 8 | Batch Operations Toolkit | 1 sprint | Bulk pricing, status updates, photo uploads. Partially covered by Rapidfire batch toolbar (session 146 spec). |
 | 4 | 28 | Neighborhood Heatmap | 0.5–1 sprint | Sale density overlay on shopper map — color-coded zones by active sale count. Helps shoppers plan routes by concentration. Incremental on existing Leaflet map + OSRM route planning (D3, session 114). |
