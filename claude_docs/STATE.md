@@ -7,18 +7,21 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Active Objective
 
-**Session 168 IN PROGRESS (2026-03-15) — SPRINT 2 ARCHITECTURE DESIGN COMPLETE:**
-- **Architecture Design:** All three Sprint 2 features fully specified (Cloudinary watermark utility, export controller with 3 formats, promote.tsx UI).
-- **Specifications:**
-  - `SPRINT_2_ARCHITECTURE_SPEC.md` — Complete implementation spec (5 files to create, 4 to modify, function signatures, error codes, testing checklist)
-  - `ADR_SPRINT2_EXPORTS.md` — Decision record with rationale, risks, alternatives
-- **Feature 1 - Cloudinary Watermark:** `cloudinaryWatermark.ts` utility, URL-based transformation (no re-upload), pure function, no dependencies
-- **Feature 2 - Export Controller:** 3 endpoints (EstateSales.NET CSV, Facebook JSON, Craigslist text), ownership verification, watermark applied to all images
-- **Feature 3 - Promote Page:** `/promote/[saleId]` UI, download/copy buttons, toast notifications, auth required
-- **Schema:** No changes needed. All features read existing data.
-- **Dependencies:** `csv-stringify` package (if missing from backend)
-- **Ready for:** findasale-dev handoff
+**Session 168 COMPLETE (2026-03-15) — SPRINT 2 IMPLEMENTED + PUSHED:**
+- **Sprint 2 shipped:** Cloudinary watermark utility, export controller (3 formats), promote.tsx UI — all on GitHub main.
+- **Files on remote (MCP-pushed):** `cloudinaryWatermark.ts`, `exportController.ts`, `export.ts` (routes), `[saleId].tsx` (promote page)
+- **Files on remote (Patrick PS1):** `packages/backend/src/index.ts` (export route registration), context docs
+- **Production:** Railway + Vercel should auto-deploy. Verify next session.
+- **CORE.md:** v4.1 with MCP truncation gate, full-file rule, complete push blocks, conflict re-staging
+- **Sprint 2 QA:** Not yet run. Next session should dispatch findasale-qa.
 - **Last Updated:** 2026-03-15 (session 168)
+
+**NEXT SESSION: Strategic Audit + Workflow Overhaul (see next-session-prompt.md)**
+- Full multi-agent audit of sessions 164–168
+- Workflow friction analysis + CLAUDE.md improvements
+- Tool ecosystem research (Ollama, autoresearch, Claude Code Playground)
+- Manager subagent pattern design
+- Communications/interaction quality assessment
 
 ---
 

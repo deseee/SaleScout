@@ -2,13 +2,18 @@
 
 ## Recent Sessions
 
-### 2026-03-15 · Session 167 (full wrap)
-**Worked on:** Production recovery from S166 MCP truncations. Diagnosed and fixed schema.prisma and itemController.ts truncations (both pushed by MCP in S166 but incomplete). Restored full itemController (939 lines, 13 exports), verified schema complete, applied Neon migrations (now at 82). Railway redeploy triggered via Dockerfile push. CORE.md v4.1 locked with 4 new MCP safety rules (full-file rule, truncation gate, complete instruction blocks, re-staging checklist).
-**Decisions:** MCP truncation gate added to CORE.md — all large files must be read before push, size-compared post-push as safety check. All merge conflict resolutions require complete re-stage list + commit + push.ps1 in one block (no partial instructions). CORE.md now authoritative for MCP push patterns.
-**Production status:** ✓ Railway healthy | ✓ Vercel healthy | ✓ Neon 82 migrations | Schema + code in sync on GitHub main.
-**Files changed:** `claude_docs/CORE.md` (MCP rules + procedures), `packages/backend/Dockerfile.production`, `packages/backend/src/controllers/itemController.ts`, `.last-wrap` timestamp.
-**Next up:** Sprint 2 — Cloudinary watermark utility, exportController.ts (estate sales CSV + Facebook JSON + Craigslist text), promote.tsx UI.
-**Blockers:** None. Production clean.
+### 2026-03-15 · Session 167–168 (combined — context compaction mid-session)
+**Worked on:** (Phase 1 / S167) Production recovery from S166 MCP truncations. Restored itemController.ts (939 lines, 13 exports), Railway redeployed, CORE.md v4.1 locked with 4 MCP safety rules. (Phase 2 / S168) Sprint 2 fully implemented: Cloudinary watermark utility, exportController.ts (3 formats: EstateSales.NET CSV, Facebook JSON, Craigslist text), promote.tsx UI with download/copy buttons. Export route registered in index.ts. All Sprint 2 code pushed to GitHub via MCP (8 commits total).
+**Decisions:** MCP truncation gate in CORE.md (mechanical size-comparison check). Watermark via Cloudinary URL transformation (no re-upload). CSV uses manual string building (no csv-stringify dep). All export endpoints require auth + ownership verification + PUBLISHED items only.
+**Production status:** ✓ Railway healthy | ✓ Vercel healthy | ✓ Neon 82 migrations
+**Files created (MCP-pushed):** `packages/backend/src/utils/cloudinaryWatermark.ts`, `packages/backend/src/controllers/exportController.ts`, `packages/backend/src/routes/export.ts`, `packages/frontend/pages/organizer/promote/[saleId].tsx`
+**Files modified (local, pending push):** `packages/backend/src/index.ts` (export route registration), context docs
+**MCP commits:** 5b1d88d, 1f22506, bc38ade, 1409a51, 7d8facc, 6f521b5, dc37800 + index.ts local commit b3b389e
+**Compression:** 1 auto-compaction (context window full after Sprint 2 implementation). Post-compaction: lost subagent dispatch details, kept all file paths and commit SHAs.
+**Blocker at wrap:** `.\push.ps1` merge conflict — `[saleId].tsx` not deleted locally (PowerShell bracket escaping). Fix: `Remove-Item -LiteralPath "packages\frontend\pages\organizer\promote\[saleId].tsx"` then `.\push.ps1`.
+**Patrick feedback (critical for next session):** Recurring pain points — errors repeat across sessions despite CORE.md rules, context docs go stale mid-session, session wraps require multiple push attempts, compaction drops working rulesets. Wants: manager subagent pattern, outsourcing research (Ollama, autoresearch, Claude Code Playground), CLAUDE.md improvements for session smoothness, communication/workflow audit.
+**Next up:** Strategic audit session — see next-session-prompt.md for full scope.
+**Scoreboard:** Files changed: 10+ | Compressions: 1 | Subagents: findasale-architect, findasale-dev, context-maintenance | Push method: MCP (7 commits) + PS1 (pending)
 
 ### 2026-03-15 · Session 166 (full wrap)
 **Worked on:** #27 Listing Factory Sprint 1 (shipped), #64 conditionGrade fold-in (shipped), #31 Brand Kit schema fold-in (schema shipped, UI deferred). CURATED_TAGS vocab (45 tags), listingHealthScore utility (6-factor 0–100), AI tag + grade suggestions via Haiku (non-blocking), review.tsx tag picker + health bar + grade picker. Full 3-sprint spec at `claude_docs/feature-notes/listing-factory-spec.md`.
