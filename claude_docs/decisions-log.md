@@ -5,6 +5,28 @@ Only decisions that affect future sessions — not implementation details.
 
 ---
 
+## Session 170 — 2026-03-15
+
+### Decision: CLAUDE.md §11 — Subagent-First Implementation Gate (HARD GATE)
+**Status:** APPROVED
+**Made by:** Patrick (escalation from governance violation)
+**Rationale:** Session 170 main window read 940-line itemController, 393-line promote, 256-line items route, then wrote 4 new code files inline. Violated existing "default to subagents" instruction in global CLAUDE.md. Burned ~30k tokens on work that should have been delegated. CLAUDE.md §11 elevated advisory to hard gate with exhaustive allowed/disallowed lists. Exception: only <20 line edits to 1–2 existing files inline.
+**Consequences:** Main window is orchestrator only. All feature code must go through subagents. Main window reads specs, decides scope, writes dispatch prompts, reviews output, coordinates pushes. Zero inline code implementation except single targeted edits.
+
+### Decision: CLAUDE.md §9 — File Delivery Rule (ALWAYS USE WORKSPACE + LINKS)
+**Status:** APPROVED
+**Made by:** Records auditor (governance)
+**Rationale:** Files Patrick must view, install, or act on must be saved to workspace folder with clickable `computer://` link. Inline descriptions without links waste time. Rule prevents "find the file" friction.
+**Consequences:** All deliverables from sessions must include presentable file cards via MCP tools. Never print paths without links.
+
+### Decision: Comprehensive Sessions 166–170 Review (S171 START TASK)
+**Status:** APPROVED
+**Made by:** Patrick
+**Rationale:** Series of governance + delivery issues detected (inline code, CLAUDE.md drift, communications baseline 5.3/10). Before resuming feature work, conduct full review: (1) did S166–170 deliver promised scope? (2) are rules being followed? (3) is communications/documentation improving? (4) should process change before continuing?
+**Consequences:** S171 will start with governance review task, not feature work. Outcome may redirect resource allocation.
+
+---
+
 ## Session 166 — 2026-03-15
 
 ### Decision: #64 Condition Grading — Fold into Sprint 1 of Listing Factory

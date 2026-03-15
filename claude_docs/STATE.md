@@ -7,27 +7,30 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Active Objective
 
-**Session 169 COMPLETE (2026-03-15) — STRATEGIC AUDIT + WORKFLOW OVERHAUL:**
-- **Type:** Research/planning session + implementation (minimal code, max audit/design)
-- **6 parallel research agents dispatched:** workflow audit (sessions 164–168), tool ecosystem eval, cowork ecosystem audit, communications quality (5.3/10 baseline), manager subagent architecture ADR, Sprint 2 QA
-- **3 implementation agents dispatched:** findasale-dev (watermark URL slash + UTC date fixes), findasale-records (CORE.md v4.2, CLAUDE.md §9-10 push block guarantee + subagent push ban), skill-creator (push-coordinator skill template)
-- **Sprint 2 QA verdict:** PASS WITH NOTES — 1 BLOCKER (watermark URL slash in cloudinaryWatermark.ts) fixed, 1 WARN (UTC dates in exportController) fixed, 2 NOTEs acceptable
-- **Decisions locked:**
-  - Subagent push ban experimental: Sessions 169–171 (CLAUDE.md §10 now active)
-  - Push-coordinator lightweight skill approved (ADR confirms full manager pattern not yet feasible in Cowork)
-  - Plugin categories: keep ALL enabled (Patrick override of ecosystem audit recommendation)
-  - Claude Code CLI: use as handoff system with Cowork, not standalone replacement
-- **New skills designed:** conversation-defaults v7 (3 new rules + 3 revised), findasale-push-coordinator (80% benefit of full manager pattern)
-- **Files on remote (MCP-pushed S169):** cloudinaryWatermark.ts + exportController.ts fixes (pushed by dev agent)
-- **Files pending Patrick push:** conversation-defaults v7 INSTALL, push-coordinator INSTALL, claude_docs updates (workflow-audit, tool-eval, qa-verdict, etc.)
-- **Last Updated:** 2026-03-15 (session 169)
+**Session 170 COMPLETE (2026-03-15) — SPRINT 2 GAP CLOSURE + SPRINT 3 INITIATION + CLAUDE.MD §11 ENFORCEMENT:**
+- **Type:** Gap closure + feature implementation + governance hardening
+- **Work completed:**
+  1. **Sprint 2 gap closure — Social Templates:** New backend endpoint `GET /api/social/:itemId/template?tone=casual&platform=instagram` (socialController.ts + social.ts route). Frontend social template UI added to promote.tsx (item picker, tone/platform selectors, live preview, copy button). Spec was live in S166-168 but never built.
+  2. **Sprint 3 initiation — Tag SEO Pages:** New backend endpoints `GET /api/tags/popular` and `GET /api/tags/:slug/items` (tagController.ts + tags.ts route). New ISR frontend page `/tags/[slug].tsx` with SEO metadata, JSON-LD ItemList schema, responsive item grid.
+  3. **CLAUDE.md §11 — Subagent-First Implementation Gate:** Converted advisory into hard gate. Main window is orchestrator only — ALL code implementation goes through subagents. Only exception: single targeted edits to 1–2 files totaling <20 lines. Session 170 identified main window had read 940-line itemController + 393-line promote + 256-line items route, then wrote 4 new backend code files inline, burning ~30k tokens. Patrick demanded enforcement. §11 now specifies allowed/disallowed lists exhaustively.
+  4. **CLAUDE.md §9 — File Delivery Rule:** All files Patrick needs to view/install/act on must be saved to workspace folder with clickable `computer://` link. Never describe contents inline without providing link.
+  5. **conversation-defaults v8:** Rule 27 (subagent-first gate) packaged as .skill file for Patrick to install.
+- **Key behavioral failure caught:** Main window violated existing "default to subagents" instruction by implementing features inline instead of dispatching. Patrick escalated. CLAUDE.md §11 created as hard gate with explicit penalties. This was the focus of S170.
+- **Files changed (pending Patrick push):**
+  - CLAUDE.md (§9 file delivery rule + §11 subagent-first gate with allowed/disallowed lists)
+  - .checkpoint-manifest.json (S170 session entry)
+  - packages/backend/src/controllers/socialController.ts (new)
+  - packages/backend/src/routes/social.ts (new)
+  - packages/backend/src/controllers/tagController.ts (new)
+  - packages/backend/src/routes/tags.ts (new)
+  - packages/backend/src/index.ts (2 import + 2 route registration lines)
+  - packages/frontend/pages/organizer/promote/[saleId].tsx (social template UI added)
+  - packages/frontend/pages/tags/[slug].tsx (new ISR page)
+  - conversation-defaults.skill (packaged for install)
+- **Last Updated:** 2026-03-15 (session 170)
 
-**NEXT SESSION: Feature Resume + Verification**
-- Patrick pushes all changed files (conversation-defaults v7 + push-coordinator + claude_docs via `.\push.ps1`)
-- Patrick installs conversation-defaults v7 and push-coordinator skill
-- Verify Railway + Vercel deployed Sprint 2 correctly
-- Test push-coordinator skill with first real subagent output (start S169-171 experiment)
-- Resume feature work per STATE.md roadmap
+**NEXT SESSION: Comprehensive Sessions 166–170 Review**
+Patrick wants S171 to begin with thorough review: comparing what was delivered vs asked for, workflow quality, CLAUDE.md enforcement, communications clarity. Focus on: (1) Are we shipping the right things? (2) Are processes working? (3) Is governance being followed? After review, if good, proceed to roadmap + context-mode planning.
 
 ---
 
