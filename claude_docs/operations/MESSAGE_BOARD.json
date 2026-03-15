@@ -2,6 +2,15 @@
   "_schema": "MESSAGE_BOARD v2 — rebuilt 2026-03-11 session 146. Max 20 messages. Prune oldest on overflow.",
   "messages": [
     {
+      "id": "msg-168-dev-fold-ins-complete",
+      "from": "findasale-dev",
+      "to": "findasale-qa,patrick",
+      "timestamp": "2026-03-15T03:15:00Z",
+      "type": "completion",
+      "message": "#64 + #31 FOLD-INS COMPLETE — Schema migrations applied (20260315000001_add_condition_grade_to_item, 20260315000002_add_brand_kit_to_organizer). Backend: conditionGrade scoring in health utility (+5 pts when set, max 105→100 clamped), AI suggestion via Claude Haiku in cloudAIService (returns S|A|B|C|D based on image), itemController includes conditionGrade in getDraftItemsBySaleId select and health computation. Frontend: review.tsx Item interface extended (conditionGrade, suggestedConditionGrade), ItemEditState updated, getEditState initializes conditionGrade, condition grade picker UI added (5 grade buttons S-D with tooltips + AI suggestion badge). Commits: 4b6a5e9 (schema+migrations batch 1), b86ea17 (backend batch 2). NOTE: review.tsx >25k tokens — Patrick must push via git add + .\\push.ps1 (see handoff). QA: verify condition grade persists, health score gates correctly, AI grade suggestions appear, UI responds to suggestions.",
+      "feedbackLoop": "qa-review"
+    },
+    {
       "id": "msg-166-records-decisions-locked",
       "from": "findasale-records",
       "to": "patrick",
