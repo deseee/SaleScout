@@ -7,12 +7,50 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Active Objective
 
-**Session 172 IN PROGRESS (2026-03-15) — BUILD FIX + DOC SYNC:**
-- TypeScript `Array.from(new Set(...))` fix applied to `packages/frontend/pages/organizer/add-items/[saleId].tsx` line 1428 (was `[...new Set(...)]` which fails without `downlevelIteration`).
-- STATE.md and roadmap updated: #8 Batch Operations Toolkit confirmed complete, roadmap v32.
-- S171 push confirmed merged (commits 909fe20 + 4ceadf2 on main). STATE.md "pending push" note was stale.
-- **Next:** Select next roadmap feature (#28 Neighborhood Heatmap or #6 Seller Performance Dashboard) or parallel slot (#34 Hype Meter, #35 Front Door Locator).
+**Session 172 COMPLETE (2026-03-15) — BUG BLITZ P0 FIXES + #28 HEATMAP + DOC AUDIT:**
+- **TypeScript build fix:** `Array.from(new Set(...))` in add-items/[saleId].tsx line 1428.
+- **Prisma build fix:** Removed invalid `not: null` filters on non-nullable `lat`/`lng` Float fields in `heatmapService.ts`.
+- **P0 bug fixes (4):** Bulk items ownership 403→404 leak, null-price bulk skip reporting, AVAILABLE status race condition on purchase, tokenVersion not incremented on password reset.
+- **#28 Neighborhood Heatmap — FULLY BUILT:**
+  - NEW: `packages/backend/src/services/heatmapService.ts` (grid computation, 6h cache, 5-tier density)
+  - NEW: `packages/backend/src/controllers/heatmapController.ts`
+  - NEW: `packages/frontend/components/HeatmapOverlay.tsx` (Leaflet circleMarker, click-to-zoom)
+  - NEW: `packages/frontend/components/HeatmapLegend.tsx`
+  - NEW: `packages/frontend/hooks/useHeatmapTiles.ts`
+  - NEW: `packages/frontend/types/heatmap.ts`
+  - MODIFIED: `packages/backend/src/routes/sales.ts` (added /heatmap route)
+  - MODIFIED: `packages/frontend/components/SaleMapInner.tsx`, `SaleMap.tsx`, `pages/map.tsx` (toggle wired)
+- **Doc audit:** Verified #34 Hype Meter + #35 Front Door Locator + all beta agent tasks DONE. Roadmap corrected v32. Bug blitz report: `claude_docs/health-reports/bug-blitz-2026-03-15.md` (4 P0, 8 P1, 8 P2). STACK.md deploy risk matrix written. Connector matrix updated — Stripe MCP NOW CONNECTED (S172).
+- **Files pending Patrick push:**
+  - packages/frontend/pages/organizer/add-items/[saleId].tsx
+  - packages/backend/src/routes/items.ts
+  - packages/backend/src/controllers/stripeController.ts
+  - packages/backend/src/middleware/auth.ts
+  - packages/backend/src/routes/auth.ts
+  - packages/backend/src/services/heatmapService.ts
+  - packages/backend/src/controllers/heatmapController.ts
+  - packages/backend/src/routes/sales.ts
+  - packages/frontend/components/HeatmapOverlay.tsx
+  - packages/frontend/components/HeatmapLegend.tsx
+  - packages/frontend/hooks/useHeatmapTiles.ts
+  - packages/frontend/types/heatmap.ts
+  - packages/frontend/components/SaleMapInner.tsx
+  - packages/frontend/components/SaleMap.tsx
+  - packages/frontend/pages/map.tsx
+  - claude_docs/strategy/roadmap.md
+  - claude_docs/STATE.md
+  - claude_docs/STACK.md
+  - claude_docs/operations/connector-matrix.md
+  - claude_docs/health-reports/bug-blitz-2026-03-15.md
+  - claude_docs/feature-notes/heatmap-spec-2026-03-15.md
 - **Last Updated:** 2026-03-15 (session 172)
+
+**NEXT SESSION (S173):**
+1. Verify Railway build green after heatmap + P0 fixes push
+2. Address 8 P1 bugs from bug-blitz-2026-03-15.md
+3. Begin #6 Seller Performance Dashboard (Architect sprint first — Stripe MCP now available for real payment data)
+4. Remaining agent queue: STACK.md Deploy Risk Matrix (P1), Connector-Matrix.md (P2) — verify these were written this session
+5. Stripe MCP tools may now be visible after Cowork restart
 
 ---
 
