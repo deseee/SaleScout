@@ -2,6 +2,13 @@
 
 ## Recent Sessions
 
+### 2026-03-14 · Session 163
+**Worked on:** #33 Share Card Factory — production debugging and full fix. Continued from context-exhausted session. Root cause was NOT React rendering (previous diagnosis) — actual error was a Node.js 24 ESM/CJS interop SyntaxError: `@tanstack/react-query` v5's native ESM build (`build/modern/`) uses `import { jsx } from "react/jsx-runtime"` but React is CJS. Node.js 24 can't resolve named exports from CJS via ESM interop. Fix: `transpilePackages: ['@tanstack/react-query', '@tanstack/query-core']` in `next.config.js` forces webpack to bundle via CJS path. Also fixed: corrupted OG image URL (non-Cloudinary photos used transformation syntax as fake public_id — now falls back to raw URL). Added `fb:app_id` to `_document.tsx` using existing OAuth app ID.
+**Decisions:** `transpilePackages` approach preferred over `serverExternalPackages` (opposite effect). Non-Cloudinary photos use raw URL; Cloudinary photos get branded overlay. Same Facebook App ID works for both OAuth and OG ownership.
+**Files changed:** `packages/frontend/next.config.js`, `packages/frontend/components/ItemOGMeta.tsx`, `packages/frontend/pages/_document.tsx`, `packages/frontend/pages/items/[id].tsx`
+**Verification:** Page 200, FB Sharing Debugger clean — no warnings.
+**Blockers:** None. #33 fully shipped.
+
 ### 2026-03-14 · Session 160
 **Worked on:** Four Phase 4 features shipped and wired. #61 Near-Miss Nudges (progress indicator on review page when items 60–99% complete). #34 Hype Meter (real-time viewer count via viewerController + viewers.ts, shows on sale detail when 2+ people viewing). #35 Front Door Locator (entrance pin picker, schema migration created for Neon, wired into shopper sale view + organizer edit-sale page). #33 Share Card Factory (Cloudinary OG image generation, ogImage.ts utility + full OG/Twitter Card meta tags on items page). All 4 wired and tested locally.
 **Environment:** #35 migration `20260314193440_add_entrance_pin` applied locally, needs Neon deploy. #33 env var `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` added to frontend/.env.local, needs Vercel environment secret.

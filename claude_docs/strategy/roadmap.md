@@ -1,6 +1,7 @@
 # ROADMAP – FindA.Sale
 
-**Last Updated:** 2026-03-13 (v27 — Session 157: Innovation Round 3. 30 new ideas across 10 creative lenses (casino/gambling, microtransactions, big box retail, mobile trends, international, progressive disclosure, GitHub/open source, Reddit/social, Zapier/automation, emerging). 11 rated BUILD → added to Phase 4 (#61–#71). 19 rated DEFER → added to Deferred. Total: 71 active features + 65 deferred items. Research: `claude_docs/research/innovation-round3-2026-03-13.md`.)
+**Last Updated:** 2026-03-14 (v28 — Session 163: #33 Share Card Factory shipped. FB Sharing Debugger clean. transpilePackages fix for @tanstack/react-query ESM/CJS crash on Node.js 24.)\
+**Previous:** 2026-03-13 (v27 — Session 157: Innovation Round 3. 30 new ideas across 10 creative lenses (casino/gambling, microtransactions, big box retail, mobile trends, international, progressive disclosure, GitHub/open source, Reddit/social, Zapier/automation, emerging). 11 rated BUILD → added to Phase 4 (#61–#71). 19 rated DEFER → added to Deferred. Total: 71 active features + 65 deferred items. Research: `claude_docs/research/innovation-round3-2026-03-13.md`.)
 **Status:** Production MVP live at finda.sale. Beta: GO. Full build history: `claude_docs/strategy/COMPLETED_PHASES.md`.
 
 ---
@@ -71,13 +72,13 @@
 
 | Priority | # | Feature | Est. | Notes |
 |----------|---|---------|------|-------|
-| P1 | 33 | Share Card Factory | 0.5 sprint | OG image generation via Cloudinary for every sale/item. Auto-generates branded preview cards for social sharing. Viral amplifier — free impressions every time a shopper shares. |
+| P1 | ~~33~~ | ~~Share Card Factory~~ | ✅ Done | SSR OG tags + Cloudinary branded cards on item pages. FB Sharing Debugger clean. Shipped session 163. |
 | P2 | 34 | Hype Meter | 0.5 sprint | Real-time social proof: "47 people are looking at this sale." Drives FOMO and urgency. Lightweight WebSocket or polling counter. |
 | P3 | 35 | Front Door Locator | 0.5 sprint | Entrance pin on sale detail map — "park here, enter here." Solves #1 shopper friction at large estate sales. Organizer sets pin during sale setup. |
 | P4 | 36 | Weekly Treasure Digest | 1 sprint | MailerLite-powered weekly email: top items, trending sales, new listings in your area. Shopper retention + re-engagement loop. |
 | P5 | 37 | Sale Calendar & Reminders | 1 sprint | Calendar view of upcoming sales + "Remind Me" button → push notification or email on sale day. Reduces missed-sale regret. |
 
-*Recently shipped: Stripe Terminal POS v2 (sessions 150–154), Rapidfire Camera Mode (sessions 135–149), Camera Workflow v2 design (session 146), Features #9/#10/#11 (sessions 116–117), Feature #4 Search by Item Type (session 116), Feature #12 SEO Description Optimization (session 116). AI Sale Description Writer (session 87), Branded Social Templates (session 87), Shopper Loyalty Program (session 88). See COMPLETED_PHASES.md.*
+*Recently shipped: #33 Share Card Factory (session 163 — SSR OG tags + Cloudinary branded cards, FB clean), #61 Near-Miss Nudges + #34 Hype Meter + #35 Front Door Locator (session 160), Stripe Terminal POS v2 (sessions 150–154), Rapidfire Camera Mode (sessions 135–149). See COMPLETED_PHASES.md.*
 
 ### Phase 3 — Weeks 8–16
 | # | Feature | Est. | Notes |

@@ -7,6 +7,19 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Active Objective
 
+**Session 163 COMPLETE (2026-03-14) — #33 SHARE CARD FACTORY: PRODUCTION FIX + FB DEBUGGER CLEAN:**
+- **Root cause found (3rd attempt):** Not a React rendering crash — a Node.js 24 ESM/CJS interop failure. `@tanstack/react-query` v5's `build/modern/` ESM build uses `import { jsx } from "react/jsx-runtime"`. React is CJS. Node.js 24's ESM loader doesn't expose CJS named exports natively → SyntaxError 500 on every `getServerSideProps` request. Static pages were unaffected (webpack bundles at build time). Only the serverless function hit this at runtime.
+- **Fix:** Added `transpilePackages: ['@tanstack/react-query', '@tanstack/query-core']` to `next.config.js` — forces webpack to bundle react-query via the CJS path instead of loading natively.
+- **OG image fix:** `ItemOGMeta.tsx` fallback path was generating an invalid Cloudinary URL (`b_rgb:fef3c7,w_1200,h_630` used as fake public_id). Fixed: non-Cloudinary photos (seed/picsum) use the raw URL directly; Cloudinary photos get the branded overlay card.
+- **fb:app_id added:** `_document.tsx` now includes `<meta property="fb:app_id" content="4380032288935833" />` (reuses existing OAuth app ID). Clears the Facebook Sharing Debugger warning.
+- **Previous fixes also included in this session:** mounted guard for React Query v5 `isLoading` semantics, dynamic socket.io-client import, AbortController timeout on `getServerSideProps` fetch, OG override removal from `_document.tsx`.
+- **Verification:** Page returns 200, item renders, FB Sharing Debugger shows og:title / og:description / og:image / fb:app_id — no warnings remaining.
+- **Files changed:** `packages/frontend/next.config.js`, `packages/frontend/components/ItemOGMeta.tsx`, `packages/frontend/pages/_document.tsx`, `packages/frontend/pages/items/[id].tsx`
+- **All changes on GitHub main** (commits 4d06379, 64058eb, 698b4ed, 4d50c15). Vercel auto-deployed.
+- **Last Updated:** 2026-03-14 (session 163)
+
+---
+
 **Session 162 COMPLETE (2026-03-14) — COMPREHENSIVE REVIEW & PUBLISH PAGE REBUILD:**
 - **Comprehensive inline edit panel implemented:** Upgraded from 3-field panel (title/price/category) to full feature parity with edit-item page. New fields: ItemPhotoManager (photo upload/reorder/delete), description, condition, quantity, PriceSuggestion AI widget, per-item Publish/Unpublish toggle, Full Edit Page link.
 - **draftStatus badge added:** Each item card now displays draftStatus badge (Published/Pending/Draft) on the collapsed row for visibility into item readiness.
