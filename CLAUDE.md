@@ -133,4 +133,31 @@ enterprise-search, productivity. Full analysis: `claude_docs/operations/skill-ro
 
 ---
 
+## 9. Push Instruction Complete Block Guarantee
+
+Every git instruction block provided to Patrick must be copy-paste-ready and include:
+1. `cd` to project root (if needed)
+2. Explicit `git add [file1] [file2]...` lines (never `git add -A`)
+3. `git commit -m "..."` with full message
+4. `.\push.ps1` (PowerShell script, never `git push` directly)
+
+Never use placeholders, never omit the script, never use `&&` (bash only).
+
+---
+
+## 10. Subagent Push Ban (Experimental, S169–171)
+
+Subagents are NOT authorized to push to GitHub via MCP `push_files`. Only the main session may execute `push_files` calls.
+
+**Subagent protocol:**
+- Subagents return output with file changes listed
+- Main session batches into consolidated MCP pushes (≤3 files per call)
+- OR main session provides Patrick a single comprehensive push block for `.\push.ps1`
+
+**Rationale:** Prevent multi-round git-push cycles caused by uncoordinated subagent pushes. Sessions 166–168 showed 3–4 rounds per dispatch. Goal: reduce to 1–2.
+
+**Review date:** 2026-03-25 (5-session pilot)
+
+---
+
 Status: Project Authority Layer

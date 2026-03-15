@@ -56,6 +56,9 @@ Do not ask "shall I continue?" mid-batch.
 Include this in session-log.md at wrap. Preserve Operational Anchors
 (package paths, script names, shell syntax) through compression.
 
+**§3.4: Post-Compression Mandatory Re-Read**
+After detecting compression, immediately re-read CORE.md §4 (Push Rules) before resuming any work. This section contains the most compression-vulnerable rules (truncation gate, block completeness, file read mandate). These rules prevent production outages. Log: "[COMPRESS-RECOVER] Re-read CORE.md §4 at turn N." No exceptions.
+
 **Post-compression re-read (mandatory):** Immediately after any compression event — before continuing any work — re-read CORE.md §4 (Push Rules). The commit block format rule (always provide full `git add` + `git commit` + `.\push.ps1` block) is the first rule lost after compression. Re-reading §4 restores it. No exceptions.
 
 **Token checkpoints:** At natural pauses (after file read batch, after subagent
@@ -109,6 +112,14 @@ committing. Missing re-stage causes "staged but uncommitted" abort loops.
 Always: resolve → `git add [all-conflict-files]` → `git commit` → `.\push.ps1`.
 
 **Commit block format (always):** Any time git commit instructions are given to Patrick — mid-session or at wrap — provide a complete copy-paste block. Never give a file list and stop. The block must always include explicit `git add [file]` lines, a `git commit -m "..."` line, and `.\push.ps1`. Never `git add -A`. Never omit the commit message. Never omit `.\push.ps1`. This rule applies to every git instruction in every session, not just at wrap.
+
+**§4.10: Compression-Aware Push Checklist**
+After any compression event, before pushing:
+1. Read the file in full (non-negotiable).
+2. Compare line count: local file vs. GitHub (via `get_file_contents`).
+3. If local >20% shorter and no intentional deletion, STOP. Rebuild.
+4. Confirm: complete block ready (all files, commit msg, `.\push.ps1`).
+5. Push only after all checks pass.
 
 ---
 
@@ -213,4 +224,4 @@ stub due to unsupervised dispatch on a security-sensitive path.
 
 ---
 
-Status: Behavioral Authority (v4.1, Session 167 — MCP full-file rule, truncation gate, push block completeness, conflict re-stage)
+Status: Behavioral Authority (v4.2, Session 169 — post-compression re-read, compression-aware push checklist)

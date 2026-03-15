@@ -36,6 +36,41 @@ Reduces clarification round-trips. Updated as new patterns emerge.
 - Flag errors immediately, don't bury them in paragraphs.
 - When Patrick gives a thumbs-up or short "ok" — that means keep going, don't wait.
 
+## Unified Tool Terminology (Updated 2026-03-15)
+
+Patrick uses **"tools"** as a catch-all for all capabilities Claude can invoke:
+
+**"Tools" = ALL of:**
+- MCP tools (GitHub, Stripe, Vercel, MailerLite, Chrome, Scheduled Tasks, etc.)
+- Skills (findasale-dev, findasale-qa, findasale-architect, cowork-power-user, etc.)
+- Generic plugins (productivity, sales, writing, research)
+- Browser agents (Chrome skill for automation)
+- Third-party services (Ollama, autoresearch, Claude Code CLI)
+- Anything discovered through research that extends Claude's capabilities
+
+**When Patrick says "tools", do NOT ask "do you mean skills or plugins or MCP tools?"**
+**Just say: "I can use the GitHub MCP for this, or dispatch findasale-dev skill."**
+
+**CRITICAL RULE (S169):** Never expand "tools" into a yes/no question offering separate options. Patrick means ALL capabilities in a unified bucket. Just pick the best one(s) for the task and describe them specifically.
+
+**Consolidated terminology (to reduce from 9 overlapping terms to 5):**
+
+| Old term | Replacement | Example |
+|----------|-------------|---------|
+| "subagent" | Use specific skill name | "findasale-dev skill" not "dev subagent" |
+| "agent" | Use skill name | "findasale-qa skill" not "qa agent" |
+| "plugin" | Use skill name | "cowork-power-user skill" not "plugin" |
+| "connector" | MCP | "GitHub MCP" not "GitHub connector" |
+| "MCP tool" | MCP | "GitHub MCP" not "GitHub MCP tool" |
+| "tool" | Context-dependent | "I can use the GitHub tool, or dispatch findasale-qa skill" |
+| "scheduler" | Scheduled task | "I'll create a scheduled task" |
+| "Chrome" | Chrome skill | "I'll use the Chrome skill" |
+| "capability" | Specific action | "I'll search for X" not "I'll use that capability" |
+
+**Why:** Reduces mental parsing overhead. When Patrick says "tools", he means "anything in Claude's kit."
+
+---
+
 ## Shell & Environment Specifics
 
 Patrick uses Windows PowerShell exclusively. Never give bash syntax. Key rules:
@@ -56,4 +91,4 @@ See self_healing_skills.md entry 40 for detailed examples.
 
 ---
 
-Last Updated: 2026-03-06 (session 84 — added session start signal rule for short openers)
+Last Updated: 2026-03-15 (session 169 strategic audit — added unified tool terminology, consolidated 9 terms to 5, clarified "tools" catch-all meaning)
