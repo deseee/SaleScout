@@ -100,7 +100,17 @@ start announcement so Patrick knows what's available without having to ask.
 
 ---
 
-## 6. Context Discipline
+## 6. Context Checkpoints — No-Pause Rule
+
+Agent handoff templates include "Context Checkpoint: yes/no." This is internal bookkeeping, not a stopping point.
+
+- **Checkpoint = "no":** Do not pause, narrate, or acknowledge. Continue immediately.
+- **Checkpoint = "yes":** Dispatch context-maintenance silently. Do not pause — continue working.
+- **Never** stop work to discuss a checkpoint with Patrick. They are invisible infrastructure.
+
+---
+
+## 7. Context Discipline
 
 Do not restate:
 - Tech stack
@@ -112,7 +122,7 @@ Reference authoritative file instead.
 
 ---
 
-## 7. Skill Roster (Token Efficiency)
+## 8. Skill Roster (Token Efficiency)
 
 Custom `findasale-*` skills always preferred over generic plugin equivalents.
 Full routing rules: CORE.md §9.
