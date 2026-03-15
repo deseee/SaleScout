@@ -16,6 +16,24 @@ Keep only the 5 most recent sessions. Delete older entries — git history and S
 
 ## Recent Sessions
 
+## Session 165 — 2026-03-15 — #36 Weekly Treasure Digest Shipped
+
+**Worked on:** Activated existing but unwired weekly email system (weeklyEmailJob cron, Sundays 6pm). Integrated Resend for personalized shopper digest delivery. Added MailerLite Shoppers group auto-enrollment on user registration (both email + OAuth signup paths). Email UX: dynamic subject lines, category badges, relative date formatting for older audience (15px body, 18px prices). MailerLite group sync is fire-and-forget non-blocking to avoid registration delays.
+
+**Decisions:** Personalization based on purchase + favorite history (8 items per user, category-matched from upcoming PUBLISHED sales within 14 days). Email preference management footer (Manage frequency / Update interests / Unsubscribe) gives shoppers control. MailerLite Shoppers group (ID: 182012431062533831) acts as broadcast list for future campaigns.
+
+**Token efficiency:** Inline feature activation + email template improvements. No subagent dispatches for code work. findasale-records for documentation wrap only. Low-medium burn.
+
+**Token burn:** ~45k tokens (est.), 0 checkpoints.
+
+**Next up:** #27 Listing Factory begins next session. Conversation-defaults skill updated with Rule 23 (No-Pause Checkpoint override) and installed by Patrick — packaged as .skill file, now available to fleet.
+
+**Blockers:** None. Patrick needs to set `MAILERLITE_SHOPPERS_GROUP_ID=182012431062533831` + verify `RESEND_API_KEY` and `RESEND_FROM_EMAIL` exist on Railway.
+
+**Files changed:** `packages/backend/src/index.ts`, `packages/backend/src/controllers/authController.ts`, `packages/backend/src/services/mailerliteService.ts`, `packages/backend/src/services/weeklyEmailService.ts` | Compressions: 0 | Subagents: 0 | Push method: MCP (2 commits: 18e7178 + fc2cdd2) | Skill updates: conversation-defaults (Rule 23 added, packaged .skill)
+
+---
+
 ## Session 162 — 2026-03-14 — Comprehensive Review & Publish Page Rebuild + Chrome Audit + P1 Bug Fixes
 
 **Worked on:** (1) Comprehensive inline edit panel rebuild — replaced static 3-field panel (title/price/category) with full feature parity to edit-item page. New fields: ItemPhotoManager (photo upload/reorder/delete), description, condition, quantity, PriceSuggestion AI widget, per-item Publish/Unpublish toggle, Full Edit Page link. (2) draftStatus badge added to each item card collapsed row (Published/Pending/Draft). (3) Item interface and ItemEditState updated to include description, condition, quantity. (4) handleSaveItem and handlePublishItem wired to persist all new fields. (5) Chrome audit of Review & Publish page — all 7 checks passed. (6) Two P1 bugs diagnosed and fixed live: Bug 1 — unicode separator `\u00B7` rendering as literal text (JSX text node issue) fixed with `{' · '}`. Bug 2 — Manual Entry items showing "Low (50%)" instead of "Manual" (root cause: schema `aiConfidence Float @default(0.5)`); fixed using `isAiTagged` field check in confidenceLabel/confidenceBorderClass. (7) CORE.md governance fix — added §3 rule: re-read §4 Push Rules immediately after compression (closes conversation-defaults gap). (8) Merge conflict in review.tsx resolved (kept HEAD/comprehensive version).

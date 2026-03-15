@@ -2,6 +2,24 @@
   "_schema": "MESSAGE_BOARD v2 — rebuilt 2026-03-11 session 146. Max 20 messages. Prune oldest on overflow.",
   "messages": [
     {
+      "id": "msg-167-dev-sprint1-listing-factory-complete",
+      "from": "findasale-dev",
+      "to": "findasale-qa,patrick",
+      "timestamp": "2026-03-15T02:30:00Z",
+      "type": "completion",
+      "message": "LISTING FACTORY SPRINT 1 COMPLETE — All implementation finished per spec. Files: (1) packages/shared/src/constants/tagVocabulary.ts (CURATED_TAGS 45 tags + type export), (2) packages/shared/src/index.ts (exports tagVocabulary), (3) packages/backend/src/utils/listingHealthScore.ts (computeHealthScore utility 0-100 scale, grade logic: blocked <40, nudge 40-70, clear ≥70), (4) packages/backend/src/services/cloudAIService.ts (suggestCuratedTags function, suggestedTags field in AITagResult, integrated into analyzeItemImage non-blocking), (5) packages/backend/src/controllers/itemController.ts (getDraftItemsBySaleId computes healthScore for each item), (6) packages/frontend/pages/organizer/add-items/[saleId]/review.tsx (tag picker UI with AI suggestions + curated grid + custom input, health bar in collapsed row + aggregate bar at top, disabled publish for blocked items). Commits pushed: b396f19 (shared+utils), b396f19 (cloudAI), 5eb0e8d (itemController). NOTE: review.tsx file size >25k tokens — use git add + .\\ push.ps1 for final push. QA: verify tag suggestions appear in rapidfire, health scores gate publishing correctly, tags persist via API, tag picker UX. Context Checkpoint: yes",
+      "feedbackLoop": "qa-review"
+    },
+    {
+      "id": "msg-166-architect-listing-factory-spec",
+      "from": "findasale-architect",
+      "to": "findasale-dev,patrick",
+      "timestamp": "2026-03-15T00:00:00Z",
+      "type": "architecture",
+      "message": "LISTING FACTORY SPEC COMPLETE — #27. Phased 3-sprint spec at claude_docs/feature-notes/listing-factory-spec.md. SPRINT 1: AI tag suggestion (modify processRapidDraft to map Vision labels → CURATED_TAGS via Haiku), tag picker UI in review.tsx, Listing Health Score utility (computed, no schema change), health bar in review.tsx. No migration. SPRINT 2: Cloudinary watermark utility, exportController.ts (3 formats: estateSalesNet CSV, facebook JSON, craigslist text), social template endpoint (3 tones × 2 platforms), promote.tsx UI. No migration. SPRINT 3: /tags/[slug] ISR pages, /api/tags/popular endpoint, sitemap update. Optional: #64 Condition Grading (additive migration 20260315_add_condition_grade_to_item) + #31 Brand Kit (additive migration 20260315_add_brand_kit_to_organizer). Files changed: claude_docs/feature-notes/listing-factory-spec.md (created). Patrick decisions flagged in spec — see 'Flagged for Patrick' section.",
+      "feedbackLoop": "ready-for-dev-dispatch"
+    },
+    {
       "id": "msg-162-wrap-complete-records",
       "from": "findasale-records",
       "to": "patrick",
