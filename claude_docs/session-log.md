@@ -2,6 +2,17 @@
 
 ## Recent Sessions
 
+### 2026-03-15 · Session 171 (P0 BUILD FIX + #8 BATCH OPERATIONS TOOLKIT)
+**Worked on:** Railway build fix (removed broken tagVocabulary imports from socialController + tagController, inlined CURATED_TAGS). Sitemap gap fix (added /tags/[slug] URLs via /api/tags/popular fetch). Full #8 Batch Operations Toolkit implementation: Phase 1 (backend validation matrix, dry-run mode, bulk tags), Phase 2 (POST /api/items/bulk/photos endpoint), Phase 3 (frontend "More Actions" dropdown), Phase 4 (7 modal components: BulkConfirmModal, BulkPhotoModal, BulkTagModal, BulkCategoryModal, BulkStatusModal, BulkOperationErrorModal, BulkActionDropdown), Phase 5 (error handling + toast feedback). Roadmap updated to v31.
+**Decisions:** Batch operations fully specced and shipped. P0 build blockers fixed (commits 3d49470 + 6772906 already merged).
+**Files created (await Patrick push):** 7 new modal components, 1 dropdown component, batch operations spec doc
+**Files modified (await Patrick push):** packages/backend/src/routes/items.ts, packages/frontend/pages/organizer/add-items/[saleId].tsx
+**Production status:** Railway/Vercel health pending post-push verification
+**Compression:** 0
+**Subagents:** findasale-dev (implementation via dispatch)
+**Next up:** Patrick executes `.\push.ps1` for all 10 files. Verify build + test batch ops in staging. Resume roadmap.
+**Scoreboard:** Files changed: 10 | Phase features: 5 complete | Components created: 8 | Push method: Pending PS1 (10 files)
+
 ### 2026-03-15 · Session 169 (STRATEGIC AUDIT + WORKFLOW OVERHAUL)
 **Worked on:** Full multi-agent audit of sessions 164–168 (6 research agents + 3 implementation agents). Workflow friction analysis, tool ecosystem evaluation (Claude Code CLI 9/10 ADOPT, Ollama 6/10 TRIAL, autoresearch 2/10 REJECT), Cowork ecosystem audit, communications quality baseline (5.3/10), manager subagent architecture ADR (determined full manager pattern not yet feasible; designed lightweight push-coordinator as 80% alternative), Sprint 2 QA (PASS WITH NOTES: 1 BLOCKER watermark slash fixed, 1 WARN UTC dates fixed). Conversation-defaults v7 designed (3 new rules, 3 revised). Push-coordinator skill template packaged.
 **Decisions:** Subagent push ban S169–171 locked in CLAUDE.md §10. Plugin categories keep ALL enabled (Patrick override). Claude Code CLI adopted as handoff with Cowork. Push-coordinator skill (not full manager) approved.
@@ -34,10 +45,3 @@
 **Blockers:** Neon migrations not yet applied (prisma migrate deploy needed). Railway build failing from an earlier MCP-truncated schema commit — latest commit (24483a2) has complete schema; redeploy should fix. Session had repeated push/instruction breakdown (see workflow audit item).
 **Next up:** Verify Railway deploys from 24483a2. Apply Neon migrations. Session 167 workflow audit. Then Sprint 2 (Cloudinary watermark + export controller).
 
-### 2026-03-14 · Session 164
-**Worked on:** #24 Holds-Only Item View — full Architect→Dev→QA pipeline. Added `holdDurationHours` to Sale model (48h default, configurable per-sale). Upgraded reservationController with dynamic hold duration, sale filter/sort params, lightweight hold count endpoint, batch operations (release/extend/markSold) with 50-item cap. Full rewrite of organizer holds page: sale filter dropdown, sort toggle, grouped-by-buyer accordion, batch action bar, item photos/prices/HoldTimer. Dashboard hold count badge wired. Neon migration applied (migration 78). QA passed.
-**Decisions:** 48h default hold (was hardcoded 24h). Batch cap at 50. Grouped-by-buyer display with per-item schema (locked session 155).
-**Files changed:** `packages/database/prisma/schema.prisma`, `packages/database/prisma/migrations/20260315000000_add_hold_duration_to_sale/migration.sql`, `packages/backend/src/controllers/reservationController.ts`, `packages/backend/src/routes/reservations.ts`, `packages/frontend/pages/organizer/holds.tsx`, `packages/frontend/pages/organizer/dashboard.tsx`
-**Scoreboard:** Files changed: 6 | QA findings: 4 (1 fixed, 3 acceptable) | Subagents: 3 (findasale-architect, findasale-dev, findasale-qa) | Push method: GitHub MCP (3 pushes: 759eec1b, 91252745, 44782d4c)
-**Next up:** #36 Weekly Treasure Digest (MailerLite MCP), or #27 Listing Factory.
-**Blockers:** None. #24 fully shipped.

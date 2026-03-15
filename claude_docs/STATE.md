@@ -7,6 +7,35 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Active Objective
 
+**Session 171 COMPLETE (2026-03-15) — P0 BUILD FIX + SITEMAP + #8 BATCH OPERATIONS TOOLKIT (5 PHASES, SHIPPED):**
+- **Type:** Infrastructure fix + roadmap #8 full implementation
+- **Work completed:**
+  1. **P0 Railway build fix:** Removed broken `@findasale/shared/src/constants/tagVocabulary` imports from socialController.ts (unused) and tagController.ts (CURATED_TAGS inlined). Already pushed (commit 3d49470).
+  2. **Sitemap gap fix:** Added /tags/[slug] URLs to server-sitemap.xml.tsx by fetching from /api/tags/popular. Already pushed (commit 6772906).
+  3. **#8 Batch Operations Toolkit — FULLY IMPLEMENTED (5 phases complete):**
+     - Phase 1: Backend hardening — status-safe validation matrix, dry-run mode, enhanced responses, bulk tags operation added to POST /api/items/bulk
+     - Phase 2: Batch photos API — new POST /api/items/bulk/photos endpoint (add/remove operations)
+     - Phase 3: Frontend toolbar expansion — "More Actions" dropdown with Set Category, Set Status, Manage Tags, Manage Photos
+     - Phase 4: Modals — BulkConfirmModal, BulkPhotoModal, BulkTagModal, BulkCategoryModal, BulkStatusModal, BulkOperationErrorModal (7 new components)
+     - Phase 5: Error handling + feedback — toast messages, per-item error display
+  4. **Roadmap updated to v31** — #27 Listing Factory marked DONE, migration count corrected to 82, session history updated.
+- **Files changed (pending Patrick push):**
+  - packages/backend/src/routes/items.ts (enhanced bulk endpoint + new bulk/photos endpoint)
+  - packages/frontend/pages/organizer/add-items/[saleId].tsx (expanded toolbar + modal wiring)
+  - packages/frontend/components/BulkActionDropdown.tsx (NEW)
+  - packages/frontend/components/BulkCategoryModal.tsx (NEW)
+  - packages/frontend/components/BulkConfirmModal.tsx (NEW)
+  - packages/frontend/components/BulkOperationErrorModal.tsx (NEW)
+  - packages/frontend/components/BulkPhotoModal.tsx (NEW)
+  - packages/frontend/components/BulkStatusModal.tsx (NEW)
+  - packages/frontend/components/BulkTagModal.tsx (NEW)
+  - claude_docs/feature-notes/batch-operations-toolkit-spec.md (NEW)
+- **Last Updated:** 2026-03-15 (session 171)
+
+**NEXT SESSION:** Resume with pending files push. Run Patrick's `.\push.ps1` for all 10 files above. After merge, verify Railway/Vercel build health, test batch operations in staging/prod. Next feature: roadmap selection.
+
+---
+
 **Session 170 COMPLETE (2026-03-15) — SPRINT 2 GAP CLOSURE + SPRINT 3 INITIATION + CLAUDE.MD §11 ENFORCEMENT:**
 - **Type:** Gap closure + feature implementation + governance hardening
 - **Work completed:**

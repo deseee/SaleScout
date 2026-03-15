@@ -1,5 +1,5 @@
 # Dynamic Project Context
-*Generated at 2026-03-15T15:35:45.661Z*
+*Generated at 2026-03-15T18:38:24.232Z*
 *Run `node scripts/update-context.js` on Windows to refresh.*
 
 ## Last Session
@@ -17,8 +17,8 @@ Last scan: records-audit-sessions-110-118-2026-03-09
 ## Signals
 ⚠ Env drift — in .env.example but missing from .env: MAILERLITE_API_KEY, DEFAULT_CITY, DEFAULT_STATE, DEFAULT_STATE_ABBREV, DEFAULT_LAT, DEFAULT_LNG, DEFAULT_RADIUS_MILES, DEFAULT_COUNTY, DEFAULT_TIMEZONE
 ⚠ 2+ TODO/FIXME markers in source (showing up to 5):
-  /sessions/sleepy-vibrant-euler/mnt/FindaSale/packages/backend/src/controllers/itemController.ts:927:        description: null, // TODO: Add description to schema if needed
-  /sessions/sleepy-vibrant-euler/mnt/FindaSale/packages/frontend/pages/organizer/add-items/[saleId].tsx:152:// TODO: Implement face detection with @tensorflow-models/coco-ssd
+  /sessions/upbeat-relaxed-ritchie/mnt/FindaSale/packages/backend/src/controllers/itemController.ts:927:        description: null, // TODO: Add description to schema if needed
+  /sessions/upbeat-relaxed-ritchie/mnt/FindaSale/packages/frontend/pages/organizer/add-items/[saleId].tsx:159:// TODO: Implement face detection with @tensorflow-models/coco-ssd
 
 ## Project File Tree
 ```
@@ -41,6 +41,10 @@ Last scan: records-audit-sessions-110-118-2026-03-09
 │       └── skill-creator/
 │           └── SKILL.md
 ├── CLAUDE.md
+├── IMPLEMENTATION_SUMMARY.md
+├── INSTALL-conversation-defaults-SKILL.md
+├── INSTALL-conversation-defaults-rule27.md
+├── INSTALL-push-coordinator-SKILL.md
 ├── MESSAGE_BOARD.json
 ├── README.md
 ├── ai-config/
@@ -62,19 +66,25 @@ Last scan: records-audit-sessions-110-118-2026-03-09
 │   ├── feature-decisions/
 │   │   ├── CAMERA_WORKFLOW_V2_ARCHITECTURE.md
 │   │   ├── CASH_FEE_COLLECTION_ARCHITECTURE.md
-│   │   └── CASH_FEE_COLLECTION_SUMMARY.md
-│   ├── feature-notes/ (12 files)
+│   │   ├── CASH_FEE_COLLECTION_SUMMARY.md
+│   │   ├── FINDASALE_PUSH_COORDINATOR_SKILL_TEMPLATE.md
+│   │   ├── MANAGER_SUBAGENT_ARCHITECTURE.md
+│   │   ├── PUSH_COORDINATOR_DELIVERY_SUMMARY.md
+│   │   └── PUSH_COORDINATOR_IMPLEMENTATION_NOTES.md
+│   ├── feature-notes/ (15 files)
 │   ├── guides/ (0 files)
 │   ├── health-reports/ (1 files)
 │   ├── logs/ (2 files)
 │   ├── next-session-prompt.md
-│   ├── operations/ (27 files)
-│   ├── research/ (5 files)
+│   ├── operations/ (30 files)
+│   ├── research/ (9 files)
 │   ├── self-healing/ (1 files)
 │   ├── session-log.md
 │   ├── skills-package/ (30 files)
 │   ├── strategy/ (4 files)
-│   └── workflow-retrospectives/ (1 files)
+│   ├── ux-spotchecks/
+│   │   └── PROMOTE_PAGE_UX_SPEC.md
+│   └── workflow-retrospectives/ (2 files)
 ├── conversation-defaults-SKILL.md
 ├── conversation-defaults-SKILL.md.tmp.11729.1773580809690
 ├── next
@@ -98,7 +108,7 @@ Last scan: records-audit-sessions-110-118-2026-03-09
 │   │   │   ├── _triggerDigest.ts
 │   │   │   ├── config/
 │   │   │   │   └── regionConfig.ts
-│   │   │   ├── controllers/ (54 files)
+│   │   │   ├── controllers/ (57 files)
 │   │   │   ├── helpers/
 │   │   │   │   └── itemQueries.ts
 │   │   │   ├── index.ts
@@ -107,9 +117,9 @@ Last scan: records-audit-sessions-110-118-2026-03-09
 │   │   │   ├── lib/ (3 files)
 │   │   │   ├── middleware/ (2 files)
 │   │   │   ├── models/ (1 files)
-│   │   │   ├── routes/ (55 files)
+│   │   │   ├── routes/ (58 files)
 │   │   │   ├── services/ (19 files)
-│   │   │   └── utils/ (3 files)
+│   │   │   └── utils/ (4 files)
 │   │   └── tsconfig.json
 │   ├── database/
 │   │   ├── .env
@@ -130,7 +140,7 @@ Last scan: records-audit-sessions-110-118-2026-03-09
 │   │   ├── CLAUDE.md
 │   │   ├── Dockerfile
 │   │   ├── FEATURE_33_OG_META_WIRING.md
-│   │   ├── components/ (101 files)
+│   │   ├── components/ (108 files)
 │   │   ├── context/ (1 files)
 │   │   ├── contexts/ (1 files)
 │   │   ├── hooks/ (9 files)
@@ -139,7 +149,7 @@ Last scan: records-audit-sessions-110-118-2026-03-09
 │   │   ├── next-sitemap.config.js
 │   │   ├── next.config.js
 │   │   ├── package.json
-│   │   ├── pages/ (48 files)
+│   │   ├── pages/ (49 files)
 │   │   ├── postcss.config.js
 │   │   ├── public/ (14 files)
 │   │   ├── sentry.client.config.ts

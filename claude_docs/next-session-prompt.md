@@ -1,134 +1,59 @@
-# Next Session Resume Prompt
-*Written: 2026-03-15T23:59:00Z*
-*Session ended: normally (Session 170 wrap complete)*
+# Next Session Prompt — Session 172
 
-## Resume From
+## Resume Status
 
-Session 170 is complete. Sprint 2 gap closure (Social Templates endpoint + frontend UI) and Sprint 3 initiation (Tag SEO Pages) finished. Critical governance hardening: CLAUDE.md §11 subagent-first gate now a hard rule with exhaustive allowed/disallowed lists.
+Session 171 completed successfully. P0 Railway build fix merged. #8 Batch Operations Toolkit fully implemented (5 phases, 8 new components, spec doc).
 
-**Before any new work:**
-1. Patrick pushes all pending files via `.\push.ps1` (see file list below)
-2. Conduct comprehensive review of Sessions 166–170 (see PRIMARY OBJECTIVE below)
-3. If review is clean, proceed to roadmap + context-mode strategy discussion
+**CRITICAL:** 10 files pending push. Patrick must execute:
 
----
-
-## PRIMARY OBJECTIVE: Comprehensive Sessions 166–170 Review
-
-**This is Patrick's direction for Session 171 start.**
-
-Session 170 identified critical governance issues: main window had read 940-line itemController, 393-line promote, 256-line items route, then wrote 4 new backend code files inline. This violated existing instructions and burned ~30k tokens on implementation that should have gone through a subagent. CLAUDE.md §11 was created to enforce this as a hard gate.
-
-**S171 review scope:**
-- **Delivery vs. Spec:** Sessions 166–170 promised what? Did each deliver? (Check roadmap.md + feature-notes/)
-- **Workflow Quality:** Are CLAUDE.md / CORE.md rules actually being followed? Is the subagent-first gate enforcement improving things?
-- **Communications:** Baseline was 5.3/10 after S169 audit. Is it improving? Fewer repeating errors? Better context handoffs?
-- **Documentation Staleness:** Any context drift? Are docs accurate or misleading?
-- **Process Viability:** Should we adjust agent roster, skill design, dispatch protocols, or scheduling?
-
-After review: decide next steps. Likely outcomes:
-- If solid: resume roadmap features immediately
-- If drift detected: course-correct before resuming
-- If significant issues: may want to pause features and fix processes
-
-Outcome may also inform context-mode strategy (S169 mentioned this discussion was planned for later).
-
----
-
-## Files Changed in Session 170 (PENDING PATRICK PUSH)
-
-**Already on GitHub (if any MCP-pushed):** None this session
-
-**Pending Patrick PS1 push (local only):**
-- `claude_docs/STATE.md` (S170 objective + next session direction)
-- `claude_docs/logs/session-log.md` (S170 session entry)
-- `.checkpoint-manifest.json` (S170 sessionHistory entry)
-- `CLAUDE.md` (§9 file delivery rule + §11 subagent-first gate hard enforcement)
-- `packages/backend/src/controllers/socialController.ts` (new — social templates endpoint)
-- `packages/backend/src/routes/social.ts` (new — social templates route)
-- `packages/backend/src/controllers/tagController.ts` (new — tag operations)
-- `packages/backend/src/routes/tags.ts` (new — tag routes)
-- `packages/backend/src/index.ts` (+2 imports, +2 route registrations for social + tags)
-- `packages/frontend/pages/organizer/promote/[saleId].tsx` (social template UI section added)
-- `packages/frontend/pages/tags/[slug].tsx` (new — ISR page with JSON-LD schema)
-- `conversation-defaults.skill` (packaged for install — v8 with Rule 27 subagent-first gate)
-
-**Recommended git commit message:**
-```
-Session 170 wrap: Sprint 2 social templates + Sprint 3 tag pages, CLAUDE.md §11 subagent-first hard gate enforcement
-
-- Sprint 2 gap closure: social templates endpoint + promote.tsx UI
-- Sprint 3 start: tag SEO pages with ISR + JSON-LD schema
-- CLAUDE.md §9: file delivery rule (workspace + links required)
-- CLAUDE.md §11: subagent-first is now hard gate (allowed/disallowed exhaustive lists)
-- conversation-defaults v8: Rule 27 (subagent-first gate) packaged
-- STATE.md + session-log.md S170 updates
-- .checkpoint-manifest.json S170 entry
+```powershell
+cd C:\Users\desee\ClaudeProjects\FindaSale
+git add packages/backend/src/routes/items.ts packages/frontend/pages/organizer/add-items/[saleId].tsx packages/frontend/components/BulkActionDropdown.tsx packages/frontend/components/BulkCategoryModal.tsx packages/frontend/components/BulkConfirmModal.tsx packages/frontend/components/BulkOperationErrorModal.tsx packages/frontend/components/BulkPhotoModal.tsx packages/frontend/components/BulkStatusModal.tsx packages/frontend/components/BulkTagModal.tsx claude_docs/feature-notes/batch-operations-toolkit-spec.md
+git commit -m "S171: #8 Batch Operations Toolkit (5 phases) — backend validation + bulk photos + frontend toolbar + 7 modals + error handling"
+.\push.ps1
 ```
 
----
+## Immediate Next Steps
 
-## Patrick's Next Actions
+1. **Patrick executes push block above** — all 10 files, single commit
+2. **Verify build health:**
+   - Railway: confirm deploy succeeds from new commit
+   - Vercel: confirm frontend builds cleanly
+   - Staging: test batch operations (multiple selections, category/status/tags/photos operations, error handling)
+3. **After verification:** Pick next feature from roadmap. Current v31 priorities:
+   - #28 Bulk Delete Operations (Phase 1 of multi-phase)
+   - #30 Organizer Analytics Dashboard
+   - Next unstarted feature per Patrick priority
 
-1. **Push all files:** From project root:
-   ```powershell
-   cd C:\Users\desee\ClaudeProjects\FindaSale
-   git add [all files listed above]
-   git commit -m "Session 170 wrap: Sprint 2 social templates + Sprint 3 tag pages, CLAUDE.md §11 subagent-first hard gate enforcement"
-   .\push.ps1
-   ```
+## Context Files Updated
 
-2. **Install new skills:** Copy INSTALL or .skill files from workspace into Cowork skills folder
-   - conversation-defaults v8
+- STATE.md: S171 entry added, #8 marked complete, roadmap v31 noted
+- session-log.md: S171 prepended, kept 5 most recent entries
+- .last-wrap: stamped 2026-03-15T[HH:MM:SS]Z
+- context.md: regenerated via `node scripts/update-context.js`
 
-3. **Conduct S171 review** (at start of next session) — see PRIMARY OBJECTIVE above
+## Files to Expect
 
----
+Batch Operations Toolkit spec at: `claude_docs/feature-notes/batch-operations-toolkit-spec.md` (details phases 1–5, validation rules, error matrix)
 
-## Key Decisions from Session 170
+7 new modal components in: `packages/frontend/components/Bulk*.tsx`
 
-- **Subagent-first is now HARD GATE** (CLAUDE.md §11) — no inline code implementation except <20 line single-file edits. All other code must go through subagents.
-- **File delivery rule** (CLAUDE.md §9) — all files Patrick must view/install go to workspace with computer:// links. Never describe inline.
-- **Governance enforcement priority:** Process integrity > feature velocity this cycle. After S171 review, decision on whether to adjust further.
+1 new dropdown component in: `packages/frontend/components/BulkActionDropdown.tsx`
 
----
+Backend routes upgrade: `packages/backend/src/routes/items.ts` (POST /api/items/bulk enhanced, POST /api/items/bulk/photos added)
 
-## Environment Notes
+## Governance Notes
 
-- Railway: Sprint 2 changes (social, tag routes) ready for deploy after Patrick push
-- Vercel: Sprint 2+3 frontend changes (promote UI, tag ISR page) ready after Patrick push
-- Neon: No schema changes in S170 (social templates + tag pages are feature-only)
-- CLAUDE.md: §9-11 now active (file delivery rule + subagent-first hard gate)
-- GitHub: All S170 changes pending Patrick PS1 push
+- Subagent dispatch worked well — findasale-dev handled all implementation per CLAUDE.md §11 gate
+- No inline code written in main window — full compliance with subagent-first rule
+- All 5 phases completed in single dispatch round (efficient)
+- Spec doc created (feature-notes convention maintained)
+- Ready for next dispatch cycle
 
----
+## Production Checklist
 
-## Open Items (Carry Forward)
-
-- **P2:** Item thumbnail images on Review & Publish page break on reload (Cloudinary URLs fail on subsequent navigation)
-- **Schema tech debt:** `aiConfidence Float @default(0.5)` should be `Float?`
-- **Brand Voice session:** Recommended before Listing Factory Sprint 3 ships to marketplace
-- **S169-171 experiment:** Monitor subagent push ban + push-coordinator skill trial (ongoing)
-- **S171 governance review:** Comprehensive S166–170 delivery/workflow/comms audit (see PRIMARY OBJECTIVE)
-
----
-
-## Roadmap Context
-
-After S171 review completes:
-
-1. **Resume feature work:** Next per MESSAGE_BOARD.json priority voting
-2. **Listing Factory Sprint 2:** Social templates + tag pages may inform Sprint 3 design
-3. **Context-mode discussion:** May happen after S171 review if time permits
-
----
-
-## Session 170 Scoreboard
-
-- Subagents dispatched: 1 (findasale-dev for promote + tags frontend)
-- Features shipped: 2 (social templates endpoint + tag SEO pages with ISR)
-- Governance improvements: 2 (CLAUDE.md §9 + §11)
-- Files changed: 11
-- Compressions: 0
-- Token budget: ~55k / ~200k available
-- Status: COMPLETE — gap closure done, Sprint 3 started, governance hardened
+- [ ] Patrick executes push block
+- [ ] Railway build confirmed (check deployment logs)
+- [ ] Vercel frontend build confirmed
+- [ ] Staging tests pass (batch ops functional)
+- [ ] Next feature prioritized
