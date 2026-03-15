@@ -16,7 +16,25 @@ Keep only the 5 most recent sessions. Delete older entries — git history and S
 
 ## Recent Sessions
 
-## Session 162 — 2026-03-14 — Review & Publish Chrome Audit + P1 Bug Fixes
+## Session 162 — 2026-03-14 — Comprehensive Review & Publish Page Rebuild + Chrome Audit + P1 Bug Fixes
+
+**Worked on:** (1) Comprehensive inline edit panel rebuild — replaced static 3-field panel (title/price/category) with full feature parity to edit-item page. New fields: ItemPhotoManager (photo upload/reorder/delete), description, condition, quantity, PriceSuggestion AI widget, per-item Publish/Unpublish toggle, Full Edit Page link. (2) draftStatus badge added to each item card collapsed row (Published/Pending/Draft). (3) Item interface and ItemEditState updated to include description, condition, quantity. (4) handleSaveItem and handlePublishItem wired to persist all new fields. (5) Chrome audit of Review & Publish page — all 7 checks passed. (6) Two P1 bugs diagnosed and fixed live: Bug 1 — unicode separator `\u00B7` rendering as literal text (JSX text node issue) fixed with `{' · '}`. Bug 2 — Manual Entry items showing "Low (50%)" instead of "Manual" (root cause: schema `aiConfidence Float @default(0.5)`); fixed using `isAiTagged` field check in confidenceLabel/confidenceBorderClass. (7) CORE.md governance fix — added §3 rule: re-read §4 Push Rules immediately after compression (closes conversation-defaults gap). (8) Merge conflict in review.tsx resolved (kept HEAD/comprehensive version).
+
+**Decisions:** Full panel parity makes Review & Publish page self-sufficient for all item edits (no Full Edit Page click necessary for most changes). draftStatus badge provides immediate visibility into item readiness. Schema cleanup (change `aiConfidence` to nullable `Float?`) deferred post-beta. Manual items don't show confidence percentages — only AI-tagged items do.
+
+**Token efficiency:** Comprehensive rebuild inline, one merge conflict resolution. No subagent dispatches. Low-medium burn.
+
+**Token burn:** ~65k tokens (est.), 0 checkpoints.
+
+**Next up:** Fix Railway backend restarts (session 160 carry-forward). Validate 4 features (#61, #34, #35, #33) end-to-end on production. Resume roadmap P1: #24 Holds.
+
+**Blockers:** Railway unstable (blocks feature validation). P2 thumbnail issue (Cloudinary URLs break on page reload).
+
+**Files changed:** packages/frontend/pages/organizer/add-items/[saleId]/review.tsx, packages/backend/src/controllers/itemController.ts, claude_docs/CORE.md | Compressions: 1 | Subagents: 0 | Push method: manual (merge conflict)
+
+---
+
+## Session 162b — 2026-03-14 — Chrome Audit + P1 Bug Fixes
 
 **Worked on:** Chrome audit of Review & Publish page (7 checks). All checks passed: link visible, page loads without errors, 16 items shown, Publish All correctly absent, Back to Capture link works, Visible/Hidden labels correct, Near-Miss Nudge (#61) working. Two P1 bugs diagnosed and fixed live. Bug 1: unicode separator `\u00B7` rendering as literal text (JSX text node issue) — fixed with `{' · '}` character in review.tsx line 415. Bug 2: Manual Entry items showing "Low (50%)" instead of "Manual" — root cause discovered: Prisma schema has `aiConfidence Float @default(0.5)`, every manual item gets 0.5. Fixed using existing `isAiTagged` boolean field — updated `confidenceLabel()` and `confidenceBorderClass()` to check `isAiTagged` first, only show percentage for AI-tagged items. Added `isAiTagged: boolean` to Item interface and backend select clauses. Bug 3 open (P2): thumbnail images break on page reload — Cloudinary URLs load on first visit but fail on subsequent navigation, root cause unknown.
 

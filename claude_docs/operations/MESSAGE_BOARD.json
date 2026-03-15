@@ -2,6 +2,15 @@
   "_schema": "MESSAGE_BOARD v2 — rebuilt 2026-03-11 session 146. Max 20 messages. Prune oldest on overflow.",
   "messages": [
     {
+      "id": "msg-162-wrap-complete-records",
+      "from": "findasale-records",
+      "to": "patrick",
+      "timestamp": "2026-03-14T23:59:30Z",
+      "type": "wrap-complete",
+      "message": "SESSION 162 WRAP COMPLETE. Comprehensive Review & Publish page rebuild + Chrome audit + P1 bug fixes. Inline edit panel upgraded from 3 fields to full feature parity with edit-item page: ItemPhotoManager, description, condition, quantity, PriceSuggestion, per-item Publish/Unpublish toggle, Full Edit Page link. draftStatus badge added to item cards (Published/Pending/Draft). Chrome audit all 7 checks passed. Two P1 bugs fixed: (1) unicode separator `\\u00B7` rendering as literal text (fixed with `{' · '}`), (2) Manual Entry items showing \"Low (50%)\" instead of \"Manual\" (fixed via `isAiTagged` field check). Backend updated: isAiTagged + aiConfidence added to getDraftItemsBySaleId and getItemDraftStatus selects. Merge conflict in review.tsx resolved (kept HEAD). CORE.md updated with §3 rule: re-read §4 Push Rules after compression. Files changed: packages/frontend/pages/organizer/add-items/[saleId]/review.tsx, packages/backend/src/controllers/itemController.ts, claude_docs/CORE.md. All on GitHub main, Vercel auto-deploying. STATE.md, session-log.md, next-session-prompt.md updated. Ready for next session.",
+      "feedbackLoop": null
+    },
+    {
       "id": "msg-163-review-jsx-wired",
       "from": "findasale-dev",
       "to": "patrick",

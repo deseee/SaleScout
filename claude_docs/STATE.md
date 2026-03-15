@@ -7,7 +7,21 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Active Objective
 
-**Session 162 COMPLETE (2026-03-14) — REVIEW & PUBLISH CHROME AUDIT + P1 BUG FIXES + EDIT WIRING:**
+**Session 162 COMPLETE (2026-03-14) — COMPREHENSIVE REVIEW & PUBLISH PAGE REBUILD:**
+- **Comprehensive inline edit panel implemented:** Upgraded from 3-field panel (title/price/category) to full feature parity with edit-item page. New fields: ItemPhotoManager (photo upload/reorder/delete), description, condition, quantity, PriceSuggestion AI widget, per-item Publish/Unpublish toggle, Full Edit Page link.
+- **draftStatus badge added:** Each item card now displays draftStatus badge (Published/Pending/Draft) on the collapsed row for visibility into item readiness.
+- **Item interface updated:** Added description, condition, quantity fields to Item type and ItemEditState.
+- **Backend updated:** `packages/backend/src/controllers/itemController.ts` getDraftItemsBySaleId and getItemDraftStatus now include isAiTagged and aiConfidence in select clauses (from prior session).
+- **All state handlers connected:** setSelectedItems, setExpandedItemId, handleEditChange, handleSaveItem, handleBulkPrice, handleBulkCategory, handlePublishItem all wired to JSX.
+- **Merge conflict resolved:** origin/main had old 3-field panel; HEAD had comprehensive panel — kept HEAD (final version).
+- **CORE.md governance fix:** Added §3 rule: re-read §4 Push Rules immediately after any compression event (closes conversation-defaults gap where push instructions were in §4 but not reloaded after compression).
+- **Files changed:** `packages/frontend/pages/organizer/add-items/[saleId]/review.tsx`, `packages/backend/src/controllers/itemController.ts`, `claude_docs/CORE.md`
+- **All changes on GitHub main.** Vercel auto-deploying.
+- **Last Updated:** 2026-03-14 (session 162)
+
+---
+
+**Session 162b (continuation) — CHROME AUDIT + P1 BUG FIXES:**
 - **Chrome audit of Review & Publish page:** All 7 checks passed. Page loads without errors, 16 items shown, "Review & Publish →" link visible, "Publish All" correctly absent, "Back to Capture" link works, Visible/Hidden labels correct, Near-Miss Nudge (#61) working.
 - **Bug 1 fixed (P1):** `\u00B7` separator in item cards rendered as literal text (JSX text node Unicode escape not processed). Fixed: changed to `{' · '}` in review.tsx line 415.
 - **Bug 2 fixed (P1):** Manual Entry items showed "Low (50%)" confidence label instead of "Manual". Root cause: `aiConfidence Float @default(0.5)` in schema. Fixed via `isAiTagged` field — updated `confidenceLabel()` and `confidenceBorderClass()` to check `isAiTagged` first; added field to Item interface + backend select clause.
