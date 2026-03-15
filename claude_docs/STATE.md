@@ -7,7 +7,7 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Active Objective
 
-**Session 174 COMPLETE (2026-03-15) — INSIGHTS/PERFORMANCE CONSOLIDATION + P1/P2 BUG SWEEP + #37 REMINDER BUTTON:**
+**Session 174 COMPLETE (2026-03-15) — INSIGHTS/PERFORMANCE CONSOLIDATION + P1/P2 BUG SWEEP + #37 REMINDER BUTTON + #66 OPEN DATA EXPORT SHIPPED:**
 - **Customer Champion decision:** Insights + Performance consolidation — merged `/organizer/performance` into `/organizer/insights` with per-sale breakdown as expandable section. `/organizer/performance` now redirects. Feature COMPLETE ✅
 - **Insights+Performance consolidation built:** Lifetime stats on top, per-sale drill-down inline. Tested in Railway staging ✅
 - **Buyer preview on capture page:** Confirmed working in staging after last push ✅
@@ -25,27 +25,44 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
   5. Entrance pin guard: shows amber warning if geocoding failed (instead of silently hiding)
   6. Draft status badge: dual badge (item status + draft status) with distinct colors
   7. API error messages: internal enum names mapped to user-friendly labels
+- **#66 Open Data Export — SHIPPED (end of S174):**
+  - NEW: `packages/backend/src/controllers/exportController.ts` — GET /api/organizer/export, streams ZIP with items.csv, sales.csv, purchases.csv
+  - NEW: `packages/backend/src/routes/export.ts` (route registration)
+  - MODIFIED: `packages/backend/src/index.ts` (route registration)
+  - MODIFIED: `packages/frontend/pages/organizer/dashboard.tsx` (Export My Data button added)
+  - Feature COMPLETE ✅ — Trust signal + CCPA/GDPR requirement. One-click ZIP export on organizer dashboard.
+- **Build fixes (end of S174):**
+  - Fixed TS errors in `reminderController.ts`: `'../prisma'` → `'../lib/prisma'`, `authenticateToken` → `authenticate`
+  - Fixed `reminders.ts` auth middleware: same auth middleware rename
+- **SaleReminder schema shipped:** Migration 20260315000003 added to Neon (email-reminder tracking). Requires `prisma migrate deploy` on next Railway push.
 - **Roadmap items marked COMPLETE:**
   - **#37 Sale Calendar & Reminders** — calendar page already existed; "Remind Me" button now added = DONE ✅
   - **#6 Seller Performance Dashboard** — was already built live; insights+performance consolidation now done = DONE ✅
+  - **#66 Open Data Export** — ZIP export (items.csv, sales.csv, purchases.csv), organizer dashboard button = DONE ✅
 - **Files changed this session:**
   - `packages/backend/src/controllers/saleController.ts`
+  - `packages/backend/src/controllers/exportController.ts` (new)
+  - `packages/backend/src/controllers/reminderController.ts` (build fix)
+  - `packages/backend/src/routes/export.ts` (new)
+  - `packages/backend/src/routes/reminders.ts` (build fix)
+  - `packages/backend/src/index.ts` (2 route registrations)
   - `packages/frontend/pages/organizer/add-items/[saleId].tsx`
   - `packages/frontend/pages/organizer/edit-sale/[id].tsx`
   - `packages/frontend/pages/organizer/insights.tsx`
   - `packages/frontend/pages/organizer/performance.tsx` (redirect)
-  - `packages/frontend/pages/organizer/dashboard.tsx` (onboarding wizard guard)
+  - `packages/frontend/pages/organizer/dashboard.tsx` (onboarding wizard guard + Export My Data button)
   - `packages/frontend/pages/calendar.tsx` (Remind Me wired)
   - `packages/frontend/components/RemindMeButton.tsx` (new)
   - `packages/backend/src/routes/items.ts` (error label mapping)
 - **Last Updated:** 2026-03-15 (session 174)
 
 **NEXT SESSION (S175):**
-1. Push all S174 files via `.\push.ps1` (Patrick action)
-2. Brand voice session (pre-beta, in checklist)
-3. Beta organizer recruitment (Patrick checklist items)
-4. P2 remaining: listing type schema debt (#5 from bug blitz — deferred)
-5. Consider #65 Organizer Mode Tiers or #41 Flip Report as next roadmap feature
+1. Verify #66 export downloads correctly in staging (Railway green after push)
+2. Verify SaleReminder schema migration ran on Neon (`prisma migrate deploy`)
+3. Run health-scout on all S174 + #66 code — full pre-beta scan
+4. Brand voice session (pre-beta prerequisite — Patrick checklist item)
+5. Beta organizer recruitment (Patrick checklist items: identify 5 targets, schedule 1-on-1s)
+6. Next roadmap feature: **#66 done** → next candidates are #31 Organizer Brand Kit UI (schema already shipped), #41 Flip Report, or #65 Organizer Mode Tiers
 
 ---
 
