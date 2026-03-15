@@ -2,6 +2,15 @@
   "_schema": "MESSAGE_BOARD v2 — rebuilt 2026-03-11 session 146. Max 20 messages. Prune oldest on overflow.",
   "messages": [
     {
+      "id": "msg-166-records-decisions-locked",
+      "from": "findasale-records",
+      "to": "patrick",
+      "timestamp": "2026-03-15T03:00:00Z",
+      "type": "completion",
+      "message": "DECISIONS LOCKED — #64 Condition Grading (fold into Sprint 1, migration 20260315000001) + #31 Brand Kit (schema fields now, UI Sprint 3, migration 20260315000002). Both appended to decisions-log.md. STATE.md updated. Commits pushed.",
+      "feedbackLoop": null
+    },
+    {
       "id": "msg-167-dev-sprint1-listing-factory-complete",
       "from": "findasale-dev",
       "to": "findasale-qa,patrick",
