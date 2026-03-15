@@ -7,6 +7,48 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Active Objective
 
+**Session 174 COMPLETE (2026-03-15) — INSIGHTS/PERFORMANCE CONSOLIDATION + P1/P2 BUG SWEEP + #37 REMINDER BUTTON:**
+- **Customer Champion decision:** Insights + Performance consolidation — merged `/organizer/performance` into `/organizer/insights` with per-sale breakdown as expandable section. `/organizer/performance` now redirects. Feature COMPLETE ✅
+- **Insights+Performance consolidation built:** Lifetime stats on top, per-sale drill-down inline. Tested in Railway staging ✅
+- **Buyer preview on capture page:** Confirmed working in staging after last push ✅
+- **#37 Sale Calendar & Reminders:** Added "Remind Me" button to calendar page via `RemindMeButton.tsx` component. Email reminder service was already in place. Feature COMPLETE ✅
+- **P1 bugs fixed (4 remaining, all now complete):**
+  1. Draft item count cache race — FIXED: `inMutationFlight` ref guard, enabled guard on items query, `onMutate`/`onSettled` on all 3 mutations, `invalidateQueries` on face upload path
+  2. Entrance pin coordinate validation — FIXED: backend `saleController.ts` returns 400 if pin >0.05° from sale; frontend warning threshold tightened to 0.0045°
+  3. Category enum validation — confirmed already fixed in prior session ✅
+  4. Batch hold transaction safety — confirmed already fixed in prior session ✅
+- **P2 bugs fixed (7):**
+  1. Bulk delete now requires confirmation modal before executing
+  2. Edit-sale page title conditional: shows "(Live)" + warning banner if sale is PUBLISHED
+  3. Onboarding wizard: localStorage guard prevents re-launch after completion
+  4. Add-items page header: shows sale title + updated `<title>` tag
+  5. Entrance pin guard: shows amber warning if geocoding failed (instead of silently hiding)
+  6. Draft status badge: dual badge (item status + draft status) with distinct colors
+  7. API error messages: internal enum names mapped to user-friendly labels
+- **Roadmap items marked COMPLETE:**
+  - **#37 Sale Calendar & Reminders** — calendar page already existed; "Remind Me" button now added = DONE ✅
+  - **#6 Seller Performance Dashboard** — was already built live; insights+performance consolidation now done = DONE ✅
+- **Files changed this session:**
+  - `packages/backend/src/controllers/saleController.ts`
+  - `packages/frontend/pages/organizer/add-items/[saleId].tsx`
+  - `packages/frontend/pages/organizer/edit-sale/[id].tsx`
+  - `packages/frontend/pages/organizer/insights.tsx`
+  - `packages/frontend/pages/organizer/performance.tsx` (redirect)
+  - `packages/frontend/pages/organizer/dashboard.tsx` (onboarding wizard guard)
+  - `packages/frontend/pages/calendar.tsx` (Remind Me wired)
+  - `packages/frontend/components/RemindMeButton.tsx` (new)
+  - `packages/backend/src/routes/items.ts` (error label mapping)
+- **Last Updated:** 2026-03-15 (session 174)
+
+**NEXT SESSION (S175):**
+1. Push all S174 files via `.\push.ps1` (Patrick action)
+2. Brand voice session (pre-beta, in checklist)
+3. Beta organizer recruitment (Patrick checklist items)
+4. P2 remaining: listing type schema debt (#5 from bug blitz — deferred)
+5. Consider #65 Organizer Mode Tiers or #41 Flip Report as next roadmap feature
+
+---
+
 **Session 173 COMPLETE (2026-03-15) — SMOKE TESTS + PERFORMANCE DASHBOARD FIXES + P1 BUG BLITZ:**
 - **Smoke tests (3):** Add Items page ✅, Performance Dashboard ✅ (with fixes), Vercel/Railway ✅ green
 - **Performance dashboard (#6):** Fixed double `/api` prefix in URL (performance.tsx L131), fixed `recommendations` null crash (optional chaining), dashboard link added, route confirmed live on Railway

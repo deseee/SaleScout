@@ -1,6 +1,6 @@
 # ROADMAP – FindA.Sale
 
-**Last Updated:** 2026-03-15 (v33 — Session 172: #8 done (prior session confirmed), #28 Neighborhood Heatmap shipped. #34/#35 confirmed done. 4 P0 bugs fixed. Stripe MCP connected.)\
+**Last Updated:** 2026-03-15 (v34 — Session 174: #6 performance dashboard consolidation done, #37 Sale Calendar Remind Me shipped, P1/P2 bug sweep complete)
 **Previous:** 2026-03-13 (v27 — Session 157: Innovation Round 3. 30 new ideas across 10 creative lenses (casino/gambling, microtransactions, big box retail, mobile trends, international, progressive disclosure, GitHub/open source, Reddit/social, Zapier/automation, emerging). 11 rated BUILD → added to Phase 4 (#61–#71). 19 rated DEFER → added to Deferred. Total: 71 active features + 65 deferred items. Research: `claude_docs/research/innovation-round3-2026-03-13.md`.)
 **Status:** Production MVP live at finda.sale. Beta: GO. Full build history: `claude_docs/strategy/COMPLETED_PHASES.md`.
 
@@ -68,7 +68,8 @@
 | ~~2~~ | ~~27~~ | ~~Listing Factory (Photo Export + Social + Tags)~~ | ✅ Done | **All 3 sprints shipped.** Sprint 1 (S166): AI tag suggestion via Haiku + curated tag vocabulary + health score utility + review.tsx picker UI. Sprint 2 (S168): Cloudinary watermark + export controller (CSV/JSON/text formats) + social templates (3 tones × 2 platforms). Sprint 3 (S170): /tags/[slug] ISR pages, /api/tags/popular endpoint, sitemap. Fold-ins: #64 Condition Grading (S166 migration 20260315000001), #31 Brand Kit schema (S166 migration 20260315000002, UI deferred to standalone session). |
 | ~~3~~ | ~~8~~ | ~~Batch Operations Toolkit~~ | ✅ Done | 7-modal toolkit shipped S171: BulkCategoryModal, BulkConfirmModal, BulkOperationErrorModal, BulkPhotoModal, BulkStatusModal, BulkTagModal, BulkActionDropdown. Bulk photos API (POST /api/items/bulk/photos), expanded toolbar "More Actions" dropdown, backend status-safe validation matrix + dry-run mode. |
 | ~~4~~ | ~~28~~ | ~~Neighborhood Heatmap~~ | ✅ Done | D3-free Leaflet circleMarker overlay shipped S172. 6 new files + 3 modified. 5-tier density coloring, 6h cache, click-to-zoom. No schema changes. |
-| 5 | 6 | Seller Performance Dashboard + Price Intelligence | 2–3 sprints | Analytics, benchmarks, pricing recommendations. Merged with #26 (Cross-Sale Price Intelligence) per competitive urgency — EstateFlow already has AI pricing. **Includes Seasonal Pricing Templates:** pre-loaded pricing suggestions by season (holiday decor in Nov/Dec, outdoor furniture in spring, back-to-school in Aug). AI adjusts base price recommendations by time of year and category sell-through rates. |
+| ~~5~~ | ~~6~~ | ~~Seller Performance Dashboard + Price Intelligence~~ | ✅ Done | Built S173, insights+performance consolidation shipped S174. Per-sale breakdown now inline with lifetime stats. Feature COMPLETE. |
+| 6 | 5 | Listing Type Schema Debt | 0.5–1 sprint | Backend validation matrix for enum consistency (ESTATE/CHARITY/BUSINESS/CORPORATE). Optional: tier-based listing type restrictions (Premium-only for CORPORATE). Deferred from bug blitz. |
 
 #### Parallel Sprint Slots (Board v26 — runs alongside locked queue)
 
@@ -78,9 +79,9 @@
 | ~~P2~~ | ~~34~~ | ~~Hype Meter~~ | ✅ Done | Real-time social proof counter shipped session 160. HypeMeter.tsx + ActivityFeed.tsx components live. |
 | ~~P3~~ | ~~35~~ | ~~Front Door Locator~~ | ✅ Done | Entrance pin shipped session 160. EntrancePinPicker.tsx + EntrancePinPickerInner.tsx live; wired to edit-sale and SaleMap. |
 | ~~P4~~ | ~~36~~ | ~~Weekly Treasure Digest~~ | ✅ Done | Personalized weekly shopper digest activated. Sundays 6pm via Resend. MailerLite Shoppers group sync on registration. Shipped session 165. Env var required: `MAILERLITE_SHOPPERS_GROUP_ID=182012431062533831` |
-| P5 | 37 | Sale Calendar & Reminders | 1 sprint | Calendar view of upcoming sales + "Remind Me" button → push notification or email on sale day. Reduces missed-sale regret. |
+| ~~P5~~ | ~~37~~ | ~~Sale Calendar & Reminders~~ | ✅ Done | Calendar view of upcoming sales + "Remind Me" button shipped S174. Email reminder service was already in place. Feature COMPLETE. |
 
-*Recently shipped: #27 Listing Factory (sessions 166/168/170 — 3-sprint complete: AI tags, health score, exports, social templates, ISR tag pages + fold-ins #64 Condition Grading + #31 Brand Kit schema), #36 Weekly Treasure Digest (session 165), #33 Share Card Factory (session 163), #61 Near-Miss Nudges + #34 Hype Meter + #35 Front Door Locator (session 160). See COMPLETED_PHASES.md.*
+*Recently shipped: #27 Listing Factory (sessions 166/168/170 — 3-sprint complete: AI tags, health score, exports, social templates, ISR tag pages + fold-ins #64 Condition Grading + #31 Brand Kit schema), #36 Weekly Treasure Digest (session 165), #33 Share Card Factory (session 163), #61 Near-Miss Nudges + #34 Hype Meter + #35 Front Door Locator (session 160), #24 Holds-Only Item View (session 164), #8 Batch Operations Toolkit (session 171), #28 Neighborhood Heatmap (session 172), #6 Seller Performance Dashboard + #37 Sale Calendar Reminders (sessions 173–174). See COMPLETED_PHASES.md.*
 
 ### Phase 3 — Weeks 8–16
 | # | Feature | Est. | Notes |
@@ -89,9 +90,9 @@
 | 3b | ~~Camera Workflow v2 (Design)~~ | ✅ Specced | Auto-enhance, background removal (Cloudinary), face detection (on-device TF.js), AI confidence tinting, batch toolbar. Session 146 design sprint. Implementation partial — full build deferred. |
 | 4 | ~~Search by Item Type~~ | ✅ Done | /categories index page shipped (session 116). [category].tsx existed (Phase 29). |
 | 5 | ~~Stripe Terminal POS~~ | ✅ Done | v1 single-item (session 150) + v2 multi-item cart, cash payment, cash fee tracking (sessions 153–154). WisePOS E/S700 WiFi. 10% fee parity. Ready for Patrick testing. |
-| 6 | Seller Performance Dashboard | 2 sprints | Analytics, benchmarks, pricing recommendations. |
+| 6 | ~~Seller Performance Dashboard~~ | ✅ Done | Built S173, consolidation done S174. Per-sale analytics + recommendations. Feature COMPLETE. |
 | 7 | Shopper Referral Rewards | 1–2 sprints | Referral tracking, rewards distribution, email notifications. Deferred — no shoppers yet. |
-| 8 | Batch Operations Toolkit | 1 sprint | Bulk pricing, status updates, photo uploads. Partially covered by Rapidfire batch toolbar (session 146 spec). |
+| 8 | ~~Batch Operations Toolkit~~ | ✅ Done | 7-modal toolkit shipped S171. Bulk pricing, status updates, photo uploads. |
 | 9 | ~~Payout Transparency Dashboard~~ | ✅ Done | Item-level fee breakdown shipped session 116. `GET /api/stripe/earnings` + payouts page. |
 | 10 | ~~Serendipity Search~~ | ✅ Done | `/api/search/random` + `/surprise-me` page shipped sessions 116–117. |
 | 11 | ~~Organizer Referral Reciprocal~~ | ✅ Done | Fee bypass + referralDiscountExpiry shipped session 117. Migration pending deploy. |
