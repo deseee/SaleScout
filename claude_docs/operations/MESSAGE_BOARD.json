@@ -2,6 +2,24 @@
   "_schema": "MESSAGE_BOARD v2 — rebuilt 2026-03-11 session 146. Max 20 messages. Prune oldest on overflow.",
   "messages": [
     {
+      "id": "msg-173-dev-performance-dashboard-backend",
+      "from": "findasale-dev",
+      "to": "patrick",
+      "timestamp": "2026-03-15T17:00:00Z",
+      "type": "completion",
+      "message": "#6 SELLER PERFORMANCE DASHBOARD — PHASE 1 BACKEND COMPLETE. MVP scope fully implemented per spec approved architect decisions. NEW FILES: (1) packages/backend/src/services/performanceService.ts (356 lines) — Main service with 5 metric computations: computeRevenueMetrics (online vs POS split), computeTopSellingItems (top 10), computeConversionRate (favorites proxy), computeCategoryBreakdown (avg prices + sell-through by category), computeHoldMetrics (no-show rate). In-memory Map-based cache with TTL (1h default), getPerformanceMetrics main entry point with auth gate + ownership verification. (2) packages/backend/src/controllers/performanceController.ts (74 lines) — getPerformanceMetricsHandler: query param validation (saleId required, range optional: 7d|30d|90d|custom), auth gate (organizer role), error handling (400 bad_request, 403 forbidden, 404 not_found, 500 server_error). MODIFIED FILES: (1) packages/backend/src/routes/organizers.ts — Added import + new route GET /api/organizers/performance with authenticate middleware. Route path note: Spec says '/api/organizer/performance' (singular) but codebase pattern uses '/api/organizers/' (plural). Actual endpoint: /api/organizers/performance?saleId=X&range=30d. IMPLEMENTATION DETAILS: Revenue computed from Purchase table (no Stripe API phase 1), source split works with existing Purchase.source field (ONLINE|POS). Conversion rate uses Favorite count as proxy for item interest. Health scores mocked (baseline 50 + bonuses for photos/description/price); real scores will use Listing Factory utility in production. All metrics computed on-demand with 1h cache (caching key: perf:org_{id}:sale_{id}:range_{range}). NO npm dependencies added — avoided node-cache, used simple Map-based TTL instead. NO schema changes. TypeScript strict mode compliant, no any casts. NEXT: Frontend Phase 2 (8 new components + Recharts visualizations). QA ESCALATION: Organizer auth gate added — touches auth/ownership logic (must verify no bypass paths). Files ready for push: performanceService.ts, performanceController.ts, organizers.ts (route edit).",
+      "feedbackLoop": "qa-review"
+    },
+    {
+      "id": "msg-173-qa-backend-p1-bugs",
+      "from": "findasale-qa",
+      "to": "patrick",
+      "timestamp": "2026-03-15T16:45:00Z",
+      "type": "qa-verdict",
+      "message": "QA VERDICT — Session 173 Backend P1 Bugs — PASS WITH NOTES. All three files reviewed (reservationController.ts, stripeController.ts, items.ts). PASS CRITERIA: (1) batchUpdateHolds transaction correctly uses callback form (matches codebase pattern), re-verifies ownership inside transaction (prevents TOCTOU), ownership check in WHERE clause is redundant but safe. Error handling: 'No valid holds found' caught cleanly; other Prisma errors return 500 (acceptable). (2) Stripe error.type detection: correct for v14.4.0 (handles both Error + plain object). Code checks `error.type === 'invalid_request_error'` (400) and `error.type === 'rate_limit_error'` (503). Safe fallback to 500. (3) Bulk operations: 207 Multi-Status correct (partial success). Category whitelist validated BEFORE DB write (lines 337–352), prevents both SQL injection + case-confusion. Skipped array consistent across photo operations. FINDINGS (NON-BLOCKING): [WARN] batchUpdateHolds: other Prisma errors don't re-throw to 500 (only ownership mismatch surfaces cleanly). [WARN] stripeController: Missing Retry-After header on 503 rate-limit response (should add `res.set('Retry-After', '60')`). [WARN] stripeController: error.type may be undefined in wrapped/chained errors (edge case, defaults to 500 safely). [INFO] items.ts: verify add-items.tsx checks 207 explicitly in mutation onSuccess (fetch treats 207 as success, but some wrappers may not). READY TO SHIP after: [☐] test frontend 207 handling in bulkUpdateMutation.onSuccess, [☐] optional: add Retry-After header to 503 response, [☐] optional: test Stripe error.type detection with mocked v14.4.0 errors.",
+      "feedbackLoop": null
+    },
+    {
       "id": "msg-173-dev-backend-p1-bugs-fixed",
       "from": "findasale-dev",
       "to": "patrick",
