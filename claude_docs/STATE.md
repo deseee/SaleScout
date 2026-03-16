@@ -48,9 +48,9 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 - [ ] Open Stripe business account
 
 **Next session options (ranked):**
-1. **#61 Near-Miss Nudges** (0.25 sprint) — simple gamification nudge layer, high engagement ROI
-2. **#63 Dark Mode + Accessibility** (1.5 sprints) — WCAG 2.1 AA compliance, Lighthouse boost
-3. **#67 Social Proof Notifications** (0.5 sprint) — extend Hype Meter with real-time activity aggregation
+1. **#63 Dark Mode + Accessibility** (1.5 sprints) — WCAG 2.1 AA compliance, Lighthouse boost
+2. **#67 Social Proof Notifications** (0.5 sprint) — extend Hype Meter with real-time activity aggregation
+3. **#65 Progressive Disclosure UI** (remaining from Sprint 1+2) — Simple mode 5-button surface
 
 ---
 
