@@ -6,18 +6,21 @@
 
 **Shipped:**
 - Fixed #66 export routing order bug in organizers.ts (`/export` before `/:id`) — was 404, now 401 ✅
-- Confirmed SaleReminder migration `20260315235851_add_sale_reminder` applied on Railway ✅
-- Smoke tested Remind Me (401) and Export (401) endpoints ✅
-- Investigated early auto-compaction: 3 root causes found (summary bloat, production code in init, missing NON-BLOCKING checkpoints) — T1–T7 rules added to CORE.md
-- Health-scout: P1 CSV injection in exportController.ts (fix dispatched), P2×2 in reminderController + exportController
-- ADR-065 Organizer Mode Tiers designed: SIMPLE/PRO/ENTERPRISE progressive disclosure
-- #31 Brand Kit UI dispatch in progress
+- Fixed P1 CSV formula injection in exportController.ts (escapeCSV adds leading quote to `=`, `+`, `-`, `@`) ✅
+- Shipped #31 Brand Kit UI (`/organizer/brand-kit.tsx`, PATCH /me extended, dashboard nav link) ✅
+- Implemented T1–T7 token efficiency rules in CORE.md (compaction summary limits, init budget gate, checkpoint manifest trimming, session-log rotation, STATE.md size gate, non-blocking checkpoints) ✅
+- Health-scout: 2 P2s logged (reminderType validation, archiver stream cleanup)
+- ADR-065 Organizer Mode Tiers approved strategically — feature matrix decision is S176 first task
+
+**Decisions:**
+- #65 blocked pending feature matrix agreement (SIMPLE/PRO/ENTERPRISE tiers for existing + future features)
+- #31 Brand Kit shipped and ready to merge
+- P2 bugs are inline fixes (<20 lines) — can be done in S176 without subagent
 
 **Next:**
-- Push P1 CSV injection fix for exportController.ts
-- Review ADR-065 and approve/adjust Mode Tiers schema
-- #31 Brand Kit UI — review and push subagent output
-- #41 Flip Report — dispatch after #65 ADR approved
+- S176: Feature matrix discussion for #65 (Priority 1)
+- S176: #41 Flip Report dispatch (Priority 2, parallel)
+- S176: P2 bug fixes inline (Priority 3)
 
 ### 2026-03-15 · Session 173 (SMOKE TESTS + PERFORMANCE DASHBOARD + P1 BUG BLITZ)
 **Worked on:** 3 smoke tests (Add Items, Performance Dashboard, Vercel/Railway). Fixed performance dashboard double `/api` prefix bug (URL was hitting `/api/api/organizers/performance` → 404). Fixed recommendations null crash (optional chaining). Moved sticky toolbar above table in add-items (was at bottom of DOM, never activated). Added sale name to Add Items header. Fixed buyer preview showing empty grid (PENDING_REVIEW filter removed). Added Performance link to organizer dashboard. Added buyer preview to capture page via `?preview=true`. Fixed 4 P1 bugs: saleId guard/redirect, bulk mutation skipped-item feedback, Stripe typed error responses, bulk photo skip reporting. Two TS build fixes.

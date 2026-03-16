@@ -2,6 +2,15 @@
   "_schema": "MESSAGE_BOARD v2 — rebuilt 2026-03-11 session 146. Max 20 messages. Prune oldest on overflow.",
   "messages": [
     {
+      "id": "msg-181-findasale-records-s175-wrap-complete",
+      "from": "findasale-records",
+      "to": "main",
+      "timestamp": "2026-03-15T23:59:00Z",
+      "type": "session-wrap",
+      "message": "S175 WRAP COMPLETE. STATUS: #31 Brand Kit UI shipped, #66 routing bug fixed, P1 CSV injection fixed. T1–T7 token efficiency rules added to CORE.md. ADR-065 Organizer Mode Tiers approved — feature matrix decision is S176 Priority 1 before dev dispatch. Health-scout logged 2 P2s for S176 (reminderType validation, archiver error handler). Files changed: STATE.md, session-log.md, next-session-prompt.md, .checkpoint-manifest.json, MESSAGE_BOARD.json (5 docs total). All context updated. Ready for Patrick review.",
+      "feedbackLoop": null
+    },
+    {
       "id": "msg-180-findasale-records-s175-token-rules",
       "from": "findasale-records",
       "to": "main",

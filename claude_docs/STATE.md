@@ -7,6 +7,23 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Active Objective
 
+**Session 175 COMPLETE (2026-03-15) — BUG FIXES + #31 BRAND KIT UI + TOKEN EFFICIENCY RULES:**
+- **#66 Export routing bug fixed:** `/export` route moved before `/:id` in organizers.ts (was returning 404, now 401) ✅
+- **P1 CSV formula injection fixed:** escapeCSV() in exportController.ts now prepends `'` to values starting with `=`, `+`, `-`, `@` to neutralize Excel formula injection ✅
+- **#31 Brand Kit UI shipped:** New page `/organizer/brand-kit.tsx` with fields: businessName, phone, bio, website, Facebook, Instagram, Etsy, brandLogoUrl, brandPrimaryColor, brandSecondaryColor. PATCH /me extended with all brand fields. Dashboard nav link added ✅
+- **Token efficiency rules (T1–T7) added to CORE.md:** Compaction summary limits, no production code in init, non-blocking checkpoints, session-log rotation, STATE.md size gate, checkpoint manifest trimming, init budget gate ✅
+- **Health-scout results (P2s for S176):** reminderController.ts missing `reminderType` whitelist validation, exportController.ts `archiver` stream has no error handler
+- **#65 Organizer Mode Tiers approved strategically:** Feature matrix discussion deferred to S176 first task before dev dispatch
+- **Files changed:** exportController.ts, organizers.ts, brand-kit.tsx (new), CORE.md, various context docs
+- **Last Updated:** 2026-03-15 (session 175)
+
+**NEXT SESSION (S176):**
+1. **PRIORITY 1: #65 Feature Tier Matrix discussion** — Agree on which features belong in SIMPLE/PRO/ENTERPRISE before dev dispatch
+2. **PRIORITY 2: #41 Flip Report dispatch** (parallel after #65 approved) — Post-sale analytics PDF/dashboard
+3. **PRIORITY 3: P2 bug fixes** — reminderType validation, archiver stream cleanup (inline edits, <20 lines each)
+
+---
+
 **Session 174 COMPLETE (2026-03-15) — INSIGHTS/PERFORMANCE CONSOLIDATION + P1/P2 BUG SWEEP + #37 REMINDER BUTTON + #66 OPEN DATA EXPORT SHIPPED:**
 - **Customer Champion decision:** Insights + Performance consolidation — merged `/organizer/performance` into `/organizer/insights` with per-sale breakdown as expandable section. `/organizer/performance` now redirects. Feature COMPLETE ✅
 - **Insights+Performance consolidation built:** Lifetime stats on top, per-sale drill-down inline. Tested in Railway staging ✅

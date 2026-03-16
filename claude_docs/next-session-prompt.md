@@ -1,49 +1,65 @@
-# Next Session Prompt — Session 173
-*Written: 2026-03-15T (session end)*
+# Next Session Prompt — Session 176
+*Written: 2026-03-15 (S175 wrap)*
 *Session ended: normally*
 
 ## Resume From
 
-Verify buyer preview on capture page works in staging (last push `fd2f6b7`), then dispatch `findasale-dev` for the remaining 4 P1 bugs from `claude_docs/health-reports/bug-blitz-2026-03-15.md`.
+S175 shipped 3 changes: #66 routing fix, P1 CSV injection fix, #31 Brand Kit UI. All features ready for integration. Build green. Railway and Vercel healthy.
 
-## What Was In Progress
+## Priority 1 (Must Do First): #65 Feature Tier Matrix Discussion
 
-Nothing mid-flight. All S173 work shipped and build confirmed green.
+Before dispatching dev on #65 Organizer Mode Tiers, Patrick and Claude must agree on feature gating:
 
-## What Was Completed This Session
+**Decision Needed:**
+- Which existing features belong in SIMPLE (free) vs PRO (paid) vs ENTERPRISE (future)?
+- Which new features (#41 Flip Report, etc.) go in which tier?
 
-- **Performance dashboard (#6):** Fixed double `/api` URL prefix (404 → working). Fixed `recommendations` null crash (optional chaining). Added Performance link to organizer dashboard. Route confirmed live on Railway.
-- **Add Items page:** Sticky toolbar moved above table (was at offsetTop 2161px — never activated). Sale name added to header. Buyer preview empty grid fixed (PENDING_REVIEW filter removed — now shows all items). Buyer preview added to capture page via `?preview=true` query param.
-- **P1 bugs (4 of 8 fixed):** saleId missing → redirect to dashboard guard; bulk mutation skipped-item feedback (toast warning with count + reasons); Stripe typed error responses (400 for validation, 503 for rate limits); bulk photo endpoint returns `skipped[]` + HTTP 207.
-- **Build fixes (2):** TS implicit `any` on `skipped.map` callback; missing `useEffect` import in `review.tsx`.
-- **Self-healing:** SH-009 added — double `/api` prefix pattern documented.
-- **Session wrap:** STATE.md, session-log.md, self-healing doc all updated.
+**Constraints:**
+- No organizer has used most features yet (zero "bait and switch" risk)
+- Can gate from launch without breaking existing users
+- ADR-065 architect recommendation exists (see below)
 
-## Environment Notes
+**Architect Recommendation (ADR-065):**
+- **SIMPLE:** Core sale creation, holds, basic reminders, email/SMS
+- **PRO:** Auctions, flash deals, Brand Kit, Flip Report, QR codes, bulk CSV, tags, exports, batch operations, performance analytics
+- **ENTERPRISE:** Teams, API access, webhooks, white-label, 2.5% fee discount
 
-- Build is green as of commit `fd2f6b7`. Railway and Vercel confirmed healthy.
-- No pending git pushes — all S173 changes were committed and pushed.
-- Insights (`/organizer/insights`) and Performance (`/organizer/performance`) are confirmed separate pages. Consolidation is a product decision deferred to Patrick.
+**Once matrix agreed:**
+- Dispatch findasale-dev for #65 implementation (schema + middleware + frontend toggle + admin panel)
+- Est. 8–11 hours
+- No Stripe integration needed for MVP (just admin toggle, Stripe hooks in Phase 2)
 
-## Remaining P1 Bugs (4 of 8)
+## Priority 2 (Parallel After #65 Dispatch): #41 Flip Report
 
-From `claude_docs/health-reports/bug-blitz-2026-03-15.md`:
+- Post-sale analytics PDF/dashboard
+- ~15–18 hrs implementation
+- Dispatch findasale-architect first for spec, then findasale-dev
+- Becomes PRO-tier feature once #65 ships
 
-1. **Entrance pin coordinate validation** — `edit-sale/[id].tsx` + backend. No bounds check on `entranceLat`/`entranceLng` vs sale location. Dispatch `findasale-dev`.
-2. **Batch hold transactional safety** — `reservationController.ts` `batchUpdateHolds`. Re-verify ownership inside `prisma.$transaction`. Dispatch `findasale-dev`.
-3. **Draft item count cache race** — `add-items/[saleId].tsx`. Rapid camera additions may show stale count if cache doesn't invalidate in time. Dispatch `findasale-dev`.
-4. **Category enum validation** — `routes/items.ts`. Category accepts any string; needs whitelist enum enforcement at validation layer. Dispatch `findasale-dev`.
+## Priority 3 (Quick Inline Fixes): P2 Bug Fixes
 
-## P2 Cleanup (after P1 complete)
+From health-scout S175:
+- `reminderController.ts`: Add `reminderType` whitelist validation (should validate `['email', 'push']` before DB write) — <10 lines
+- `exportController.ts`: Add `archiver` stream error handler for client disconnect mid-download — <10 lines
 
-- Status badge clarity on edit-sale page (ambiguous LIVE vs DRAFT)
-- Onboarding wizard re-trigger bug
-- `listingType` vs deprecated `isAuctionSale`/`reverseAuction` field cleanup
-- Insights + Performance consolidation (needs Patrick product decision first)
+Both qualify as inline edits. Can be done before or after #65/#41.
 
-## Exact Context
+## Session Init Checklist for S176
 
-- Bug blitz report: `claude_docs/health-reports/bug-blitz-2026-03-15.md`
-- P1 bugs remaining: rows 2, 3, 4, 7 of the P1 table (entrance pin, batch holds, draft cache, category enum)
-- P0 bugs: all 4 fixed in S172–173
-- Next roadmap feature: TBD — ask Patrick after P1 pass is complete
+- [x] Load STATE.md and this next-session-prompt.md
+- [ ] Do NOT load production code files (>200 lines) at init — reference by path in dispatch prompts instead
+- [ ] Check Railway + Vercel green (fetch root endpoint)
+- [ ] Apply statusline reinstall if needed (per CLAUDE.md §4)
+- [ ] Log init checkpoint (budget gate: abort if >10k tokens estimated)
+
+## What Completed S175
+
+- #66 routing bug fixed (404 → 401)
+- P1 CSV injection fixed (escapeCSV formula injection prevention)
+- #31 Brand Kit UI shipped (page + fields + dashboard link)
+- T1–T7 token efficiency rules locked in CORE.md
+- ADR-065 produced (Organizer Mode Tiers strategic approval)
+
+## Blockers
+
+None. All S175 work integrated and ready.
