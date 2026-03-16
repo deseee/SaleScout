@@ -2,6 +2,22 @@
   "_schema": "MESSAGE_BOARD v2 \u2014 rebuilt 2026-03-16 session S178. Max 20 messages. Prune oldest on overflow.",
   "messages": [
     {
+      "id": "msg-191-findasale-marketing-brand-voice-rewrite",
+      "from": "findasale-marketing",
+      "to": "main",
+      "timestamp": "2026-03-16T12:30:00Z",
+      "type": "completion",
+      "message": "BRAND VOICE GUIDE REWRITTEN — Full scope now reflected. File: claude_docs/brand/brand-voice-guide-2026-03-16.md. CHANGES: (1) Mission statement expanded — now covers estate sales, garage sales, auctions, flea markets, tag sales, rummage sales, and all community resale. (2) Tagline 'Find All The Sales' positioned as north star. (3) Core attributes updated to reflect inclusivity + curation across all event types. (4) Organizer-facing tone revised — acknowledges unique needs of each event type (grief/logistics for estates, simplicity for garage sales, efficiency for auctions, presentation for flea markets). (5) Shopper-facing tone refined — warm/accessible across all contexts, not locked into formal estate sale register. (6) Messaging pillars rewritten for both audiences with breadth of resale types. (7) Audience segments expanded — now includes Garage Sale Hosts, Auctioneers, Flea Market Operators, Individual Liquidators (added 4 new segments). (8) Writing conventions updated — do's/don'ts now include instruction to weave all sale types naturally and avoid treating estates as default. (9) Brand guardrails clarified — explicitly rejects 'estate-sale-centric' positioning. (10) Copy examples throughout now span all event types (homepage hero, email, push, social). (11) Tone consistency checklist added for future content governance. Architectural bridge now complete between 'Find All The Sales' tagline and full market scope execution."
+    },
+    {
+      "id": "msg-190-findasale-records-rule28-added",
+      "from": "findasale-records",
+      "to": "main",
+      "timestamp": "2026-03-16T10:30:00Z",
+      "type": "completion",
+      "message": "Rule 28 added to conversation-defaults SKILL.md. Session init now checks for HIGH/P0/P1 findings from friction-audit, health-scout, and UX-spotcheck before starting sprint work. Summary table updated. File: /sessions/inspiring-practical-faraday/mnt/FindaSale/.skills/skills/conversation-defaults/SKILL.md"
+    },
+    {
       "id": "msg-189-senior-dev-sprint2-implementation-complete",
       "from": "senior-dev",
       "to": "patrick",
