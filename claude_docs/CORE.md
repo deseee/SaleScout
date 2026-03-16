@@ -224,4 +224,28 @@ stub due to unsupervised dispatch on a security-sensitive path.
 
 ---
 
+## § Token Efficiency Rules
+
+These rules exist to prevent early auto-compaction. Violating them burns tokens and degrades session quality.
+
+**T1 — Compaction summary compression:** Compaction summaries must be ≤15 lines / ~1.5k tokens. One-liner outcomes only. No code, diffs, or full error messages. This is the #1 cause of early re-compaction.
+
+**T2 — No production code in session init:** Never read production code files >200 lines during session init or in the main window for architectural reference. Reference by path; subagents read code as needed. Applies to any file under `packages/`.
+
+**T3 — Mid-dispatch checkpoints are NON-BLOCKING:**
+- Context < 80%: log marker silently, continue immediately
+- Context 80–89%: log warning inline, continue immediately
+- Context ≥ 90%: evaluate remaining work; if 1–2 short tasks remain, continue; if major work remains, complete current subagent round then wrap
+Checkpoints are observability, not gates. Never stop productive work just because a checkpoint fires.
+
+**T4 — Session-log rotation:** session-log.md keeps the 3 most recent session entries. When adding a new entry pushes it to 4+, move the oldest entry to `claude_docs/session-log-archive.md` (create if missing, append at bottom).
+
+**T5 — STATE.md size gate:** If STATE.md exceeds 250 lines, archive the oldest completed-features section to `claude_docs/STATE-archive.md` before adding new content.
+
+**T6 — Checkpoint manifest trimming:** .checkpoint-manifest.json keeps only the last 10 checkpoint entries. Trim oldest when adding.
+
+**T7 — Init file budget gate:** Session init file loading targets ≤10k tokens total. If projected total exceeds 10k, drop lowest-priority files (session-log, decisions-log) first.
+
+---
+
 Status: Behavioral Authority (v4.2, Session 169 — post-compression re-read, compression-aware push checklist)

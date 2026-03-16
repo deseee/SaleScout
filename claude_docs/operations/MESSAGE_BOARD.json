@@ -2,6 +2,24 @@
   "_schema": "MESSAGE_BOARD v2 — rebuilt 2026-03-11 session 146. Max 20 messages. Prune oldest on overflow.",
   "messages": [
     {
+      "id": "msg-180-findasale-records-s175-token-rules",
+      "from": "findasale-records",
+      "to": "main",
+      "timestamp": "2026-03-15T23:55:00Z",
+      "type": "completion",
+      "message": "S175 TOKEN EFFICIENCY RULES IMPLEMENTATION COMPLETE. T1–T7 rules added to CORE.md (append before status line). .checkpoint-manifest.json updated: currentSession = S175, new checkpoint entry added (turn 1, timestamp 2026-03-15T23:50:00Z). session-log.md updated: S175 entry added at top (newest-first). Rule T4 applied: S166 entry moved to new claude_docs/session-log-archive.md (created). S175 completion message added to MESSAGE_BOARD.json. Files changed: 4. Ready for Patrick review.",
+      "feedbackLoop": null
+    },
+    {
+      "id": "msg-179-findasale-workflow-s175-compaction-analysis",
+      "from": "findasale-workflow",
+      "to": "patrick",
+      "timestamp": "2026-03-15T23:45:00Z",
+      "type": "investigation",
+      "message": "SESSION 175 EARLY COMPACTION ROOT CAUSE — FULL ANALYSIS COMPLETE. FINDING: Session 175 auto-compacted at ~90% context (180k tokens) very early — before substantive feature work even began. ROOT CAUSE: 3–4× init overhead (35k actual vs 8–10k expected). PRIMARY CULPRITS: (1) Prior S174 compaction summary (7.5–9k tokens) — included full file diffs, error messages, implementation details instead of 1.5k summary format. (2) organizers.ts (599-line backend file, 8.9k tokens) — read at session init for architectural reference, should never be in init bundle. (3) Missing mid-dispatch checkpointing — only pre-dispatch checkpoints logged, prevented early abort opportunity. IMPACT: S175 started 41k tokens in before any work; by 80k tokens into substantive work, hit 90% window = compaction trigger. CORRECTIVE ACTIONS (IMMEDIATE): (A) Prune prior compaction summaries to <1.5k tokens (max 15 lines): one-liner outcomes only, no diffs/errors/full impl details. (B) Ban production code files >200 lines from session init — reference by path in dispatch prompts instead. (C) Log checkpoints mid-dispatch (not just pre-dispatch). PREVENTIVE RULES (ESTABLISH): (D) Session-Log rotation: keep 3 recent sessions, archive older. (E) STATE.md compression: archive sessions >4 old when file reaches 250 lines. (F) .checkpoint-manifest.json trimming: keep last 10 sessionHistory entries, move archive to separate file. (G) Init file budget strict gate: calculate overhead before loading, abort if >10k. ESTIMATED IMPROVEMENT: Corrected init would be 18–20k tokens (vs 35k actual), leaving 180k budget for work instead of 90–100k. That is a 5× improvement in remaining budget. DETAILED REPORT: New doc created at claude_docs/health-reports/session-175-compaction-analysis-2026-03-15.md (saved to workspace). Files to modify after review: .checkpoint-manifest.json (trim sessionHistory), CLAUDE.md (add init-budget rule), token-checkpoint-guide.md (add dispatch checkpoint protocol). All files changed this session listed in final MESSAGE_BOARD message.",
+      "feedbackLoop": null
+    },
+    {
       "id": "msg-178-qa-audit-shipped-changes",
       "from": "findasale-qa",
       "to": "patrick",
