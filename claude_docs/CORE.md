@@ -208,6 +208,27 @@ stub due to unsupervised dispatch on a security-sensitive path.
 
 ---
 
+## ## 9. Skill Update Protocol
+
+**Critical fact:** Editing a SKILL.md file in git does NOT activate the change.
+Active skills are read-only at `/sessions/[session-id]/mnt/.skills/skills/`.
+
+1. SKILL.md sources exist in two git locations:
+   - `claude_docs/skills-package/[skill-name]/SKILL.md` — most FindA.Sale skills
+   - `.skills/skills/[skill-name]/SKILL.md` — conversation-defaults, dev-environment, skill-creator
+
+2. To activate a SKILL.md change this session:
+   - Package the updated skill directory as a `.skill` zip file
+   - Patrick installs via Cowork's skill install UI
+   - The `.skill` format is a zip archive containing the skill directory
+
+3. Between sessions: installed skills persist at `mnt/.skills/skills/` on Patrick's machine.
+
+4. **When to do this:** Any session where a SKILL.md edit needs to take effect immediately.
+   Without reinstall, the new version only exists in git — the active skill is unchanged.
+
+---
+
 ## Reference Docs (load on demand, not at init)
 
 | Need | File |
