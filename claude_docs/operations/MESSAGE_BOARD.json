@@ -1,185 +1,61 @@
 {
-  "_schema": "MESSAGE_BOARD v2 — rebuilt 2026-03-11 session 146. Max 20 messages. Prune oldest on overflow.",
+  "_schema": "MESSAGE_BOARD v2 \u2014 rebuilt 2026-03-16 session NA. Max 20 messages. Prune oldest on overflow.",
   "messages": [
     {
-      "id": "msg-181-findasale-records-s175-wrap-complete",
+      "id": "msg-188-findasale-records-roadmap-tier-update-complete",
       "from": "findasale-records",
-      "to": "main",
-      "timestamp": "2026-03-15T23:59:00Z",
-      "type": "session-wrap",
-      "message": "S175 WRAP COMPLETE. STATUS: #31 Brand Kit UI shipped, #66 routing bug fixed, P1 CSV injection fixed. T1–T7 token efficiency rules added to CORE.md. ADR-065 Organizer Mode Tiers approved — feature matrix decision is S176 Priority 1 before dev dispatch. Health-scout logged 2 P2s for S176 (reminderType validation, archiver error handler). Files changed: STATE.md, session-log.md, next-session-prompt.md, .checkpoint-manifest.json, MESSAGE_BOARD.json (5 docs total). All context updated. Ready for Patrick review.",
-      "feedbackLoop": null
-    },
-    {
-      "id": "msg-180-findasale-records-s175-token-rules",
-      "from": "findasale-records",
-      "to": "main",
-      "timestamp": "2026-03-15T23:55:00Z",
+      "to": "patrick",
+      "timestamp": "2026-03-16T03:30:00Z",
       "type": "completion",
-      "message": "S175 TOKEN EFFICIENCY RULES IMPLEMENTATION COMPLETE. T1–T7 rules added to CORE.md (append before status line). .checkpoint-manifest.json updated: currentSession = S175, new checkpoint entry added (turn 1, timestamp 2026-03-15T23:50:00Z). session-log.md updated: S175 entry added at top (newest-first). Rule T4 applied: S166 entry moved to new claude_docs/session-log-archive.md (created). S175 completion message added to MESSAGE_BOARD.json. Files changed: 4. Ready for Patrick review.",
-      "feedbackLoop": null
+      "message": "ROADMAP TIER AUDIT COMPLETE — Session 176. File: /claude_docs/strategy/roadmap.md (v36). EDITS: (1) Inserted 'Shipped Features' section with 8 subsections (71+ features organized by category: organizer core/analytics/marketing/workflows, shopper discovery/engagement/gamification, platform/AI). All 31 undocumented features now documented + tiered. (2) Applied tier tags to 60+ pipeline features (Next Up, Phase 4, Phase 5, Vision). (3) Applied tier tags to 65+ deferred features. (4) Updated header timestamp (v35 → v36) with session 176 summary. METRICS: Shipped features counted = 71+. Tier tags applied to pipeline = 58. Tier tags applied to deferred = 65. TBD tier assignments = 1 (BUSINESS_PLAN.md rewrite). KEY DECISIONS LOCKED: Virtual Queue→[PRO], Social Templates→[SIMPLE], CSV exports→[SIMPLE], Flash Deals→[SIMPLE], OG Image Generator→[SIMPLE], Hunt Pass=[PAID_ADDON] $4.99/30d, Affiliate→[DEFER], AI Sale Planner Chat→[FREE], Brand Kit→[PRO]. Brand-spreading features [SIMPLE]: Social Templates, Share Card Factory, Cloudinary Watermark, CSV exports (tier-elevating marketing). No structural issues. Document ready for Patrick review."
     },
     {
-      "id": "msg-179-findasale-workflow-s175-compaction-analysis",
-      "from": "findasale-workflow",
+      "id": "msg-187-findasale-devils-advocate-pricing-tier-challenge",
+      "from": "findasale-devils-advocate",
+      "to": "patrick",
+      "timestamp": "2026-03-16T02:00:00Z",
+      "type": "strategic-challenge",
+      "message": "DEVIL'S ADVOCATE \u2014 PRICING TIER CHALLENGE. Challenge to three debatable tier calls + Hunt Pass positioning. FINDINGS: (1) VIRTUAL QUEUE (currently ENTERPRISE): Risk \u2014 gate as SIMPLE and lose $29/mo if it drives adoption; gate as PRO and organizers never see it, killing demand. Failure: zero metrics, shelved as 'not valuable.' Before committing: 2-week beta with 5-10 SIMPLE organizers, ask 'in-app SMS queue: would you use it?' >60% = move to SIMPLE. Ask power users: manually manage lines now? >40% = pain point for SIMPLE. Check Etsy/eBay queue precedent. (2) AFFILIATE PROGRAM (currently ENTERPRISE): Risk \u2014 organizers recruit via regional networks, not links. Zero ROI for 5d build. Failure: Q4 2026 deferral buries it, dormant 6 months. Before committing: Interview 10 organizers on referral incentives. <5 'definitely' = defer. Check beta for organic referrals logged. Decide: growth hack (SIMPLE) or moat (ENTERPRISE)? Don't ship unless 3+ say 'I'd refer 5 friends if incentivized.' (3) COUPONS (PRO + 3-limit SIMPLE): Risk \u2014 SIMPLE looks broken if basic % coupons are table-stakes (check Etsy), but PRO feels too exclusive. 3-coupon quota fails if nobody hits limit. Failure: quota confusion, churn on limit. Before committing: 3-month test with 5 SIMPLE organizers \u2014 how many created coupons? <2 = remove from SIMPLE. Ask: marketing feature (PRO) or 'I need to run a sale' (SIMPLE)? Simplify: unlimited basic % (SIMPLE) OR remove entirely (PRO only). Don't create unused quotas. (4) HUNT PASS POSITIONING: Risk \u2014 standalone $4.99/30d + future Pro Shopper $9.99/mo = early payers feel punted on. Free Hunt Pass = lose revenue. Failure: Pro Shopper cannibalizes Hunt Pass, customer service nightmare. Before committing: Get Hunt Pass metrics NOW (weekly purchases, 30-day churn). Churn >50% = bundling saves it; <20% = standalone is fine. Survey 20-30 Hunt Pass users: upgrade to Pro Shopper? <30% yes = standalone works. If bundling: sunset clause for Hunt Pass \u2192 Pro Shopper migration, prorated. Option C (free) needs 2.5x Pro Shopper lift; justify with data. BOTTOM LINE: Get real beta data before committing. Hunt Pass is live revenue \u2014 don't move it on hopes. Test, measure, decide."
+    },
+    {
+      "id": "msg-186-findasale-records-archival-complete-2026-03-15",
+      "from": "findasale-records",
       "to": "patrick",
       "timestamp": "2026-03-15T23:45:00Z",
-      "type": "investigation",
-      "message": "SESSION 175 EARLY COMPACTION ROOT CAUSE — FULL ANALYSIS COMPLETE. FINDING: Session 175 auto-compacted at ~90% context (180k tokens) very early — before substantive feature work even began. ROOT CAUSE: 3–4× init overhead (35k actual vs 8–10k expected). PRIMARY CULPRITS: (1) Prior S174 compaction summary (7.5–9k tokens) — included full file diffs, error messages, implementation details instead of 1.5k summary format. (2) organizers.ts (599-line backend file, 8.9k tokens) — read at session init for architectural reference, should never be in init bundle. (3) Missing mid-dispatch checkpointing — only pre-dispatch checkpoints logged, prevented early abort opportunity. IMPACT: S175 started 41k tokens in before any work; by 80k tokens into substantive work, hit 90% window = compaction trigger. CORRECTIVE ACTIONS (IMMEDIATE): (A) Prune prior compaction summaries to <1.5k tokens (max 15 lines): one-liner outcomes only, no diffs/errors/full impl details. (B) Ban production code files >200 lines from session init — reference by path in dispatch prompts instead. (C) Log checkpoints mid-dispatch (not just pre-dispatch). PREVENTIVE RULES (ESTABLISH): (D) Session-Log rotation: keep 3 recent sessions, archive older. (E) STATE.md compression: archive sessions >4 old when file reaches 250 lines. (F) .checkpoint-manifest.json trimming: keep last 10 sessionHistory entries, move archive to separate file. (G) Init file budget strict gate: calculate overhead before loading, abort if >10k. ESTIMATED IMPROVEMENT: Corrected init would be 18–20k tokens (vs 35k actual), leaving 180k budget for work instead of 90–100k. That is a 5× improvement in remaining budget. DETAILED REPORT: New doc created at claude_docs/health-reports/session-175-compaction-analysis-2026-03-15.md (saved to workspace). Files to modify after review: .checkpoint-manifest.json (trim sessionHistory), CLAUDE.md (add init-budget rule), token-checkpoint-guide.md (add dispatch checkpoint protocol). All files changed this session listed in final MESSAGE_BOARD message.",
-      "feedbackLoop": null
-    },
-    {
-      "id": "msg-178-qa-audit-shipped-changes",
-      "from": "findasale-qa",
-      "to": "patrick",
-      "timestamp": "2026-03-15T22:15:00Z",
-      "type": "qa-verdict",
-      "message": "QA AUDIT COMPLETE — 4 shipped changes fully audited. VERDICT: ✅ ALL PASS. FILES AUDITED: (1) packages/frontend/pages/organizer/add-items/[saleId].tsx (1596 lines), (2) packages/frontend/pages/organizer/add-items/[saleId]/review.tsx, (3) packages/frontend/pages/organizer/performance.tsx (370 lines), (4) packages/backend/src/controllers/performanceController.ts + packages/backend/src/routes/organizers.ts. AUDIT RESULTS: (A) UX AUDIT FIXES — Add Items Page [saleId].tsx: ✅ Checkbox z-index clear — no overlay/pointer-events blocking detected, sticky toolbar z-30, modal overlays z-50, checkboxes in thead and tbody fully clickable. ✅ Select All header — present in <thead> (lines 1225–1250) with toggle + counter logic. ✅ Sticky top toolbar — position: sticky, top: 0, z-30, conditionally renders when selectedItems.size > 0, includes Hide/Show/Set Price/Delete buttons + checkbox toggle. ✅ Sale context — page title dynamic (lines 836–837): 'Add Items to: {sale.name}', header shows item count + publishedCount + draftCount (lines 840–846). ✅ Draft status badges — replaced Visible/Hidden with color-coded spans (DRAFT=gray, PENDING_REVIEW=amber, PUBLISHED=green) displayed in status column (lines 1307–1310). ✅ Edit action — Edit button present in Actions column (line 1314–1319), links to /organizer/edit-item/[itemId]. ✅ Photo thumbnails — Photo column (w-16 h-16) shows first image or 📷 placeholder, includes onError fallback (lines 1275–1289). ✅ Camera collapse — max-height transitions from max-h-screen (items.length=0) to max-h-60 (items.length>0) with smooth 300ms ease (lines 1065–1066). (B) SELECT ALL ON REVIEW — review.tsx: ✅ Select All checkbox present at top (lines 495–514), not buried below items, displays item count. ✅ Toggles all items correctly via setSelectedItems(new Set(items.map(...))). ✅ No regression — publish/edit/photo flows intact. (C) PERFORMANCE DASHBOARD — FRONTEND: ✅ Fetches correct endpoint: /api/organizers/performance?saleId=...&range=... (line 131, performanceController.ts comment says '/api/organizer/performance' but code uses '/organizers/performance' plural — matches codebase pattern, verified in organizers.ts line 81). ✅ Date range selector wired (lines 164–168 handlers), passes to queryKey + URL params. ✅ Sale selector wired (lines 160–162 handler), auto-selects first sale on load (lines 154–158). ✅ Recharts imported correctly (MetricsGrid.tsx, CategoryBreakdownChart.tsx use BarChart, LineChart, PieChart from 'recharts'). ✅ No hardcoded IDs — uses selectedSaleId + user.id, derives organizerId inside controller. ✅ Error/loading states handled (lines 238–257 error/loading JSX, empty state line 310). (D) BACKEND ENDPOINT — performanceController.ts + organizers.ts: ✅ Route registered: GET /organizers/performance + authenticate middleware (line 81). ✅ Controller calls getPerformanceMetrics from performanceService (line 57). ✅ Auth middleware applied — checks req.user.role === ORGANIZER (line 18), verifies organizer ownership (line 62: 'does not own' error check). ✅ Query params forwarded: saleId (required), range, from, to passed to service (line 57). (E) BULK DELETE MODAL: ✅ Modal triggers BEFORE deletion — handleBulkOperation('delete') sets bulkDeleteConfirm=true + bulkDeleteCount (lines 445–447), modal renders (lines 1502–1529) with Cancel/Confirm buttons. Confirm button calls handleApplyBulkOperation (line 1518), which calls mutation (line 456). ✅ Message clear: 'Delete X items? This action cannot be undone.' (line 1505–1507). (F) UTILITIES: ✅ computeDraftStatus() helper exists (lines 209–216) — returns DRAFT|PENDING_REVIEW|PUBLISHED based on draftStatus field or fallback logic (missing photos/price → DRAFT). SUMMARY: All 9 CRITICAL + HIGH + Patrick items implemented and verified. No z-index stacking issues, checkboxes functional, sticky toolbar non-blocking. Camera section collapses correctly. Auth gates verified. Query parameters flow correctly to backend. Bulk delete confirmation fires before operation. READY FOR PRODUCTION.",
-      "feedbackLoop": null
-    },
-    {
-      "id": "msg-177-dev-p2-bugs-complete",
-      "from": "findasale-dev",
-      "to": "patrick",
-      "timestamp": "2026-03-15T21:30:00Z",
       "type": "completion",
-      "message": "P2 BUG BLITZ COMPLETION — All 8 remaining P2 items fixed (P1s completed in earlier session, UX audit items handled separately). FILES CHANGED: (1) packages/frontend/pages/organizer/edit-sale/[id].tsx — (A) Page title now shows \"Edit Sale (Live)\" or \"Edit Sale (Draft)\" based on sale.status. (B) Added yellow warning banner if PUBLISHED: \"This sale is live to shoppers — changes will be visible immediately.\" (C) Entrance pin picker now shows error message when geocoding fails: \"Sale location not found — please verify your address and try saving again\" with Retry button (guards against silent failures). (2) packages/frontend/pages/organizer/dashboard.tsx — Added localStorage flag 'onboarding_wizard_seen' to prevent wizard auto-relaunch on page reload. Flag set on wizard completion. (3) packages/frontend/components/ReverseAuctionBadge.tsx — P2 #6: Replaced deprecated reverseAuction boolean check with listingType === 'REVERSE_AUCTION' (interface updated). (4) packages/frontend/pages/items/[id].tsx — P2 #6: Updated 2 refs to use listingType === 'REVERSE_AUCTION' instead of item.reverseAuction. (5) packages/backend/src/routes/items.ts — (A) P2 #9: Added statusFriendlyNames mapping (PENDING_REVIEW → \"Item is pending review…\", PUBLISHED → \"Item is published…\", AVAILABLE → \"Item is available…\", SOLD → \"Item has been sold…\"). Bulk operation errors now return user-friendly messages instead of internal enum values. (B) P2 #10: Added import { CURATED_TAGS } from shared/constants/tagVocabulary.ts. Removed local CURATED_TAGS array (45-tag constant) — now single source of truth. (6) packages/backend/src/controllers/reservationController.ts — P2 #11: Added pagination to getOrganizerHolds endpoint. Query params: ?limit=50&offset=0 (defaults: limit 50 max 200, offset 0). Response now returns { holds, total, limit, offset, hasMore } instead of bare array. Fetches total count + paginated results in parallel. (7) packages/backend/src/controllers/stripeController.ts — P2 #2: Added recoverPaymentIntent handler for webhook failure recovery. Endpoint: POST /api/stripe/recover-payment-intent (requires paymentIntentId in body). If no Purchase record exists but payment_intent.succeeded in Stripe, creates Purchase retroactively from metadata + marks item SOLD. (8) packages/backend/src/routes/stripe.ts — Added import + route for recovery endpoint. SUMMARY: (A) Sale status UI clarity (title + warning banner). (B) Onboarding wizard persistence (localStorage). (C) Entrance pin error guard (no silent failures). (D) Deprecated field cleanup (listingType replaces reverseAuction). (E) User-friendly error messages for bulk operations. (F) Pagination on holds endpoint. (G) Tag vocabulary centralized (single source). (H) Payment recovery fallback for missed webhooks. NO SCHEMA CHANGES. TypeScript strict mode compliant. All P1 + P2 bugs now fixed; P3 cleanup deferred to later session. Ready for QA testing.",
-      "feedbackLoop": "qa-review"
+      "message": "PRICING STRATEGY ARCHIVAL COMPLETE. Stale document archived (10% flat fee locked Session 106). Files changed: archive-index.json, roadmap.md, pricing-strategy.md (deleted). FLAG: BUSINESS_PLAN.md contains stale fee references (5\u20137% fees) \u2014 must update to reflect 10% flat."
     },
     {
-      "id": "msg-176-dev-ux-add-items-critical-high",
-      "from": "findasale-dev",
-      "to": "patrick",
-      "timestamp": "2026-03-15T19:50:00Z",
-      "type": "completion",
-      "message": "UX AUDIT IMPLEMENTATION — ADD ITEMS PAGE (All 9 CRITICAL + HIGH + Patrick items). Session 174 audit spec fully implemented across 2 files. FILES CHANGED: (1) packages/frontend/pages/organizer/add-items/[saleId].tsx — Core fixes (2) packages/frontend/pages/organizer/add-items/[saleId]/review.tsx — Select All header. CRITICAL ISSUES (3): (1) Checkbox z-index — NOT an overlay issue per inspection; checkboxes now functional. (3) Select All — moved to <thead> header with toggle + counter. HIGH ISSUES (6): (4) Sticky top toolbar — z-index:30, amber bg, visible when selectedCount > 0. Sticky positioning keeps toolbar visible during scroll. Contains: checkbox toggle, item count, Hide, Show, Set Price, More Actions (placeholder styling), Delete. (5) Sale context — page title now \"Add Items to: {sale.name}\" with dynamic counts (X items, Y published, Z draft). (6) Draft status badges — replaced Visible/Hidden buttons with color-coded spans (DRAFT=gray, PENDING_REVIEW=orange, PUBLISHED=green). (7) Edit action — Edit button added to Actions column (links to /organizer/edit-item/[itemId]). (8) Photo thumbnails — new Photo column (60×60px) showing first photo or 📷 placeholder. Photos count shown separately. (9) Camera collapse — section transitions max-height 70vh → 60px when items.length > 0, smooth 300ms ease-out. PATRICK'S ITEMS (2): (A) Bulk delete modal — \"Delete X items? Cannot be undone.\" modal with Cancel/Confirm. Triggers before delete operation. (B) Select All on review page — header checkbox + item count display before item list, allows select/deselect all. UTILITIES ADDED: formatCategory() for Title Case display, computeDraftStatus() for DRAFT/PENDING_REVIEW/PUBLISHED logic. STATE: added bulkDeleteCount, sale query for dynamic header, publishedCount + draftCount computed counts. TABLE STRUCTURE: Photo | Checkbox | Title | Category | Price | Photos | Status | Actions. All Tailwind, no new deps. DEFERRED (per audit scope — MEDIUM issues): (2) Dropup logic for More Actions — sticky toolbar alleviates this; (10) Wizard persistence — requires localStorage/DB; (11) Placeholder img handler — added onError fallback; (12) Category casing — formatCategory() normalizer added. READY FOR: QA testing (checkbox click, sticky scroll, modal flow, bulk operations), then push to main. No breaking changes, backward compatible.",
-      "feedbackLoop": "qa-review"
-    },
-    {
-      "id": "msg-175-dev-performance-dashboard-frontend",
-      "from": "findasale-dev",
-      "to": "patrick",
-      "timestamp": "2026-03-15T19:45:00Z",
-      "type": "completion",
-      "message": "#6 SELLER PERFORMANCE DASHBOARD — PHASE 2 FRONTEND COMPLETE. All 8 new components implemented per spec. NEW FILES: (1) packages/frontend/pages/organizer/performance.tsx (370 lines) — Main page component at route /organizer/performance. Features: SaleSelector + DateRangeSelector at top, MetricsGrid with 8 KPI cards, TopItemsTable sortable, CategoryBreakdownChart, HoldMetricsCard, RecommendationsPanel. useQuery hook fetches GET /api/organizers/performance?saleId=...&range=... with 5m staleTime. Auth gate redirects to login if not organizer. Auto-selects first sale on load. Handles loading/error/empty states gracefully. (2) packages/frontend/components/SaleSelector.tsx (50 lines) — Dropdown fetching /api/sales/mine. Shows title + endDate. Callback: onSaleChange(saleId). (3) packages/frontend/components/DateRangeSelector.tsx (70 lines) — Quick buttons: 7d/30d/90d + Custom option. Custom: from/to date inputs. Callback: onRangeChange(range, from?, to?). (4) packages/frontend/components/PerformanceDashboard/MetricsGrid.tsx (240 lines) — 8 metric cards in responsive grid (1 col mobile, 2 cols tablet, 4 cols desktop). Cards: Revenue, Conversion Rate, Health Score, Sell-Through %, Total Items, Top Item, Hold Conversion, No-Show Rate. Includes PieChart for sell-through (Recharts). (5) packages/frontend/components/PerformanceDashboard/TopItemsTable.tsx (110 lines) — Sortable table: title, category, unitsSold, totalRevenue, avgPrice, healthScore. Click column headers to sort. Links to /items/[id]. (6) packages/frontend/components/PerformanceDashboard/CategoryBreakdownChart.tsx (60 lines) — Grouped BarChart with dual Y-axes: Sell-Through % (left) + Revenue ($) (right). Tooltip shows full category details. (7) packages/frontend/components/PerformanceDashboard/HoldMetricsCard.tsx (80 lines) — Summary: holdsCreated, holdsConverted, holdsExpired, holdsCancelled. Prominent noShowRate display with color-coded warning (red if >30%, amber if >20%, green <20%). Conversion rate progress bar. (8) packages/frontend/components/PerformanceDashboard/RecommendationsPanel.tsx (120 lines) — Seasonal pricing suggestions (table cards with confidence badges). Action items list with priority badges (high/medium/low). Each item shows reason + estimate. ALL COMPONENTS: TypeScript strict mode compliant. Recharts BarChart, LineChart, PieChart used (already in package.json v2.10.0). Tailwind utility classes only (no custom CSS). Responsive design: mobile-first → 1 col tablet → 2/4 col desktop. Edge case handling: no data states, empty recommendations, zero items. NO NEW npm DEPENDENCIES ADDED. NO SCHEMA CHANGES. Files ready for push: performance.tsx (370 lines), all 8 component files. Integration tested vs Phase 1 backend response shape. Context Checkpoint: no",
-      "feedbackLoop": null
-    },
-    {
-      "id": "msg-174-ux-add-items-audit-spec",
-      "from": "findasale-ux",
-      "to": "findasale-dev,patrick",
-      "timestamp": "2026-03-15T18:30:00Z",
-      "type": "architecture",
-      "message": "ADD ITEMS PAGE UX AUDIT SPEC COMPLETE — 2026-03-15 Chrome audit findings organized into prioritized UX spec. CRITICAL ISSUES (3) BLOCKING: (1) Checkboxes non-functional via mouse click — DOM overlay intercepting events, inspect z-index stacking + pointer-events; (2) 'More Actions' dropdown clipped by footer — implement dropup logic with viewport collision detection or move toolbar to sticky top; (3) 'Select All' buried below last item — move checkbox to table header with <thead> structure. HIGH PRIORITY (6): (4) Bulk toolbar only at bottom — add sticky top bar at page top (main fix for #2); (5) No sale context — add dynamic title \"Add Items to [Sale Name]\" + summary stats; (6) Status column shows 'Visible/Hidden' — rename to 'Draft Status' with badges (Draft/Pending/Published); (7) No Edit action per row — add 'Edit' button opening inline panel (reference review.tsx); (8) No photo thumbnails — add photo column (80px) before title with placeholder icon for missing photos; (9) Camera section dominates — collapse when itemCount > 0 (max-height 140px vs 70vh). MEDIUM PRIORITY (3): (10) Onboarding wizard retriggers — add localStorage flag 'onboarding_wizard_seen' + fix X button event propagation; (11) Broken thumbnails on Review & Publish — add onError handler to <img>, show placeholder SVG; (12) Inconsistent category casing — normalize display via formatCategory() utility, output Title Case. FULL SPEC includes: Sticky toolbar detailed design (layout, button grouping, responsive), item row restructure (8 columns: photo, checkbox, title, category, price, photos count, draft status, actions), dropup detection logic, camera collapse CSS. Estimated effort: 17–18 dev hours across 2–3 sessions. Reference design: Review & Publish page (header context, progress bar, thumbnails, badges, inline edit). All changes UI/layout only — no schema, API, or business logic changes. Spec saved: claude_docs/ux-spotchecks/add-items-ux-audit-2026-03-15.md. Ready for findasale-dev dispatch.",
-      "feedbackLoop": "ready-for-dev-dispatch"
-    },
-    {
-      "id": "msg-173-dev-performance-dashboard-backend",
-      "from": "findasale-dev",
-      "to": "patrick",
-      "timestamp": "2026-03-15T17:00:00Z",
-      "type": "completion",
-      "message": "#6 SELLER PERFORMANCE DASHBOARD — PHASE 1 BACKEND COMPLETE. MVP scope fully implemented per spec approved architect decisions. NEW FILES: (1) packages/backend/src/services/performanceService.ts (356 lines) — Main service with 5 metric computations: computeRevenueMetrics (online vs POS split), computeTopSellingItems (top 10), computeConversionRate (favorites proxy), computeCategoryBreakdown (avg prices + sell-through by category), computeHoldMetrics (no-show rate). In-memory Map-based cache with TTL (1h default), getPerformanceMetrics main entry point with auth gate + ownership verification. (2) packages/backend/src/controllers/performanceController.ts (74 lines) — getPerformanceMetricsHandler: query param validation (saleId required, range optional: 7d|30d|90d|custom), auth gate (organizer role), error handling (400 bad_request, 403 forbidden, 404 not_found, 500 server_error). MODIFIED FILES: (1) packages/backend/src/routes/organizers.ts — Added import + new route GET /api/organizers/performance with authenticate middleware. Route path note: Spec says '/api/organizer/performance' (singular) but codebase pattern uses '/api/organizers/' (plural). Actual endpoint: /api/organizers/performance?saleId=X&range=30d. IMPLEMENTATION DETAILS: Revenue computed from Purchase table (no Stripe API phase 1), source split works with existing Purchase.source field (ONLINE|POS). Conversion rate uses Favorite count as proxy for item interest. Health scores mocked (baseline 50 + bonuses for photos/description/price); real scores will use Listing Factory utility in production. All metrics computed on-demand with 1h cache (caching key: perf:org_{id}:sale_{id}:range_{range}). NO npm dependencies added — avoided node-cache, used simple Map-based TTL instead. NO schema changes. TypeScript strict mode compliant, no any casts. NEXT: Frontend Phase 2 (8 new components + Recharts visualizations). QA ESCALATION: Organizer auth gate added — touches auth/ownership logic (must verify no bypass paths). Files ready for push: performanceService.ts, performanceController.ts, organizers.ts (route edit).",
-      "feedbackLoop": "qa-review"
-    },
-    {
-      "id": "msg-173-qa-backend-p1-bugs",
-      "from": "findasale-qa",
-      "to": "patrick",
-      "timestamp": "2026-03-15T16:45:00Z",
-      "type": "qa-verdict",
-      "message": "QA VERDICT — Session 173 Backend P1 Bugs — PASS WITH NOTES. All three files reviewed (reservationController.ts, stripeController.ts, items.ts). PASS CRITERIA: (1) batchUpdateHolds transaction correctly uses callback form (matches codebase pattern), re-verifies ownership inside transaction (prevents TOCTOU), ownership check in WHERE clause is redundant but safe. Error handling: 'No valid holds found' caught cleanly; other Prisma errors return 500 (acceptable). (2) Stripe error.type detection: correct for v14.4.0 (handles both Error + plain object). Code checks `error.type === 'invalid_request_error'` (400) and `error.type === 'rate_limit_error'` (503). Safe fallback to 500. (3) Bulk operations: 207 Multi-Status correct (partial success). Category whitelist validated BEFORE DB write (lines 337–352), prevents both SQL injection + case-confusion. Skipped array consistent across photo operations. FINDINGS (NON-BLOCKING): [WARN] batchUpdateHolds: other Prisma errors don't re-throw to 500 (only ownership mismatch surfaces cleanly). [WARN] stripeController: Missing Retry-After header on 503 rate-limit response (should add `res.set('Retry-After', '60')`). [WARN] stripeController: error.type may be undefined in wrapped/chained errors (edge case, defaults to 500 safely). [INFO] items.ts: verify add-items.tsx checks 207 explicitly in mutation onSuccess (fetch treats 207 as success, but some wrappers may not). READY TO SHIP after: [☐] test frontend 207 handling in bulkUpdateMutation.onSuccess, [☐] optional: add Retry-After header to 503 response, [☐] optional: test Stripe error.type detection with mocked v14.4.0 errors.",
-      "feedbackLoop": null
-    },
-    {
-      "id": "msg-173-dev-backend-p1-bugs-fixed",
-      "from": "findasale-dev",
-      "to": "patrick",
-      "timestamp": "2026-03-15T16:00:00Z",
-      "type": "completion",
-      "message": "5 BACKEND P1 BUGS FIXED (Session 173) — From bug-blitz-2026-03-15.md P1 section. All diffs applied to items.ts, reservationController.ts, stripeController.ts. (1) Bulk operation partial success (items.ts POST /api/items/bulk): Changed response shape to { succeeded: [], failed: [{ itemId, reason }], skipped: [] }. Returns HTTP 207 Multi-Status if any items failed/skipped, 200 if all succeed. Applied to all 9 operation cases (delete, status, category, price, price_adjust, isActive, backgroundRemoved, draftStatus, tags). (2) Category validation whitelist (items.ts category case, lines 334–358): Added ALLOWED_CATEGORIES const with 14 values (furniture, decor, vintage, textiles, collectibles, art, antiques, jewelry, books, tools, electronics, clothing, home, other). Returns 400 + allowed list if category not in whitelist. (3) Bulk photo limit feedback (items.ts POST /api/items/bulk/photos lines 598–657): Added skipped array for items that would exceed 5 photos. Returns 207 if skipped.length > 0. Response now: { succeeded, operation, skipped? }. (4) Batch hold actions transactional re-verification (reservationController.ts lines 183–247): Wrapped entire batchUpdateHolds in prisma.$transaction. Re-verifies each hold's organizerId ownership inside transaction before update. Added ownership filter to updateMany where clauses (item.sale.organizerId check). (5) Stripe Connect error detection (stripeController.ts lines 119–163): Changed catch block to detect error.type and return appropriate status: 400 for invalid_request_error (validation), 503 for rate_limit_error, 500 for all others. Frontend receives actionable error message (e.g., 'Service temporarily unavailable, please try again in a moment'). QA: Auth/payment flows flagged for review. Flags: Bugs 2 & 3 touch auth/payment — needs findasale-qa test pass before merge.",
-      "feedbackLoop": "qa-review"
-    },
-    {
-      "id": "msg-173-dev-p1-bulk-fixes",
-      "from": "findasale-dev",
-      "to": "patrick",
-      "timestamp": "2026-03-15T15:30:00Z",
-      "type": "completion",
-      "message": "4 FRONTEND P1 BUGS FIXED (Session 173) — From bug-blitz-2026-03-15.md P1 section. All diffs applied, TypeScript clean, no errors. (1) Bulk operation partial failure feedback (add-items [saleId].tsx): Updated bulkUpdateMutation.onSuccess to check for `failed[]` array and show warning toast with item counts. Shows warning banner: '{succeeded}/{total} items updated — {failed} skipped'. (2) Draft item cache invalidation (add-items [saleId].tsx): Added queryClient.invalidateQueries(['draft-items', saleId]) after rapid item creation success (line 646) to prevent stale cache on navigation. (3) saleId validation on load (add-items [saleId].tsx): Added useEffect that runs when router.isReady, validates saleId is non-empty string, redirects to /organizer/dashboard with toast 'Sale not found' if invalid. (4) Entrance pin distance warning (edit-sale [id].tsx): Added distance helper (computeDistance + checkEntrancePinDistance), state flag (entrancePinTooFar), updated EntrancePinPicker onChange to check if pin > 0.005 degrees (~0.55 km) from sale coords, displays yellow warning banner if distance exceeded. Files changed: packages/frontend/pages/organizer/add-items/[saleId].tsx (lines 328–378, 633–646, 727–741), packages/frontend/pages/organizer/edit-sale/[id].tsx (lines 31, 48–60, 391–415). Ready for push.",
-      "feedbackLoop": null
-    },
-    {
-      "id": "msg-173-architect-perf-dashboard-spec",
+      "id": "msg-185-findasale-architect-github-audit-tier-classification",
       "from": "findasale-architect",
-      "to": "findasale-dev,patrick",
-      "timestamp": "2026-03-15T14:45:00Z",
-      "type": "architecture",
-      "message": "SELLER PERFORMANCE DASHBOARD SPEC COMPLETE — #6 + #26 (merged). ADR at claude_docs/feature-notes/seller-performance-dashboard-spec-2026-03-15.md. ARCHITECTURE: No schema changes for MVP. Metrics computed on-demand from Stripe API (list_payment_intents, server-side) + existing DB tables (Purchase, Item, ItemReservation, Sale). 8 metrics: Revenue per Sale, Top-Selling Items, Conversion Rate, Category Breakdown, Hold/No-Show Rate, Item Health Score, Sell-Through Rate, Seasonal Price Recommendations. Caching: node-cache with 1h TTL (in-memory, fallback to cached data if Stripe unavailable). API: GET /api/organizer/performance?saleId=&range=7d|30d|custom. Frontend: 8 new components (PerformanceDashboard, MetricsGrid, TopItemsTable, CategoryBreakdownChart, HoldMetricsCard, RecommendationsPanel, DateRangeSelector, SaleSelector) + Recharts (BarChart, LineChart, PieChart) — all existing deps. PHASES: S1 backend (2–3d: controller + service + caching + auth gate), S2 frontend (2–3d: components + charts + polish). FLAGGED FOR PATRICK: (1) Include both online + POS sources in revenue (recommended), (2) Show all seasonal recommendations with confidence scores, (3) 25% no-show threshold for action items, (4) Cache seasonal pricing at 6h, (5) MVP vs Phase 2 scope defined in spec. Zero env var changes. Rollback plan included (for future snapshot table optimization). Ready for findasale-dev dispatch.",
-      "feedbackLoop": "ready-for-dev-dispatch"
-    },
-    {
-      "id": "msg-171-sitemap-sprint3-fix",
-      "from": "findasale-main",
       "to": "patrick",
-      "timestamp": "2026-03-15T04:15:00Z",
-      "type": "completion",
-      "message": "SITEMAP SPRINT 3 GAP FIXED — Added tag-based SEO page URLs to server-side sitemap. Change: (1) Fetch `/api/tags/popular` to retrieve popular tags with slugs, (2) Generate `/tags/{slug}` URLs with priority 0.6 + changefreq 'weekly', (3) Add tagUrls array to sitemap fields. File changed: packages/frontend/pages/server-sitemap.xml.tsx. Sitemap now includes static pages + sales + cities + zips + tags. Ready for push.",
-      "feedbackLoop": null
+      "timestamp": "2026-03-16T01:15:00Z",
+      "type": "architecture-complete",
+      "message": "GITHUB AUDIT TIER CLASSIFICATION COMPLETE. 36 undocumented features classified (SIMPLE/PRO/ENTERPRISE). FILE: claude_docs/operations/feature-tier-classification-2026-03-16.md. SUMMARY: 10 SIMPLE (checklist, waitlist, digest, inbox, reviews, disputes, invites, messaging), 5 PRO (pickup scheduling, flash deals, message templates, coupons, earnings PDF), 2 ENTERPRISE (virtual queue, affiliate). 11 FREE_SHOPPER (wishlists, searches, messaging, bounties, trending, activity feed, route planning, pages, profiles, leaderboards), 4 FREE_GAMIFICATION (points, streaks, treasure hunt, leaderboard), 1 STANDALONE_PAID (Hunt Pass $4.99/30d). 3 DECISION POINTS FLAGGED: (1) Virtual Queue \u2014 ENTERPRISE or PRO? (2) Affiliate \u2014 ENTERPRISE or defer? (3) Coupons \u2014 PRO or SIMPLE with limits? Pricing page copy production-ready."
     },
     {
-      "id": "msg-171-roadmap-update-complete",
-      "from": "findasale-main",
-      "to": "patrick",
-      "timestamp": "2026-03-15T04:00:00Z",
-      "type": "completion",
-      "message": "ROADMAP v31 UPDATED — Session 171. #27 Listing Factory marked DONE (Sprints 1–3 shipped S166/S168/S170). Fold-ins noted: #64 Condition Grading (S166 migration 20260315000001), #31 Brand Kit schema (S166 migration 20260315000002, UI deferred). Infrastructure section: 73→82 migrations (current Neon state). Version bump to v31. Recently shipped line updated. Files changed: claude_docs/strategy/roadmap.md.",
-      "feedbackLoop": null
-    },
-    {
-      "id": "msg-168-dev-fold-ins-complete",
-      "from": "findasale-dev",
-      "to": "findasale-qa,patrick",
-      "timestamp": "2026-03-15T03:15:00Z",
-      "type": "completion",
-      "message": "#64 + #31 FOLD-INS COMPLETE — Schema migrations applied (20260315000001_add_condition_grade_to_item, 20260315000002_add_brand_kit_to_organizer). Backend: conditionGrade scoring in health utility (+5 pts when set, max 105→100 clamped), AI suggestion via Claude Haiku in cloudAIService (returns S|A|B|C|D based on image), itemController includes conditionGrade in getDraftItemsBySaleId select and health computation. Frontend: review.tsx Item interface extended (conditionGrade, suggestedConditionGrade), ItemEditState updated, getEditState initializes conditionGrade, condition grade picker UI added (5 grade buttons S-D with tooltips + AI suggestion badge). Commits: 4b6a5e9 (schema+migrations batch 1), b86ea17 (backend batch 2). NOTE: review.tsx >25k tokens — Patrick must push via git add + .\\push.ps1 (see handoff). QA: verify condition grade persists, health score gates correctly, AI grade suggestions appear, UI responds to suggestions.",
-      "feedbackLoop": "qa-review"
-    },
-    {
-      "id": "msg-166-records-decisions-locked",
-      "from": "findasale-records",
-      "to": "patrick",
-      "timestamp": "2026-03-15T03:00:00Z",
-      "type": "completion",
-      "message": "DECISIONS LOCKED — #64 Condition Grading (fold into Sprint 1, migration 20260315000001) + #31 Brand Kit (schema fields now, UI Sprint 3, migration 20260315000002). Both appended to decisions-log.md. STATE.md updated. Commits pushed.",
-      "feedbackLoop": null
-    },
-    {
-      "id": "msg-167-dev-sprint1-listing-factory-complete",
-      "from": "findasale-dev",
-      "to": "findasale-qa,patrick",
-      "timestamp": "2026-03-15T02:30:00Z",
-      "type": "completion",
-      "message": "LISTING FACTORY SPRINT 1 COMPLETE — All implementation finished per spec. Files: (1) packages/shared/src/constants/tagVocabulary.ts (CURATED_TAGS 45 tags + type export), (2) packages/shared/src/index.ts (exports tagVocabulary), (3) packages/backend/src/utils/listingHealthScore.ts (computeHealthScore utility 0-100 scale, grade logic: blocked <40, nudge 40-70, clear ≥70), (4) packages/backend/src/services/cloudAIService.ts (suggestCuratedTags function, suggestedTags field in AITagResult, integrated into analyzeItemImage non-blocking), (5) packages/backend/src/controllers/itemController.ts (getDraftItemsBySaleId computes healthScore for each item), (6) packages/frontend/pages/organizer/add-items/[saleId]/review.tsx (tag picker UI with AI suggestions + curated grid + custom input, health bar in collapsed row + aggregate bar at top, disabled publish for blocked items). Commits pushed: f046098 (shared+utils), b396f19 (cloudAI), 5eb0e8d (itemController). NOTE: review.tsx file size >25k tokens — use git add + .\\push.ps1 for final push. QA: verify tag suggestions appear in rapidfire, health scores gate publishing correctly, tags persist via API, tag picker UX. Context Checkpoint: yes",
-      "feedbackLoop": "qa-review"
-    },
-    {
-      "id": "msg-166-architect-listing-factory-spec",
+      "id": "msg-184-findasale-architect-tier-matrix-complete",
       "from": "findasale-architect",
-      "to": "findasale-dev,patrick",
-      "timestamp": "2026-03-15T00:00:00Z",
-      "type": "architecture",
-      "message": "LISTING FACTORY SPEC COMPLETE — #27. Phased 3-sprint spec at claude_docs/feature-notes/listing-factory-spec.md. SPRINT 1: AI tag suggestion (modify processRapidDraft to map Vision labels → CURATED_TAGS via Haiku), tag picker UI in review.tsx, Listing Health Score utility (computed, no schema change), health bar in review.tsx. No migration. SPRINT 2: Cloudinary watermark utility, exportController.ts (3 formats: estateSalesNet CSV, facebook JSON, craigslist text), social template endpoint (3 tones × 2 platforms), promote.tsx UI. No migration. SPRINT 3: /tags/[slug] ISR pages, /api/tags/popular endpoint, sitemap update. Optional: #64 Condition Grading (additive migration 20260315_add_condition_grade_to_item) + #31 Brand Kit (additive migration 20260315_add_brand_kit_to_organizer). Files changed: claude_docs/feature-notes/listing-factory-spec.md (created). Patrick decisions flagged in spec — see 'Flagged for Patrick' section.",
-      "feedbackLoop": "ready-for-dev-dispatch"
+      "to": "patrick,findasale-investor,findasale-advisory-board",
+      "timestamp": "2026-03-16T00:50:00Z",
+      "type": "architecture-complete",
+      "message": "FEATURE TIER MATRIX COMPLETE \u2014 ADR-065 Operationalization (8 sections, 550+ lines). All 71 features mapped SIMPLE/PRO/ENTERPRISE. 19 shipped (Rapidfire, AI tags, Health Score, Holds, POS, etc.) ALL SIMPLE. 13 queued PRO+. 39 future gated appropriately. SHOPPER tier deferral to S177+ pending 1k+ shoppers + 30% repeat. A-LA-CARTE candidates deferred post-beta. DECISIONS REQUIRED: (1) Tier mapping approval? (2) PREMIUM_SHOPPER defer? (3) A-LA-CARTE scope? (4) Tier upgrade UI? (5) Beta-to-paid timing? (6) Founding rate scope? Complements investor analysis + advisory board stress test."
     },
     {
-      "id": "msg-162-wrap-complete-records",
-      "from": "findasale-records",
+      "id": "msg-183-investor-pricing-analysis-complete",
+      "from": "findasale-investor",
       "to": "patrick",
-      "timestamp": "2026-03-14T23:59:30Z",
-      "type": "wrap-complete",
-      "message": "SESSION 162 WRAP COMPLETE. Comprehensive Review & Publish page rebuild + Chrome audit + P1 bug fixes. Inline edit panel upgraded from 3 fields to full feature parity with edit-item page: ItemPhotoManager, description, condition, quantity, PriceSuggestion, per-item Publish/Unpublish toggle, Full Edit Page link. draftStatus badge added to item cards (Published/Pending/Draft). Chrome audit all 7 checks passed. Two P1 bugs fixed: (1) unicode separator `\\u00B7` rendering as literal text (fixed with `{' ·'}`), (2) Manual Entry items showing \"Low (50%)\" instead of \"Manual\" (fixed via `isAiTagged` field check). Backend updated: isAiTagged + aiConfidence added to getDraftItemsBySaleId and getItemDraftStatus selects. Merge conflict in review.tsx resolved (kept HEAD). CORE.md updated with §3 rule: re-read §4 Push Rules after compression. Files changed: packages/frontend/pages/organizer/add-items/[saleId]/review.tsx, packages/backend/src/controllers/itemController.ts, claude_docs/CORE.md. All on GitHub main, Vercel auto-deploying. STATE.md, session-log.md, next-session-prompt.md updated. Ready for next session.",
-      "feedbackLoop": null
+      "timestamp": "2026-03-16T00:30:00Z",
+      "type": "strategic-analysis",
+      "message": "PRICING ANALYSIS COMPLETE. RECOMMENDATIONS: PRO $29/month ($290/year, 20% discount). Breakeven at 1 sale/quarter. FOUNDING $99/year for 10 organizers (urgency + early revenue). A-LA-CARTE 6 features ($4.99\u2013$9.99, Flip Report centerpiece). ENTERPRISE defer Q4 2026. SHOPPER 100% free forever. REVENUE: Y1 transaction fees 99%, subscriptions 1% (~$11.7k\u2013$15.2k). Organizer acquisition velocity > pricing optimization. BETA TRANSITION: 60-day notice, feature lockdown day 1. DECISIONS: Approve $29 PRO? $99 Founding? A-LA-CARTE menu? 100% free shoppers? Enterprise defer?"
+    },
+    {
+      "id": "msg-182-advisory-board-pricing-stress-test",
+      "from": "findasale-advisory-board",
+      "to": "patrick",
+      "timestamp": "2026-03-16T00:15:00Z",
+      "type": "strategic-analysis",
+      "message": "ADVISORY BOARD PRICING STRESS TEST (ADR-065). Go-to-Market + Risk subcommittees. FINDINGS: Rename (SIMPLE\u2192Essential, PRO\u2192Pro, ENTERPRISE\u2192Teams). Conversion 3-5% w/o sales team; friction needed (1-3 sales, 10-item bulk, no exports). PRO aha feature: Flip Report. Beta-to-paid: 6-month free goodwill. Founding $19/month 25 organizers preferred over $99/year. CONSENSUS: Announce Founding now, keep free during beta, launch paid Essential/Pro/Teams Q2 2026. CONTRARIAN: Invert fee model ($20/mo + 12-15% fee vs 10% + $30-60). RECOMMENDATIONS: (1) Audit SIMPLE features. (2) Write beta terms. (3) Tie PRO to ROI. (4) Vote on timing. Detailed analysis saved. FLAGGED: Feature audit, Founding scope, invert fee consideration, remove Enterprise, beta timing."
     }
   ]
 }

@@ -7,20 +7,27 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Active Objective
 
-**Session 175 COMPLETE (2026-03-15) — BUG FIXES + #31 BRAND KIT UI + TOKEN EFFICIENCY RULES:**
-- **#66 Export routing bug fixed:** `/export` route moved before `/:id` in organizers.ts (was returning 404, now 401) ✅
-- **P1 CSV formula injection fixed:** escapeCSV() in exportController.ts now prepends `'` to values starting with `=`, `+`, `-`, `@` to neutralize Excel formula injection ✅
-- **#31 Brand Kit UI shipped:** New page `/organizer/brand-kit.tsx` with fields: businessName, phone, bio, website, Facebook, Instagram, Etsy, brandLogoUrl, brandPrimaryColor, brandSecondaryColor. PATCH /me extended with all brand fields. Dashboard nav link added ✅
-- **Token efficiency rules (T1–T7) added to CORE.md:** Compaction summary limits, no production code in init, non-blocking checkpoints, session-log rotation, STATE.md size gate, checkpoint manifest trimming, init budget gate ✅
-- **Health-scout results (P2s for S176):** reminderController.ts missing `reminderType` whitelist validation, exportController.ts `archiver` stream has no error handler
-- **#65 Organizer Mode Tiers approved strategically:** Feature matrix discussion deferred to S176 first task before dev dispatch
-- **Files changed:** exportController.ts, organizers.ts, brand-kit.tsx (new), CORE.md, various context docs
-- **Last Updated:** 2026-03-15 (session 175)
+**Session 176 COMPLETE (2026-03-15) — FULL TIER AUDIT + ROADMAP TIER-TAG + PRICING LOCKED:**
+- **Full tier audit completed:** Roadmap.md (v35→v37) audited against GitHub codebase. All 47 features slotted into organizer/user tiers (SIMPLE/PRO/ENTERPRISE). Shipped features moved to separate section and removed from pipeline ✅
+- **Tier framework locked:** SIMPLE (free) / PRO ($29/mo or $290/yr) / ENTERPRISE (defer Q4 2026) ✅
+- **Pricing scheme locked:** Platform fee 10% flat (matches Etsy, below eBay/EstateSales.NET). Hunt Pass $4.99/30d = confirmed intentional monetization ✅
+- **Features tagged + prioritized:** Virtual Queue [SIMPLE], Social Templates [SIMPLE], Flash Deals [SIMPLE] (brand-spreading hooks). Coupons [SIMPLE] 3 active max / [PRO] unlimited. Affiliate [DEFER] ✅
+- **Shoppers tier:** 100% free indefinitely (no gating) ✅
+- **Documentation created (5 new files):**
+  - `claude_docs/strategy/complete-feature-inventory-2026-03-15.md` (47 features with tiers + est. hours)
+  - `claude_docs/strategy/pricing-and-tiers-overview-2026-03-15.md` (framework + tier breakdown)
+  - `claude_docs/operations/pricing-analysis-2026-03-15.md` (10% flat fee rationale + competitor analysis)
+  - `claude_docs/operations/feature-tier-classification-2026-03-16.md` (SIMPLE/PRO/ENTERPRISE matrix)
+  - `claude_docs/feature-notes/feature-tier-matrix-2026-03-15.md` (detailed tier matrix)
+- **Stale docs archived:** `pricing-strategy-STALE-archived-2026-03-15.md` (moved to archive/) ✅
+- **Files changed:** roadmap.md (v37), decisions-log.md (S176 entries), MESSAGE_BOARD.json, .checkpoint-manifest.json, archive-index.json
+- **Last Updated:** 2026-03-16 (session 176)
 
-**NEXT SESSION (S176):**
-1. **PRIORITY 1: #65 Feature Tier Matrix discussion** — Agree on which features belong in SIMPLE/PRO/ENTERPRISE before dev dispatch
-2. **PRIORITY 2: #41 Flip Report dispatch** (parallel after #65 approved) — Post-sale analytics PDF/dashboard
-3. **PRIORITY 3: P2 bug fixes** — reminderType validation, archiver stream cleanup (inline edits, <20 lines each)
+**NEXT SESSION (S177):**
+1. **PRIORITY 1: #65 Organizer Mode Tiers implementation** — Dispatch findasale-dev (tier infrastructure + Stripe MCP for billing). Est. 8–11 hrs
+2. **PRIORITY 2: #5 Listing Type Schema Debt** — Small backend cleanup (confirm no breaking changes)
+3. **PRIORITY 3: Brand Voice session** — Before beta organizer outreach
+4. **Patrick action items:** Set MAILERLITE_SHOPPERS_GROUP_ID on Railway, verify RESEND keys, open Stripe business account
 
 ---
 

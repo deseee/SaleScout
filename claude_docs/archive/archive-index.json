@@ -4,6 +4,14 @@
   "_archivedBy": "findasale-records session 157",
   "entries": [
     {
+      "file": "pricing-strategy-STALE-archived-2026-03-15.md",
+      "topic": "Pricing Strategy — outdated fee structure",
+      "archivedFrom": "claude_docs/strategy/pricing-strategy.md",
+      "originSession": "85 (last updated 2026-03-06)",
+      "dateArchived": "2026-03-15",
+      "summary": "Stale document showing 5%/7% fee structure. Locked fee is 10% flat (Session 106). Not referenced in codebase. Superseded by pricing-and-tiers-overview-2026-03-15.md and locked decisions in STATE.md."
+    },
+    {
       "file": "feature-notes/CD2_PHASE2_TREASURE_HUNT.md",
       "topic": "CD2 Phase 2 — Treasure Hunt Mode implementation spec",
       "archivedFrom": "docs/CD2_PHASE2_TREASURE_HUNT.md",

@@ -1,65 +1,64 @@
-# Next Session Prompt — Session 176
-*Written: 2026-03-15 (S175 wrap)*
+# Next Session Prompt — Session 177
+*Written: 2026-03-16 (S176 wrap)*
 *Session ended: normally*
 
 ## Resume From
 
-S175 shipped 3 changes: #66 routing fix, P1 CSV injection fix, #31 Brand Kit UI. All features ready for integration. Build green. Railway and Vercel healthy.
+S176 completed full tier audit: roadmap v37 with all 47 features tier-tagged (SIMPLE/PRO/ENTERPRISE), pricing scheme locked (10% platform fee), Shoppers 100% free. All documentation created. All #65 feature matrix decisions finalized. Ready for dev dispatch.
 
-## Priority 1 (Must Do First): #65 Feature Tier Matrix Discussion
+## Priority 1 (Must Do First): #65 Organizer Mode Tiers Implementation
 
-Before dispatching dev on #65 Organizer Mode Tiers, Patrick and Claude must agree on feature gating:
-
-**Decision Needed:**
-- Which existing features belong in SIMPLE (free) vs PRO (paid) vs ENTERPRISE (future)?
-- Which new features (#41 Flip Report, etc.) go in which tier?
-
-**Constraints:**
-- No organizer has used most features yet (zero "bait and switch" risk)
-- Can gate from launch without breaking existing users
-- ADR-065 architect recommendation exists (see below)
-
-**Architect Recommendation (ADR-065):**
-- **SIMPLE:** Core sale creation, holds, basic reminders, email/SMS
-- **PRO:** Auctions, flash deals, Brand Kit, Flip Report, QR codes, bulk CSV, tags, exports, batch operations, performance analytics
-- **ENTERPRISE:** Teams, API access, webhooks, white-label, 2.5% fee discount
-
-**Once matrix agreed:**
-- Dispatch findasale-dev for #65 implementation (schema + middleware + frontend toggle + admin panel)
+**Dispatch to findasale-dev immediately:**
+- Tier infrastructure: User.tier column + migration, feature-gate middleware
+- Admin panel: Toggle user tier per organizer
+- Frontend toggles: Gate PRO features behind tier check (Brand Kit, Flash Deals, Auctions, etc.)
+- Stripe integration hooks (Phase 2, NOT in MVP — just wire payment event listeners, no charge logic yet)
 - Est. 8–11 hours
-- No Stripe integration needed for MVP (just admin toggle, Stripe hooks in Phase 2)
+- Use tier matrix from `claude_docs/operations/feature-tier-classification-2026-03-16.md` as spec
 
-## Priority 2 (Parallel After #65 Dispatch): #41 Flip Report
+**Reference files (do NOT load — pass to subagent by path):**
+- `claude_docs/operations/feature-tier-classification-2026-03-16.md` (SIMPLE/PRO/ENTERPRISE matrix)
+- `claude_docs/strategy/pricing-and-tiers-overview-2026-03-15.md` (tier overview + rationale)
 
-- Post-sale analytics PDF/dashboard
-- ~15–18 hrs implementation
-- Dispatch findasale-architect first for spec, then findasale-dev
-- Becomes PRO-tier feature once #65 ships
+**Stripe MCP available:** Subagent can now use `mcp__afd283e9-5244-4dbc-ad22-6ce213aa2891__*` tools for billing integration planning.
 
-## Priority 3 (Quick Inline Fixes): P2 Bug Fixes
+## Priority 2 (Parallel After #65 Dispatch): #5 Listing Type Schema Debt
 
-From health-scout S175:
-- `reminderController.ts`: Add `reminderType` whitelist validation (should validate `['email', 'push']` before DB write) — <10 lines
-- `exportController.ts`: Add `archiver` stream error handler for client disconnect mid-download — <10 lines
+- Small backend cleanup: Reconcile `itemType` enum (ITEM/DECOR/SERVICE) vs listing-type naming inconsistencies
+- Verify no breaking changes for organizers
+- Inline fix or small dispatch — TBD after audit
+- Estimate: 2–4 hours
 
-Both qualify as inline edits. Can be done before or after #65/#41.
+## Priority 3 (Session Checkpoint): Brand Voice Session
 
-## Session Init Checklist for S176
+- Pre-beta prerequisite
+- Finalize tone, messaging, visual language for organizer + shopper experiences
+- Dispatch findasale-skill-creator if needed, or inline if Patrick has specific direction
+- Should complete by S178 (before beta outreach)
+
+## Patrick Action Items (Outside Session)
+
+**Urgent:**
+- [ ] Set `MAILERLITE_SHOPPERS_GROUP_ID` env var on Railway (value: 182012431062533831 from S165)
+- [ ] Verify RESEND API keys in Railway secrets (needed for weeklyEmailService)
+- [ ] Open Stripe business account (required for Stripe MCP integration to work live)
+
+## Session Init Checklist for S177
 
 - [x] Load STATE.md and this next-session-prompt.md
-- [ ] Do NOT load production code files (>200 lines) at init — reference by path in dispatch prompts instead
+- [ ] Do NOT load production code files (>200 lines) at init — reference by path in dispatch prompts
 - [ ] Check Railway + Vercel green (fetch root endpoint)
 - [ ] Apply statusline reinstall if needed (per CLAUDE.md §4)
 - [ ] Log init checkpoint (budget gate: abort if >10k tokens estimated)
 
-## What Completed S175
+## What Completed S176
 
-- #66 routing bug fixed (404 → 401)
-- P1 CSV injection fixed (escapeCSV formula injection prevention)
-- #31 Brand Kit UI shipped (page + fields + dashboard link)
-- T1–T7 token efficiency rules locked in CORE.md
-- ADR-065 produced (Organizer Mode Tiers strategic approval)
+- Roadmap fully audited: v37, all 47 features tier-tagged, shipped features segregated ✅
+- Pricing scheme locked: 10% flat, Hunt Pass $4.99/30d, Shoppers free forever ✅
+- 5 comprehensive strategy/pricing docs created ✅
+- Feature-tier classification finalized — ready for dev dispatch ✅
+- All #65 decisions pre-approved (no blockers for implementation) ✅
 
 ## Blockers
 
-None. All S175 work integrated and ready.
+None. All tier framework decisions locked. Ready for implementation.

@@ -91,3 +91,12 @@ Only decisions that affect future sessions — not implementation details.
 - DECIDED: DA/Steelman scoped to direction-only with internalized preflight checklist (not purely technical implementation).
 - DECIDED: Token budget learning via outcome-bucketed delta tracking (succeeded-on-plan / over-plan / succeeded-after-retry).
 - DECIDED: Phase 1 immediate (merges + escalation + handoff + veto gate + decisions-log). Phase 2 in two weeks (new agents + board restructure + context infrastructure).
+
+## 2026-03-15 — Session 176 (Tier + Pricing Audit)
+
+- DECIDED: Platform fee 10% flat rationale documented: matches Etsy (10%), below eBay (10–15%) and EstateSales.NET (~17%). Simplicity + competitive positioning. Advisory board S106 stress-tested 5%/7%; Patrick chose 10% flat post-review.
+- DECIDED: Hunt Pass ($4.99/30 days) is confirmed monetization — not a dev experiment. Appears on pricing page. No beta testers yet, no disruption risk.
+- DECIDED: pricing-strategy.md archived (stale, showed 5%/7%). Superseded by pricing-and-tiers-overview-2026-03-15.md and complete-feature-inventory-2026-03-15.md.
+- DECIDED: BUSINESS_PLAN.md fee references stale (shows 5%/7%). Full rewrite is its own future session.
+- OPEN: Virtual Queue tier (PRO vs ENTERPRISE), Affiliate (ENTERPRISE vs defer), Coupons (PRO vs SIMPLE with limits). Subagent input pending S176.
+- OPEN: Hunt Pass ($4.99 standalone) vs. future Pro Shopper tier structure. Subagent input pending S176.

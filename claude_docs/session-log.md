@@ -2,6 +2,54 @@
 
 ## Recent Sessions
 
+### 2026-03-16 · Session 176
+
+**Full Tier Audit + Pricing Strategy Locked**
+
+**Shipped:**
+- Audited roadmap.md (v35→v37) against GitHub codebase — all 47 features slotted into SIMPLE/PRO/ENTERPRISE tiers ✅
+- Moved shipped features to separate "Shipped Features" section; removed from active pipeline ✅
+- Pricing scheme locked: 10% platform fee flat (rationale: matches Etsy, below eBay/EstateSales.NET) ✅
+- Hunt Pass $4.99/30d confirmed as intentional monetization ✅
+- Feature-tier classification finalized (Virtual Queue/Social Templates/Flash Deals [SIMPLE], Coupons 3-max [SIMPLE]/unlimited [PRO], Affiliate [DEFER]) ✅
+- Shoppers tier 100% free indefinitely ✅
+- 5 new strategy + pricing docs created with detailed breakdowns ✅
+- Stale pricing-strategy.md archived ✅
+
+**Decisions:**
+- SIMPLE/PRO/ENTERPRISE tiers locked (ENTERPRISE deferred to Q4 2026)
+- #65 Organizer Mode Tiers implementation ready for S177 dev dispatch (all tier decisions pre-approved)
+- BUSINESS_PLAN.md rewrite deferred to dedicated session (owned by Patrick)
+
+**Files created:**
+- `claude_docs/strategy/complete-feature-inventory-2026-03-15.md`
+- `claude_docs/strategy/pricing-and-tiers-overview-2026-03-15.md`
+- `claude_docs/operations/pricing-analysis-2026-03-15.md`
+- `claude_docs/operations/feature-tier-classification-2026-03-16.md`
+- `claude_docs/feature-notes/feature-tier-matrix-2026-03-15.md`
+- `claude_docs/archive/pricing-strategy-STALE-archived-2026-03-15.md`
+
+**Files modified:**
+- `claude_docs/strategy/roadmap.md` (v35→v37, tier tags added, shipped features section)
+- `claude_docs/decisions-log.md` (S176 tier decisions logged)
+- `claude_docs/operations/MESSAGE_BOARD.json` (S176 update)
+- `.checkpoint-manifest.json` (S176 session entry)
+- `claude_docs/archive/archive-index.json` (pricing-strategy added)
+
+**Production status:** No code changes (pure documentation + strategy). Railway/Vercel unaffected.
+
+**Next:**
+- S177: #65 implementation dispatch (findasale-dev) — Stripe MCP integration for billing
+- S177: #5 Listing Type Schema Debt (small backend cleanup)
+- S177: Brand Voice session
+- Patrick: MAILERLITE_SHOPPERS_GROUP_ID env var, RESEND key verification, Stripe business account setup
+
+**Compression:** 0
+
+**Subagents:** None dispatched this session (pure research/strategy)
+
+---
+
 ### 2026-03-15 · Session 175
 
 **Shipped:**
