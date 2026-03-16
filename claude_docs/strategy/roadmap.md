@@ -1,6 +1,6 @@
 # ROADMAP – FindA.Sale
 
-**Last Updated:** 2026-03-16 (v40 — Session 181: Removed #38/#43 from Phase 4 (already in Shipped). Removed premature #61 from Shipped (not built yet). Annotated #65 Sprint 1+2 done. Marked Stripe/MailerLite/Resend env vars as done.)
+**Last Updated:** 2026-03-16 (v41 — Session 181: #61 Near-Miss Nudges shipped → moved to Completed. Removed #38/#43 from Phase 4 (already in Shipped). Annotated #65 Sprint 1+2 done. Marked Stripe/MailerLite/Resend env vars as done.)
 **Previous:** 2026-03-13 (v27 — Session 157: Innovation Round 3. 30 new ideas across 10 creative lenses (casino/gambling, microtransactions, big box retail, mobile trends, international, progressive disclosure, GitHub/open source, Reddit/social, Zapier/automation, emerging). 11 rated BUILD → added to Phase 4 (#61–#71). 19 rated DEFER → added to Deferred. Total: 71 active features + 65 deferred items. Research: `claude_docs/research/innovation-round3-2026-03-13.md`.)
 **Status:** Production MVP live at finda.sale. Beta: GO. Full build history: `claude_docs/strategy/COMPLETED_PHASES.md`.
 
@@ -98,7 +98,6 @@ All Phase 3 features shipped. See Shipped Features section above and COMPLETED_P
 | 44 | Neighborhood Sale Day | 1 sprint | [PRO] Organizers in a neighborhood coordinate a shared sale date. Hub landing page + combined marketing. Community event energy. Builds on Sale Hubs (#40). (Board v26, Tier 2) |
 | 45 | Collector Passport | 1.5 sprints | [FREE] Gamified collection tracker — "I collect depression glass, Fiestaware, mid-century furniture." Personalized alerts when matching items appear. Deeper than Wishlist (#32) — identity-based. (Board v26, Tier 2) |
 | 46 | Treasure Typology Classifier | 2 sprints | [PRO] ML model that classifies items into collector categories (Art Deco, MCM, Americana, etc.) from photos. Powers Collector Passport, tag suggestions, and search refinement. Requires training data from shipped items. (Innovation bonus, Board v26 Tier 2) |
-| 61 | Near-Miss Nudges | 0.25 sprint | [SIMPLE] Casino-psychology progress nudges: "You're 1 favorite away from unlocking Early Bird Access!" Layers onto any gamification feature as it ships. Variable-ratio schedule drives 30-40% higher completion. Ethical: real progress only, no manufactured near-misses. (Innovation R3, Casino lens) |
 | 62 | Digital Receipt + Returns | 1-2 sprints | [FREE] Auto-generate digital receipt with item photos + prices after every POS transaction. Push to shopper's app profile. Optional organizer-set return window (24h/48h/none). Builds trust, enables returns on high-value items, feeds purchase history for ML. Pairs with POS v2 + Loot Log (#50). (Innovation R3, Big Box lens) |
 | 63 | Dark Mode + Accessibility-First | 1.5 sprints | [FREE] Tailwind dark variant across all components + system preference detection + high-contrast outdoor mode + font sizing controls. WCAG 2.1 AA compliance. Estate sale shoppers skew older — larger fonts, higher contrast, better outdoor visibility are real needs. SEO boost from Lighthouse accessibility scores. (Innovation R3, Mobile lens) |
 | 65 | Organizer Mode Tiers (Simple/Pro/Teams) | 2 sprints | [PRO] **Sprint 1+2 DONE (S177-S178).** Schema, tierGate, requireTier middleware, Stripe billing endpoints, upgrade/subscription UI all shipped. Remaining: Progressive Disclosure UI (Simple mode 5-button surface). (Innovation R3, Progressive Disclosure lens) |
@@ -388,6 +387,7 @@ Roadmap and session-log are always updated in the same commit.
 | Treasure Hunt (Daily) | [FREE] | Daily clue + category matching (undocumented) |
 | Leaderboard (Shoppers + Organizers) | [FREE] | Public rankings (undocumented) |
 | **Hunt Pass ($4.99/30 days)** | **[PAID_ADDON]** | **2× streak multiplier, 30-day recurring subscription, Stripe live billing (undocumented)** |
+| Near-Miss Nudges | [FREE] | Item #61 — variable-ratio casino-psychology nudges, 4 types, NudgeBar toast (S181) |
 
 ### Platform & AI [FREE/SIMPLE]
 
