@@ -16,6 +16,24 @@ Keep only the 5 most recent sessions. Delete older entries — git history and S
 
 ## Recent Sessions
 
+## Session 183 — 2026-03-16 — #65 Progressive Disclosure UI Shipped + #68 Command Center Dashboard Architecture Complete + Sprint 1 Dispatched
+
+**Worked on:** (1) #65 Progressive Disclosure UI — final sprint shipped. Frontend: `useOrganizerTier.ts` hook (NEW), `AuthContext.tsx` fixed JWT tier extraction, `dashboard.tsx` + `settings.tsx` wired tier gates. SIMPLE users see 5-button surface (Create Sale, Add Items, Holds, Settings); PRO/TEAMS see all. (2) #68 Command Center Dashboard — architecture complete. Full ADR docs written (`ADR-068-COMMAND-CENTER-DASHBOARD.md`, `ADR-068-SPRINT1-IMPLEMENTATION-SPEC.md`). Schema GO (no migrations). Query optimized to 2–3 queries. Tier-gated via requireTier('PRO'). Sprint 1 backend dispatched to findasale-dev (commandCenterService.ts, commandCenterController.ts, routes/commandCenter.ts, invalidation hooks). Sprint 2 = frontend page. (3) P0 status review — P0-2 confirmed shipped (commit d3780876, Railway live). P0-1 still unresolved (tokenVersion field missing from Organizer schema — needs migration). (4) Records checkpoint — STATE.md + session-log updated.
+
+**Decisions:** #65 uses simple canAccess() hook (no component knows about hasAccess imports). #68 Sprint 1 backend-first to unblock other features. P0-1 blocked by schema gap — marked tech debt for next session.
+
+**Token efficiency:** 1 dev subagent (findasale-dev) for #68 architecture handoff + dispatch. Main window orchestrated #65 shipping verification and records. Low-medium burn.
+
+**Token burn:** ~25k tokens (est.), 1 checkpoint.
+
+**Next up:** #68 Sprint 2 (frontend page) after Sprint 1 backend complete. OR #54 Social Proof Messaging (verify shipped). OR P0-1 proper fix (schema migration).
+
+**Blockers:** P0-1 blocked by schema — add tokenVersion field to Organizer model.
+
+**Files changed:** packages/frontend/hooks/useOrganizerTier.ts (NEW), packages/frontend/components/AuthContext.tsx (MODIFIED), packages/frontend/pages/organizer/dashboard.tsx (MODIFIED), packages/frontend/pages/organizer/settings.tsx (MODIFIED), claude_docs/architecture/ADR-068-COMMAND-CENTER-DASHBOARD.md (NEW), claude_docs/architecture/ADR-068-SPRINT1-IMPLEMENTATION-SPEC.md (NEW), claude_docs/STATE.md (MODIFIED — S183 entry), claude_docs/logs/session-log.md (MODIFIED — this entry) | Compressions: 0 | Subagents: 1 (findasale-dev) | Push method: MCP (1 batch)
+
+---
+
 ## Session 181 — 2026-03-16 (continued) — #67 Social Proof + #23 Unsubscribe-to-Snooze + #21 User Impact Scoring Shipped
 
 **Worked on:** (1) #67 Social Proof Notifications — full backend + frontend. Backend: `socialProofService.ts` (item + sale level aggregation of favorites, bids, holds), `socialProofController.ts` (GET endpoints), `socialProof.ts` route registration. Frontend: `useSocialProof.ts` React Query hook (30s stale), `SocialProofBadge.tsx` component (compact/full, sage-green). Wired into item/sale detail pages. No schema changes. (2) #23 Unsubscribe-to-Snooze — intercepts MailerLite unsubscribe webhook, sets 30-day snooze via custom field instead of deletion. Backend: `snoozeService.ts` (snooze/reactivate via MailerLite API), `snoozeController.ts` (webhook handler, status, reactivation), `snooze.ts` route (/api/snooze/webhook unauthenticated, /api/snooze/status + /api/snooze/reactivate authenticated). No schema changes — custom MailerLite fields only. (3) #21 User Impact Scoring in Sentry — infrastructure for error prioritization. Backend: `sentryUserContext.ts` middleware (user tier, points, hunt pass, impact_level). Frontend: `useSentryUserContext.ts` hook. Wired globally (index.ts + _app.tsx SentryUserContextSync). No schema changes. (4) roadmap.md v42 — moved #67, #23, #21 to Shipped Features, removed from Phase 4. (5) Records checkpoint — STATE.md + session-log updated.
@@ -104,20 +122,3 @@ Keep only the 5 most recent sessions. Delete older entries — git history and S
 
 **Files changed:** 10 code files (3 new backend, 2 new frontend, 5 modified) + skill files + brand voice guide | Compressions: 0 | Subagents: 2 | Push method: MCP
 
----
-
-## Session 177 — 2026-03-16 — #65 Sprint 1 Shipped + Map Fix + Brand Voice + Stripe Products
-
-**Worked on:** Map CSP fix, #5 build fix (inlined enums), #65 Sprint 1 (schema, tierGate, requireTier, auth JWT embedding), Neon migrations, Stripe products via MCP, brand voice guide, roadmap v38.
-
-**Decisions:** SIMPLE/PRO/TEAMS tier structure. 7-day trial coupon. No founding organizer program.
-
-**Token efficiency:** Architect + dev subagents for tier infrastructure. Medium burn.
-
-**Token burn:** ~50k tokens (est.), 0 checkpoints.
-
-**Next up:** #65 Sprint 2 (billing endpoints, upgrade UI, subscription management).
-
-**Blockers:** 5 Stripe env vars need setting on Railway.
-
-**Files changed:** 7 code files + 3 ADR docs + roadmap + brand voice | Compressions: 0 | Subagents: 2 | Push method: MCP (4 batches)

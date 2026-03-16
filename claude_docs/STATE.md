@@ -7,6 +7,42 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Active Objective
 
+**Session 183 COMPLETE (2026-03-16) — #65 PROGRESSIVE DISCLOSURE UI SHIPPED + #68 COMMAND CENTER DASHBOARD ARCHITECTURE COMPLETE + SPRINT 1 DISPATCHED:**
+- **#65 Progressive Disclosure UI — SHIPPED (Sprint 3, final):** SIMPLE-tier organizers now see streamlined UI without PRO-locked features cluttering view.
+  - `packages/frontend/hooks/useOrganizerTier.ts` — NEW. Custom hook wrapping `hasAccess()` from @findasale/shared. Exposes: `tier`, `canAccess(requiredTier)`, `isSimple`, `isPro`, `isTeams`. No component knows `hasAccess()` import; all checks route through hook.
+  - `packages/frontend/components/AuthContext.tsx` — MODIFIED. Fixed JWT decoding to extract `organizerTier` (defaults to SIMPLE). Added `organizerTier` to payload parsing in both `login()` and `useEffect` hooks.
+  - `packages/frontend/pages/organizer/dashboard.tsx` — MODIFIED. Wrapped action buttons (Insights, Print Inventory, Webhooks, POS, Brand Kit, Export Data, Flash Deal, Share) in `canAccess('PRO')` or `canAccess('TEAMS')` guards. SIMPLE users see clean UI with only core actions (Create Sale, Add Items, Holds).
+  - `packages/frontend/pages/organizer/settings.tsx` — MODIFIED. Subscription tab now shows current tier in prominent badge + upgrade CTA for SIMPLE users linking to /organizer/upgrade (already built S178). PRO users see 'Manage Subscription' link instead.
+  - **Tier gating summary:** SIMPLE (free) sees only: Create Sale, Add Items, Holds, Settings. PRO/TEAMS sees all features + subscription mgmt. No error states, no locked buttons — just clean progressive disclosure.
+  - **Total files changed: 4** (AuthContext.tsx, dashboard.tsx, settings.tsx, useOrganizerTier.ts new). No schema changes. Frontend-only ✅
+  - **Pushed to GitHub: commit 63c8308** ✅
+- **#68 Command Center Dashboard — ARCHITECTURE COMPLETE + SPRINT 1 DISPATCHED:**
+  - Architecture docs written: `claude_docs/architecture/ADR-068-COMMAND-CENTER-DASHBOARD.md` and `ADR-068-SPRINT1-IMPLEMENTATION-SPEC.md`
+  - **Schema status:** ✅ GO — All data exists in Sale, Item, Purchase, ItemReservation, Favorite. No migrations needed.
+  - **Query strategy:** Optimized to 2–3 queries (not 5N) using Prisma groupBy + aggregations.
+  - **Expected perf:** <500ms cached, <1.5s cold with 50 active sales.
+  - **Tier gating:** ✅ Wired via `requireTier('PRO')` middleware.
+  - **Risk:** ✅ LOW — read-only operations, no schema changes, caching optional.
+  - **Status:** Sprint 1 backend service + controller + route dispatched to findasale-dev (in progress).
+  - **Sprint 1 deliverables:** commandCenterService.ts, commandCenterController.ts, routes/commandCenter.ts, types, invalidation hooks in 3 controllers, index.ts.
+  - **Sprint 2 (next):** Frontend page at `/organizer/command-center`.
+- **P0 Status Confirmed:**
+  - P0-2 (STRIPE_SECRET_KEY startup guard): ✅ In main (commit d3780876) → deployed to Railway ✅
+  - P0-1 (tokenVersion tier cache): The S179 fix was added then reverted in S181 because Organizer model lacks tokenVersion field. Underlying tier cache staleness still unresolved — needs schema migration first. NOT fully fixed.
+- **Last Updated:** 2026-03-16 (session 183)
+
+**Pending — Patrick action items:**
+- [ ] Deploy Railway (auto-deploys from main — P0-2 + #65 should be live)
+- [ ] P0-1 proper fix: schema migration to add tokenVersion to Organizer model (tech debt — blocks proper tier cache invalidation)
+- [ ] Open Stripe business account (currently on test keys)
+
+**Next session options (ranked):**
+1. **#68 Command Center Dashboard Sprint 2** — Frontend page after Sprint 1 backend completes
+2. **#54 Social Proof Messaging** — Verify if already shipped in commit 661339d1 or still needed
+3. **P0-1 proper fix** — Schema migration + tokenVersion on Organizer (tech debt)
+
+---
+
 **Session 182 COMPLETE (2026-03-16) — #63 DARK MODE + ACCESSIBILITY (3 PHASES) SHIPPED:**
 - **#63 Dark Mode + Accessibility — SHIPPED (3-phase rollout):** Full WCAG 2.1 AA compliance, system preference detection, high-contrast outdoor mode, font size accessibility slider
   - **Phase 1 — Chrome/theme layer:** `tailwind.config.js` `darkMode: 'class'` added; `styles/globals.css` CSS custom properties for light/dark/high-contrast palettes with dark overrides on `.card`, `.btn-secondary`, `.btn-ghost`, font-size variable (`html { font-size: var(--base-font-size) }`)
