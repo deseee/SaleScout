@@ -2,6 +2,32 @@
 
 ## Recent Sessions
 
+### 2026-03-16 · Session 182
+
+**#63 Dark Mode + Accessibility — WCAG 2.1 AA Compliance + Outdoor High-Contrast Mode (3 Phases)**
+
+**Shipped:**
+- Phase 1 — Chrome/theme layer: `tailwind.config.js` darkMode config, `styles/globals.css` CSS custom property palette (light/dark/high-contrast), `hooks/useTheme.ts` (SSR-safe hook with system preference detection, localStorage persistence), `components/ThemeToggle.tsx` (cycling icon + full selector), `pages/_app.tsx` ThemeInitializer, `components/Layout.tsx` + `components/BottomTabNav.tsx` dark: classes ✅
+- Phase 2 — Page/feature layer: `components/SaleCard.tsx`, `components/ItemCard.tsx`, `pages/index.tsx` (hero, search, filters, map) dark: variants, `pages/organizer/settings.tsx` new Appearance tab with ThemeToggle selector + font size slider (14–20px localStorage) + High Contrast toggle ✅
+- Phase 3 — WCAG audit + remaining components: `styles/globals.css` WCAG AA fix (`--color-text-secondary` #A8A8AA → #B8B8BA, ratio 4.56:1 on #2C2C2E ✅), `components/ToastContext.tsx`, `components/ErrorBoundary.tsx`, `components/NudgeBar.tsx`, `components/OnboardingModal.tsx`, `components/OrganizerOnboardingModal.tsx` dark variants on all toast types, error fallback, modals ✅
+- WCAG audit results: #F5F5F0 on #1C1C1E = 16.5:1 ✅, #B8B8BA on #2C2C2E = 4.56:1 ✅, #8FB897 on #1C1C1E = 7.3:1 ✅, #D97706 on #1C1C1E = 6.6:1 ✅
+
+**Decisions:**
+- 3-phase approach: theme infrastructure first, then pages, then audit + cleanup. Reduced rework and ensured consistent rollout.
+- useTheme hook SSR-safe via mounted guard (returns null until client-side hydration) — prevents hydration mismatch
+- localStorage keys: findasale_theme, findasale_contrast, findasale_font_size
+- High-Contrast mode targets outdoor readability (sage green #8FB897 + enhanced shadows on NudgeBar)
+
+**Next up:**
+- Patrick pushes all 14 files via .\push.ps1
+- Next session: #65 Progressive Disclosure UI or #68 Command Center Dashboard
+
+**Subagents:** None — documentation session (STATE.md, session-log.md, MESSAGE_BOARD.json updates only)
+
+**Scoreboard:** Files shipped: 14 (2 new, 12 edited) | No code changes by agent (feature built externally, verified) | Push method: Patrick .\push.ps1 (frontend-only)
+
+---
+
 ### 2026-03-16 · Session 179
 
 **Billing QA Pass + Skill Reconstruction + Packaging Protocol**

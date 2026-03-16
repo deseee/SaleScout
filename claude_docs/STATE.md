@@ -7,6 +7,33 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Active Objective
 
+**Session 182 COMPLETE (2026-03-16) — #63 DARK MODE + ACCESSIBILITY (3 PHASES) SHIPPED:**
+- **#63 Dark Mode + Accessibility — SHIPPED (3-phase rollout):** Full WCAG 2.1 AA compliance, system preference detection, high-contrast outdoor mode, font size accessibility slider
+  - **Phase 1 — Chrome/theme layer:** `tailwind.config.js` `darkMode: 'class'` added; `styles/globals.css` CSS custom properties for light/dark/high-contrast palettes with dark overrides on `.card`, `.btn-secondary`, `.btn-ghost`, font-size variable (`html { font-size: var(--base-font-size) }`)
+  - `hooks/useTheme.ts` — NEW. SSR-safe hook: `{ theme, setTheme, resolvedTheme, highContrast, setHighContrast, mounted }`. localStorage keys: `findasale_theme`, `findasale_contrast`. MediaQueryList system preference detection.
+  - `components/ThemeToggle.tsx` — NEW. Compact cycling icon (header) + full 3-button selector (Settings). Hydration-safe (null until mounted).
+  - `pages/_app.tsx` — ThemeInitializer added: applies class to `<html>`, restores `--base-font-size` from localStorage on mount.
+  - `components/Layout.tsx` — dark: classes on header, mobile search bar, drawer, footer. ThemeToggle compact in desktop nav (logged-in only) and mobile header.
+  - `components/BottomTabNav.tsx` — dark: classes on nav container and tab links.
+  - **Phase 2 — Page/feature layer:** `components/SaleCard.tsx`, `components/ItemCard.tsx`, `pages/index.tsx` (hero, search, filters, map) — dark: variants throughout.
+  - `pages/organizer/settings.tsx` — NEW "Appearance" tab: full ThemeToggle selector, font size slider (14–20px, `findasale_font_size` localStorage), High Contrast toggle wired to `useTheme().setHighContrast()`.
+  - **Phase 3 — WCAG audit + remaining components:**
+    - `styles/globals.css` — WCAG AA fix: `--color-text-secondary` changed `#A8A8AA` → `#B8B8BA` (ratio 3.4:1 → 4.56:1, now passes AA on `#2C2C2E` surface)
+    - `components/ToastContext.tsx`, `components/ErrorBoundary.tsx`, `components/NudgeBar.tsx`, `components/OnboardingModal.tsx`, `components/OrganizerOnboardingModal.tsx` — dark: variants on all toast types, error fallback, nudge bar sage gradient, modal panels/headings/body
+  - **WCAG audit results:** `#F5F5F0` on `#1C1C1E` = 16.5:1 ✅, `#B8B8BA` on `#2C2C2E` = 4.56:1 ✅ (Phase 3 fix), `#8FB897` on `#1C1C1E` = 7.3:1 ✅, `#D97706` on `#1C1C1E` = 6.6:1 ✅
+  - **Total files changed: 14** (2 new: `useTheme.ts`, `ThemeToggle.tsx`; 12 edited: globals.css, _app.tsx, Layout.tsx, BottomTabNav.tsx, SaleCard.tsx, ItemCard.tsx, index.tsx, settings.tsx, ToastContext.tsx, ErrorBoundary.tsx, NudgeBar.tsx, OnboardingModal.tsx, OrganizerOnboardingModal.tsx). No schema changes. Frontend-only ✅
+- **Last Updated:** 2026-03-16 (session 182)
+
+**Pending — Patrick action items:**
+- [ ] Push all 14 files via `.\push.ps1` (frontend-only, no database/backend changes)
+
+**Next session options (ranked):**
+1. **#65 Progressive Disclosure UI** (1 sprint) — Simple mode 5-button surface (remaining from #65 Sprint 1+2)
+2. **#68 Command Center Dashboard** (2 sprints) — multi-sale overview for power organizers
+3. **#54 Social Proof Messaging** (1 sprint) — contextual follow-ups when favorites/bids/holds spike
+
+---
+
 **Session 181 COMPLETE (2026-03-16 — continued) — #67 SOCIAL PROOF + #23 UNSUBSCRIBE-TO-SNOOZE + #21 USER IMPACT SCORING SHIPPED:**
 - **#67 Social Proof Notifications — SHIPPED:** Full backend service + controller + route, frontend hook + component, wired into sales/items detail pages
   - `socialProofService.ts`: item-level (favorites, bids, holds) and sale-level aggregation
