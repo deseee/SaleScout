@@ -2,6 +2,36 @@
 
 ## Recent Sessions
 
+### 2026-03-17 · Session 191
+
+**Wave 5 Parallel Build — 6 Features Sprint 1 + Schema Fix**
+
+**Shipped:**
+- 6 features via findasale-dev subagents (parallel Wave 5 build): #71 Organizer Reputation Score [SIMPLE], #60 Premium Tier Bundle [PRO], #52 Estate Sale Encyclopedia [FREE], #54 Crowdsourced Appraisal API [PAID_ADDON], #46 Treasure Typology Classifier [PRO], #69 Local-First Offline Mode [PRO] ✅
+- All 6 features Sprint 1 complete: backend services, schema models, controllers, routes, database migrations ✅
+- 5 Neon migrations applied (20260317003100, 20260317110000, 20260317100000, 20260317120000, 20260317_add_item_typology) ✅
+- Schema fix: Named @relation annotations on appraisal User fields (commit 307b979) ✅
+- pnpm install + prisma generate verified clean ✅
+
+**Decisions:**
+- All 6 features in Sprint 1 (backend/schema) — Sprint 2 (frontend UI) + Sprint 3 (integrations) pending
+- Reputation score formula: saleCount/10 weighted 30% × photoQualityAvg weighted 70% = score 0-5
+- Encyclopedia + Appraisal + Typology require ML/vision — Haiku integration for Typology
+- Offline mode: service worker + IndexedDB + conflict resolution (last-write-wins)
+- Premium Tier Bundle: TeamsOnboardingWizard (3-step) wired into upgrade.tsx
+
+**Files changed:** 80+ total (new models, services, controllers, routes, migrations, components)
+
+**Next up:** Sprint 2 for all 6 features (frontend UI), plus QA on Wave 4 features
+
+**Blockers:** None — all features shipped cleanly, builds passing
+
+**Commits:** 7ebcfb5 (Wave 5 build), 307b979 (schema fix)
+
+**Subagents:** 6× findasale-dev (parallel implementation)
+
+---
+
 ### 2026-03-17 · Session 190
 
 **Wave 4 Parallel Build — 13 Features + 4 ADR Specs + Migration Repair Loop**
