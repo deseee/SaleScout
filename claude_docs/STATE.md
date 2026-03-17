@@ -7,6 +7,40 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Active Objective
 
+**Session 184 COMPLETE (2026-03-16) — #68 COMMAND CENTER DASHBOARD BUILD FIXED (ALL TS ERRORS RESOLVED):**
+- **#68 Build Fix — ALL TypeScript errors resolved:**
+  - `packages/backend/src/lib/redis.ts` (NEW) — In-memory TTL Map cache. Drop-in redis replacement. No npm dependency.
+  - `packages/backend/src/types/commandCenter.ts` (NEW) — Local type copy (CommandCenterResponse, SaleMetrics, etc.)
+  - `packages/frontend/types/commandCenter.ts` (NEW) — Same local type copy for frontend
+  - `commandCenterService.ts` — Fixed: (1) import from local types; (2) ItemReservation groupBy → findMany+include+reduce (no saleId field on schema); (3) status enum + pagination
+  - `commandCenterController.ts` — Fixed import path
+  - `itemController.ts`, `saleController.ts` — Added invalidateCommandCenterCache calls
+  - `stripeController.ts` — Removed invalidateCommandCenterCache (used `purchase.sale?.organizerId` which Prisma query doesn't select)
+  - `requireTier.ts` — Added 401 fail-fast if organizerProfile not attached
+  - `CommandCenterCard.tsx`, `useCommandCenter.ts`, `command-center.tsx` — Fixed import paths + loading state
+  - `shared/src/index.ts` — Reverted (shared is not a declared workspace dep)
+- **#54 Social Proof Messaging — CONFIRMED SHIPPED:** commit 661339d. No work needed.
+- **Context doc audit complete:** STATE.md, session-log.md (S182 entry added), next-session-prompt.md, roadmap.md v43 all corrected.
+- **Deleted 3 temp files:** conversation-defaults-SKILL.md.tmp, claude_docs/skills-package/ziphWYrR, exportController_clean.ts
+- **Last Updated:** 2026-03-16 (session 184)
+- **P2 tech debt — useOrganizerTier.ts:** Still imports from `@findasale/shared` — same broken pattern as #68 fixes. Won't break prod currently but needs fixing.
+
+**Pending — Patrick action items:**
+- [ ] Push S184 code: see push block in next-session-prompt.md
+- [ ] Verify Railway build passes (auto-deploys from main after push)
+- [ ] QA #68 Command Center Dashboard (findasale-qa) before promoting feature to users
+- [ ] Fix useOrganizerTier.ts @findasale/shared import (P2 — dispatch findasale-dev S185)
+- [ ] P0-1 proper fix: schema migration to add tokenVersion to Organizer model (tech debt)
+- [ ] Open Stripe business account (currently on test keys)
+
+**Next session options (ranked):**
+1. **Verify Railway build + QA #68** — confirm TypeScript errors gone, run findasale-qa before promoting
+2. **Fix useOrganizerTier.ts** — P2 tech debt, same @findasale/shared broken pattern
+3. **P0-1 proper fix** — schema migration + tokenVersion on Organizer
+4. **Next roadmap feature** — pick from Phase 4 remaining
+
+---
+
 **Session 183 COMPLETE (2026-03-16) — #65 PROGRESSIVE DISCLOSURE UI SHIPPED + #68 COMMAND CENTER DASHBOARD ARCHITECTURE COMPLETE + SPRINT 1 DISPATCHED:**
 - **#65 Progressive Disclosure UI — SHIPPED (Sprint 3, final):** SIMPLE-tier organizers now see streamlined UI without PRO-locked features cluttering view.
   - `packages/frontend/hooks/useOrganizerTier.ts` — NEW. Custom hook wrapping `hasAccess()` from @findasale/shared. Exposes: `tier`, `canAccess(requiredTier)`, `isSimple`, `isPro`, `isTeams`. No component knows `hasAccess()` import; all checks route through hook.
