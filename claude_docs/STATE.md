@@ -7,6 +7,61 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Active Objective
 
+**Session 189 COMPLETE (2026-03-17) — WAVE 3 BUILD: 6 NEW FEATURES (#41 #45 #50 #16 #55 #47):**
+- **All 7 S187 Neon migrations confirmed applied by Patrick at session start** ✅
+- **Duplicate migration number fixed:** `20260317000900_add_collector_passport` renamed → `20260317000950_add_collector_passport` (was conflicting with `000900_add_seasonal_challenges`) ✅
+- **#41 Flip Report [PRO]** — Post-sale analytics dashboard. Sell-through rate, revenue, top performers, category breakdown, pricing insights, recommendations. Print-friendly. `/organizer/flip-report/[saleId]`. No schema changes. ✅
+- **#45 Collector Passport [FREE]** — Identity-based collection tracker. Shoppers define specialties, categories, keywords. Personalized alerts on new matching sales. Schema: `CollectorPassport` model. ✅
+- **#50 Loot Log [FREE]** — Shopper purchase history gallery. Stats (total finds, spend, sales attended, fave category). Shareable public URL. No schema changes. ✅
+- **#16 Verified Organizer Badge [PRO]** — Trust signal on organizer profiles. PRO organizers request verification; admin approves/rejects. Blue checkmark component. Schema: 3 fields on `Organizer` (verificationStatus, verificationNotes, verifiedAt). ✅
+- **#55 Seasonal Discovery Challenges [FREE]** — 4 seasonal challenges (Spring/Summer/Fall/Holiday). Objectives (visit, purchase, favorite). Progress tracking, badges, leaderboard. Schema: `ChallengeProgress` + `ChallengeBadge` models. ✅
+- **#47 UGC Photo Tags [FREE]** — Shoppers submit photos of finds linked to sales/items. Like/unlike. Organizer moderation queue. Schema: `UGCPhoto` + `UGCPhotoLike` models. ✅
+- **index.ts updated** with 6 new route registrations (challenges, flipReport, verification, lootLog, ugcPhotos — collectorPassport already registered) ✅
+- **End state:** All 6 features fully implemented, files on disk, push block ready for Patrick. 4 new Neon migrations needed.
+- **Last Updated:** 2026-03-17 (session 189)
+
+**Pending — Patrick action items (S189):**
+- [ ] Run git push block (see session end message) — adds 6 wave 3 features to GitHub
+- [ ] Run 4 NEW Neon migrations after push:
+  ```powershell
+  cd C:\Users\desee\ClaudeProjects\FindaSale\packages\database
+  $env:DATABASE_URL="postgresql://neondb_owner:npg_VYBnJs8Gt3bf@ep-plain-sound-aeefcq1y.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require"
+  npx prisma migrate deploy
+  npx prisma generate
+  ```
+  Migrations: 000900_add_seasonal_challenges, 000950_add_collector_passport, 001100_add_organizer_verification, 001200_add_ugc_photos
+- [ ] QA wave 3 features (deferred — Patrick said "qa later")
+
+---
+
+**Session 188 COMPLETE (2026-03-17) — PRODUCTION RECOVERY + TYPESCRIPT BUILD FIX + RAILWAY DOCKER UNBLOCK:**
+- **Railway + Vercel both failing after S187 large push (80+ files, 12 features shipped)** — Fixed 7 TypeScript compilation errors across backend/frontend + pnpm lockfile mismatch (ERR_PNPM_OUTDATED_LOCKFILE)
+- **Backend TypeScript fixes (5 files):**
+  - `packages/backend/src/controllers/saleController.ts` — express.Request/Response namespace → imported types ✅
+  - `packages/backend/src/controllers/voiceController.ts` — estimatedPrice possibly undefined → ?? 0 ✅
+  - `packages/backend/src/services/receiptService.ts` — ReceiptItem[] not assignable to Prisma Json → cast as any ✅
+  - `packages/backend/src/services/wishlistAlertService.ts` — spread of Prisma JsonValue → cast to Record<string, any> before spread ✅
+- **Frontend TypeScript fixes (2 files):**
+  - `packages/frontend/components/PostPerformanceCard.tsx` — implicit any on tickFormatter val param → explicit param type ✅
+  - `packages/frontend/pages/organizer/item-library.tsx` — wrong AuthContext import path + organizerProfile doesn't exist on User type (fixed to `user.role === 'ORGANIZER' ? user.id : undefined`) ✅
+  - `packages/frontend/pages/shopper/alerts.tsx` — @/lib/withAuth doesn't exist → replaced with useAuth hook; WishlistAlertForm initialData missing name field ✅
+- **pnpm lockfile mismatch fixed:** Removed erroneous pnpm devDependency from package.json, regenerated lockfile, added packageManager field ✅
+- **Railway Docker cache stuck issue:** Pushed trivial Dockerfile.production cache-bust comment (comment update with date). Railway immediately unblocked ✅
+- **CLAUDE.md §4 permanently updated:** Added Railway stuck behavior rule — "If Railway hasn't picked up recent commits or is looping on a stale error, DO NOT ask Patrick to check webhooks, GitHub settings, or Railway dashboards. Immediately push a trivial change to `packages/backend/Dockerfile.production` — update the cache-bust comment at line 1 with today's date. This always unblocks Railway." ✅
+- **End state:** Vercel GREEN ✅, Railway GREEN ✅
+- **Neon migrations:** All 7 S187 migrations confirmed applied by Patrick at S189 start ✅
+- **Last Updated:** 2026-03-17 (session 188)
+
+**S187 Features shipped (now marked as deployed after S188 stabilization fixes):**
+Features #7, #14, #18, #25, #29, #31, #32, #42, #49, #51, #62 + one more (12 total per commit message) ✅
+
+**Pending — Patrick action items:**
+- [ ] Run 7 Neon migrations (see CLAUDE.md §6 for the exact $env:DATABASE_URL override + commands)
+- [ ] Verify Vercel + Railway remain GREEN (both should be healthy now)
+- [ ] Next session: Phase 4 and Phase 5 features
+
+---
+
 **Session 186 COMPLETE (2026-03-16) — DARK MODE AUDIT COMPLETE (ALL 13 PAGES), HOLDS P0 CRASH FIXED, LISTING FACTORY ROUTING FIXED, TIER GATES CORRECTED:**
 - **Dark mode audit — COMPLETE:** Live Chrome inspection + 3-wave sweep. All 13 user-facing pages now have full `dark:` variant coverage. Total ~200 dark: classes added across Layout.tsx, index.tsx, dashboard.tsx, holds.tsx, pos.tsx, print-inventory.tsx, insights.tsx, brand-kit.tsx, command-center.tsx, settings.tsx, edit-sale/[id].tsx, calendar.tsx, sales/[id].tsx ✅
 - **Holds page P0 crash fixed:** `response.data as HoldItem[]` → `response.data.holds as HoldItem[]`. Root cause: API returns `{ holds, total, limit, offset, hasMore }` envelope; queryFn was iterating the envelope object → TypeError in useMemo groupedByBuyer ✅

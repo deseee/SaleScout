@@ -2,6 +2,37 @@
 
 ## Recent Sessions
 
+### 2026-03-17 · Session 188
+
+**Production Recovery + TypeScript Build Stabilization + Railway Unblock**
+
+**Shipped:**
+- Fixed 7 TypeScript compilation errors across backend + frontend (mismatched Request/Response namespaces, undefined checks, type casting for Prisma Json, implicit any params) ✅
+- pnpm lockfile ERR_PNPM_OUTDATED_LOCKFILE resolved: removed erroneous pnpm devDependency, regenerated lockfile, added packageManager field ✅
+- Railway Docker cache stuck issue unblocked: pushed Dockerfile.production cache-bust comment update ✅
+- CLAUDE.md §4 permanently updated: documented Railway stuck pattern + permanent fix (trivial commit to Dockerfile.production) ✅
+
+**Build status:**
+- Vercel: GREEN ✅
+- Railway: GREEN ✅
+- Both builds passing after S187 large feature push (80+ files, 12 features)
+
+**Decisions:**
+- TypeScript errors were systematic type mismatches from S187 refactoring — all resolved via targeted imports and type guards
+- Railway stuck-on-stale-build is recurring pattern (Sessions 165–188) — now has permanent fix: push Dockerfile cache-bust comment
+- S187 features (#7, #14, #18, #25, #29, #31, #32, #42, #49, #51, #62 + 1 more) now fully stable after S188 stabilization
+
+**Files changed:** 7 total (saleController.ts, voiceController.ts, receiptService.ts, wishlistAlertService.ts, PostPerformanceCard.tsx, item-library.tsx, alerts.tsx, Dockerfile.production) + CLAUDE.md §4
+
+**Pending — Patrick action items:**
+- [ ] Run 7 Neon migrations (pending from S187 feature push; see CLAUDE.md §6 with exact $env:DATABASE_URL override + prisma migrate deploy command)
+
+**Next:** Phase 4 and Phase 5 features
+
+**Scoreboard:** TypeScript errors fixed: 7 | Build systems recovered: 2 (Vercel + Railway) | Permanent fixes added to docs: 1 (Railway pattern) | Production incident resolved: 1
+
+---
+
 ### 2026-03-16 · Session 186
 
 **Dark Mode Audit + Completion — Live Chrome Audit, All Pages Swept**

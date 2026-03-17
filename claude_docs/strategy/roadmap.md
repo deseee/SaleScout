@@ -1,6 +1,6 @@
 # ROADMAP – FindA.Sale
 
-**Last Updated:** 2026-03-16 (v43 — Session 182: #63 Dark Mode + Accessibility shipped. Session 183: #65 Organizer Mode Tiers fully complete (Sprint 3 Progressive Disclosure UI shipped), #68 Command Center Sprint 1+2 built (QA pending).)
+**Last Updated:** 2026-03-17 (v45 — Session 189: Wave 3 build — 6 new features shipped (#41 Flip Report, #45 Collector Passport, #50 Loot Log, #16 Verified Organizer Badge, #55 Seasonal Discovery Challenges, #47 UGC Photo Tags). All QA pending. Session 188: TypeScript + Railway recovery complete. Session 187: #7, #14, #18, #25, #29, #31, #32, #42, #49, #51, #62 shipped (12 features).)
 **Previous:** 2026-03-13 (v27 — Session 157: Innovation Round 3. 30 new ideas across 10 creative lenses (casino/gambling, microtransactions, big box retail, mobile trends, international, progressive disclosure, GitHub/open source, Reddit/social, Zapier/automation, emerging). 11 rated BUILD → added to Phase 4 (#61–#71). 19 rated DEFER → added to Deferred. Total: 71 active features + 65 deferred items. Research: `claude_docs/research/innovation-round3-2026-03-13.md`.)
 **Status:** Production MVP live at finda.sale. Beta: GO. Full build history: `claude_docs/strategy/COMPLETED_PHASES.md`.
 
@@ -9,7 +9,6 @@
 ## Patrick's Checklist
 
 ### Business Formation + Legal
-- [x] Set up support@finda.sale email forwarding ✅ Done (2026-03-06)
 - [ ] Order business cards (~$25) — files in `claude_docs/brand/`
 - [ ] Create Google Business Profile for FindA.Sale
 - [ ] Open Stripe business account
@@ -17,12 +16,8 @@
 - [ ] Set up Google Voice for support line
 
 ### Credentials + Services
-- [x] Rotate Neon database credentials ✅ Done (2026-03-09, session 111)
-- [x] OAuth credentials (Google, Facebook) → Vercel env vars ✅ Done (2026-03-06)
 - [ ] VAPID keys confirmed in production
-- [x] ~~Confirm 5%/7% platform fee~~ ✅ Locked at **10% flat** (session 106)
-- [x] **Set `MAILERLITE_SHOPPERS_GROUP_ID=182012431062533831` on Railway** ✅ Done (2026-03-16, session 181)
-- [x] **Verify `RESEND_API_KEY` and `RESEND_FROM_EMAIL` on Railway** ✅ Done (2026-03-16, session 181)
+
 
 ### Beta Recruitment
 - [ ] Identify 5 target beta organizers (`claude_docs/beta-launch/organizer-outreach.md` ready)
@@ -37,15 +32,7 @@
 
 10 scheduled tasks active: competitor monitoring, context refresh, context freshness check, UX spots, health scout (weekly), monthly digest, workflow retrospective, weekly Power User sweep, daily friction audit (Mon-Fri 8:30am), weekly pipeline briefing (Mon 9am). Managed by Cowork Power User + findasale-workflow + findasale-sales-ops agents.
 
-## Connectors
-
-- [x] **Stripe** — query payment data, manage customers, troubleshoot payment issues directly. Stripe MCP connected S172 — unlocks #6 Seller Performance Dashboard real payment data + #65 Organizer Mode Tiers subscription billing.
-- [x] **MailerLite** — draft, schedule, and send email campaigns directly from Claude
-
-*CRM deferred — Close requires paid trial. Use spreadsheet/markdown for organizer tracking until beta scale warrants it.*
-
 ### Upcoming Work Sessions
-- [ ] **Brand Voice Session** — Use brand-voice plugin (discover-brand → guideline-generation → brand-voice-enforcement) to establish FindA.Sale's documented voice, tone, and messaging pillars. Needed before beta outreach, social templates (#27), and email sequences. Priority: before Listing Factory ships.
 
 ### Design Decisions (Locked Session 155)
 - **Holds expiry:** 48 hours default, configurable per-sale in organizer settings. Nightly cron cleanup.
@@ -61,71 +48,63 @@
 ## Feature Pipeline
 
 ### Next Up (Priority Order)
-
-*All priority items currently shipped. See Shipped Features section above. See COMPLETED_PHASES.md for full history.*
-
-### Phase 3 — Weeks 8–16
-
-All Phase 3 features shipped. See Shipped Features section above and COMPLETED_PHASES.md.
-
-| # | Feature | Est. | Notes |
-|---|---------|------|-------|
-| 7 | Shopper Referral Rewards | 1–2 sprints | [FREE] Referral tracking, rewards distribution, email notifications. |
-
-### Phase 4 — Post-16 Weeks
 | # | Feature | Est. | Notes |
 |---|---------|------|-------|
 | 13 | Premium Organizer Tier | 2 sprints | [TEAMS] Infrastructure — feature gating + billing integration. |
-| 14 | Real-Time Status Updates | 1 sprint | [PRO] Organizer mobile widget, SMS/email alerts. |
 | 15 | Shopper Referral Rewards expansion | 1 sprint | [FREE] Viral growth loop. |
-| 16 | Verified Organizer Badge | 1–2 sprints | [PRO] Professional differentiation, trust signal. |
 | 17 | Bid Bot Detector + Fraud Confidence Score | 1–1.5 sprints | [PRO] Flag suspicious bidding patterns (rapid same-user bids). Human review, not auto-ban. Fraud confidence score visible to organizers. Protects auction integrity. Steelman: STRONG, quick win. (Innovation sweep; validated session 155) |
-| 18 | Post Performance Analytics | 1 sprint | [PRO] UTM tracking on social template downloads → "your Instagram post got 200 clicks" in organizer dashboard. (Innovation sweep) |
 | 19 | Passkey / WebAuthn Support | 1–2 sprints | [SIMPLE] Phishing-resistant auth alongside OAuth. Phase in early before scale. (Innovation sweep) |
 | 20 | Proactive Degradation Mode | 1 sprint | [PRO] Latency > 2s → auto-drop analytics collection, reduce image quality, preserve core buy/sell flow. (Innovation sweep) |
 | 22 | Low-Bandwidth Mode (PWA) | 1 sprint | [SIMPLE] Detect slow connections, auto-reduce photo quality, disable video previews. Organizers on job sites often have 2G. (Innovation sweep) |
-| 25 | Organizer Item Library (Consignment Rack) | 2 sprints | [PRO] Upload once, reuse across sales. Items become compounding assets. Full cross-sale search, price history, sold vs. unsold analytics. (Innovation session 129) |
-| 29 | Shopper Loyalty Passport | 2 sprints | [FREE] Gamified repeat-visit system — stamps, badges, early-access perks. Drives shopper retention. Steelman: STRONG. Ship post-beta when shopper base exists. (Innovation session 155) |
 | 30 | AI Item Valuation & Comparables | 2 sprints | [PRO] Price range suggestions from sold-item data + visual embeddings. Leverages existing AI pipeline. Requires 100+ sold items per category to be credible. (Innovation session 155) |
-| 31 | Organizer Brand Kit | 1.5 sprints | [PRO] Auto-expand organizer colors/logo across all templates, exports, and social posts. Natural extension of Listing Factory (#27). Premium tier upsell path. Schema shipped with Listing Factory Sprint 1 (S166, migration 20260315000002); UI deferred to standalone session. (Innovation session 155) |
-| 32 | Shopper Wishlist Alerts + Smart Follow | 2 sprints | [FREE] Shoppers set category/tag/organizer preferences → push alerts when matching items list. Foundational for shopper retention and intent data. Ship after Listing Factory drives initial traffic. (Innovation session 155) |
 | 39 | Photo Op Stations | 1 sprint | [PRO] Designated "selfie spot" markers at sales — branded photo frames, shareable moments. Organizers set locations; shoppers share UGC. Viral loop + fun factor. (Board v26, Tier 2) |
 | 40 | Sale Hubs | 1.5 sprints | [PRO] Group nearby sales into a "hub" — shared map, combined route, hub landing page. Weekend sale-hopping made effortless. Builds on Heatmap (#28) density data. (Board v26, Tier 2) |
-| 41 | Flip Report | 1.5 sprints | [PRO] "What sold, what didn't, what to price differently next time." Post-sale analytics PDF/dashboard for organizers. Subscription potential for premium tier. (Board v26, Tier 2) |
-| 42 | Voice-to-Tag | 1 sprint | [PRO] Organizer speaks item description during Rapidfire → AI transcribes + extracts tags automatically. Hands-free cataloging. Leverages existing AI pipeline + Web Speech API. (Board v26, Tier 2) |
 | 44 | Neighborhood Sale Day | 1 sprint | [PRO] Organizers in a neighborhood coordinate a shared sale date. Hub landing page + combined marketing. Community event energy. Builds on Sale Hubs (#40). (Board v26, Tier 2) |
-| 45 | Collector Passport | 1.5 sprints | [FREE] Gamified collection tracker — "I collect depression glass, Fiestaware, mid-century furniture." Personalized alerts when matching items appear. Deeper than Wishlist (#32) — identity-based. (Board v26, Tier 2) |
 | 46 | Treasure Typology Classifier | 2 sprints | [PRO] ML model that classifies items into collector categories (Art Deco, MCM, Americana, etc.) from photos. Powers Collector Passport, tag suggestions, and search refinement. Requires training data from shipped items. (Innovation bonus, Board v26 Tier 2) |
-| 62 | Digital Receipt + Returns | 1-2 sprints | [FREE] Auto-generate digital receipt with item photos + prices after every POS transaction. Push to shopper's app profile. Optional organizer-set return window (24h/48h/none). Builds trust, enables returns on high-value items, feeds purchase history for ML. Pairs with POS v2 + Loot Log (#50). (Innovation R3, Big Box lens) |
-| 65 | Organizer Mode Tiers (Simple/Pro/Teams) | 2 sprints | [PRO] **FULLY COMPLETE (S177-S183).** Sprint 1: schema, tierGate, requireTier middleware (S177). Sprint 2: Stripe billing, upgrade/subscription UI (S178). Sprint 3: Progressive Disclosure UI — useOrganizerTier hook, SIMPLE/PRO gating on dashboard + settings (S183). MOVED TO SHIPPED. |
-| 68 | Command Center Dashboard | 2 sprints | [PRO] **Sprint 1+2 COMPLETE (S183) — QA pending.** Backend: commandCenterService.ts, commandCenterController.ts, routes/commandCenter.ts, shared/types/commandCenter.ts, index.ts. Frontend: useCommandCenter.ts hook, CommandCenterCard.tsx, command-center.tsx page, Layout.tsx (PRO-gated nav link). HEAD: c997bd7. QA pass required before promoting to users. |
 | 69 | Local-First Offline Mode | 3 sprints | [PRO] Full offline capability via service worker + IndexedDB. Catalog items, set prices, take photos with zero internet. Sync on reconnect. Conflict resolution (last-write-wins for fields, merge for photos). Competitive requirement — PROSALE works offline. Estate sales happen in basements/barns with no signal. (Innovation R3, GitHub lens) |
 | 70 | Live Sale Feed | 1 sprint | [SIMPLE] Real-time activity stream during active sales: "Victorian lamp just sold for $45!" "New hold on Eames chair." WebSocket-powered, leverages existing POS infrastructure. 80% of livestream FOMO at 10% of livestream complexity. Ships after POS v2 stabilizes. (Innovation R3, Social lens) |
 | 71 | Organizer Reputation Score | 1.5 sprints | [SIMPLE] Public trust score (1-5 stars) from: response time, sale frequency, photo quality (AI), shopper ratings, dispute rate. Displayed on profile + every listing. "New Organizer" badge for cold-start. Foundational trust infrastructure for marketplace scale. Ship before national expansion. (Innovation R3, Emerging lens) |
-
----
-
-### Phase 5 — Post-Beta Scale (Board v26, Tier 3)
-| # | Feature | Est. | Notes |
-|---|---------|------|-------|
-| 47 | UGC Photo Tags | 1.5 sprints | [FREE] Shoppers tag and share photos of finds. Social proof + free content marketing. Moderation queue for organizers. Builds community around sales. |
 | 48 | Treasure Trail Route Builder | 1.5 sprints | [FREE] Shoppers build multi-sale route plans with time estimates, drive order, and "don't miss" item highlights. Extends existing OSRM route planning (session 114). Gamified "complete the trail" element. |
-| 49 | City Heat Index | 1 sprint | [FREE] City-level "estate sale activity" score — weekly ranking of hottest metro areas. Content marketing magnet + SEO play. Powered by aggregated sale data. (Innovation bonus, Board v26) |
-| 50 | Loot Log | 1.5 sprints | [FREE] Personal purchase history + "my collection" gallery for shoppers. Social sharing of best finds. Retention through identity investment. |
-| 51 | Sale Ripples | 1 sprint | [FREE] Smart notification algorithm — "A sale just posted 2 miles from a sale you liked." Proximity + preference signals. Drives spontaneous visits. (Innovation bonus, Board v26) |
+| 51 | Sale Ripples | 1 sprint | **SHIPPED S187 — QA pending.** [FREE] Smart notification algorithm — "A sale just posted 2 miles from a sale you liked." Proximity + preference signals. (Innovation bonus, Board v26) |
 | 52 | Estate Sale Encyclopedia | 3 sprints | [FREE] Crowdsourced knowledge base: item identification guides, era/style references, price benchmarks by region. Long-tail SEO moat. Community contribution model. |
 | 53 | Cross-Platform Aggregator | 2 sprints | [TEAMS] Pull listings from EstateSales.NET, Craigslist, Facebook Marketplace into unified search. "Search everywhere from one place." Major moat if executed. Legal review required. |
 | 54 | Crowdsourced Appraisal API | 2.5 sprints | [PAID_ADDON] Users submit photos → community + AI estimate value range. Revenue potential as standalone tool or API. Requires critical mass of knowledgeable users. |
-| 55 | Seasonal Discovery Challenges | 1 sprint | [FREE] Time-limited themed challenges — "Holiday Treasure Hunt" (Dec), "Spring Refresh" (Mar). Badges + leaderboard placement. Drives seasonal engagement spikes. |
-
-### Vision — Long-Term (Board v26, Tier 4)
-| # | Feature | Est. | Notes |
-|---|---------|------|-------|
-| 56 | Printful Merch Store | 1 sprint | [FREE/PAID_ADDON] Drop-shipped branded merch (tees, totes, stickers) via Printful API. Zero inventory risk. Revenue diversification. "I ❤️ Estate Sales" lifestyle brand play. |
 | 57 | Shiny / Rare Item Badges | 1 sprint | [FREE] Special visual treatment for high-value or unusual items. Pokémon-inspired rarity system. Drives clicks and shares. Fun factor. |
 | 58 | Achievement Badges | 1.5 sprints | [FREE] Shopper + organizer achievement system — "First Sale", "100 Items Listed", "Weekend Warrior." Retention through status. |
 | 59 | Streak Rewards | 1 sprint | [FREE] "Visit 3 weekends in a row → unlock early access." Habit formation mechanic. Drives consistent engagement. |
 | 60 | Premium Tier Bundle | 2 sprints | [PRO] Paid organizer tier bundling: Brand Kit (#31), Flip Report (#41), priority support, advanced analytics. Revenue milestone. Requires enough free-tier usage to demonstrate value. |
+
+
+| # | Feature | Est. | Notes |
+|---|---------|------|-------|
+| 7 | Shopper Referral Rewards | 1–2 sprints | **SHIPPED S187 — QA pending.** [FREE] Referral tracking, rewards distribution, email notifications. |
+
+
+
+| 14 | Real-Time Status Updates | 1 sprint | **SHIPPED S187 — QA pending.** [PRO] Organizer mobile widget, SMS/email alerts. |
+| 16 | Verified Organizer Badge | 1–2 sprints | **SHIPPED S189 — QA pending.** [PRO] Professional differentiation, trust signal. |
+| 18 | Post Performance Analytics | 1 sprint | **SHIPPED S187 — QA pending.** [PRO] UTM tracking on social template downloads → "your Instagram post got 200 clicks" in organizer dashboard. (Innovation sweep) |
+| 25 | Organizer Item Library (Consignment Rack) | 2 sprints | **SHIPPED S187 — QA pending.** [PRO] Upload once, reuse across sales. Items become compounding assets. Full cross-sale search, price history, sold vs. unsold analytics. (Innovation session 129) |
+| 29 | Shopper Loyalty Passport | 2 sprints | **SHIPPED S187 — QA pending.** [FREE] Gamified repeat-visit system — stamps, badges, early-access perks. Drives shopper retention. (Innovation session 155) |
+| 31 | Organizer Brand Kit | 1.5 sprints | **SHIPPED S187 — QA pending.** [PRO] Auto-expand organizer colors/logo across all templates, exports, and social posts. (Innovation session 155) |
+| 32 | Shopper Wishlist Alerts + Smart Follow | 2 sprints | **SHIPPED S187 — QA pending.** [FREE] Shoppers set category/tag/organizer preferences → push alerts when matching items list. (Innovation session 155) |
+| 41 | Flip Report | 1.5 sprints | **SHIPPED S189 — QA pending.** [PRO] "What sold, what didn't, what to price differently next time." Post-sale analytics PDF/dashboard for organizers. Subscription potential for premium tier. (Board v26, Tier 2) |
+| 42 | Voice-to-Tag | 1 sprint | **SHIPPED S187 — QA pending.** [PRO] Organizer speaks item description during Rapidfire → AI transcribes + extracts tags automatically. (Board v26, Tier 2) |
+| 45 | Collector Passport | 1.5 sprints | **SHIPPED S189 — QA pending.** [FREE] Gamified collection tracker — "I collect depression glass, Fiestaware, mid-century furniture." Personalized alerts when matching items appear. Deeper than Wishlist (#32) — identity-based. (Board v26, Tier 2) |
+| 62 | Digital Receipt + Returns | 1-2 sprints | **SHIPPED S187 — QA pending.** [FREE] Auto-generate digital receipt with item photos + prices after every POS transaction. Optional return window. (Innovation R3, Big Box lens) |
+| 65 | Organizer Mode Tiers (Simple/Pro/Teams) | 2 sprints | [PRO] **FULLY COMPLETE (S177-S183).** Sprint 1: schema, tierGate, requireTier middleware (S177). Sprint 2: Stripe billing, upgrade/subscription UI (S178). Sprint 3: Progressive Disclosure UI — useOrganizerTier hook, SIMPLE/PRO gating on dashboard + settings (S183). MOVED TO SHIPPED. |
+| 68 | Command Center Dashboard | 2 sprints | [PRO] **Sprint 1+2 COMPLETE (S183) — QA pending.** Backend: commandCenterService.ts, commandCenterController.ts, routes/commandCenter.ts, shared/types/commandCenter.ts, index.ts. Frontend: useCommandCenter.ts hook, CommandCenterCard.tsx, command-center.tsx page, Layout.tsx (PRO-gated nav link). HEAD: c997bd7. QA pass required before promoting to users. |
+
+|---|---------|------|-------|
+| 47 | UGC Photo Tags | 1.5 sprints | **SHIPPED S189 — QA pending.** [FREE] Shoppers tag and share photos of finds. Social proof + free content marketing. Moderation queue for organizers. Builds community around sales. |
+| 49 | City Heat Index | 1 sprint | **SHIPPED S187 — QA pending.** [FREE] City-level "estate sale activity" score — weekly ranking of hottest metro areas. (Innovation bonus, Board v26) |
+| 50 | Loot Log | 1.5 sprints | **SHIPPED S189 — QA pending.** [FREE] Personal purchase history + "my collection" gallery for shoppers. Social sharing of best finds. Retention through identity investment. |
+| 55 | Seasonal Discovery Challenges | 1 sprint | **SHIPPED S189 — QA pending.** [FREE] Time-limited themed challenges — "Holiday Treasure Hunt" (Dec), "Spring Refresh" (Mar). Badges + leaderboard placement. Drives seasonal engagement spikes. |
+
+### Vision — Long-Term 
+| # | Feature | Est. | Notes |
+|---|---------|------|-------|
+| 56 | Printful Merch Store | 1 sprint | [FREE/PAID_ADDON] Drop-shipped branded merch (tees, totes, stickers) via Printful API. Zero inventory risk. Revenue diversification. "I ❤️ Estate Sales" lifestyle brand play. |
 
 ---
 
@@ -309,7 +288,8 @@ Roadmap and session-log are always updated in the same commit.
 | CSV / JSON / Text Listing Exports | [PRO] | Item #27 Sprint 2 — multi-format output |
 | Open Data Export (ZIP) | [PRO] | Item #66 — items/sales/purchases CSV |
 | Payout PDF Export | [PRO] | Financial reporting for tax/accounting |
-| Organizer Item Library (Consignment Rack) | [PRO] | Cross-sale reuse + price history |
+| Organizer Item Library (Consignment Rack) | [PRO] | Item #25 — Upload once, reuse across sales. Cross-sale search, price history, sold vs. unsold analytics. SHIPPED S187. |
+| Voice-to-Tag | [PRO] | Item #42 — Organizer speaks item description during Rapidfire → AI transcribes + extracts tags automatically. Hands-free cataloging. SHIPPED S187. |
 
 ### Organizer — Marketing & Brand Amplification [SIMPLE/PRO mixed]
 
@@ -318,10 +298,11 @@ Roadmap and session-log are always updated in the same commit.
 | Social Templates (3 tones × 2 platforms) | [SIMPLE] | Item #27 Sprint 2 — Instagram/Facebook copy (brand-spreading) |
 | Cloudinary Watermark on Photo Exports | [SIMPLE] | Item #27 Sprint 2 — brand protection (brand-spreading) |
 | CSV/JSON Listing Exports (Listing Factory) | [SIMPLE] | Item #27 Sprint 2 — multi-platform sharing (brand-spreading) |
-| Brand Kit | [PRO] | Item #31 — colors, logo, socials (auto-propagates) |
+| Brand Kit | [PRO] | Item #31 — colors, logo, socials (auto-propagates). SHIPPED S187. |
 | Share Card Factory (OG Tags) | [SIMPLE] | Item #33 + #43 — branded social previews, dynamic OG images via Cloudinary |
 | Message Templates | [PRO] | Saved organizer reply templates (undocumented) |
 | Hype Meter | [SIMPLE] | Item #34 — real-time social proof |
+| Post Performance Analytics | [PRO] | Item #18 — UTM tracking on social template downloads → "your Instagram post got 200 clicks" in organizer dashboard. SHIPPED S187. |
 | Dark Mode + Accessibility | [FREE] | Item #63 — Tailwind dark variants (system preference + manual toggle), high-contrast outdoor mode, WCAG 2.1 AA compliant (all ratios passing). useTheme hook (SSR-safe), ThemeToggle component, Appearance settings tab with font size slider (14–20px) + high-contrast toggle. 14 files, 3 phases (S182) |
 | Social Proof Notifications | [SIMPLE] | Item #67 — stateless engagement aggregation (favorites, bids, holds) at item + sale level. Backend: socialProofService (aggregation logic), socialProofController (GET endpoints), socialProof route. Frontend: useSocialProof hook (React Query, 30s stale), SocialProofBadge component (compact/full, sage-green). No schema changes (S181) |
 
@@ -333,6 +314,7 @@ Roadmap and session-log are always updated in the same commit.
 | Sale Reminders (Calendar + Remind Me) | [SIMPLE] | Item #37 — sale alerts for shoppers |
 | Neighborhood Heatmap | [SIMPLE] | Item #28 — density-based Leaflet overlay |
 | Organizer Reputation Score | [SIMPLE] | Item #71 — 1-5 stars public display |
+| Real-Time Status Updates | [PRO] | Item #14 — Organizer mobile widget, SMS/email alerts. SHIPPED S187. |
 
 ### Shopper — Discovery & Search [FREE]
 
@@ -353,6 +335,8 @@ Roadmap and session-log are always updated in the same commit.
 | Activity Feed | [FREE] | `/feed` page + API (undocumented) |
 | Route Planning (Multi-Sale) | [FREE] | `/api/routes` — OSRM-based (undocumented) |
 | Price History Tracking | [FREE] | `/api/price-history` — price changes over time (undocumented) |
+| City Heat Index | [FREE] | Item #49 — City-level "estate sale activity" score — weekly ranking of hottest metro areas. Content marketing magnet + SEO play. Powered by aggregated sale data. SHIPPED S187. |
+| Sale Ripples | [FREE] | Item #51 — Smart notification algorithm — "A sale just posted 2 miles from a sale you liked." Proximity + preference signals. Drives spontaneous visits. SHIPPED S187. |
 
 ### Shopper — Engagement & Community [FREE]
 
@@ -375,6 +359,9 @@ Roadmap and session-log are always updated in the same commit.
 | Condition Guide | [FREE] | `/condition-guide` — educational page |
 | FAQ / Guide / Terms / Privacy | [FREE] | Legal + help pages |
 | Pickup Booking (Schedule Pickup) | [FREE] | Shopper-side of item #24 (undocumented) |
+| Shopper Loyalty Passport | [FREE] | Item #29 — Gamified repeat-visit system — stamps, badges, early-access perks. Drives shopper retention. SHIPPED S187. |
+| Shopper Wishlist Alerts + Smart Follow | [FREE] | Item #32 — Shoppers set category/tag/organizer preferences → push alerts when matching items list. Foundational for shopper retention and intent data. SHIPPED S187. |
+| Digital Receipt + Returns | [FREE] | Item #62 — Auto-generate digital receipt with item photos + prices after every POS transaction. Push to shopper's app profile. Optional organizer-set return window (24h/48h/none). SHIPPED S187. |
 
 ### Shopper — Gamification [FREE + HUNT_PASS]
 
@@ -397,4 +384,5 @@ Roadmap and session-log are always updated in the same commit.
 | AI Condition Grade Suggestions | [SIMPLE] | S/A/B/C/D from photo |
 | AI SEO Description Optimization | [SIMPLE] | High-intent search term bias |
 | User Impact Scoring in Sentry | [Infrastructure] | Item #21 — correlates errors with user tier, points, hunt pass status; impact_level (HIGH/MEDIUM/LOW) for prioritization. Backend: sentryUserContext middleware enriches Sentry errors. Frontend: useSentryUserContext hook syncs context to browser Sentry. Wired globally (index.ts middleware + _app.tsx SentryUserContextSync component). No schema changes (S181) |
+| Shopper Referral Rewards | [FREE] | Item #7 — Referral tracking, rewards distribution, email notifications. SHIPPED S187. |
 | Shopper Referral Dashboard | [FREE] | `/referral-dashboard` — referral tracking (undocumented) |
