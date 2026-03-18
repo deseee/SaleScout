@@ -1,6 +1,6 @@
 # ROADMAP – FindA.Sale
 
-**Last Updated:** 2026-03-17 (v50 — Session 196: Full frontend wiring audit. All orphaned components mounted. Shopper nav complete. #22 built. Wave 5 Sprint 2 for #52 #71 shipped. #29 loyalty page built. Rate limiting on photo-ops.)
+**Last Updated:** 2026-03-18 (v51 — Session 197: Wave 5 Sprint 2 frontends shipped for #46 #54 #17 #69. Passkey bug fixed. P3 nav wired. All S187–S196 QA-PASS features promoted to Completed. TIER 1/2/3 pipeline cleaned.)
 **Previous:** 2026-03-13 (v27 — Session 157: Innovation Round 3. 30 new ideas across 10 creative lenses (casino/gambling, microtransactions, big box retail, mobile trends, international, progressive disclosure, GitHub/open source, Reddit/social, Zapier/automation, emerging). 11 rated BUILD → added to Phase 4 (#61–#71). 19 rated DEFER → added to Deferred. Total: 71 active features + 65 deferred items. Research: `claude_docs/research/innovation-round3-2026-03-13.md`.)
 **Status:** Production MVP live at finda.sale. Beta: GO. Full build history: `claude_docs/strategy/COMPLETED_PHASES.md`.
 
@@ -32,9 +32,12 @@
 10 scheduled tasks active: competitor monitoring, context refresh, context freshness check, UX spots, health scout (weekly), monthly digest, workflow retrospective, weekly Power User sweep, daily friction audit (Mon-Fri 8:30am), weekly pipeline briefing (Mon 9am). Managed by Cowork Power User + findasale-workflow + findasale-sales-ops agents.
 
 ### Upcoming Work Sessions
-- Continue QA sweep: `/neighborhoods/[slug]` (needs real slug from DB — 404 on test slug), Wave 5 Sprint 2 frontend builds (6 features), Waves 1–4 QA pass for remaining [QA-PENDING] features
-- P3 nav discoverability: trending, cities, neighborhood, activity feed, virtual queue, organizer digest, bounties, notification sidebar — none have obvious nav links from main dashboard
-- Wave 5 Sprint 2 frontend builds (6 features)
+- **Immediate:** Push `useOrganizerTier.ts` fix to unblock Vercel (see push block from S197 QA session)
+- Re-QA #19 Passkey end-to-end (register → login → redirect)
+- Build #60 Premium Tier Bundle Sprint 2 (billing + workspace management UX)
+- Wave 5 Sprint 3: #54 AI Appraisal (Stripe billing + Claude Haiku vision)
+- Open Stripe business account (test keys still in production — recurring)
+- Waves 2–4 smoke test remaining features with real beta data
 
 ### S194 QA Audit Results (2026-03-17)
 **Chrome-tested, confirmed working:**
@@ -81,60 +84,13 @@
 
 ### Next Up (Priority Order)
 
-**TIER 1 — BACKEND SHIPPED, FRONTEND PENDING (Sprint 2 In-Flight)**
+**TIER 1 — IN-PROGRESS / PARTIAL (Sprint work remaining)**
 | # | Feature | Tier | Notes |
 |---|---------|------|-------|
-| 46 | Treasure Typology Classifier | [PRO] | **S196 — Backend Sprint 1 ✅, QA-PASS S196. Frontend Sprint 2 pending.** Classifier service + API complete, tested. Awaiting tag suggestion UI + Collector Passport integration. |
-| 52 | Estate Sale Encyclopedia | [FREE] | **[QA-PASS ✅ S196 Sprint 2]** Full backend + migrations + Sprint 2 frontend UI (index.tsx, [slug].tsx, EncyclopediaCard.tsx, useEncyclopedia.ts) complete and tested. |
-| 54 | Crowdsourced Appraisal API | [PAID_ADDON] | **S196 — Tier gate fixed (PRO). Needs re-QA.** Full backend + migrations. Stripe integration wired. Awaiting frontend request form + Claude vision. |
-| 69 | Local-First Offline Mode | [PRO] | **S196 — Backend Sprint 1 ✅, QA-PASS S196. Frontend Sprint 2 pending.** sync.ts routes + service worker core complete, tested. Awaiting full offline catalog UI + conflict resolution UI. |
-| 71 | Organizer Reputation Score | [SIMPLE] | **[QA-PASS ✅ S196 Sprint 2]** Backend API endpoints + Sprint 2 frontend (reputation.tsx, useReputation.ts) complete and tested. Awaiting reputation dashboard + shopper rating submission form. |
-| 60 | Premium Tier Bundle | [PRO] | **S196 — Backend Sprint 1 ✅, QA-PARTIAL S196. Frontend Sprint 2 pending.** Schema/backend complete. Onboarding wizard + upgrade copy drafted. Awaiting full billing + workspace management UX (Sprint 2). |
+| 19 | Passkey / WebAuthn Support | [SIMPLE] | [QA-FIXED S196+S197] Backend fully fixed (challenge flow + JWT role). Frontend login wired. Needs end-to-end re-QA: register → login → redirect flow. |
+| 54 | Crowdsourced Appraisal AI | [PAID_ADDON] | Sprint 2 frontend built S197 (AI path placeholder only). Sprint 3 (Stripe billing + Claude Haiku vision integration) deferred. Base appraisal request/response flow complete. |
+| 60 | Premium Tier Bundle | [PRO] | [QA-PARTIAL S196] Sprint 1 backend + schema complete. Sprint 2 frontend not yet built — full billing + workspace management UX pending. |
 
-**TIER 2 — SHIPPED S190, QA REQUIRED (all backend complete, frontend wired)**
-| # | Feature | Tier | Session | Status |
-|---|---------|------|---------|--------|
-| 13 | TEAMS Workspace | [TEAMS] | S190 | [QA-PASS ✅ S195] Backend + workspace UI complete. Chrome-tested. |
-| 17 | Bid Bot Detector + Fraud Score | [PRO] | S190 | [QA-PASS ✅ S195] FraudBadge mounted on holds page S196. Chrome-tested. |
-| 19 | Passkey / WebAuthn Support | [SIMPLE] | S190 | [QA-FIXED S196] Frontend login UI added, backend blockers fixed. Needs re-QA end-to-end. |
-| 20 | Proactive Degradation Mode | [PRO] | S190 | [QA-PASS ✅ S195] DegradationBanner + middleware wired. Chrome-tested. |
-| 22 | Low-Bandwidth Mode (PWA) | [SIMPLE] | S196 | [QA-PASS ✅ S196] Full implementation built S196 (5 files), Network Information API + localStorage persistence + manual toggle. Tested. |
-| 30 | AI Item Valuation & Comparables | [PRO] | S190 | [QA-PASS ✅ S195] ValuationWidget wired to add-items page S196. Chrome-tested. |
-| 39 | Photo Op Stations | [PRO] | S190 | [QA-PASS ✅ S195] PhotoOpMarker on map wired. Chrome-tested. |
-| 40 | Sale Hubs | [PRO] | S190 | [QA-PASS ✅ S195] Hub pages + membership UI wired. Chrome-tested. |
-| 48 | Treasure Trail Route Builder | [FREE] | S190 | [QA-PASS ✅ S195] Trail pages + share token wired. Chrome-tested. |
-| 57 | Shiny / Rare Item Badges | [FREE] | S190 | [QA-PASS ✅ S195] RarityBadge wired. Chrome-tested. |
-| 58 | Achievement Badges | [FREE] | S190 | [QA-PASS ✅ S195] /shopper/achievements Chrome-tested. Dark mode fixed. Env var bug fixed (NEXT_PUBLIC_API_URL). |
-| 59 | Streak Rewards | [FREE] | S190 | [QA-PASS ✅ S195] Streak indicator wired to Layout. Chrome-tested. |
-
-**TIER 3 — SHIPPED S187–S189, QA REQUIRED**
-| # | Feature | Tier | Session | Status |
-|---|---------|------|---------|--------|
-| 7 | Shopper Referral Rewards | [FREE] | S187 | [QA-PASS ✅ S195] |
-| 14 | Real-Time Status Updates | [PRO] | S187 | [QA-PASS ✅ S196] REST + Socket.io both working, mounted on command-center S196. |
-| 16 | Verified Organizer Badge | [PRO] | S189 | [QA-PASS ✅ S195] VerifiedBadge mounted on sales detail + SaleCard S196. |
-| 18 | Post Performance Analytics | [PRO] | S187 | [QA-PASS ✅ S195] |
-| 25 | Organizer Item Library | [PRO] | S187 | [QA-PASS ✅ S195] Nav link added to dashboard S196. |
-| 29 | Shopper Loyalty Passport | [FREE] | S187 | [QA-PASS ✅ S195] Loyalty page built S196 — was missing. Nav link added to shopper Layout. |
-| 31 | Organizer Brand Kit | [PRO] | S187 | [QA-PASS ✅ S195] |
-| 32 | Shopper Wishlist Alerts | [FREE] | S187 | [QA-PASS ✅ S195] Nav link added to shopper Layout S196. |
-| 41 | Flip Report | [PRO] | S189 | [QA-PASS ✅ S195] Nav link added to dashboard S196. |
-| 42 | Voice-to-Tag | [PRO] | S187 | [QA-PASS ✅ S195] |
-| 45 | Collector Passport | [FREE] | S189 | [QA-PASS ✅ S195] Nav link added to shopper Layout S196. |
-| 47 | UGC Photo Tags | [FREE] | S189 | [QA-PASS ✅ S195] UGCPhotoGallery mounted on sale detail page S196. |
-| 49 | City Heat Index | [FREE] | S187 | [QA-PASS ✅ S195] |
-| 50 | Loot Log | [FREE] | S189 | [QA-PASS ✅ S195] Nav link added to shopper Layout S196. |
-| 51 | Sale Ripples | [FREE] | S187 | [QA-PASS ✅ S195] |
-| 55 | Seasonal Discovery Challenges | [FREE] | S189 | [QA-PASS ✅ S195] |
-| 62 | Digital Receipt + Returns | [FREE] | S187 | [QA-PASS ✅ S195] Nav link added to shopper Layout S196. |
-
-**ON DECK (Backend & Frontend Both Shipped, Minor Work Only)**
-| # | Feature | Tier | Session | Notes |
-|---|---------|------|---------|-------|
-| 15 | Shopper Referral Rewards expansion | [FREE] | S190 | Web Share API wired to ReferralWidget. Minor: ensure mobile testing. |
-| 65 | Organizer Mode Tiers | [PRO] | S177–S183 | [FULLY-COMPLETE] Full schema + billing + Progressive Disclosure UI. Ready for promotion once other features QA'd. |
-| 68 | Command Center Dashboard | [PRO] | S183 | [QA-PASS ✅ S195] Backend + frontend both complete. Full nav + widget. Chrome-tested. |
-| 70 | Live Sale Feed | [SIMPLE] | S185 | [FULLY-COMPLETE] Deployed. Already live on staging. |
 
 **BLOCKED**
 | # | Feature | Reason |
@@ -303,6 +259,8 @@ Roadmap and session-log are always updated in the same commit.
 | Organizer Digest Emails | [SIMPLE] | Weekly activity summaries (undocumented) |
 | Basic Organizer Profile | [SIMPLE] | businessName, phone, bio, website |
 | Organizer Public Profile Page | [SIMPLE] | `/organizers/[slug]` |
+| Password Reset Flow | [SIMPLE] | Phase 5 — email-based password recovery |
+| Refund Policy Configuration | [SIMPLE] | Phase 6 — per-organizer configurable refund window |
 | Pickup Scheduling | [SIMPLE] | Organizer slots + shopper booking (undocumented) |
 | Sale Waitlist | [SIMPLE] | Shopper join + organizer broadcast (undocumented) |
 | Flash Deals | [SIMPLE] | Time-limited price drops (undocumented) |
@@ -313,6 +271,9 @@ Roadmap and session-log are always updated in the same commit.
 | Organizer Referral (Fee Bypass) | [SIMPLE] | Item #11 — referralDiscountExpiry |
 | Tiers Backend Infrastructure | [SIMPLE] | `/api/tiers` — getMyTier, syncTier (undocumented) |
 | Organizer Mode Tiers (Simple/Pro/Teams) | [PRO] | Item #65 — Full tier infrastructure: SubscriptionTier enum (SIMPLE/PRO/TEAMS), tierGate.ts, requireTier middleware, Stripe billing (checkout, webhook, cancel), upgrade/subscription UI, Progressive Disclosure UI (SIMPLE sees 5-button surface, PRO/TEAMS see all features). Sprints 1+2 S177-S178, Sprint 3 S183. useOrganizerTier hook, AuthContext JWT tier extraction. |
+| Organizer Reputation Score | [SIMPLE] | Item #71 — 1-5 star public score, backend + full Sprint 2 frontend (reputation.tsx, useReputation.ts). QA-PASS S196. SHIPPED S191+S196. |
+| Low-Bandwidth Mode (PWA) | [SIMPLE] | Item #22 — Network Information API detection, localStorage persistence, manual toggle, SSR-safe. LowBandwidthContext, LowBandwidthBanner, useLowBandwidthInitializer, imageUrl.ts, shopper settings toggle. QA-PASS S196. SHIPPED S196. |
+| Passkey / WebAuthn Login | [SIMPLE] | Item #19 — SimpleWebAuthn backend (register/authenticate), challenge storage, Uint8Array type compat, JWT with role field, frontend login UI wired. QA-FIXED S196+S197. End-to-end re-QA pending. SHIPPED S190. |
 | A/B Testing Infrastructure | [SIMPLE] | Internal optimization tool (undocumented) |
 | Invites | [SIMPLE] | Invite-to-sale / invite-to-platform (undocumented) |
 | Disputes Management | [SIMPLE] | Trust & safety (undocumented) |
@@ -324,11 +285,18 @@ Roadmap and session-log are always updated in the same commit.
 | Seller Performance Dashboard | [PRO] | Per-sale analytics + insights |
 | Organizer Insights (Lifetime) | [PRO] | Cross-sale totals + benchmarking |
 | Batch Operations Toolkit | [PRO] | Item #8 — bulk price/status/category/tag/photo |
+| CSV Listing Import | [SIMPLE] | Phase 2 — bulk upload item lists from CSV file |
 | CSV / JSON / Text Listing Exports | [PRO] | Item #27 Sprint 2 — multi-format output |
 | Open Data Export (ZIP) | [PRO] | Item #66 — items/sales/purchases CSV |
 | Payout PDF Export | [PRO] | Financial reporting for tax/accounting |
+| Stripe Connect Setup | [PRO] | Phase 2 — organizer payout bank account linking + verification |
 | Organizer Item Library (Consignment Rack) | [PRO] | Item #25 — Upload once, reuse across sales. Cross-sale search, price history, sold vs. unsold analytics. SHIPPED S187. |
 | Voice-to-Tag | [PRO] | Item #42 — Organizer speaks item description during Rapidfire → AI transcribes + extracts tags automatically. Hands-free cataloging. SHIPPED S187. |
+| Post Performance Analytics | [PRO] | Item #18 — UTM tracking on social template downloads → organizer dashboard click reporting. QA-PASS S195. SHIPPED S187. |
+| Flip Report | [PRO] | Item #41 — Item resale potential scoring. Nav link wired S196. QA-PASS S195. SHIPPED S189. |
+| Bid Bot Detector + Fraud Score | [PRO] | Item #17 — FraudBadge on holds page, fraud-signals.tsx (useBidBot.ts), fraud score + signal review UI. QA-PASS S195+S197. SHIPPED S190. |
+| TEAMS Workspace | [TEAMS] | Item #13 — Multi-user workspace, role management, workspace.tsx. QA-PASS S195. SHIPPED S190. |
+| Command Center Dashboard | [PRO] | Item #68 — Per-sale widget dashboard with SaleStatusWidget. QA-PASS S195. SHIPPED S183. |
 
 ### Organizer — Marketing & Brand Amplification [SIMPLE/PRO mixed]
 
@@ -337,7 +305,7 @@ Roadmap and session-log are always updated in the same commit.
 | Social Templates (3 tones × 2 platforms) | [SIMPLE] | Item #27 Sprint 2 — Instagram/Facebook copy (brand-spreading) |
 | Cloudinary Watermark on Photo Exports | [SIMPLE] | Item #27 Sprint 2 — brand protection (brand-spreading) |
 | CSV/JSON Listing Exports (Listing Factory) | [SIMPLE] | Item #27 Sprint 2 — multi-platform sharing (brand-spreading) |
-| Brand Kit | [PRO] | Item #31 — colors, logo, socials (auto-propagates). SHIPPED S187 — QA pending. |
+| Brand Kit | [PRO] | Item #31 — colors, logo, socials (auto-propagates). QA-PASS S195. SHIPPED S187. |
 | Share Card Factory (OG Tags) | [SIMPLE] | Item #33 + #43 — branded social previews, dynamic OG images via Cloudinary |
 | Message Templates | [PRO] | Saved organizer reply templates (undocumented) |
 | Hype Meter | [SIMPLE] | Item #34 — real-time social proof |
@@ -350,10 +318,15 @@ Roadmap and session-log are always updated in the same commit.
 | Feature | Tier | Notes |
 |---------|------|-------|
 | Virtual Queue / Line Management | [SIMPLE] | Item #6 — start/call next/join line + SMS (undocumented). S176 decision: free for all organizers. |
+| Auction Mechanics | [SIMPLE] | Phase 12 — countdown timer, bid modal, auto-bid, cron job closing, item-level auction fees |
 | Sale Reminders (Calendar + Remind Me) | [SIMPLE] | Item #37 — sale alerts for shoppers |
 | Neighborhood Heatmap | [SIMPLE] | Item #28 — density-based Leaflet overlay |
-| Organizer Reputation Score | [SIMPLE] | Item #71 — 1-5 stars public display (backend deployed S191, frontend pending Sprint 2) |
-| Real-Time Status Updates | [PRO] | Item #14 — Organizer mobile widget, SMS/email alerts. SHIPPED S187 — QA pending. |
+| Real-Time Status Updates | [PRO] | Item #14 — Organizer mobile widget, SMS/email alerts, SaleStatusWidget mounted on command-center. REST + Socket.io. QA-PASS S196. SHIPPED S187. |
+| Proactive Degradation Mode | [PRO] | Item #20 — DegradationBanner + middleware. QA-PASS S195. SHIPPED S190. |
+| AI Item Valuation & Comparables | [PRO] | Item #30 — ValuationWidget (PRO-gated) wired to add-items page. QA-PASS S195. SHIPPED S190. |
+| Photo Op Stations | [PRO] | Item #39 — PhotoOpMarker on map. Rate-limited POST /photo-ops/:id/shares (10/hr). QA-PASS S195. SHIPPED S190. |
+| Sale Hubs | [PRO] | Item #40 — Hub pages + membership UI. QA-PASS S195. SHIPPED S190. |
+| Verified Organizer Badge | [PRO] | Item #16 — VerifiedBadge on sales detail + SaleCard. QA-PASS S195. SHIPPED S189. |
 
 ### Shopper — Discovery & Search [FREE]
 
@@ -367,6 +340,9 @@ Roadmap and session-log are always updated in the same commit.
 | Tag Browsing | [FREE] | `/tags/[slug]` ISR pages |
 | Surprise Me / Serendipity Search | [FREE] | `/surprise-me` — random item discovery |
 | Sale Calendar (Upcoming) | [FREE] | `/calendar` |
+| iCal / Calendar Export | [SIMPLE] | Phase 10 — download .ics file for sales + items |
+| QR Code Signs (Yard + Item Labels) | [SIMPLE] | Phase 10 — printable QR codes linking to sale/items |
+| QR Scan Analytics | [SIMPLE] | Phase 10 — tracking + insights on QR code scans |
 | Neighborhood Heatmap | [FREE] | Item #28 — visual density map |
 | City Pages | [FREE] | `/cities` + `/city/[slug]` — city-level browsing (undocumented) |
 | Neighborhood Pages | [FREE] | `/neighborhoods/[slug]` — local discovery (undocumented) |
@@ -391,6 +367,7 @@ Roadmap and session-log are always updated in the same commit.
 | Shopper Public Profiles | [FREE] | `/shoppers/[slug]` — collection showcase (undocumented) |
 | Favorites | [FREE] | Save items for later |
 | Notification Center | [FREE] | `/notifications` page |
+| Email + SMS Validation (Twilio) | [SIMPLE] | Phase 8 — phone number verification via SMS |
 | Unsubscribe / Preferences | [FREE] | `/unsubscribe` + `/api/unsubscribe` |
 | Weekly Treasure Digest (Email) | [FREE] | Item #36 — MailerLite Sunday 6pm |
 | Contact Organizer | [FREE] | Via messaging system |
@@ -401,6 +378,8 @@ Roadmap and session-log are always updated in the same commit.
 | Shopper Loyalty Passport | [FREE] | Item #29 — Gamified repeat-visit system — stamps, badges, early-access perks. Drives shopper retention. SHIPPED S187. |
 | Shopper Wishlist Alerts + Smart Follow | [FREE] | Item #32 — Shoppers set category/tag/organizer preferences → push alerts when matching items list. Foundational for shopper retention and intent data. SHIPPED S187. |
 | Digital Receipt + Returns | [FREE] | Item #62 — Auto-generate digital receipt with item photos + prices after every POS transaction. Push to shopper's app profile. Optional organizer-set return window (24h/48h/none). SHIPPED S187. |
+| Collector Passport | [FREE] | Item #45 — Specialty collection tracking (coins, books, vinyl etc.), collector profile, achievement path. Nav link wired S196. QA-PASS S195. SHIPPED S189. |
+| Loot Log | [FREE] | Item #50 — Personal purchase history with photos + prices. Nav link wired S196. QA-PASS S195. SHIPPED S189. |
 
 ### Shopper — Gamification [FREE + HUNT_PASS]
 
@@ -413,6 +392,22 @@ Roadmap and session-log are always updated in the same commit.
 | **Hunt Pass ($4.99/30 days)** | **[PAID_ADDON]** | **2× streak multiplier, 30-day recurring subscription, Stripe live billing (undocumented)** |
 | Near-Miss Nudges | [FREE] | Item #61 — variable-ratio casino-psychology nudges, 4 types, NudgeBar toast (S181) |
 | Unsubscribe-to-Snooze (MailerLite) | [SIMPLE] | Item #23 — intercepts MailerLite unsubscribe webhook, sets 30-day snooze via custom field instead of permanent removal. Backend: snoozeService (snooze/reactivate via MailerLite API), snoozeController (webhook + status/reactivate endpoints), snooze route (/api/snooze/webhook unauthenticated, /api/snooze/status + /api/snooze/reactivate authenticated). No schema changes; uses MailerLite custom fields only (S181). Patrick task: create snooze_until date field in MailerLite dashboard, point webhook to /api/snooze/webhook |
+| Streak Rewards | [FREE] | Item #59 — Visit/save/purchase daily streaks. Streak indicator wired to Layout. QA-PASS S195. SHIPPED S190. |
+| Achievement Badges | [FREE] | Item #58 — Shopper badge system, /shopper/achievements page. Env var bug fixed (NEXT_PUBLIC_API_URL). QA-PASS S195. SHIPPED S190. |
+| Shiny / Rare Item Badges | [FREE] | Item #57 — RarityBadge wired to item cards. QA-PASS S195. SHIPPED S190. |
+| Treasure Trail Route Builder | [FREE] | Item #48 — Trail pages + share token, multi-sale route building. QA-PASS S195. SHIPPED S190. |
+| Seasonal Discovery Challenges | [FREE] | Item #55 — Rotating discovery challenges by season/category. QA-PASS S195. SHIPPED S189. |
+
+### Wave 5 — Advanced Intelligence Features [PRO/FREE/PAID_ADDON]
+
+| Feature | Tier | Notes |
+|---------|------|-------|
+| Treasure Typology Classifier | [PRO] | Item #46 — AI item category classification service. useTypology.ts, TypologyBadge.tsx, typology.tsx (Sprint 2 frontend). Batch classify per-sale. QA-PASS S197. SHIPPED S191+S197. |
+| Estate Sale Encyclopedia | [FREE] | Item #52 — Wiki-style estate sale knowledge base. index.tsx, [slug].tsx, EncyclopediaCard.tsx, useEncyclopedia.ts (Sprint 2 frontend). QA-PASS S196. SHIPPED S191+S196. |
+| Crowdsourced Appraisal (Base) | [FREE] | Item #54 — Request/submit/vote on item appraisals. AppraisalResponseForm.tsx, appraisals.tsx, useAppraisal.ts (Sprint 2 frontend, AI path placeholder). QA-PASS S197. SHIPPED S191+S197. Note: AI-powered Sprint 3 (Haiku vision + Stripe billing) deferred. |
+| Local-First Offline Mode | [PRO] | Item #69 — Service worker sync queue, offline catalog, conflict resolution UI. useOfflineMode.ts, offline.tsx (Sprint 2 frontend). Sync via /sync/batch. QA-PASS S197. SHIPPED S191+S197. |
+| Live Sale Feed | [SIMPLE] | Item #70 — Real-time sale activity feed. Fully deployed. SHIPPED S185. |
+| UGC Photo Tags | [FREE] | Item #47 — Shopper-submitted item photos, moderation queue. UGCPhotoGallery mounted on sale detail S196. QA-PASS S195. SHIPPED S189. |
 
 ### Platform & AI [FREE/SIMPLE]
 
@@ -423,5 +418,4 @@ Roadmap and session-log are always updated in the same commit.
 | AI Condition Grade Suggestions | [SIMPLE] | S/A/B/C/D from photo |
 | AI SEO Description Optimization | [SIMPLE] | High-intent search term bias |
 | User Impact Scoring in Sentry | [Infrastructure] | Item #21 — correlates errors with user tier, points, hunt pass status; impact_level (HIGH/MEDIUM/LOW) for prioritization. Backend: sentryUserContext middleware enriches Sentry errors. Frontend: useSentryUserContext hook syncs context to browser Sentry. Wired globally (index.ts middleware + _app.tsx SentryUserContextSync component). No schema changes (S181) |
-| Shopper Referral Rewards | [FREE] | Item #7 — Referral tracking, rewards distribution, email notifications. SHIPPED S187. |
-| Shopper Referral Dashboard | [FREE] | `/referral-dashboard` — referral tracking (undocumented) |
+| Shopper Referral Rewards | [FREE] | Item #7 — Referral tracking, rewards distribution, email notifications, /referral-dashboard. QA-PASS S195. SHIPPED S187. |

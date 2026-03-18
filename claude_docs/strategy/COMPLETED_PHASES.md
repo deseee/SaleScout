@@ -67,16 +67,19 @@ Historical record of all completed work. Phases 1–13 + Sessions 1–41 in lega
 
 ---
 
-## Wave 5 – AI & Offline (S191)
+## Wave 5 – AI & Offline (S191–S197)
 
 | Feature | Item # | Sessions | Status |
 |---------|--------|----------|--------|
-| Treasure Typology Classifier | #46 | S191 | [BACKEND-ONLY] ML model classifies items into collector categories (Art Deco, MCM, Americana, etc.) from photos. TypologyCategory enum (11 categories), ItemTypology model, typologyService.ts (Haiku vision), typologyController.ts, routes/typology.ts. Migration: 20260317_add_item_typology. Sprint 2 (tag suggestions + Collector Passport UI) pending. |
-| Local-First Offline Mode | #69 | S191 | [BACKEND-ONLY] Full offline via service worker + IndexedDB. Catalog items, set prices, take photos with zero internet. Sync on reconnect. sw.js, offlineSync.ts, conflictResolver.ts, photoQueue.ts, useOfflineSync.ts, OfflineIndicator.tsx, SyncQueueModal.tsx. syncController.ts + routes/sync.ts (/api/sync/batch PRO-gated). _app.tsx + Layout.tsx wired. Sprint 2 (catalog + conflict UI) pending. |
-| Organizer Reputation Score | #71 | S191 | [BACKEND-ONLY] 1-5 stars from: response time, sale frequency, photo quality (AI), shopper ratings, dispute rate. OrganizerReputation model, reputationService.ts, reputationController.ts, /api/organizers/:id/reputation/simple + /recalculate. ReputationBadge.tsx wired to SaleCard + profile. Migration: 20260317003100_add_organizer_reputation. Sprint 2 (UI dashboard + shopper rating submission) pending. |
-| Estate Sale Encyclopedia | #52 | S191 | [BACKEND-ONLY] Crowdsourced knowledge base: item guides, era/style references, price benchmarks. 5 models: EncyclopediaEntry, EncyclopediaRevision, PriceBenchmark, EncyclopediaReference, EncyclopediaVote. encyclopediaService.ts, encyclopediaController.ts, routes/encyclopedia.ts. Migration: 20260317100000_add_encyclopedia. Sprint 2 (frontend) + Sprint 3 (submit/moderation/SEO) pending. |
-| Crowdsourced Appraisal API | #54 | S191 | [BACKEND-ONLY] Users submit photos → community + AI estimate value range. 6 models: AppraisalRequest, AppraisalPhoto, AppraisalResponse, AppraisalConsensus, AppraisalAIRequest, AppraisalDispute. appraisalService.ts, appraisalController.ts, routes/appraisals.ts. Migration: 20260317120000_add_appraisals. Sprint 2 (frontend) + Sprint 3 (Stripe + Claude vision) pending. |
-| Premium Tier Bundle | #60 | S191 | [BACKEND-ONLY] TeamsOnboardingWizard.tsx (3-step: name → invite → permissions). upgrade.tsx updated with PRO bundle marketing. teamsOnboardingComplete field added to User. Migration: 20260317110000_add_teams_onboarding_complete. Sprint 2 (full billing + workspace management) pending. |
+| Treasure Typology Classifier | #46 | S191–S197 | [SPRINT-2-COMPLETE ✅ S197] Backend + Sprint 2 frontend (tag suggestions, TypologyBadge, typology.tsx page). Batch classify per-sale. QA-PASS S197. |
+| Local-First Offline Mode | #69 | S191–S197 | [SPRINT-2-COMPLETE ✅ S197] Full offline via service worker + IndexedDB. Sprint 2 frontend: offline.tsx, OfflineIndicator, SyncQueueModal, conflict resolution UI. QA-PASS S197. |
+| Organizer Reputation Score | #71 | S191–S196 | [SPRINT-2-COMPLETE ✅ S196] Backend + Sprint 2 frontend (reputation.tsx, useReputation.ts, dashboard + shopper rating submission UI). QA-PASS S196. |
+| Estate Sale Encyclopedia | #52 | S191–S196 | [SPRINT-2-COMPLETE ✅ S196] Backend + Sprint 2 frontend (index.tsx, [slug].tsx, EncyclopediaCard, useEncyclopedia.ts). QA-PASS S196. |
+| Crowdsourced Appraisal (Base) | #54 | S191–S197 | [SPRINT-2-COMPLETE ✅ S197] Backend + Sprint 2 frontend (AppraisalResponseForm, appraisals.tsx, useAppraisal.ts). AI-powered Sprint 3 (Haiku vision + Stripe billing) deferred. QA-PASS S197. |
+| Premium Tier Bundle | #60 | S191 | [BACKEND-ONLY] Backend + Sprint 1 complete. Sprint 2 (full billing + workspace management UX) not yet built. |
+| Bid Bot Detector | #17 | S190–S197 | Sprint 2 frontend (fraud-signals.tsx + useBidBot.ts) shipped S197. QA-PASS S195+S197. |
+| Low-Bandwidth Mode | #22 | S190–S196 | [COMPLETE ✅ S196] Full reimplementation (replaced S190 stub) — Network Information API, imageUrl.ts adaptive quality, LowBandwidthContext, LowBandwidthBanner. QA-PASS S196. |
+| Passkey / WebAuthn | #19 | S190–S197 | [QA-FIXED S197] Backend + frontend login UI wired. Backend + frontend fixed, end-to-end re-QA pending (register → login → redirect flow). |
 
 ---
 
@@ -104,4 +107,4 @@ Historical record of all completed work. Phases 1–13 + Sessions 1–41 in lega
 
 ---
 
-Last Updated: 2026-03-17 (Session 191)
+Last Updated: 2026-03-18 (Session 197)
