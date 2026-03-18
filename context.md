@@ -1,5 +1,5 @@
 # Dynamic Project Context
-*Generated at 2026-03-17T23:21:11.109Z*
+*Generated at 2026-03-18T01:03:27.696Z*
 *Run `node scripts/update-context.js` on Windows to refresh.*
 
 ## Last Session
@@ -17,11 +17,11 @@ See report for details.
 ## Signals
 ⚠ Env drift — in .env.example but missing from .env: MAILERLITE_API_KEY, DEFAULT_CITY, DEFAULT_STATE, DEFAULT_STATE_ABBREV, DEFAULT_LAT, DEFAULT_LNG, DEFAULT_RADIUS_MILES, DEFAULT_COUNTY, DEFAULT_TIMEZONE
 ⚠ 6+ TODO/FIXME markers in source (showing up to 5):
-  /sessions/bold-dazzling-cori/mnt/FindaSale/packages/backend/src/controllers/appraisalController.ts:38:    // TODO: Add PAID_ADDON check if billing is wired
-  /sessions/bold-dazzling-cori/mnt/FindaSale/packages/backend/src/controllers/heatmapController.ts:26:    // TODO: Validate lat/lng/zoom bounds if needed in Phase 2
-  /sessions/bold-dazzling-cori/mnt/FindaSale/packages/backend/src/controllers/itemController.ts:1026:        description: null, // TODO: Add description to schema if needed
-  /sessions/bold-dazzling-cori/mnt/FindaSale/packages/backend/src/routes/items.ts:25:// TODO: Once shared is properly set up as a workspace dep with path aliases, import from '@findasale/shared'
-  /sessions/bold-dazzling-cori/mnt/FindaSale/packages/backend/src/services/snoozeService.ts:96:  // TODO: Query Prisma for a snooze audit table (if implemented) to find expired snoozed subscribers
+  /sessions/focused-cool-brahmagupta/mnt/FindaSale/packages/backend/src/controllers/appraisalController.ts:38:    // TODO: Add PAID_ADDON check if billing is wired
+  /sessions/focused-cool-brahmagupta/mnt/FindaSale/packages/backend/src/controllers/heatmapController.ts:26:    // TODO: Validate lat/lng/zoom bounds if needed in Phase 2
+  /sessions/focused-cool-brahmagupta/mnt/FindaSale/packages/backend/src/controllers/itemController.ts:1026:        description: null, // TODO: Add description to schema if needed
+  /sessions/focused-cool-brahmagupta/mnt/FindaSale/packages/backend/src/routes/items.ts:25:// TODO: Once shared is properly set up as a workspace dep with path aliases, import from '@findasale/shared'
+  /sessions/focused-cool-brahmagupta/mnt/FindaSale/packages/backend/src/services/snoozeService.ts:96:  // TODO: Query Prisma for a snooze audit table (if implemented) to find expired snoozed subscribers
 
 ## Project File Tree
 ```
@@ -1067,7 +1067,7 @@ See report for details.
 │   │   └── PUSH_COORDINATOR_IMPLEMENTATION_NOTES.md
 │   ├── feature-notes/ (18 files)
 │   ├── guides/ (0 files)
-│   ├── health-reports/ (4 files)
+│   ├── health-reports/ (5 files)
 │   ├── improvement-memos/ (1 files)
 │   ├── logs/ (2 files)
 │   ├── marketing/

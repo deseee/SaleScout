@@ -119,3 +119,38 @@ appears, apply the fix directly without investigation.
 10. Batch fixes by file grouping (≤3 files per MCP push) and push to GitHub
 **Edge Cases:** `tsc --skipLibCheck` locally does NOT catch these errors — Next.js plugin + module resolution differ. Only Vercel build output is authoritative.
 **Confidence:** 100%
+
+---
+
+## Pattern 8: Wrong Env Var in Frontend Hook (Production 404)
+
+**Trigger:** A frontend page or hook returns "failed to load" in production only. Network tab shows request going to `localhost:3001` or `localhost:5000` instead of production API.
+**Environment:** Vercel (Next.js production), any frontend hook that makes API calls
+**Pattern:** Hook file uses `process.env.NEXT_PUBLIC_API_BASE_URL` instead of `process.env.NEXT_PUBLIC_API_URL`. Only `NEXT_PUBLIC_API_URL` is set in Vercel. `NEXT_PUBLIC_API_BASE_URL` has no Vercel env var → undefined → falls back to hardcoded localhost.
+**Known instances:** S194 — `packages/frontend/hooks/useAchievements.ts` line 4; likely affects any hook added without cross-checking Vercel env var names.
+**Steps:**
+1. Check the failing hook's API base URL constant: `grep -n "API_BASE_URL\|localhost" packages/frontend/hooks/[hook].ts`
+2. Replace `NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api'` with `NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'`
+3. Push fix. Vercel redeploys automatically.
+4. Verify Vercel has `NEXT_PUBLIC_API_URL` set: Settings → Environment Variables
+**Edge Cases:** `localhost:3001` → old port; correct fallback is `localhost:5000`. Both are wrong in production — only matters for local dev.
+**Test Command:** Check Network tab in production Chrome DevTools — look for requests to localhost domains.
+**Confidence:** 100%
+
+---
+
+## Pattern 9: Prisma Controller Uses Wrong Field Name (TypeScript Build Failure)
+
+**Trigger:** Railway fails to build with `TS2353: Object literal may only specify known properties, and '[fieldName]' does not exist in type '[ModelName]WhereInput'`
+**Environment:** Railway (backend build), any controller that queries a Prisma model
+**Pattern:** AI-generated or copy-pasted controller uses a field name that doesn't match the actual Prisma schema. Common: `location` used instead of `city` on the `Sale` model, or fields from a related model used directly.
+**Known instances:** S194 — `getSalesByCity` used `location: { contains: citySlug }` in both `findMany` WHERE and `count` WHERE. `Sale` model has `city` field, not `location`. Railway build failed with TS2353.
+**Steps:**
+1. Read the failing model schema: `grep -A5 "model Sale" packages/database/prisma/schema.prisma`
+2. Find all uses of the wrong field in the controller: `grep -n "location" packages/backend/src/controllers/saleController.ts`
+3. Replace with the correct field name: `sed -i 's/location: { contains: citySlug/city: { contains: citySlug/g' [file]`
+4. Verify both WHERE clauses are fixed (findMany + count often both have the same error)
+5. Push fix — Railway rebuilds automatically
+**Edge Cases:** The error fires at build time, not runtime — always caught before code reaches users. Railway will loop on the error until a fix is pushed.
+**Test Command:** `tsc --noEmit` in `packages/backend` (catches most field name errors)
+**Confidence:** 100%

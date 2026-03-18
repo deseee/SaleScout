@@ -7,6 +7,32 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Active Objective
 
+**Session 194 COMPLETE (2026-03-17) — COMPREHENSIVE QA AUDIT + 13 BUG FIXES SHIPPED:**
+- **QA scope:** Chrome-tested all shipped features from Waves 2–5. 11 pages verified passing. 1 still needs testing (neighborhoods slug).
+- **Bugs fixed (all live on Railway + Vercel):**
+  - Onboarding modal blocking dashboard → JWT `onboardingComplete` flag added to AuthContext + new `POST /organizers/me/onboarding-complete` endpoint
+  - `useAchievements.ts` wrong env var `NEXT_PUBLIC_API_BASE_URL` → `NEXT_PUBLIC_API_URL`
+  - Missing backend route `GET /sales/city/:city` → added controller + route
+  - `getSalesByCity` used nonexistent `location` field → corrected to `city`
+  - City slug display bug `grand-rapids` → `Grand Rapids` (split/capitalize)
+  - Dark mode missing on 7 pages: trending, achievements, disputes, bounties, message-templates, line-queue, city
+  - Bounties dropdown wrong API endpoint `/organizer/sales` → `/sales/mine`
+  - TEAMS nav link absent from Layout.tsx → added conditional for TEAMS-tier users
+  - `.checkpoint-manifest.json` git-tracked → added to `.gitignore` + git rm --cached
+- **Feature QA-PASS:** #58 Achievement Badges confirmed working ✅
+- **Both platforms green:** Railway ✅ Vercel ✅
+- **Last Updated:** 2026-03-17 (session 194)
+
+**Pending — Patrick action items (S194):**
+- [ ] Continue QA: `/neighborhoods/[slug]` (needs real slug from DB)
+- [ ] QA Wave 5 Sprint 1 features (#46 #52 #54 #60 #69 #71 — backend smoke tests)
+- [ ] QA remaining Wave 2–4 QA-PENDING features (30+)
+- [ ] Wave 5 Sprint 2 frontend builds (6 features)
+- [ ] P3 nav discoverability gaps (trending/cities/neighborhood/activity-feed/bounties etc. lack nav links)
+- [ ] Open Stripe business account (test keys still in production — recurring)
+
+---
+
 **Sessions 192+193 COMPLETE (2026-03-17) — VERCEL BUILD RECOVERY: ALL S192 TYPESCRIPT ERRORS CLEARED:**
 - **Root cause:** S192 shipped new frontend pages referencing non-existent modules, wrong auth patterns, and SSR-unsafe code
 - **Errors fixed (8 MCP commits to main):**

@@ -1,6 +1,6 @@
 # ROADMAP – FindA.Sale
 
-**Last Updated:** 2026-03-17 (v47 — Session 191: Wave 5 build — 6 features shipped (#71 Reputation Score, #60 Premium Tier Bundle, #52 Encyclopedia, #54 Appraisal API, #46 Typology Classifier, #69 Offline Mode). All Sprint 1 complete. Session 190: Wave 4 — 13 features shipped. All QA pending.)
+**Last Updated:** 2026-03-17 (v48 — Session 194: Comprehensive QA audit + 13 bug fixes shipped. Chrome-tested all shipped features. Dark mode fixed across 7 pages. Onboarding modal blocker fixed. Missing city route added. Wrong env var on achievements fixed. Bounties API fixed. TEAMS nav wired. All fixes live on Railway + Vercel.)
 **Previous:** 2026-03-13 (v27 — Session 157: Innovation Round 3. 30 new ideas across 10 creative lenses (casino/gambling, microtransactions, big box retail, mobile trends, international, progressive disclosure, GitHub/open source, Reddit/social, Zapier/automation, emerging). 11 rated BUILD → added to Phase 4 (#61–#71). 19 rated DEFER → added to Deferred. Total: 71 active features + 65 deferred items. Research: `claude_docs/research/innovation-round3-2026-03-13.md`.)
 **Status:** Production MVP live at finda.sale. Beta: GO. Full build history: `claude_docs/strategy/COMPLETED_PHASES.md`.
 
@@ -32,8 +32,39 @@
 10 scheduled tasks active: competitor monitoring, context refresh, context freshness check, UX spots, health scout (weekly), monthly digest, workflow retrospective, weekly Power User sweep, daily friction audit (Mon-Fri 8:30am), weekly pipeline briefing (Mon 9am). Managed by Cowork Power User + findasale-workflow + findasale-sales-ops agents.
 
 ### Upcoming Work Sessions
-Compare roadmap, state, completed_phases
-QA features that are newely shipped or identifed as never being qa'd before
+- Continue QA sweep: `/neighborhoods/[slug]` (needs real slug from DB — 404 on test slug), Wave 5 Sprint 1 QA (#46 #52 #54 #60 #69 #71 — backend only, smoke test API routes), Waves 2–4 QA pass for remaining [QA-PENDING] features
+- P3 nav discoverability: trending, cities, neighborhood, activity feed, virtual queue, organizer digest, bounties, notification sidebar — none have obvious nav links from main dashboard
+- Wave 5 Sprint 2 frontend builds (6 features)
+
+### S194 QA Audit Results (2026-03-17)
+**Chrome-tested, confirmed working:**
+- `/trending` ✅ (dark mode fixed)
+- `/feed` (activity feed) ✅
+- `/cities` ✅
+- `/city/grand-rapids` ✅ (backend route added, slug display fixed, dark mode fixed)
+- `/organizer/bounties` ✅ (API endpoint fixed, dark mode fixed)
+- `/organizer/message-templates` ✅ (dark mode fixed)
+- `/organizer/email-digest-preview` ✅ (excellent — real data, professional template)
+- `/organizer/workspace` ✅ TEAMS gate working, dark mode ✅
+- `/shopper/achievements` ✅ (wrong env var fixed)
+- `/shopper/disputes` ✅ (dark mode fixed)
+- `/organizer/line-queue/[id]` ✅ (dark mode fixed)
+
+**Still needs testing:**
+- `/neighborhoods/[slug]` — 404 (needs real slug from DB)
+- Wave 5 Sprint 1 API smoke tests (#46 #52 #54 #60 #69 #71)
+- Waves 2–4 QA-PENDING features (30+)
+
+**Bugs fixed this session (all live):**
+1. Onboarding modal blocking entire dashboard (JWT `onboardingComplete` flag added; `POST /organizers/me/onboarding-complete` endpoint)
+2. `useAchievements.ts` wrong env var (`NEXT_PUBLIC_API_BASE_URL` → `NEXT_PUBLIC_API_URL`)
+3. `/sales/city/:city` route missing from backend (added controller + route)
+4. `saleController.getSalesByCity` used `location` field (doesn't exist) → fixed to `city`
+5. City slug humanization bug (`grand-rapids` → `Grand Rapids`)
+6. Dark mode missing on 7 pages: trending, achievements, disputes, bounties, message-templates, line-queue, (+ city page)
+7. Bounties dropdown wrong API endpoint (`/organizer/sales` → `/sales/mine`)
+8. TEAMS nav link missing from Layout.tsx (added for TEAMS-tier users)
+9. `.checkpoint-manifest.json` git-tracked → added to `.gitignore`
 
 ### Design Decisions (Locked Session 155)
 - **Holds expiry:** 48 hours default, configurable per-sale in organizer settings. Nightly cron cleanup.
@@ -73,7 +104,7 @@ QA features that are newely shipped or identifed as never being qa'd before
 | 40 | Sale Hubs | [PRO] | S190 | [QA-PENDING] Hub pages + membership UI wired. Needs QA pass. |
 | 48 | Treasure Trail Route Builder | [FREE] | S190 | [QA-PENDING] Trail pages + share token wired. Needs QA pass. |
 | 57 | Shiny / Rare Item Badges | [FREE] | S190 | [QA-PENDING] RarityBadge wired. Needs QA pass. |
-| 58 | Achievement Badges | [FREE] | S190 | [QA-PENDING] /shopper/achievements page + trigger logic wired. Needs QA pass. |
+| 58 | Achievement Badges | [FREE] | S190 | [QA-PASS ✅ S194] /shopper/achievements Chrome-tested. Dark mode fixed. Env var bug fixed (NEXT_PUBLIC_API_URL). |
 | 59 | Streak Rewards | [FREE] | S190 | [QA-PENDING] Streak indicator wired to Layout. Needs QA pass. |
 
 **TIER 3 — SHIPPED S187–S189, QA REQUIRED**

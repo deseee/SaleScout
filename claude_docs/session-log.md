@@ -2,6 +2,23 @@
 
 ## Recent Sessions
 
+### 2026-03-17 · Session 194
+
+**Comprehensive QA Audit + 13 Bug Fixes**
+
+**Worked on:** Full Chrome QA sweep of all shipped features (Waves 2–5). Identified and fixed 13 bugs: onboarding modal blocking dashboard on every page (added JWT `onboardingComplete` flag to AuthContext, added `POST /organizers/me/onboarding-complete` backend endpoint); achievements page returning 404 in production due to wrong env var `NEXT_PUBLIC_API_BASE_URL` (no-op in Vercel) fixed to `NEXT_PUBLIC_API_URL`; `/city/[city]` page broken because backend route `GET /sales/city/:city` didn't exist (added full controller + route, fixed TypeScript field error `location` → `city`); city slug display bug; dark mode missing on 7 pages (trending, achievements, disputes, bounties, message-templates, line-queue, city); bounties dropdown calling wrong API endpoint; TEAMS nav link missing from Layout.tsx; `.checkpoint-manifest.json` incorrectly git-tracked. All fixes live. Railway + Vercel both green.
+
+**Decisions:**
+- `onboardingComplete` flag lives in JWT (DB-backed, not localStorage) — this is the canonical pattern for persistent onboarding state
+- Prisma `Sale` model uses `city` field, not `location` — do not use `location` in Sale queries
+- Dark mode pattern: organizer-layout pages apply correctly; public/shopper pages need `dark:` Tailwind variants added manually
+
+**Next up:** Neighborhoods slug test (need real slug from DB), Wave 5 Sprint 1 API smoke tests, remaining Waves 2–4 QA-PENDING features (30+), Wave 5 Sprint 2 frontend builds, P3 nav discoverability fixes
+
+**Blockers:** None — both platforms green
+
+---
+
 ### 2026-03-17 · Sessions 192+193
 
 **Vercel Build Recovery — S192 TypeScript Sweep Aftermath**
