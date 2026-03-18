@@ -16,6 +16,24 @@ Keep only the 5 most recent sessions. Delete older entries — git history and S
 
 ## Recent Sessions
 
+## Session 197 — 2026-03-18 — Wave 5 Sprint 2 Frontends (4 features) + P3 Nav + Workflow Fixes
+
+**Worked on:** (1) Passkey registerBegin bug fix — challenge stored before options generated, so browser received mismatched challenge. Fixed: generate challenge after `generateRegistrationOptions()`, override `options.challenge` before response. (2) Wave 5 Sprint 2 frontends for 4 features: #46 Typology Classifier (useTypology.ts, TypologyBadge.tsx, typology.tsx), #54 Appraisal API (useAppraisal.ts, AppraisalResponseForm.tsx, appraisals.tsx — AI path placeholder), #17 Bid Bot Detector (useBidBot.ts, fraud-signals.tsx), #69 Offline Mode (useOfflineMode.ts, offline.tsx). (3) P3 nav discoverability pass — Layout.tsx + dashboard.tsx wired for 8+ hidden organizer features. (4) Workflow fixes — CORE.md §2.1 post-compaction re-init rule; findasale-dev SKILL.md renamed "Context Checkpoint" to "Context-Maintenance Triggered"; retrospective doc written.
+
+**Decisions:** #54 AI appraisal path deferred to Sprint 3 (Stripe + Claude Haiku not in backend yet); frontend shows "Coming Soon" placeholder. UGC routes already wired in backend — no changes needed. Context Checkpoint ≠ system autocompaction — they are independent mechanisms; renamed field to prevent future confusion.
+
+**Token efficiency:** 5 parallel Agent dispatches across session. Medium token burn. One autocompaction mid-session; post-compaction init was incomplete (addressed with CORE.md §2.1 fix).
+
+**Token burn:** ~200k tokens (est.), 1 autocompaction.
+
+**Next up:** Build #60 Premium Tier Bundle Sprint 2 frontend. QA Wave 5 Sprint 2 features after push. Patrick push via `.\push.ps1` required for 11+ files.
+
+**Blockers:** Patrick must push S197 changes before QA can run. #54 AI appraisal needs Sprint 3 backend work (Stripe + Claude Haiku).
+
+**Files changed:** packages/backend/src/controllers/passkeyController.ts (MODIFIED — registerBegin challenge fix), packages/frontend/hooks/useTypology.ts (NEW), packages/frontend/hooks/useAppraisal.ts (NEW), packages/frontend/hooks/useBidBot.ts (NEW), packages/frontend/hooks/useOfflineMode.ts (NEW), packages/frontend/components/TypologyBadge.tsx (NEW), packages/frontend/components/AppraisalResponseForm.tsx (NEW), packages/frontend/pages/organizer/typology.tsx (NEW), packages/frontend/pages/organizer/appraisals.tsx (NEW), packages/frontend/pages/organizer/fraud-signals.tsx (NEW), packages/frontend/pages/organizer/offline.tsx (NEW), packages/frontend/components/Layout.tsx (MODIFIED — 8+ nav links), packages/frontend/pages/organizer/dashboard.tsx (MODIFIED — quick links), claude_docs/CORE.md (MODIFIED — §2.1), claude_docs/skills-package/findasale-dev/SKILL.md (MODIFIED — field rename), claude_docs/workflow-retrospectives/2026-03-18-autocompact-checkpoint-confusion.md (NEW) | Compressions: 1 | Subagents: 6 Agent dispatches | Push method: Patrick PS1
+
+---
+
 ## Session 196 — 2026-03-17 — Full Frontend Wiring Audit + Bug Fixes + #22 Low-Bandwidth Build + Rate Limiting
 
 **Worked on:** (1) Bugs fixed — `#54 Appraisal API` tier gate from invalid enum `PAID_ADDON` to `PRO`; `#19 Passkey auth` backend blockers: `authenticateComplete` not calling `getAndValidateChallenge()` (challenges never retrieved) and JWT missing `role` field. Railway build unblocked. (2) #22 Low-Bandwidth Mode full implementation (5 new files): `LowBandwidthContext.tsx`, `LowBandwidthBanner.tsx`, `useLowBandwidthInitializer.ts`, `lib/imageUrl.ts`, `_app.tsx` updated with Network Information API detection, localStorage persistence, manual toggle, SSR-safe. QA PASS on first build. (3) Wave 5 Sprint 2 frontends for #52 Encyclopedia and #71 Reputation Score. (4) Built #29 Loyalty Passport page (shopper/loyalty.tsx) — was orphaned, no page at all in S195. Built shopper/settings.tsx with Low-Bandwidth toggle. (5) Rate limiting middleware: `rateLimiter.ts` + gated `POST /photo-ops/:stationId/shares` (10/hr), `POST /shares/:shareId/like` (30/15min). (6) Full frontend wiring audit — discovered orphaned/unmounted components across organizer and shopper surfaces. All fixed: organizer dashboard now links #25 #41 #71; command-center mounts SaleStatusWidget (#14); sales detail adds VerifiedBadge (#16) + UGCPhotoGallery (#47); add-items wires ValuationWidget (#30); holds page adds FraudBadge (#17). Shopper Layout.tsx now links all 6 hidden pages (#32 #45 #48 #50 #62 #29); shopper/dashboard adds quick-links grid.

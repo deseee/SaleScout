@@ -32,6 +32,12 @@ Every session, before any work:
 Skip re-loading on subsequent turns if context was already loaded this session.
 First message of any session always triggers init (conversation-defaults Rule 3).
 
+**§2.1: Post-Compression Re-Init**
+After any autocompaction event (detected by resume message or context summarization),
+immediately re-run ALL five init steps above before resuming work. Autocompaction is a
+session boundary — treat it the same as a new session start. Do not skip steps 3–5.
+Log: "[POST-COMPRESS-INIT] Completed steps 1–5 at turn N."
+
 ---
 
 ## 3. Execution Rules

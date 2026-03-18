@@ -1,5 +1,5 @@
 # Dynamic Project Context
-*Generated at 2026-03-18T01:03:27.696Z*
+*Generated at 2026-03-18T13:43:26.297Z*
 *Run `node scripts/update-context.js` on Windows to refresh.*
 
 ## Last Session
@@ -16,12 +16,12 @@ See report for details.
 
 ## Signals
 ⚠ Env drift — in .env.example but missing from .env: MAILERLITE_API_KEY, DEFAULT_CITY, DEFAULT_STATE, DEFAULT_STATE_ABBREV, DEFAULT_LAT, DEFAULT_LNG, DEFAULT_RADIUS_MILES, DEFAULT_COUNTY, DEFAULT_TIMEZONE
-⚠ 6+ TODO/FIXME markers in source (showing up to 5):
-  /sessions/focused-cool-brahmagupta/mnt/FindaSale/packages/backend/src/controllers/appraisalController.ts:38:    // TODO: Add PAID_ADDON check if billing is wired
-  /sessions/focused-cool-brahmagupta/mnt/FindaSale/packages/backend/src/controllers/heatmapController.ts:26:    // TODO: Validate lat/lng/zoom bounds if needed in Phase 2
-  /sessions/focused-cool-brahmagupta/mnt/FindaSale/packages/backend/src/controllers/itemController.ts:1026:        description: null, // TODO: Add description to schema if needed
-  /sessions/focused-cool-brahmagupta/mnt/FindaSale/packages/backend/src/routes/items.ts:25:// TODO: Once shared is properly set up as a workspace dep with path aliases, import from '@findasale/shared'
-  /sessions/focused-cool-brahmagupta/mnt/FindaSale/packages/backend/src/services/snoozeService.ts:96:  // TODO: Query Prisma for a snooze audit table (if implemented) to find expired snoozed subscribers
+⚠ 8+ TODO/FIXME markers in source (showing up to 5):
+  /sessions/jolly-funny-lovelace/mnt/FindaSale/packages/backend/src/controllers/appraisalController.ts:38:    // TODO: Add PAID_ADDON check if billing is wired
+  /sessions/jolly-funny-lovelace/mnt/FindaSale/packages/backend/src/controllers/heatmapController.ts:26:    // TODO: Validate lat/lng/zoom bounds if needed in Phase 2
+  /sessions/jolly-funny-lovelace/mnt/FindaSale/packages/backend/src/controllers/itemController.ts:1026:        description: null, // TODO: Add description to schema if needed
+  /sessions/jolly-funny-lovelace/mnt/FindaSale/packages/backend/src/routes/items.ts:25:// TODO: Once shared is properly set up as a workspace dep with path aliases, import from '@findasale/shared'
+  /sessions/jolly-funny-lovelace/mnt/FindaSale/packages/backend/src/services/snoozeService.ts:96:  // TODO: Query Prisma for a snooze audit table (if implemented) to find expired snoozed subscribers
 
 ## Project File Tree
 ```
@@ -1067,12 +1067,14 @@ See report for details.
 │   │   └── PUSH_COORDINATOR_IMPLEMENTATION_NOTES.md
 │   ├── feature-notes/ (18 files)
 │   ├── guides/ (0 files)
-│   ├── health-reports/ (5 files)
+│   ├── health-reports/ (6 files)
 │   ├── improvement-memos/ (1 files)
 │   ├── logs/ (2 files)
 │   ├── marketing/
 │   │   └── content-pipeline/
 │   │       └── content-2026-03-16.md
+│   ├── monthly-digests/
+│   │   └── 2026-03.md
 │   ├── next-session-brief.md
 │   ├── next-session-prompt.md
 │   ├── operations/ (43 files)
@@ -1088,7 +1090,7 @@ See report for details.
 │   ├── ux-spotchecks/
 │   │   ├── PROMOTE_PAGE_UX_SPEC.md
 │   │   └── add-items-ux-audit-2026-03-15.md
-│   └── workflow-retrospectives/ (2 files)
+│   └── workflow-retrospectives/ (3 files)
 ├── conversation-defaults-SKILL.md
 ├── next
 ├── package-lock.json
@@ -1120,7 +1122,7 @@ See report for details.
 │   │   │   ├── instrument.ts
 │   │   │   ├── jobs/ (13 files)
 │   │   │   ├── lib/ (7 files)
-│   │   │   ├── middleware/ (5 files)
+│   │   │   ├── middleware/ (6 files)
 │   │   │   ├── models/ (1 files)
 │   │   │   ├── routes/ (94 files)
 │   │   │   ├── services/ (48 files)
@@ -1146,16 +1148,16 @@ See report for details.
 │   │   ├── CLAUDE.md
 │   │   ├── Dockerfile
 │   │   ├── FEATURE_33_OG_META_WIRING.md
-│   │   ├── components/ (146 files)
+│   │   ├── components/ (150 files)
 │   │   ├── context/ (1 files)
-│   │   ├── contexts/ (2 files)
-│   │   ├── hooks/ (37 files)
-│   │   ├── lib/ (8 files)
+│   │   ├── contexts/ (3 files)
+│   │   ├── hooks/ (45 files)
+│   │   ├── lib/ (9 files)
 │   │   ├── next-env.d.ts
 │   │   ├── next-sitemap.config.js
 │   │   ├── next.config.js
 │   │   ├── package.json
-│   │   ├── pages/ (52 files)
+│   │   ├── pages/ (53 files)
 │   │   ├── postcss.config.js
 │   │   ├── public/ (14 files)
 │   │   ├── sentry.client.config.ts

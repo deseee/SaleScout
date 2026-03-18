@@ -7,6 +7,36 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Active Objective
 
+**Session 197 COMPLETE (2026-03-18) — WAVE 5 SPRINT 2 FRONTENDS + P3 NAV + WORKFLOW FIXES:**
+
+**Sprint 2 frontends built (4 features):**
+- `#46 Treasure Typology Classifier` — `useTypology.ts`, `TypologyBadge.tsx`, `typology.tsx`, Layout.tsx nav ✅
+- `#54 Crowdsourced Appraisal API` — `useAppraisal.ts`, `AppraisalResponseForm.tsx`, `appraisals.tsx`, Layout.tsx nav ✅ (AI path placeholder only — Sprint 3 async)
+- `#17 Bid Bot Detector` — `useBidBot.ts`, `fraud-signals.tsx`, Layout.tsx nav ✅
+- `#69 Local-First Offline Mode` — `useOfflineMode.ts`, `offline.tsx`, Layout.tsx nav ✅
+
+**Bug fixed:**
+- `#19 Passkey registerBegin` — challenge generated BEFORE `generateRegistrationOptions()` so stored challenge ≠ browser challenge. Fixed: generate challenge AFTER options, override `options.challenge` before sending. ✅
+
+**P3 nav discoverability:**
+- `Layout.tsx` — 8+ additional organizer nav links (Bounties, Message Templates, Reputation, UGC Moderation, Performance, Neighborhoods + Cities + Trending in static links) ✅
+- `dashboard.tsx` — 5 quick-link cards added for hidden features ✅
+
+**Workflow fixes:**
+- `CORE.md §2.1` — Post-Compression Re-Init rule added ✅
+- `findasale-dev SKILL.md` — "Context Checkpoint" renamed to "Context-Maintenance Triggered" to prevent confusion with system autocompaction ✅
+- `workflow-retrospectives/2026-03-18-autocompact-checkpoint-confusion.md` — root cause documented ✅
+
+**Last Updated:** 2026-03-18 (session 197)
+
+**Pending — Wave 5 Sprint 2 remaining:**
+- [ ] `#60 Premium Tier Bundle` — Sprint 2 frontend not yet built
+- [ ] `#54 AI Appraisal` — Sprint 3 async (Stripe + Claude Haiku) not yet built (deferred)
+- [ ] Patrick must push S197 files via `.\push.ps1` (see push block below)
+- [ ] Re-QA #54 Appraisal Sprint 2 after push
+
+---
+
 **Session 196 COMPLETE (2026-03-17) — BUG FIX SPRINT + FEATURE BUILDS + RATE LIMITING + FULL FRONTEND WIRING AUDIT:**
 
 **Bugs fixed (all live on Railway + Vercel):**

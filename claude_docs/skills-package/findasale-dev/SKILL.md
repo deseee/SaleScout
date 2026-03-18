@@ -134,8 +134,8 @@ At the end of every session, output a structured summary:
 ### Blocked / Flagged
 - [anything that needs Architect decision or Patrick input]
 
-### Context Checkpoint
-- [yes/no — whether context-maintenance was triggered]
+### Context-Maintenance Triggered
+- [yes/no — whether context-maintenance skill was invoked. Independent of system autocompaction.]
 ```
 
 ---
