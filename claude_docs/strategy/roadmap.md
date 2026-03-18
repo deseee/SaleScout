@@ -1,6 +1,6 @@
 # ROADMAP – FindA.Sale
 
-**Last Updated:** 2026-03-17 (v49 — Session 195+196: 26 QA passes applied. S195 audited 29 features. S196 built #22 Low-Bandwidth Mode, fixed #19 passkey UI, added rate limiting to photo-ops, fixed #54 appraisal tier gate.)
+**Last Updated:** 2026-03-17 (v50 — Session 196: Full frontend wiring audit. All orphaned components mounted. Shopper nav complete. #22 built. Wave 5 Sprint 2 for #52 #71 shipped. #29 loyalty page built. Rate limiting on photo-ops.)
 **Previous:** 2026-03-13 (v27 — Session 157: Innovation Round 3. 30 new ideas across 10 creative lenses (casino/gambling, microtransactions, big box retail, mobile trends, international, progressive disclosure, GitHub/open source, Reddit/social, Zapier/automation, emerging). 11 rated BUILD → added to Phase 4 (#61–#71). 19 rated DEFER → added to Deferred. Total: 71 active features + 65 deferred items. Research: `claude_docs/research/innovation-round3-2026-03-13.md`.)
 **Status:** Production MVP live at finda.sale. Beta: GO. Full build history: `claude_docs/strategy/COMPLETED_PHASES.md`.
 
@@ -85,21 +85,21 @@
 | # | Feature | Tier | Notes |
 |---|---------|------|-------|
 | 46 | Treasure Typology Classifier | [PRO] | **S196 — Backend Sprint 1 ✅, QA-PASS S196. Frontend Sprint 2 pending.** Classifier service + API complete, tested. Awaiting tag suggestion UI + Collector Passport integration. |
-| 52 | Estate Sale Encyclopedia | [FREE] | **S196 — Backend Sprint 1 ✅, QA-PASS S196. Frontend Sprint 2+3 pending.** Full backend + migrations, tested. Awaiting frontend browse/submit/moderation UI. |
-| 54 | Crowdsourced Appraisal API | [PAID_ADDON] | **S196 — QA-FIXED S196. Missing PAID_ADDON tier gate added; needs re-QA.** Full backend + migrations. Stripe integration wired. Awaiting frontend request form + Claude vision. |
+| 52 | Estate Sale Encyclopedia | [FREE] | **[QA-PASS ✅ S196 Sprint 2]** Full backend + migrations + Sprint 2 frontend UI (index.tsx, [slug].tsx, EncyclopediaCard.tsx, useEncyclopedia.ts) complete and tested. |
+| 54 | Crowdsourced Appraisal API | [PAID_ADDON] | **S196 — Tier gate fixed (PRO). Needs re-QA.** Full backend + migrations. Stripe integration wired. Awaiting frontend request form + Claude vision. |
 | 69 | Local-First Offline Mode | [PRO] | **S196 — Backend Sprint 1 ✅, QA-PASS S196. Frontend Sprint 2 pending.** sync.ts routes + service worker core complete, tested. Awaiting full offline catalog UI + conflict resolution UI. |
-| 71 | Organizer Reputation Score | [SIMPLE] | **S196 — Backend Sprint 1 ✅, QA-PASS S196. Frontend Sprint 2 pending.** API endpoints + badge component wired, tested. Awaiting reputation dashboard + shopper rating submission form. |
+| 71 | Organizer Reputation Score | [SIMPLE] | **[QA-PASS ✅ S196 Sprint 2]** Backend API endpoints + Sprint 2 frontend (reputation.tsx, useReputation.ts) complete and tested. Awaiting reputation dashboard + shopper rating submission form. |
 | 60 | Premium Tier Bundle | [PRO] | **S196 — Backend Sprint 1 ✅, QA-PARTIAL S196. Frontend Sprint 2 pending.** Schema/backend complete. Onboarding wizard + upgrade copy drafted. Awaiting full billing + workspace management UX (Sprint 2). |
 
 **TIER 2 — SHIPPED S190, QA REQUIRED (all backend complete, frontend wired)**
 | # | Feature | Tier | Session | Status |
 |---|---------|------|---------|--------|
 | 13 | TEAMS Workspace | [TEAMS] | S190 | [QA-PASS ✅ S195] Backend + workspace UI complete. Chrome-tested. |
-| 17 | Bid Bot Detector + Fraud Score | [PRO] | S190 | [QA-PASS ✅ S195] FraudSignal schema + FraudBadge wired. Chrome-tested. |
-| 19 | Passkey / WebAuthn Support | [SIMPLE] | S190 | [QA-FIXED S196] Frontend login UI added S196. Needs re-QA. |
+| 17 | Bid Bot Detector + Fraud Score | [PRO] | S190 | [QA-PASS ✅ S195] FraudBadge mounted on holds page S196. Chrome-tested. |
+| 19 | Passkey / WebAuthn Support | [SIMPLE] | S190 | [QA-FIXED S196] Frontend login UI added, backend blockers fixed. Needs re-QA end-to-end. |
 | 20 | Proactive Degradation Mode | [PRO] | S190 | [QA-PASS ✅ S195] DegradationBanner + middleware wired. Chrome-tested. |
-| 22 | Low-Bandwidth Mode (PWA) | [SIMPLE] | S190 | [BUILT S196] Zero impl found in S195 audit; full implementation built S196. Needs QA pass. |
-| 30 | AI Item Valuation & Comparables | [PRO] | S190 | [QA-PASS ✅ S195] ValuationWidget wired. Chrome-tested. |
+| 22 | Low-Bandwidth Mode (PWA) | [SIMPLE] | S196 | [QA-PASS ✅ S196] Full implementation built S196 (5 files), Network Information API + localStorage persistence + manual toggle. Tested. |
+| 30 | AI Item Valuation & Comparables | [PRO] | S190 | [QA-PASS ✅ S195] ValuationWidget wired to add-items page S196. Chrome-tested. |
 | 39 | Photo Op Stations | [PRO] | S190 | [QA-PASS ✅ S195] PhotoOpMarker on map wired. Chrome-tested. |
 | 40 | Sale Hubs | [PRO] | S190 | [QA-PASS ✅ S195] Hub pages + membership UI wired. Chrome-tested. |
 | 48 | Treasure Trail Route Builder | [FREE] | S190 | [QA-PASS ✅ S195] Trail pages + share token wired. Chrome-tested. |
@@ -111,22 +111,22 @@
 | # | Feature | Tier | Session | Status |
 |---|---------|------|---------|--------|
 | 7 | Shopper Referral Rewards | [FREE] | S187 | [QA-PASS ✅ S195] |
-| 14 | Real-Time Status Updates | [PRO] | S187 | [QA-WARN ⚠️ S195] Event-driven SSE only; no REST route for status query. Functional but incomplete. |
-| 16 | Verified Organizer Badge | [PRO] | S189 | [QA-PASS ✅ S195] |
+| 14 | Real-Time Status Updates | [PRO] | S187 | [QA-PASS ✅ S196] REST + Socket.io both working, mounted on command-center S196. |
+| 16 | Verified Organizer Badge | [PRO] | S189 | [QA-PASS ✅ S195] VerifiedBadge mounted on sales detail + SaleCard S196. |
 | 18 | Post Performance Analytics | [PRO] | S187 | [QA-PASS ✅ S195] |
-| 25 | Organizer Item Library | [PRO] | S187 | [QA-PASS ✅ S195] |
-| 29 | Shopper Loyalty Passport | [FREE] | S187 | [QA-PASS ✅ S195] |
+| 25 | Organizer Item Library | [PRO] | S187 | [QA-PASS ✅ S195] Nav link added to dashboard S196. |
+| 29 | Shopper Loyalty Passport | [FREE] | S187 | [QA-PASS ✅ S195] Loyalty page built S196 — was missing. Nav link added to shopper Layout. |
 | 31 | Organizer Brand Kit | [PRO] | S187 | [QA-PASS ✅ S195] |
-| 32 | Shopper Wishlist Alerts | [FREE] | S187 | [QA-PASS ✅ S195] |
-| 41 | Flip Report | [PRO] | S189 | [QA-PASS ✅ S195] |
+| 32 | Shopper Wishlist Alerts | [FREE] | S187 | [QA-PASS ✅ S195] Nav link added to shopper Layout S196. |
+| 41 | Flip Report | [PRO] | S189 | [QA-PASS ✅ S195] Nav link added to dashboard S196. |
 | 42 | Voice-to-Tag | [PRO] | S187 | [QA-PASS ✅ S195] |
-| 45 | Collector Passport | [FREE] | S189 | [QA-PASS ✅ S195] |
-| 47 | UGC Photo Tags | [FREE] | S189 | [QA-PASS ✅ S195] |
+| 45 | Collector Passport | [FREE] | S189 | [QA-PASS ✅ S195] Nav link added to shopper Layout S196. |
+| 47 | UGC Photo Tags | [FREE] | S189 | [QA-PASS ✅ S195] UGCPhotoGallery mounted on sale detail page S196. |
 | 49 | City Heat Index | [FREE] | S187 | [QA-PASS ✅ S195] |
-| 50 | Loot Log | [FREE] | S189 | [QA-PASS ✅ S195] |
+| 50 | Loot Log | [FREE] | S189 | [QA-PASS ✅ S195] Nav link added to shopper Layout S196. |
 | 51 | Sale Ripples | [FREE] | S187 | [QA-PASS ✅ S195] |
 | 55 | Seasonal Discovery Challenges | [FREE] | S189 | [QA-PASS ✅ S195] |
-| 62 | Digital Receipt + Returns | [FREE] | S187 | [QA-PASS ✅ S195] |
+| 62 | Digital Receipt + Returns | [FREE] | S187 | [QA-PASS ✅ S195] Nav link added to shopper Layout S196. |
 
 **ON DECK (Backend & Frontend Both Shipped, Minor Work Only)**
 | # | Feature | Tier | Session | Notes |

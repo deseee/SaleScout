@@ -16,6 +16,24 @@ Keep only the 5 most recent sessions. Delete older entries — git history and S
 
 ## Recent Sessions
 
+## Session 196 — 2026-03-17 — Full Frontend Wiring Audit + Bug Fixes + #22 Low-Bandwidth Build + Rate Limiting
+
+**Worked on:** (1) Bugs fixed — `#54 Appraisal API` tier gate from invalid enum `PAID_ADDON` to `PRO`; `#19 Passkey auth` backend blockers: `authenticateComplete` not calling `getAndValidateChallenge()` (challenges never retrieved) and JWT missing `role` field. Railway build unblocked. (2) #22 Low-Bandwidth Mode full implementation (5 new files): `LowBandwidthContext.tsx`, `LowBandwidthBanner.tsx`, `useLowBandwidthInitializer.ts`, `lib/imageUrl.ts`, `_app.tsx` updated with Network Information API detection, localStorage persistence, manual toggle, SSR-safe. QA PASS on first build. (3) Wave 5 Sprint 2 frontends for #52 Encyclopedia and #71 Reputation Score. (4) Built #29 Loyalty Passport page (shopper/loyalty.tsx) — was orphaned, no page at all in S195. Built shopper/settings.tsx with Low-Bandwidth toggle. (5) Rate limiting middleware: `rateLimiter.ts` + gated `POST /photo-ops/:stationId/shares` (10/hr), `POST /shares/:shareId/like` (30/15min). (6) Full frontend wiring audit — discovered orphaned/unmounted components across organizer and shopper surfaces. All fixed: organizer dashboard now links #25 #41 #71; command-center mounts SaleStatusWidget (#14); sales detail adds VerifiedBadge (#16) + UGCPhotoGallery (#47); add-items wires ValuationWidget (#30); holds page adds FraudBadge (#17). Shopper Layout.tsx now links all 6 hidden pages (#32 #45 #48 #50 #62 #29); shopper/dashboard adds quick-links grid.
+
+**Decisions:** #14 Real-Time Status re-upgraded to PASS (S195 audit was wrong — REST+Socket.io both working). #29 and shopper/settings pages were critical gaps — no user access to them before wiring audit. Orphaned component mounting was highest-priority risk remediation in session.
+
+**Token efficiency:** 1 inline session (main window edits for wiring audit) + 1 subagent call for features. High parallel efficiency, low token burn for audit work.
+
+**Token burn:** ~160k tokens (est.), 0 checkpoints.
+
+**Next up:** Re-QA #19 Passkey end-to-end (register → login → redirect). Re-QA #54 Appraisal (tier gate + smoke test). Wave 5 Sprint 2 frontend builds remaining (#46 #54 #60 #69). P3 nav discoverability (trending/cities/neighborhoods/bounties routes exist but unreachable from dashboard).
+
+**Blockers:** None — both platforms green, all wiring audit changes deployed.
+
+**Files changed:** 23 modified/new files across organizer pages, shopper pages, backend middleware, frontend context/hooks. Frontend wiring audit touched: dashboard.tsx, command-center.tsx, SaleCard.tsx, sales/[id].tsx, add-items/[saleId].tsx, holds.tsx (organizer); Layout.tsx, shopper/dashboard.tsx, shopper/loyalty.tsx, shopper/settings.tsx (shopper). Rate limiting: rateLimiter.ts (new), photo-ops controller. #22 Low-Bandwidth: 5 files. Backend bugs: passkeyController.ts, appraisal-api controller. | Subagents: 1 (findasale-dev for #22/#52/#71/#29 builds) | Push method: MCP
+
+---
+
 ## Session 195 — 2026-03-17 — 6 Bug Fixes + 29-Feature QA Audit (3 Parallel Agents) + Health Scout
 
 **Worked on:** (1) Login infinite redirect loop — NudgeBar.tsx mounted globally in _app.tsx, called useNudges() unconditionally → GET /api/nudges → 401 → api.ts interceptor → window.location.href = '/login' → reload → repeat. Fixed: NudgeBar now passes `!!user` to useNudges(); api.ts interceptor skips redirect when pathname === '/login'. (2) Google Fonts CSP violation — service worker (Workbox) uses fetch() gated by connect-src, not img-src. Added fonts.googleapis.com + fonts.gstatic.com to connect-src in next.config.js. (3) Image loading broken (picsum, unpkg, raw.githubusercontent.com) — same Workbox pattern. Added all three domains to connect-src. (4) Dark mode body background — .dark on html didn't cascade to body (bg-warm-100 override in globals.css). Added .dark body { bg-[#1C1C1E] } fix. (5) ThemeToggle hidden for logged-out desktop users — was inside user ? ( JSX branch in Layout.tsx. Moved outside auth conditional. (6) CityHeatBanner showing "42.9, -85.7 is heating up" — cityHeatService.ts grouped by lat/lng grid cells; fallback label was formatted coordinates. Fixed: group by sale.city field, use city name as label. (7) 29-feature QA audit via 3 parallel agents — Organizer (7/7 PASS), Shopper (7/8 PASS — #19 passkey UI not surfaced on login), Public/Infrastructure (12/14 PASS — #14 no REST route, #22 zero implementation). /neighborhoods/[slug] QA PASS — slugs are hardcoded in GRAND_RAPIDS_NEIGHBORHOODS array, no DB needed. (8) Health scout — 1 High (MAILERLITE_API_KEY vs _TOKEN mismatch, already fixed in Railway by Patrick), 1 Medium (photo-ops share/like no rate limit), 2 Low (DEFAULT_* env vars, STRIPE_TERMINAL_SIMULATED not in .env.example).

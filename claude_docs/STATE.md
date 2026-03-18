@@ -7,35 +7,60 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Active Objective
 
-**Session 196 COMPLETE (2026-03-17) — BUG FIX SPRINT + FEATURE BUILDS + RATE LIMITING:**
-- **Bugs fixed (all live on Railway + Vercel):**
-  - `#54 Appraisal API` — `requireTier('PAID_ADDON')` was invalid SubscriptionTier enum value (Railway TypeScript build error). Fixed to `requireTier('PRO')` as interim gate until addon billing wired.
-  - `#19 Passkey auth` — two backend blockers fixed in `passkeyController.ts`: (1) `authenticateComplete` creating empty Map instead of calling `getAndValidateChallenge()` — challenges never retrieved, auth always failed; (2) JWT response missing `role` field causing frontend redirect break. Both fixed.
-  - Railway build unblocked (was failing with PAID_ADDON TS error).
-- **Features built:**
-  - `#22 Low-Bandwidth Mode` (SIMPLE) — full implementation complete: `LowBandwidthContext.tsx`, `LowBandwidthBanner.tsx`, `useLowBandwidthInitializer.ts`, `lib/imageUrl.ts`, `_app.tsx` updated. Network Information API detection, localStorage persistence, manual toggle, SSR-safe. ✅ QA PASS on first build.
-  - Wave 5 Sprint 2 frontends: `#52 Encyclopedia` (index.tsx, [slug].tsx, EncyclopediaCard.tsx, useEncyclopedia.ts) and `#71 Reputation Score` (reputation.tsx, useReputation.ts). ✅ QA-PASS Sprint 1.
-- **Rate limiting added:**
-  - `POST /photo-ops/:stationId/shares` — 10/hr per user
-  - `POST /shares/:shareId/like` — 30/15min per user
-  - New middleware: `packages/backend/src/middleware/rateLimiter.ts`
-- **QA results:**
-  - `#14 Real-Time Status` — upgraded from ⚠️ WARN to ✅ PASS. REST + Socket.io both confirmed working. S195 audit note was incorrect.
-  - `#22 Low-Bandwidth Mode` — PASS on first QA after build.
-  - `#54 Appraisal API` — was FAIL (invalid tier) → fixed → status QA-FIXED, needs re-QA.
-  - `#19 Passkey` — was FAIL → fixed backend → status QA-FIXED, needs re-QA after frontend wiring audit.
-  - Wave 5 `#46 #52 #69 #71` — QA-PASS Sprint 1. `#52 #71` Sprint 2 frontends QA-PASS. `#60` QA-PARTIAL (Sprint 1 backend only).
-- **Infrastructure:** Railway GREEN ✅ | Vercel GREEN ✅
-- **Roadmap:** Updated to v49 with 26 QA passes from S195+S196 logged.
-- **Last Updated:** 2026-03-17 (session 196)
+**Session 196 COMPLETE (2026-03-17) — BUG FIX SPRINT + FEATURE BUILDS + RATE LIMITING + FULL FRONTEND WIRING AUDIT:**
 
-**Pending — Patrick action items (S196):**
-- [ ] Frontend wiring audit — identify which QA-PASS features lack nav links, pages, or dashboard buttons
-- [ ] Re-QA #54 Appraisal API and #19 Passkey after wiring audit
-- [ ] #60 Premium Tier Bundle Sprint 2 frontend not yet built
-- [ ] Wave 5 Sprint 2 for #46 #54 #69 not yet built (only #52 and #71 Sprint 2 done)
-- [ ] Rate limiting re-QA on photo-ops endpoints
-- [ ] Open Stripe business account (recurring — test keys still in production)
+**Bugs fixed (all live on Railway + Vercel):**
+- `#54 Appraisal API` — `requireTier('PAID_ADDON')` was invalid SubscriptionTier enum value (Railway TypeScript build error). Fixed to `requireTier('PRO')` as interim gate until addon billing wired.
+- `#19 Passkey auth` — two backend blockers fixed in `passkeyController.ts`: (1) `authenticateComplete` creating empty Map instead of calling `getAndValidateChallenge()` — challenges never retrieved, auth always failed; (2) JWT response missing `role` field causing frontend redirect break. Both fixed.
+- Railway build unblocked (was failing with PAID_ADDON TS error).
+
+**Features built:**
+- `#22 Low-Bandwidth Mode` (SIMPLE) — full implementation complete: `LowBandwidthContext.tsx`, `LowBandwidthBanner.tsx`, `useLowBandwidthInitializer.ts`, `lib/imageUrl.ts`, `_app.tsx` updated. Network Information API detection, localStorage persistence, manual toggle, SSR-safe. ✅ QA PASS on first build.
+- Wave 5 Sprint 2 frontends: `#52 Encyclopedia` (index.tsx, [slug].tsx, EncyclopediaCard.tsx, useEncyclopedia.ts) and `#71 Reputation Score` (reputation.tsx, useReputation.ts). ✅ QA-PASS Sprint 1.
+- `#29 Loyalty Passport` page built (shopper/loyalty.tsx) — was the only Wave 4 feature with no page at all.
+- Shopper settings page (shopper/settings.tsx) with Low-Bandwidth toggle.
+
+**Rate limiting added:**
+- `POST /photo-ops/:stationId/shares` — 10/hr per user
+- `POST /shares/:shareId/like` — 30/15min per user
+- New middleware: `packages/backend/src/middleware/rateLimiter.ts`
+
+**Frontend wiring audit + fixes (COMPLETE):**
+Full wiring audit run across all QA-PASS features. All orphaned components mounted, all nav links wired:
+
+**Organizer fixes:**
+- `dashboard.tsx` — Added nav links for #25 Item Library, #41 Flip Report (PRO), #71 Reputation Score
+- `command-center.tsx` — Mounted `SaleStatusWidget` (#14) per-sale
+- `dashboard.tsx` — Added `SaleStatusWidget` to sales tab for published sales
+- `SaleCard.tsx` — Added `VerifiedBadge` (#16) next to organizer name for shoppers
+- `sales/[id].tsx` — Added `VerifiedBadge` to organizer header + `UGCPhotoGallery` (#47) after description
+- `add-items/[saleId].tsx` — Wired `ValuationWidget` (#30, PRO-gated) in price section
+- `holds.tsx` — Added `FraudBadge` (#17) to buyer accordion headers
+
+**Shopper fixes:**
+- `Layout.tsx` — Added nav links for all 6 hidden shopper pages (#32 #45 #48 #50 #62 #29)
+- `shopper/dashboard.tsx` — Added quick-links grid for all shopper features
+
+**QA results:**
+- `#14 Real-Time Status` — UPGRADED to ✅ PASS (S195 audit was wrong; REST+Socket.io both working)
+- `#22 Low-Bandwidth Mode` — ✅ PASS
+- `#52 Encyclopedia Sprint 2` — ✅ PASS
+- `#71 Reputation Sprint 2` — ✅ PASS
+- `#46 #69` — ✅ PASS Sprint 1
+- `#60` — ⚠️ PARTIAL (Sprint 1 backend only)
+- `#54` — QA-FIXED (re-QA needed)
+- `#19` — QA-FIXED (re-QA needed)
+
+**Infrastructure:** Railway GREEN ✅ | Vercel GREEN ✅
+
+**Last Updated:** 2026-03-17 (session 196)
+
+**Pending — re-QA items (S197):**
+- [ ] Re-QA #19 Passkey end-to-end (backend fixed, frontend wired — needs full flow test: register → login → redirect)
+- [ ] Re-QA #54 Appraisal API (tier gate fixed, needs smoke test: POST requires PRO tier)
+- [ ] Wave 5 Sprint 2 remaining: #46 #54 #60 #69 frontend builds not yet complete
+- [ ] Open Stripe business account (test keys still in production — recurring)
+- [ ] P3 nav discoverability pass (trending/cities/neighborhood/bounties routes exist but no nav entry points from dashboard)
 
 ---
 
