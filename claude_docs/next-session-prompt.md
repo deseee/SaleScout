@@ -4,31 +4,33 @@
 
 ## Resume From
 
-Continue QA sweep — start with `/neighborhoods/[slug]` (need real slug from DB), then Wave 5 Sprint 1 API smoke tests (#46 #52 #54 #60 #69 #71), then remaining Wave 2–4 QA-PENDING features (30+). Railway ✅ Vercel ✅ — all S194 fixes live.
+Session 195 complete. Top priority: build **#22 Low-Bandwidth Mode** (SIMPLE tier — zero implementation found in QA audit, needs findasale-dev dispatch). Then surface passkey UI on login page (#19 backend complete, login page not wired). Both Railway ✅ and Vercel ✅ green with all S195 fixes live.
 
 ---
 
 ## What Was In Progress
 
-Nothing mid-task. All S194 fixes were pushed and confirmed live.
+Nothing mid-task. All S195 fixes pushed and confirmed live.
 
 ---
 
-## What Was Completed This Session (S194)
+## What Was Completed This Session (S195)
 
-Full Chrome QA sweep of shipped features + 13 bug fixes:
-- Onboarding modal blocking dashboard → JWT `onboardingComplete` flag + backend endpoint
-- `useAchievements.ts` wrong env var fixed (`NEXT_PUBLIC_API_BASE_URL` → `NEXT_PUBLIC_API_URL`)
-- Missing `GET /sales/city/:city` backend route added
-- `getSalesByCity` field error fixed (`location` → `city`)
-- City slug display fixed (`grand-rapids` → `Grand Rapids`)
-- Dark mode added to 7 pages: trending, achievements, disputes, bounties, message-templates, line-queue, city
-- Bounties API fixed (`/organizer/sales` → `/sales/mine`)
-- TEAMS nav link added to Layout.tsx
-- `.checkpoint-manifest.json` added to `.gitignore`
-- Feature #58 Achievement Badges: QA-PASS ✅
-- Self-healing Patterns 8 + 9 documented
-- STATE.md, session-log.md, roadmap.md updated
+6 bug fixes (all live):
+- Login infinite redirect loop → NudgeBar.tsx now guards `useNudges(!!user)`; api.ts interceptor skips redirect when already on `/login`
+- Google Fonts CSP violation → added `fonts.googleapis.com` + `fonts.gstatic.com` to `connect-src` in next.config.js
+- Dark mode body not inheriting `.dark` → added `.dark body { bg-[#1C1C1E] }` to globals.css
+- Desktop ThemeToggle hidden for logged-out users → moved outside `user ?` conditional in Layout.tsx
+- Service worker breaking image loading (picsum, unpkg, raw.githubusercontent.com) → added all three to `connect-src`
+- CityHeatBanner showing "42.9, -85.7 is heating up" → cityHeatService.ts now groups by `sale.city` field
+
+QA audit — 29 features across 3 parallel agents:
+- Organizer 7/7 PASS ✅
+- Shopper 7/8 PASS — #19 passkey UI not surfaced on login ⚠️
+- Public/Infrastructure 12/14 PASS — #14 no REST route ⚠️, **#22 Low-Bandwidth Mode ZERO IMPLEMENTATION** ❌
+- /neighborhoods/[slug] PASS ✅ (slugs are hardcoded — no DB needed, S194 assumption was wrong)
+
+Health scout: 1 High (MAILERLITE_API_KEY vs _TOKEN — Patrick already fixed in Railway), 1 Medium (photo-ops share/like no rate limit), 2 Low (DEFAULT_* env vars, STRIPE_TERMINAL_SIMULATED not in .env.example)
 
 ---
 
@@ -36,33 +38,32 @@ Full Chrome QA sweep of shipped features + 13 bug fixes:
 
 - Railway: ✅ green
 - Vercel: ✅ green
-- No pending git pushes
-- No pending migrations
-- **Patrick must `git pull` before any local work** — MCP commits ahead of local
+- No pending git pushes after session wrap commit
+- **Patrick must run Neon migrations** before Wave 5 features can be QA'd in production (5 migrations from S191)
+- Patrick must `git pull` before any local work — MCP commits ahead of local
 
 ---
 
-## QA Remaining Items (Priority Order)
+## Priority Order for Next Session
 
-1. **`/neighborhoods/[slug]`** — 404 on test slug. Need real slug: `SELECT slug FROM "Neighborhood" LIMIT 5;` in Neon console.
-2. **Wave 5 Sprint 1 smoke tests** — test API routes directly in Chrome or Postman:
-   - `GET /api/reputation/:organizerId` (#71)
-   - `GET /api/encyclopedia` (#52)
-   - `POST /api/appraisals/request` (#54)
-   - `GET /api/typology/classify` (#46)
-   - `GET /api/sync/status` (#69)
-   - `GET /api/tiers` (#60)
-3. **Wave 2–4 QA-PENDING** (30+ features) — see roadmap TIER 2 + TIER 3 tables
-4. **P3 Nav Discoverability** — these pages exist but no nav links: trending, cities, neighborhood pages, activity feed, virtual queue, organizer digest, bounties, notification sidebar
-5. **Wave 5 Sprint 2** — frontend builds for all 6 Wave 5 features (deferred from this session)
+1. **#22 Low-Bandwidth Mode** [SIMPLE] — dispatch findasale-dev. Detect slow connections, auto-reduce photo quality, disable video previews. ~1 sprint. Zero implementation — start from scratch.
+2. **#19 Passkey UI on login page** — backend (SimpleWebAuthn) already complete. Frontend login page needs the "Sign in with passkey" button wired up. findasale-dev inline fix, likely small.
+3. **Rate limiting — photo-ops share/like** — add to `POST /photo-ops/:stationId/shares` and `POST /shares/:shareId/like`. Health scout medium finding.
+4. **Wave 5 Sprint 2 frontend builds** (6 features: #71 #60 #52 #54 #46 #69) — dispatch findasale-dev after migrations confirmed.
+5. **QA Wave 5 Sprint 1** (#46 #52 #54 #60 #69 #71) — backend smoke tests after Patrick runs migrations.
+6. **Open Stripe business account** — recurring; test keys still in production.
 
 ---
 
 ## Exact Context
 
-- `onboardingComplete` flag: `packages/frontend/components/AuthContext.tsx` (User interface + login/decode)
-- City route: `packages/backend/src/routes/sales.ts` — `GET /sales/city/:city`
-- City controller: `packages/backend/src/controllers/saleController.ts` — `getSalesByCity` (uses `city` field, not `location`)
-- Dark mode pages fixed: trending.tsx, shopper/achievements.tsx, shopper/disputes.tsx, organizer/bounties.tsx, organizer/message-templates.tsx, organizer/line-queue/[id].tsx
+- NudgeBar fix: `packages/frontend/components/NudgeBar.tsx` (useAuth guard on line 3-4)
+- api.ts interceptor fix: `packages/frontend/lib/api.ts` (pathname check in 401 handler)
+- CSP fixes: `packages/frontend/next.config.js` (connect-src entries)
+- Dark mode body: `packages/frontend/styles/globals.css` (.dark body rule)
+- CityHeat fix: `packages/backend/src/services/cityHeatService.ts` (group by sale.city)
+- Health report: `claude_docs/health-reports/2026-03-17.md`
+- #22 spec reference: `claude_docs/next-session-brief.md` §Workstream D
+- Wave 5 migrations: `packages/database/prisma/migrations/` (5 migrations from S191 commits 7ebcfb5, 307b979)
 
-⚠ context.md is 1229 lines (target: <500). Flag for trim.
+⚠ context.md needs regeneration — last updated before S191-S195 work. Run: `node scripts/update-context.js`

@@ -7,28 +7,31 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Active Objective
 
-**Session 194 COMPLETE (2026-03-17) — COMPREHENSIVE QA AUDIT + 13 BUG FIXES SHIPPED:**
-- **QA scope:** Chrome-tested all shipped features from Waves 2–5. 11 pages verified passing. 1 still needs testing (neighborhoods slug).
+**Session 195 COMPLETE (2026-03-17) — 6 BUG FIXES + COMPREHENSIVE QA AUDIT (29 FEATURES) + HEALTH SCOUT:**
 - **Bugs fixed (all live on Railway + Vercel):**
-  - Onboarding modal blocking dashboard → JWT `onboardingComplete` flag added to AuthContext + new `POST /organizers/me/onboarding-complete` endpoint
-  - `useAchievements.ts` wrong env var `NEXT_PUBLIC_API_BASE_URL` → `NEXT_PUBLIC_API_URL`
-  - Missing backend route `GET /sales/city/:city` → added controller + route
-  - `getSalesByCity` used nonexistent `location` field → corrected to `city`
-  - City slug display bug `grand-rapids` → `Grand Rapids` (split/capitalize)
-  - Dark mode missing on 7 pages: trending, achievements, disputes, bounties, message-templates, line-queue, city
-  - Bounties dropdown wrong API endpoint `/organizer/sales` → `/sales/mine`
-  - TEAMS nav link absent from Layout.tsx → added conditional for TEAMS-tier users
-  - `.checkpoint-manifest.json` git-tracked → added to `.gitignore` + git rm --cached
-- **Feature QA-PASS:** #58 Achievement Badges confirmed working ✅
+  - Login infinite redirect loop → `NudgeBar` fired unauthenticated API call; 401 interceptor redirected to `/login` causing reload cycle. Fixed: `NudgeBar.tsx` guards `useNudges(!!user)`; `api.ts` interceptor skips redirect when already on `/login`.
+  - Google Fonts CSP violation (service worker) → added `fonts.googleapis.com` + `fonts.gstatic.com` to `connect-src` in `next.config.js`
+  - Dark mode body not inheriting `.dark` class → added `.dark body { bg-[#1C1C1E] }` to `globals.css`
+  - Desktop ThemeToggle hidden for logged-out users → moved `<ThemeToggle>` outside `user ? (` conditional in `Layout.tsx`
+  - Service worker breaking image loading (picsum, unpkg, raw.githubusercontent.com) → added all three to `connect-src`
+  - `CityHeatBanner` showing raw coordinates "42.9, -85.7 is heating up" → `cityHeatService.ts` now groups by `sale.city` field instead of lat/lng grid cells
+- **QA PASS — 29 features across 3 parallel agents:**
+  - Organizer (7/7 PASS): #13 TEAMS Workspace, #17 Bid Bot Detector, #18 Post Performance Analytics, #25 Item Library, #31 Brand Kit, #41 Flip Report, #68 Command Center ✅
+  - Shopper (7/8 PASS): #7 Referral Rewards, #29 Loyalty Passport, #32 Wishlist Alerts, #45 Collector Passport, #48 Treasure Trail, #50 Loot Log, #62 Digital Receipt ✅ | #19 Passkey UI not surfaced on login page ⚠️
+  - Public/Infrastructure (12/14): #16 Verified Badge, #20 Degradation Mode, #30 AI Valuation, #39 Photo Ops, #40 Sale Hubs, #42 Voice-to-Tag, #47 UGC Photos, #49 City Heat, #51 Sale Ripples, #55 Challenges, #57 Rarity Badges, #59 Streak Rewards ✅ | #14 Real-Time Status partial (event-driven, no REST route) ⚠️ | **#22 Low-Bandwidth Mode FAIL — zero implementation** ❌
+  - `/neighborhoods/[slug]` QA PASS ✅ (slugs are hardcoded, no DB needed — S194 assumption was wrong)
+- **Health Scout:** 1 High (MAILERLITE_API_KEY vs _TOKEN mismatch — already fixed by Patrick in Railway), 1 Medium (photoOps share/like no rate limit), 2 Low (DEFAULT_* env vars, undocumented STRIPE_TERMINAL_SIMULATED var)
 - **Both platforms green:** Railway ✅ Vercel ✅
-- **Last Updated:** 2026-03-17 (session 194)
+- **Last Updated:** 2026-03-17 (session 195)
 
-**Pending — Patrick action items (S194):**
-- [ ] Continue QA: `/neighborhoods/[slug]` (needs real slug from DB)
-- [ ] QA Wave 5 Sprint 1 features (#46 #52 #54 #60 #69 #71 — backend smoke tests)
-- [ ] QA remaining Wave 2–4 QA-PENDING features (30+)
+**Pending — Patrick action items (S195):**
+- [ ] Build #22 Low-Bandwidth Mode (SIMPLE tier — zero implementation found, needs findasale-dev dispatch)
+- [ ] Surface Passkey UI on login page (#19 backend complete, frontend integration missing)
+- [ ] Add rate limiting to `POST /photo-ops/:stationId/shares` and `POST /shares/:shareId/like` (health scout medium finding)
+- [ ] Add `NEXT_PUBLIC_STRIPE_TERMINAL_SIMULATED` to `.env.example` (health scout low)
+- [ ] QA Wave 5 Sprint 1 features (#46 #52 #54 #60 #69 #71 — backend smoke tests, migrations required first)
 - [ ] Wave 5 Sprint 2 frontend builds (6 features)
-- [ ] P3 nav discoverability gaps (trending/cities/neighborhood/activity-feed/bounties etc. lack nav links)
+- [ ] P3 nav discoverability gaps (trending/cities/neighborhood/activity-feed/bounties etc.)
 - [ ] Open Stripe business account (test keys still in production — recurring)
 
 ---

@@ -16,163 +16,80 @@ Keep only the 5 most recent sessions. Delete older entries — git history and S
 
 ## Recent Sessions
 
+## Session 195 — 2026-03-17 — 6 Bug Fixes + 29-Feature QA Audit (3 Parallel Agents) + Health Scout
+
+**Worked on:** (1) Login infinite redirect loop — NudgeBar.tsx mounted globally in _app.tsx, called useNudges() unconditionally → GET /api/nudges → 401 → api.ts interceptor → window.location.href = '/login' → reload → repeat. Fixed: NudgeBar now passes `!!user` to useNudges(); api.ts interceptor skips redirect when pathname === '/login'. (2) Google Fonts CSP violation — service worker (Workbox) uses fetch() gated by connect-src, not img-src. Added fonts.googleapis.com + fonts.gstatic.com to connect-src in next.config.js. (3) Image loading broken (picsum, unpkg, raw.githubusercontent.com) — same Workbox pattern. Added all three domains to connect-src. (4) Dark mode body background — .dark on html didn't cascade to body (bg-warm-100 override in globals.css). Added .dark body { bg-[#1C1C1E] } fix. (5) ThemeToggle hidden for logged-out desktop users — was inside user ? ( JSX branch in Layout.tsx. Moved outside auth conditional. (6) CityHeatBanner showing "42.9, -85.7 is heating up" — cityHeatService.ts grouped by lat/lng grid cells; fallback label was formatted coordinates. Fixed: group by sale.city field, use city name as label. (7) 29-feature QA audit via 3 parallel agents — Organizer (7/7 PASS), Shopper (7/8 PASS — #19 passkey UI not surfaced on login), Public/Infrastructure (12/14 PASS — #14 no REST route, #22 zero implementation). /neighborhoods/[slug] QA PASS — slugs are hardcoded in GRAND_RAPIDS_NEIGHBORHOODS array, no DB needed. (8) Health scout — 1 High (MAILERLITE_API_KEY vs _TOKEN mismatch, already fixed in Railway by Patrick), 1 Medium (photo-ops share/like no rate limit), 2 Low (DEFAULT_* env vars, STRIPE_TERMINAL_SIMULATED not in .env.example).
+
+**Decisions:** #22 Low-Bandwidth Mode has zero implementation — full build needed, dispatch findasale-dev next session. #19 passkey backend complete but login page not wired. /neighborhoods QA assumption corrected — slugs hardcoded, no migration needed. Defensive layer added to api.ts interceptor even though NudgeBar fix alone solved the loop (belt-and-suspenders for future unauthenticated components).
+
+**Token efficiency:** 3 parallel QA agents + 1 dev agent (cityHeat fix) + inline fixes for 5 other bugs. Main window did 4 inline edits (all <20 lines). High parallel efficiency.
+
+**Token burn:** ~180k tokens (est.), 1 checkpoint.
+
+**Next up:** Build #22 Low-Bandwidth Mode (SIMPLE tier, zero implementation, ~1 sprint). Surface passkey UI on login page (#19 backend done). Add rate limiting to photo-ops share/like endpoints. Wave 5 Sprint 2 frontend builds (6 features). QA Wave 5 Sprint 1 (requires DB migrations first).
+
+**Blockers:** Patrick must run Neon migrations before Wave 5 features can be QA'd in production.
+
+**Files changed:** packages/frontend/components/NudgeBar.tsx (MODIFIED — useAuth guard), packages/frontend/lib/api.ts (MODIFIED — interceptor pathname check), packages/frontend/next.config.js (MODIFIED — connect-src additions ×2), packages/frontend/styles/globals.css (MODIFIED — .dark body override), packages/frontend/components/Layout.tsx (MODIFIED — ThemeToggle moved outside auth conditional), packages/backend/src/services/cityHeatService.ts (MODIFIED — group by city field), claude_docs/STATE.md (MODIFIED — S195 entry), claude_docs/logs/session-log.md (MODIFIED — this entry), claude_docs/health-reports/2026-03-17.md (NEW — health scout report), claude_docs/next-session-brief.md (MODIFIED) | Compressions: 1 | Subagents: 4 (findasale-qa ×3 parallel + findasale-dev) | Push method: MCP
+
+---
+
+## Session 192+193 — 2026-03-17 — Vercel Build Recovery: All S192 TypeScript Errors Cleared
+
+**Worked on:** S192 shipped new frontend pages referencing non-existent modules, wrong auth patterns, and SSR-unsafe code — Vercel build was broken. Fixed 8 categories of errors across 8 MCP commits to main: (1) hooks/useAuth → components/AuthContext in hubs/, challenges.tsx, loot-log pages. (2) user.organizerId → user.id in workspace.tsx. (3) UGCPhoto.sale/.item missing → added optional relation types to useUGCPhotos.ts. (4) NextAuth useSession → app's useAuth in loot-log.tsx, [purchaseId].tsx. (5) AuthContextType.loading → isLoading in trails.tsx. (6) EmptyState wrong props (title/description/action) → correct props (heading/subtext/cta) in trails.tsx, [trailId].tsx, trail/[shareToken].tsx. (7) SSR prerender crash (router.push at render time) → wrapped in useEffect + hooks moved before auth guard in 6 pages (achievements, alerts, holds, purchases, receipts, disputes). (8) Misc fixes: Layout title prop, Skeleton default import, ValuationWidget ref, PasskeyController types.
+
+**Decisions:** All fixes minimal-change (corrected import paths, wrong prop names, SSR guards). No architectural changes. Vercel build status: READY ✅ (commit 0626821).
+
+**Token burn:** ~120k tokens (est.), 0 checkpoints.
+
+**Next up:** QA 29 pending features (Wave 2–5). Build #22 Low-Bandwidth Mode.
+
+**Blockers:** None after build fix.
+
+**Files changed:** 14 frontend files modified across hubs/, pages/shopper/, components/ | Subagents: 1 (findasale-dev) | Push method: MCP (8 batches)
+
+---
+
+## Session 191 — 2026-03-17 — Wave 5 Build: 6 New Features Shipped (All Sprint 1) + 5 Neon Migrations
+
+**Worked on:** 6 Wave 5 features shipped (Sprint 1 — backend + schema only): #71 Organizer Reputation Score (SIMPLE), #60 Premium Tier Bundle (PRO), #52 Estate Sale Encyclopedia (FREE), #54 Crowdsourced Appraisal API (PAID_ADDON), #46 Treasure Typology Classifier (PRO), #69 Local-First Offline Mode (PRO). All 6: backend services, controllers, routes, migrations. 5 Neon migrations applied: add_organizer_reputation, add_teams_onboarding_complete, add_encyclopedia, add_appraisals, add_item_typology. pnpm install + prisma generate clean. Schema fix: named @relation annotations for appraisal User fields (commit 307b979).
+
+**Decisions:** All 6 Wave 5 features are Sprint 1 only (backend/schema) — Sprint 2 (frontend) deferred to next wave. No QA dispatched per roadmap sequencing.
+
+**Token burn:** ~150k tokens (est.), 0 checkpoints.
+
+**Next up:** QA Wave 5 Sprint 1 features (after Patrick runs migrations). Sprint 2 frontend for all 6.
+
+**Blockers:** Patrick must run 5 Neon migrations before Wave 5 can be tested.
+
+**Files changed:** 30+ new files across packages/backend/src/ + packages/database/prisma/ | Subagents: 2 (findasale-dev ×2) | Push method: MCP + Patrick PS1 (commits 7ebcfb5, 307b979)
+
+---
+
 ## Session 189 — 2026-03-17 — Wave 3 Build: 6 Features (#41 #45 #50 #16 #55 #47)
 
-**Worked on:** (1) Session init — confirmed all 7 S187 Neon migrations applied by Patrick. (2) MESSAGE_BOARD audit — discovered #29/31/32/62 were already built and on disk (agents from S189 start wrote files). #45 (Collector Passport) and #55 (Seasonal Challenges) also already partially or fully on disk. (3) Fixed duplicate migration number conflict: `20260317000900_add_collector_passport` renamed to `20260317000950`. (4) Added missing `challengeRoutes` import + registration to index.ts (#55 was on disk but not wired). (5) Dispatched 2 build agents in parallel — #41 Flip Report (5 new files, no schema), #16 Verified Badge (3 new files, schema 3 fields + migration 001100). (6) All 6 wave 3 features now fully on disk: #41 Flip Report [PRO], #45 Collector Passport [FREE], #50 Loot Log [FREE], #16 Verified Organizer Badge [PRO], #55 Seasonal Discovery Challenges [FREE], #47 UGC Photo Tags [FREE]. (7) index.ts updated with all 6 new route registrations. (8) Push block + migration instructions provided to Patrick. (9) session wrap: roadmap v45, STATE.md, session-log, next-session-prompt updated.
+**Worked on:** (1) Session init — confirmed all 7 S187 Neon migrations applied by Patrick. (2) MESSAGE_BOARD audit — discovered #29/31/32/62 were already built and on disk. #45 and #55 also already partially on disk. (3) Fixed duplicate migration number conflict. (4) Added missing challengeRoutes import + registration to index.ts. (5) Dispatched 2 build agents in parallel — #41 Flip Report (5 new files, no schema), #16 Verified Badge (3 new files, schema 3 fields + migration). (6) All 6 wave 3 features now fully on disk: #41 Flip Report [PRO], #45 Collector Passport [FREE], #50 Loot Log [FREE], #16 Verified Organizer Badge [PRO], #55 Seasonal Discovery Challenges [FREE], #47 UGC Photo Tags [FREE]. (7) index.ts updated with all 6 new route registrations. (8) session wrap: roadmap v45, STATE.md, session-log, next-session-prompt updated.
 
-**Decisions:** QA deferred per Patrick ("we can qa later it's time to build"). Wave 3 selected from Phase 4/5 roadmap — mix of PRO tier (Flip Report, Verified Badge) and FREE tier (Collector Passport, Loot Log, Seasonal Challenges, UGC Photos). 4 features need Prisma migrations.
+**Decisions:** QA deferred per Patrick. Wave 3 selected from Phase 4/5 roadmap — mix of PRO and FREE tier. 4 features need Prisma migrations.
 
-**Token efficiency:** 2 parallel build agents (batch 1: #41; batch 2: #16). Schema agents handled #16 + #47 schema additions. Records agent for wrap. Main window orchestrated, did inline index.ts edits. Medium burn with parallel efficiency.
+**Token burn:** ~200k tokens (est.), 0 checkpoints.
 
-**Token burn:** ~200k tokens (full session including context summary load), 0 checkpoints.
-
-**Next up:** QA wave 3 features (18 features total QA pending: #7, #14, #18, #25, #29, #31, #32, #41, #42, #45, #47, #49, #50, #51, #55, #62, #16, #68). Continue Phase 4/5 build — pick next batch from roadmap.
+**Next up:** QA wave 3 features. Continue Phase 4/5 build — next batch from roadmap.
 
 **Blockers:** Patrick must push code + run 4 migrations before Railway picks up new features.
 
-**Files changed:** packages/backend/src/index.ts (MODIFIED — +4 route registrations), packages/database/prisma/schema.prisma (MODIFIED — verificationStatus/verifiedAt/verificationNotes on Organizer + UGCPhoto + UGCPhotoLike models), packages/backend/src/controllers/flipReportController.ts (NEW), packages/backend/src/services/flipReportService.ts (NEW), packages/backend/src/routes/flipReport.ts (NEW), packages/frontend/hooks/useFlipReport.ts (NEW), packages/frontend/pages/organizer/flip-report/[saleId].tsx (NEW), packages/backend/src/controllers/lootLogController.ts (NEW), packages/backend/src/routes/lootLog.ts (NEW), packages/frontend/hooks/useLootLog.ts (NEW), packages/frontend/pages/shopper/loot-log.tsx (NEW), packages/frontend/pages/shopper/loot-log/[purchaseId].tsx (NEW), packages/frontend/pages/shopper/loot-log/public/[userId].tsx (NEW), packages/backend/src/controllers/verificationController.ts (NEW), packages/backend/src/routes/verification.ts (NEW), packages/frontend/components/VerifiedBadge.tsx (NEW), packages/frontend/pages/organizer/settings.tsx (MODIFIED — verification tab), packages/database/prisma/migrations/20260317000950_add_collector_passport/migration.sql (NEW — renamed from 000900), packages/database/prisma/migrations/20260317001100_add_organizer_verification/migration.sql (NEW), packages/database/prisma/migrations/20260317001200_add_ugc_photos/migration.sql (NEW), packages/frontend/components/UGCPhotoGallery.tsx (NEW), packages/frontend/components/UGCPhotoSubmitButton.tsx (NEW), packages/frontend/pages/organizer/ugc-moderation.tsx (NEW), packages/frontend/hooks/useUGCPhotos.ts (NEW), packages/backend/src/controllers/ugcPhotoController.ts (NEW), packages/backend/src/routes/ugcPhotos.ts (NEW) | Compressions: 1 (context from prior session) | Subagents: 2 (findasale-dev × 2) | Push method: Patrick PS1 (40+ files)
+**Files changed:** 27 new/modified files across backend, frontend, database packages | Subagents: 2 (findasale-dev ×2) | Push method: Patrick PS1 (40+ files)
 
 ---
 
 ## Session 184 — 2026-03-16 — #68 Build Fix (All TypeScript Errors Resolved) + Context Doc Audit
 
-**Worked on:** (1) S183 context doc audit — 4 files had drift. Records agent corrected: STATE.md (#68 status was "in progress" → "both sprints complete and pushed"), session-log.md (S182 entry completely missing — added), next-session-prompt.md (was pointing at S182 #63 Dark Mode → rewrote for S184), roadmap.md v43 (removed #63 + #65 from Phase 4 active table, updated #68 to Sprint 1+2 complete). (2) Verified #68 GitHub push — all 9 files confirmed on GitHub via MCP check (commits 2ea619b, 01a32cc, e9a6aaa, c997bd7). (3) #54 Social Proof Messaging — confirmed fully shipped in commit 661339d. SocialProofMessage.tsx, useSocialProof.ts, backend service/controller/route all on disk. No work needed. STATUS: SHIPPED. (4) #68 Railway + Vercel build fix — all TypeScript errors resolved in one pass. Root causes: (a) `redis` npm package not installed → created `packages/backend/src/lib/redis.ts` (in-memory TTL Map cache, no npm dep); (b) `@findasale/shared` not a declared workspace dep in backend or frontend → created local type copies `packages/backend/src/types/commandCenter.ts` + `packages/frontend/types/commandCenter.ts`, reverted `shared/src/index.ts`, updated all imports; (c) `ItemReservation.saleId` does not exist on schema → replaced groupBy with findMany+include+reduce pattern joining through Item.saleId; (d) `stripeController` used `purchase.sale?.organizerId` which Prisma query doesn't select → removed entire invalidateCommandCenterCache block from stripeController (P2, cache expires naturally). (5) Deleted 3 temp/artifact files: `conversation-defaults-SKILL.md.tmp`, `claude_docs/skills-package/ziphWYrR`, `packages/backend/src/controllers/exportController_clean.ts`.
+**Worked on:** (1) S183 context doc audit — 4 files had drift. Records agent corrected: STATE.md, session-log.md (S182 entry was missing), next-session-prompt.md, roadmap.md v43. (2) Verified #68 GitHub push — all 9 files confirmed on GitHub. (3) #54 Social Proof Messaging confirmed fully shipped in commit 661339d. (4) #68 Railway + Vercel build fix — all TypeScript errors resolved: (a) redis npm not installed → created in-memory TTL Map cache; (b) @findasale/shared not declared → local type copies in each package; (c) ItemReservation.saleId doesn't exist → rewrote groupBy as findMany+reduce; (d) stripeController organizerId reference → removed cache invalidation block. (5) Deleted 3 temp/artifact files.
 
-**Decisions:** Local type duplication pattern for commandCenter types (copy into each package vs workspace linking). stripeController cache invalidation deferred — cache expires naturally, not worth fixing complex Prisma query shape to add it back. useOrganizerTier.ts still imports from @findasale/shared — out of scope, flagged as P2 tech debt.
-
-**Token efficiency:** 2 subagents (findasale-records + findasale-qa for audit, findasale-dev for build fixes). Main window handled inline ItemReservation fix (schema verification required before dispatching). Medium burn — 3 fix passes required due to chained dependency errors.
+**Decisions:** Local type duplication for commandCenter types. stripeController cache invalidation deferred (expires naturally). useOrganizerTier.ts @findasale/shared import flagged as P2 tech debt.
 
 **Token burn:** ~70k tokens (est.), 1 checkpoint.
 
-**Next up:** Verify Railway build passes with all #68 fixes. QA #68 before promoting to users. Fix useOrganizerTier.ts @findasale/shared import (P2). P0-1 schema migration (tokenVersion on Organizer).
+**Next up:** Verify Railway build passes. QA #68 before promoting to users. Fix useOrganizerTier.ts P2.
 
-**Blockers:** useOrganizerTier.ts still has broken @findasale/shared import — P2, won't break prod but same anti-pattern as #68 fixes.
-
-**Files changed:** packages/backend/src/lib/redis.ts (NEW), packages/backend/src/types/commandCenter.ts (NEW), packages/frontend/types/commandCenter.ts (NEW), packages/backend/src/services/commandCenterService.ts (MODIFIED — redis import + ItemReservation fix + @findasale/shared removed), packages/backend/src/controllers/commandCenterController.ts (MODIFIED — import path), packages/backend/src/controllers/itemController.ts (MODIFIED — cache invalidation calls), packages/backend/src/controllers/saleController.ts (MODIFIED — cache invalidation calls), packages/backend/src/controllers/stripeController.ts (MODIFIED — removed organizerId bug), packages/backend/src/middleware/requireTier.ts (MODIFIED — 401 fail-fast), packages/frontend/components/CommandCenterCard.tsx (MODIFIED — import path), packages/frontend/hooks/useCommandCenter.ts (MODIFIED — import path), packages/frontend/pages/organizer/command-center.tsx (MODIFIED — loading state), packages/shared/src/index.ts (MODIFIED — reverted), claude_docs/STATE.md (MODIFIED), claude_docs/logs/session-log.md (MODIFIED — this entry), claude_docs/next-session-prompt.md (MODIFIED), claude_docs/strategy/roadmap.md (MODIFIED — v43), MESSAGE_BOARD.json (MODIFIED) | Compressions: 1 (context from prior session) | Subagents: 2 (findasale-records, findasale-dev) | Push method: Manual .\push.ps1
-
----
-
-## Session 182 — 2026-03-16 — #63 Dark Mode + Accessibility (3 Phases) Shipped
-
-**Worked on:** (1) #63 Dark Mode + Accessibility — full 3-phase rollout shipped. Phase 1 — Chrome/theme layer: `tailwind.config.js` (`darkMode: 'class'`), `styles/globals.css` (CSS custom properties for light/dark/high-contrast palettes), `hooks/useTheme.ts` (NEW, SSR-safe theme/contrast/mounted state, localStorage keys `findasale_theme` + `findasale_contrast`, MediaQueryList system preference), `components/ThemeToggle.tsx` (NEW, compact icon + full 3-button selector, hydration-safe), `pages/_app.tsx` (ThemeInitializer class + font-size restore), `components/Layout.tsx` (dark: variants header/nav/drawer/footer), `components/BottomTabNav.tsx` (dark: variants). Phase 2 — Page/feature layer: `components/SaleCard.tsx`, `components/ItemCard.tsx`, `pages/index.tsx` (all dark: variants), `pages/organizer/settings.tsx` (NEW "Appearance" tab with ThemeToggle, font-size slider 14–20px, high-contrast toggle). Phase 3 — WCAG audit + remaining: `styles/globals.css` (WCAG AA fix: `--color-text-secondary` #A8A8AA → #B8B8BA, ratio 3.4:1 → 4.56:1), `components/ToastContext.tsx`, `components/ErrorBoundary.tsx`, `components/NudgeBar.tsx`, `components/OnboardingModal.tsx`, `components/OrganizerOnboardingModal.tsx` (all dark: variants). WCAG results: `#F5F5F0` on `#1C1C1E` = 16.5:1 ✅, `#B8B8BA` on `#2C2C2E` = 4.56:1 ✅, `#8FB897` on `#1C1C1E` = 7.3:1 ✅, `#D97706` on `#1C1C1E` = 6.6:1 ✅. Total: 14 files (2 new, 12 modified), no schema changes.
-
-**Decisions:** Dark palette: sage-green (#6B8F71) paired with #4A6B50 bg/#8FB897 accent. Storage via localStorage (same as onboarding flags). Toggle in Settings + header. ThemeToggle hydration-safe (null until mounted).
-
-**Token efficiency:** Dev subagent for implementation. Records subagent for doc wrap. Main window orchestrated. Medium-high burn (3 phases).
-
-**Token burn:** ~60k tokens (est.), 1 checkpoint.
-
-**Next up:** #65 Progressive Disclosure UI (1 sprint) OR #68 Command Center Dashboard (2 sprints).
-
-**Blockers:** None. All 14 files on GitHub via MCP.
-
-**Files changed:** hooks/useTheme.ts (NEW), components/ThemeToggle.tsx (NEW), styles/globals.css (MODIFIED), pages/_app.tsx (MODIFIED), components/Layout.tsx (MODIFIED), components/BottomTabNav.tsx (MODIFIED), components/SaleCard.tsx (MODIFIED), components/ItemCard.tsx (MODIFIED), pages/index.tsx (MODIFIED), pages/organizer/settings.tsx (MODIFIED), components/ToastContext.tsx (MODIFIED), components/ErrorBoundary.tsx (MODIFIED), components/NudgeBar.tsx (MODIFIED), components/OnboardingModal.tsx (MODIFIED), components/OrganizerOnboardingModal.tsx (MODIFIED), claude_docs/STATE.md (MODIFIED), claude_docs/logs/session-log.md (MODIFIED) | Compressions: 0 | Subagents: 2 (findasale-dev + findasale-records) | Push method: MCP
-
----
-
-## Session 183 — 2026-03-16 — #65 Progressive Disclosure UI Shipped + #68 Command Center Dashboard Architecture Complete + Sprint 1 Dispatched
-
-**Worked on:** (1) #65 Progressive Disclosure UI — final sprint shipped. Frontend: `useOrganizerTier.ts` hook (NEW), `AuthContext.tsx` fixed JWT tier extraction, `dashboard.tsx` + `settings.tsx` wired tier gates. SIMPLE users see 5-button surface (Create Sale, Add Items, Holds, Settings); PRO/TEAMS see all. Commit 63c8308 ✅. (2) #68 Command Center Dashboard — Sprint 1 and Sprint 2 both complete and pushed to GitHub. Architecture docs written (`ADR-068-COMMAND-CENTER-DASHBOARD.md`, `ADR-068-SPRINT1-IMPLEMENTATION-SPEC.md`, `ADR-068-QUICK-REFERENCE.md`). Sprint 1 backend: commandCenterService.ts, commandCenterController.ts, routes/commandCenter.ts, shared/types/commandCenter.ts, index.ts (NEW 4, MODIFIED 1). Sprint 2 frontend: useCommandCenter.ts, CommandCenterCard.tsx, command-center.tsx, Layout.tsx (NEW 3, MODIFIED 1). Schema GO (no migrations). Query optimized to 2–3 queries, tier-gated via requireTier('PRO'). Commits 2ea619b, 01a32cc, e9a6aaa, c997bd7 ✅ (on top of 06a2f61, 7052087). HEAD c997bd7. (3) P0 status review — P0-2 confirmed shipped (commit d3780876, Railway live). P0-1 still unresolved (tokenVersion field missing from Organizer schema — needs migration). (4) Records checkpoint — STATE.md + session-log updated.
-
-**Decisions:** #65 uses simple canAccess() hook (no component knows about hasAccess imports). #68 Sprint 1 backend-first to unblock other features. P0-1 blocked by schema gap — marked tech debt for next session.
-
-**Token efficiency:** 1 dev subagent (findasale-dev) for #68 architecture handoff + dispatch. Main window orchestrated #65 shipping verification and records. Low-medium burn.
-
-**Token burn:** ~25k tokens (est.), 1 checkpoint.
-
-**Next up:** QA #68 Command Center (findasale-qa) → roadmap update → #54 Social Proof Messaging (verify shipped in commit 661339d1) → P0-1 proper fix (schema migration).
-
-**Blockers:** P0-1 blocked by schema — add tokenVersion field to Organizer model.
-
-**Files changed:** packages/backend/src/services/commandCenterService.ts (NEW), packages/backend/src/controllers/commandCenterController.ts (NEW), packages/backend/src/routes/commandCenter.ts (NEW), packages/shared/src/types/commandCenter.ts (NEW), packages/backend/src/index.ts (MODIFIED), packages/frontend/hooks/useCommandCenter.ts (NEW), packages/frontend/components/CommandCenterCard.tsx (NEW), packages/frontend/pages/organizer/command-center.tsx (NEW), packages/frontend/components/Layout.tsx (MODIFIED), packages/frontend/hooks/useOrganizerTier.ts (NEW), packages/frontend/components/AuthContext.tsx (MODIFIED), packages/frontend/pages/organizer/dashboard.tsx (MODIFIED), packages/frontend/pages/organizer/settings.tsx (MODIFIED), claude_docs/architecture/ADR-068-COMMAND-CENTER-DASHBOARD.md (NEW), claude_docs/architecture/ADR-068-SPRINT1-IMPLEMENTATION-SPEC.md (NEW), claude_docs/architecture/ADR-068-QUICK-REFERENCE.md (NEW), claude_docs/STATE.md (MODIFIED), claude_docs/logs/session-log.md (MODIFIED) | Compressions: 0 | Subagents: 1 (findasale-dev) | Push method: MCP (4 batches + Patrick PS1)
-
----
-
-## Session 181 — 2026-03-16 (continued) — #67 Social Proof + #23 Unsubscribe-to-Snooze + #21 User Impact Scoring Shipped
-
-**Worked on:** (1) #67 Social Proof Notifications — full backend + frontend. Backend: `socialProofService.ts` (item + sale level aggregation of favorites, bids, holds), `socialProofController.ts` (GET endpoints), `socialProof.ts` route registration. Frontend: `useSocialProof.ts` React Query hook (30s stale), `SocialProofBadge.tsx` component (compact/full, sage-green). Wired into item/sale detail pages. No schema changes. (2) #23 Unsubscribe-to-Snooze — intercepts MailerLite unsubscribe webhook, sets 30-day snooze via custom field instead of deletion. Backend: `snoozeService.ts` (snooze/reactivate via MailerLite API), `snoozeController.ts` (webhook handler, status, reactivation), `snooze.ts` route (/api/snooze/webhook unauthenticated, /api/snooze/status + /api/snooze/reactivate authenticated). No schema changes — custom MailerLite fields only. (3) #21 User Impact Scoring in Sentry — infrastructure for error prioritization. Backend: `sentryUserContext.ts` middleware (user tier, points, hunt pass, impact_level). Frontend: `useSentryUserContext.ts` hook. Wired globally (index.ts + _app.tsx SentryUserContextSync). No schema changes. (4) roadmap.md v42 — moved #67, #23, #21 to Shipped Features, removed from Phase 4. (5) Records checkpoint — STATE.md + session-log updated.
-
-**Decisions:** All three features are stateless/infrastructure with no schema changes. Social Proof self-gates (no auth = no display). Unsubscribe-to-Snooze uses MailerLite custom field only (Patrick to set up snooze_until field + webhook endpoint). Impact Scoring prioritizes by user damage not raw error count.
-
-**Token efficiency:** 3 dev subagents (parallel dispatch for #67, #23, #21). Main window orchestrated, spot-checked, and handled records. High efficiency with parallel flow. Medium burn.
-
-**Token burn:** ~80k tokens (est.), 1 checkpoint.
-
-**Next up:** #63 Dark Mode + Accessibility OR #65 Progressive Disclosure UI (5-button surface).
-
-**Blockers:** None. All code pushed to GitHub via MCP.
-
-**Files changed:** packages/backend/src/services/socialProofService.ts (NEW), packages/backend/src/controllers/socialProofController.ts (NEW), packages/backend/src/routes/socialProof.ts (NEW), packages/frontend/hooks/useSocialProof.ts (NEW), packages/frontend/components/SocialProofBadge.tsx (NEW), packages/backend/src/services/snoozeService.ts (NEW), packages/backend/src/controllers/snoozeController.ts (NEW), packages/backend/src/routes/snooze.ts (NEW), packages/backend/src/middleware/sentryUserContext.ts (NEW), packages/frontend/hooks/useSentryUserContext.ts (NEW), packages/backend/src/index.ts (MODIFIED — 3 new imports + 3 new route registrations + Sentry middleware), packages/frontend/pages/_app.tsx (MODIFIED — SentryUserContextSync import + component), claude_docs/strategy/roadmap.md (MODIFIED — v42, moved features to Shipped), claude_docs/STATE.md (MODIFIED — S181 continued entry), claude_docs/logs/session-log.md (MODIFIED — this entry) | Compressions: 0 | Subagents: 3 (findasale-dev × 3 parallel) + 1 (findasale-records) | Push method: MCP (~3 batches)
-
----
-
-## Session 181 — 2026-03-16 — #61 Near-Miss Nudges Shipped + syncTier Bugfix + Roadmap v41
-
-**Worked on:** (1) #61 Near-Miss Nudges — full build and ship. Backend: `nudgeService.ts` with variable-ratio dispatch (65% daily via MD5 pseudo-randomization), 4 nudge types (FAVORITE_MILESTONE, STREAK_CONTINUATION, TIER_PROGRESS, HUNT_PASS_TEASE), proximity-based triggers. `nudgeController.ts` endpoint (GET /api/nudges), `nudges.ts` route registered in index.ts. Frontend: `useNudges.ts` React Query hook, `NudgeBar.tsx` sage-green toast UI (auto-dismiss 10s, progress bar, above BottomTabNav), wired into _app.tsx globally and self-gates on auth. No schema changes — stateless, reads existing User + Favorite data. (2) syncTier.ts build fix — removed invalid `tokenVersion: { increment: 1 }` reference on Organizer update that was blocking Railway deploys. (3) roadmap.md v41 pushed to GitHub — cleaned #38/#43 duplication (already shipped), removed premature #61 from Shipped, annotated #65 Sprint 1+2 complete, marked env var checklist items done, moved #61 to Shipped after build. (4) STATE.md updated — marked 3 Patrick pre-billing items complete. (5) session-log.md entry added. (6) Records checkpoint — all files recorded. (7) CONTINUED: #67, #23, #21 shipped (3 parallel dev dispatches + records integration). roadmap.md v42 updated, STATE.md S181 continued entry added.
-
-**Decisions:** NudgeBar renders globally but self-gates (no auth = no nudges). Variable-ratio schedule uses MD5-based deterministic pseudo-randomization for repeatability. Nudge types prioritized: Favorite Milestone (highest ROI), Streak Continuation, Tier Progress, Hunt Pass Tease (lowest). No A/B test complexity — ship with 65% baseline, monitor metrics next beta session. #67/#23/#21 are all stateless infrastructure with no schema changes. Unsubscribe-to-Snooze uses MailerLite custom fields exclusively.
-
-**Token efficiency:** Dev subagent for #61 implementation. Continued: 3 dev subagents in parallel for #67, #23, #21. Records subagent for doc wrap. Main window handled orchestration, MCP pushes, and final records checkpoint. High parallel efficiency. Medium-high burn (4 features total).
-
-**Token burn:** ~80k tokens (est.), 1 checkpoint.
-
-**Next up:** #63 Dark Mode + Accessibility (WCAG 2.1 AA, Tailwind dark variants, system preference, high-contrast outdoor mode, larger fonts). OR #65 Progressive Disclosure UI (Simple mode 5-button surface).
-
-**Blockers:** None. All S181 code pushed to GitHub via MCP.
-
-**Files changed:** packages/backend/src/services/nudgeService.ts (NEW), packages/backend/src/controllers/nudgeController.ts (NEW), packages/backend/src/routes/nudges.ts (NEW), packages/backend/src/services/socialProofService.ts (NEW), packages/backend/src/controllers/socialProofController.ts (NEW), packages/backend/src/routes/socialProof.ts (NEW), packages/backend/src/services/snoozeService.ts (NEW), packages/backend/src/controllers/snoozeController.ts (NEW), packages/backend/src/routes/snooze.ts (NEW), packages/backend/src/middleware/sentryUserContext.ts (NEW), packages/backend/src/index.ts (MODIFIED × 2 edits — nudge route + social + snooze routes + Sentry middleware), packages/backend/src/lib/syncTier.ts (MODIFIED — removed tokenVersion), packages/frontend/hooks/useNudges.ts (NEW), packages/frontend/hooks/useSocialProof.ts (NEW), packages/frontend/hooks/useSentryUserContext.ts (NEW), packages/frontend/components/NudgeBar.tsx (NEW), packages/frontend/components/SocialProofBadge.tsx (NEW), packages/frontend/pages/_app.tsx (MODIFIED × 2 edits — NudgeBar + SentryUserContextSync), claude_docs/strategy/roadmap.md (MODIFIED — v41 then v42), claude_docs/STATE.md (MODIFIED — S181 + S181 continued entries), claude_docs/logs/session-log.md (MODIFIED — S181 continued entry) | Compressions: 1 | Subagents: 4 (findasale-dev × 3 parallel + findasale-records) | Push method: MCP (~3 batches)
-
----
-
-## Session 180 — 2026-03-16 — Context Doc Update + Shipping Confirmations
-
-**Worked on:** (1) P0-1 confirmed shipped (syncTier tokenVersion). (2) P0-2 confirmed shipped (STRIPE_SECRET_KEY startup guard). (3) #43 OG Image Generator shipped (SaleOGMeta component). (4) #5 Listing Type Schema Debt audited — no changes needed. (5) #38 Entrance Pin audited — already shipped. (6) Session log S171–S177 catch-up (7 sessions reconstructed). (7) Context doc updates: STATE.md, roadmap.md, next-session-prompt.md.
-
-**Decisions:** S180 was pure documentation/audit session — no code changes. Confirmed 3 features done (#43, #5, #38), 2 P0 fixes shipped.
-
-**Token efficiency:** Records-only session, no dev dispatches. Low burn.
-
-**Token burn:** ~30k tokens (est.), 0 checkpoints.
-
-**Next up:** #61 Near-Miss Nudges (0.25 sprint, no schema changes, high ROI).
-
-**Blockers:** None.
-
-**Files changed:** claude_docs/STATE.md, claude_docs/strategy/roadmap.md, claude_docs/next-session-prompt.md, claude_docs/logs/session-log.md | Compressions: 0 | Subagents: 1 (findasale-records) | Push method: MCP
-
----
-
-## Session 179 — 2026-03-16 — Billing QA Pass + Skill Reconstruction + Packaging Protocol
-
-**Worked on:** (1) GitHub QA audit of S178 changes. (2) Architect sign-off Sprint 2 billing. (3) Hacker security review. (4) findasale-qa Sprint 2 billing. (5) conversation-defaults v5 reconstructed. (6) Skill packaging protocol established.
-
-**Decisions:** 2 P0 fixes required before Railway deploy (tokenVersion in syncTier, STRIPE_SECRET_KEY startup check). Skill packaging is mandatory — CORE.md §9 updated.
-
-**Token efficiency:** 4 subagent dispatches (architect, hacker, qa, records). Proper fleet utilization. Medium burn.
-
-**Token burn:** ~45k tokens (est.), 1 checkpoint.
-
-**Next up:** Fix Hacker P0s, then #61 Near-Miss Nudges.
-
-**Blockers:** 2 P0 fixes before billing goes live.
-
-**Files changed:** claude_docs/CORE.md (§9), claude_docs/skills-package/ (2 .skill files), conversation-defaults SKILL.md, findasale-dev SKILL.md | Compressions: 0 | Subagents: 4 | Push method: MCP
-
----
-
-## Session 178 — 2026-03-16 — #65 Sprint 2 Shipped + Workflow Fixes + Skill Gate
-
-**Worked on:** Full Stripe billing infrastructure (billingController, syncTier, billing route, upgrade page, subscription page, requireTier middleware on 3 routes). MESSAGE_BOARD.json permanently untracked. Schema read gate added to dev skill. Brand voice guide rewritten.
-
-**Decisions:** Billing endpoints use raw body middleware for webhooks. requireTier('PRO') gates batch ops, analytics, export. upgrade.tsx uses organizerTier field.
-
-**Token efficiency:** Dev subagent for billing implementation. Records for doc wrap. Medium-high burn (4 build cycles to fix TS).
-
-**Token burn:** ~60k tokens (est.), 0 checkpoints.
-
-**Next up:** QA Sprint 2 billing, fix P0s, then resume roadmap.
-
-**Blockers:** Skills need reinstall by Patrick.
-
-**Files changed:** 10 code files (3 new backend, 2 new frontend, 5 modified) + skill files + brand voice guide | Compressions: 0 | Subagents: 2 | Push method: MCP
-
+**Files changed:** 14 new/modified files across backend, frontend, shared + doc files | Subagents: 2 (findasale-records + findasale-dev) | Push method: Manual .\push.ps1
