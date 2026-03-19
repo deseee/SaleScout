@@ -236,4 +236,49 @@ allowed/disallowed lists. (Added 2026-03-15, Session 170.)
 
 ---
 
+## 13. Schema-First Pre-Flight Gate (Dev Subagents — Mandatory)
+
+Before any component edit or new file that renders or references database-model data,
+dev subagents MUST complete all four steps below. No exceptions. No assumptions.
+
+**GATE (fires before touching any `.ts`, `.tsx`, or `.prisma` file under `packages/`):**
+
+**Step 1 — Schema verify:**
+Read `packages/database/prisma/schema.prisma`. Confirm every model field referenced
+in the component or hook actually exists in the schema. If a field doesn't exist —
+STOP. Do not invent a type. Do not add a field inline. Escalate to Patrick or Architect.
+
+**Step 2 — Hook shape verify:**
+Read the relevant hook file (`hooks/use*.ts`). Confirm the return shape before
+destructuring in a component. Critical distinction:
+- `useState`-based hooks do NOT return `{ isLoading, data }` — they return values directly.
+- `react-query`-based hooks DO return `{ data, isLoading, isError }`.
+- Never assume. Always read. One wrong destructure = one Vercel failure.
+
+**Step 3 — Controller/service type verify:**
+If the component references fields from an API response, read the relevant controller
+file's return type. Do not derive field names from variable names or guesses.
+
+**Step 4 — Post-edit TypeScript check (mandatory before returning):**
+After every batch of changes, run:
+```bash
+cd packages/frontend && npx tsc --noEmit --skipLibCheck 2>&1 | grep "error TS" | grep -v node_modules
+```
+Zero errors required before returning output to main session. Do not return partial
+fixes. If errors remain, fix them in the same dispatch round.
+
+**Forbidden patterns (immediate red flag — stop and re-read):**
+- `import { anything } from '@findasale/shared'` — forbidden, always causes Vercel failure
+- Destructuring `{ isLoading }` from a hook without verifying it returns that shape
+- Adding a field to a type definition without confirming it exists in schema.prisma
+- Returning from a dispatch with TypeScript errors still present
+
+**Origin:** Sessions 196–202 — seven consecutive Vercel build failures caused by
+fabricated field names, wrong `@findasale/shared` imports, missing `createdAt` in JWT
+payload, `isLoading` destructured from a `useState` hook, and incorrect data nesting
+(`queueData?.data?.data` vs `queueData?.data`). Each failure cost 1–3 repair rounds.
+This gate was added 2026-03-18 (Session 202) at Patrick's direction. It is permanent.
+
+---
+
 Status: Project Authority Layer
