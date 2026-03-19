@@ -380,7 +380,10 @@ Production MVP launched Q1 2026.
 - **Heatmap density:** Radius-based (1–3 mile), pre-computed grid tiles every 6h, 7-day rolling window.
 - **Background removal:** On-demand Cloudinary `b_remove` transform only. Primary photo. No batch job.
 - **Holds grouping:** By-item in schema, grouped-by-buyer in display. No junction table.
-
+Roadmap (bottom) — 7 locked UX/product decisions from S155 (holds expiry, health score, tag vocabulary, social templates, heatmap density, background removal, holds grouping)
+claude_docs/architecture/ — 13 ADR files covering feature-specific technical specs (#13/#60 Teams Bundle, #17/#19 Bid Bot/Passkey, #30/#46/#69 AI/Offline, #40/#44/#48 Hubs/Trail, #52/#53/#54 Encyclopedia/Aggregator/Appraisal, #65 Tiers, #68 Command Center)
+claude_docs/feature-decisions/ — 7 files covering architecture choices (camera workflow, cash fee collection, push coordinator, manager subagent)
+decisions-log.md — governance/process decisions (subagent-first gate, file delivery rule, roadmap schema)
 ---
 
 ## Maintenance

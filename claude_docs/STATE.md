@@ -7,27 +7,32 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Active Objective
 
-**Session 204 COMPLETE (2026-03-19) — MIGRATION APPLIED + SHOPPER NAV + ENCYCLOPEDIA SEED:**
+**Session 204 COMPLETE (2026-03-19) — FEATURES + ROADMAP AUDIT + PROGRESSIVE DISCLOSURE:**
 
-**Migration Status:**
-- All 3 stuck Neon migrations confirmed APPLIED: ugc_photos, fraud_signals, treasure_trail (2026-03-18/19)
-- No blockers for future `migrate deploy` calls
-- Patrick ran resolve commands successfully in S204
+**Code shipped:**
+- Shopper desktop nav: Layout.tsx — Explore + Map for shoppers. Pushed: f40ba6e
+- Encyclopedia seed: 15 entries in seed.ts. TS2448 + P2003 fixes. Pushed: cdf1c60 + P2003 fix
+- #65 Progressive Disclosure: TierGatedNav.tsx (new), Layout.tsx nav restructure, dashboard.tsx 4-section tier-gated layout. Spec: `claude_docs/features/65-progressive-disclosure.md`
+- Pending Patrick push: progressive disclosure code + roadmap
 
-**Shopper desktop nav (Explore + Map links):**
-- Layout.tsx updated: Explore + Map now show for shopper users (role USER/ADMIN) in desktop right nav, matching mobile BottomTabNav behavior
-- TypeScript clean. Pushed: commit f40ba6e
+**Roadmap v56 audit:**
+- Formatting rules added to top of roadmap (binding on all agents, Rule 29 in conversation-defaults)
+- Chrome/Nav/Human columns restored. Role column added to Deferred + Rejected tables
+- Coupons added as shipped feature. Affiliate Program added to Deferred
+- N/A markers on non-human-testable features (A/B Testing, Tiers Backend, Sentry scoring)
+- 3 junk files to delete: patrick-checklist.md, automated-checks.md, agent-task-queue.md
 
-**Encyclopedia seed data (15 published entries):**
-- Added to `packages/backend/seed.ts`: Depression Glass, MCM Furniture, Victorian Antiques, Vintage Clothing, Art Deco, Tools, Pottery, Americana, Vinyl Records, Jewelry, Books, Estate Sale Shopping 101, Lighting, Rugs
-- Achievements and Challenges auto-populated by their services (included in seed)
-- Moved encyclopedia block after users creation to fix TS2448 (block-scoped variable used before declaration)
-- Pushed: commits cdf1c60 + pending P2003 fix
+**Research completed:**
+- Affiliate Program: Innovation report at `claude_docs/research/affiliate-program-research-2026-03-19.md`
+- Reconciliation report: `claude_docs/operations/roadmap-reconciliation-2026-03-19.md`
+- Coupons: fully built (schema + routes + controller). Two-tier approach (SIMPLE w/ limits, PRO advanced)
+- Virtual Queue: confirmed SIMPLE tier, no tier gating in code
+- Hunt Pass: needs discussion re: placement within Premium tier structure
 
-**Seed.ts P2003 fix (pending Patrick push):**
-- Added PointsTransaction + EncyclopediaEntry to cleanup section
-- Reordered deletions for FK constraint compliance (Achievement → Appraisal → PointsTransaction → EncyclopediaEntry → Sale/User)
-- Awaiting Patrick push to verify seed runs cleanly
+**Open decisions (deferred to future session):**
+- Hunt Pass placement within Premium tier
+- Coupon two-tier approach scope (SIMPLE limits vs PRO analytics)
+- Affiliate referral badges + loyalty passport integration fleshing out
 
 **DB test accounts (Neon production — current):**
 - `user1@example.com` / `password123` → ORGANIZER, SIMPLE tier (Giselle Brown)
@@ -37,12 +42,14 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ---
 
-**Next up (S205):**
-- [ ] Confirm Patrick P2003 fix push and seed cleanly
-- [ ] #65 Progressive Disclosure spec clarification (no feature file found — dispatch for spec review)
-- [ ] Patrick E2E testing pass (guide at `claude_docs/testing-guides/patrick-e2e-guide-2026-03-19.md`)
-- [ ] P2 UX fixes (mobile dashboard simplification, Manage Sales dropdown, tier/rewards card repositioning)
-- [ ] Wave 5 Sprint 3 work (AI Appraisal async, remaining Sprint 3 features)
+**Next up (S205) — QA BLITZ SESSION:**
+- [ ] Push S204 code (progressive disclosure + roadmap) if not already done
+- [ ] Delete 3 junk ops files (patrick-checklist, automated-checks, agent-task-queue)
+- [ ] Install conversation-defaults v8 (Rule 29)
+- [ ] Parallel QA blitz: dispatch agents to test/QA all 📋PEND features, get as many to ✅ as possible
+- [ ] Target: move features from 📋PEND → ✅ in QA/Chrome/Nav columns, mark Human-ready where applicable
+- [ ] Wave 5 remaining: #70 Live Sale Feed (QA pending), #47 UGC Photo Tags (Chrome pending)
+- [ ] Waves 2-4 regression: ~30 features with 📋PEND QA status
 
 ---
 
