@@ -2,6 +2,24 @@
 
 ## Recent Sessions
 
+### 2026-03-18 · Session 203
+
+**P1 Nav Regression Fix + A11Y P0 + Migration Audit + Skill Update**
+
+**Worked on:**
+- Restored SIMPLE organizer desktop right-nav (Dashboard, Plan a Sale, Bounties/Reputation/Performance) — accidentally removed in S202 P0 UX restructure. Pushed commits aa06fee + c317773.
+- Accessibility P0 fixes: BottomTabNav aria-labels, login.tsx social button labels (Passkey/Google/Facebook), Layout.tsx nav landmark labels. H1 headings confirmed already correct. TypeScript clean.
+- Confirmed #51 Ripples migration ✅ applied to Neon. Identified 3 stuck failed migrations (ugc_photos, fraud_signals, treasure_trail) — SQL on disk is correct, need `prisma migrate resolve` + `migrate deploy` to clear.
+- Updated findasale-dev SKILL.md with §13 Schema-First Pre-Flight Gate reference. Repackaged as .skill.
+
+**Decisions:** Migration SQL files were already correct on disk from previous sessions — only `_prisma_migrations` table state needs resolving. Not a code fix, just a Prisma state reset.
+
+**Next up:** Shopper nav consistency, #65 Progressive Disclosure spec, encyclopedia/challenges seed content, Patrick E2E testing pass, P2 UX fixes.
+
+**Blockers:** 3 stuck Neon migrations block future `migrate deploy`. Patrick has resolve commands in STATE.md.
+
+---
+
 ### 2026-03-18 · Session 202
 
 **Chrome Verification Pass + DB Test Accounts + UX Audit Launch**

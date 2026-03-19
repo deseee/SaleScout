@@ -1,5 +1,5 @@
 # Dynamic Project Context
-*Generated at 2026-03-19T02:06:23.674Z*
+*Generated at 2026-03-19T03:19:01.861Z*
 *Run `node scripts/update-context.js` on Windows to refresh.*
 
 ## Last Session
@@ -1064,8 +1064,11 @@ See report for details.
 │   │   └── ADR-PHASE4-BRIEF.md
 │   ├── archive/ (22 files)
 │   ├── audits/
+│   │   ├── accessibility-audit-2026-03-18.md
+│   │   ├── design-critique-2026-03-18.md
 │   │   ├── passkey-qa-audit-s200.md
-│   │   └── periodic-docs-audit-2026-03-18.md
+│   │   ├── periodic-docs-audit-2026-03-18.md
+│   │   └── ux-audit-nav-overload-2026-03-18.md
 │   ├── beta-launch/ (5 files)
 │   ├── brand/ (9 files)
 │   ├── competitor-intel/ (2 files)
