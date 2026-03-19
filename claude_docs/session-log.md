@@ -2,6 +2,21 @@
 
 ## Recent Sessions
 
+### 2026-03-19 · Session 206
+
+**Roadmap Restoration Audit — Patrick's Checklist + Deferred Promotions**
+
+**Completed:**
+- Compared current roadmap.md (v59) against roadmap.old.md (v39) and git history (v14) to identify sections removed during prior audit
+- Restored Patrick's Checklist to roadmap.md — 4 sections: Business Formation + Legal, Credentials + Services, Beta Recruitment, Pre-Beta Prep
+- Moved Running Automations + Connectors to STATE.md under "Active Infrastructure"
+- Confirmed all Agent Task Queue items done (Bug Blitz, Deploy Risk Matrix, Connector-Matrix)
+- Promoted 9 deferred items to backlog (#84–#92): Approach Notes, Treasure Hunt QR, Shopper Profile + Friend Network, Brand & Designer Tracking, Haul Post Gallery, Unified Print Kit, Sale Soundtrack, Auto-Markdown, City Weekend Landing Pages
+
+**Files changed:** claude_docs/strategy/roadmap.md (v59→v61), claude_docs/STATE.md
+
+---
+
 ### 2026-03-19 · Session 204
 
 **Migration Audit Complete + Shopper Nav + Encyclopedia Seed**

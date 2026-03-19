@@ -1,6 +1,6 @@
 # ROADMAP – FindA.Sale
 
-**Last Updated:** 2026-03-19 (v59 — Added 6 Design Polish backlog items #76–#81 from design vision exploration: Skeleton Loaders, Sale Published Celebration, Inspiration Page, Earnings Animation, Purchase Confirmation Redesign, Empty State Audit. All spec'd in `claude_docs/ux-spotchecks/design-polish-vision-2026-03-19.md`.)
+**Last Updated:** 2026-03-19 (v61 — Restored Patrick's Checklist (business formation, credentials, beta recruitment, pre-beta prep). Moved automations + connectors to STATE.md. Promoted 9 deferred items (#84–#92) to backlog — revisit triggers met or Patrick override. Confirmed Agent Task Queue + Sync Points all resolved.)
 
 **Status:** Production MVP live at finda.sale. Beta: GO. Full build history: `claude_docs/strategy/COMPLETED_PHASES.md`.
 
@@ -37,6 +37,43 @@ Production MVP launched Q1 2026.
 6. **When adding a new shipped feature:** Add it to the correct section table with all 11 columns filled. Set Chrome/Nav/Human to 📋 unless already verified.
 
 7. **When updating status:** Only change the specific column that changed. Do not rewrite the Notes column or other feature rows.
+
+---
+
+## Patrick's Checklist
+
+### Business Formation + Legal
+- [x] File Michigan LLC with LARA ✅
+- [x] Get EIN from IRS.gov ✅
+- [x] Open business bank account ✅
+- [x] Set up support@finda.sale email forwarding ✅ (2026-03-06)
+- [ ] Order business cards (~$25) — files in `claude_docs/brand/`
+- [ ] Create Google Business Profile for FindA.Sale
+- [ ] Open Stripe business account
+- [ ] Google Search Console verification
+- [ ] Set up Google Voice for support line
+
+### Credentials + Services
+- [x] Google Cloud account + Vision API key ✅ (2026-03-05)
+- [x] Anthropic API key (for Claude Haiku) ✅ (2026-03-05)
+- [x] UptimeRobot monitoring ✅ (2026-03-05)
+- [x] Rotate Neon database credentials ✅ (2026-03-09)
+- [x] OAuth credentials (Google, Facebook) → Vercel env vars ✅ (2026-03-06)
+- [x] Platform fee locked at 10% flat ✅ (session 106)
+- [ ] VAPID keys confirmed in production
+- [ ] **⚠️ Set `MAILERLITE_SHOPPERS_GROUP_ID=182012431062533831` on Railway**
+- [ ] **⚠️ Verify `RESEND_API_KEY` and `RESEND_FROM_EMAIL` on Railway**
+
+### Beta Recruitment
+- [ ] Identify 5 target beta organizers — outreach template ready (`claude_docs/beta-launch/organizer-outreach.md`)
+- [ ] Schedule 1-on-1 onboarding sessions
+- [ ] Hand-hold first 3 sales
+- [ ] Collect structured feedback
+- [ ] Sync: feedback → Claude for iteration
+
+### Pre-Beta Prep
+- [ ] Brand Voice Session — use brand-voice plugin to establish documented voice, tone, and messaging pillars before beta outreach and email sequences
+- [ ] Trademark filing — see backlog item #82
 
 ---
 
@@ -265,6 +302,15 @@ Production MVP launched Q1 2026.
 | 81 | Empty State Audit + Copy Pass | BOTH | FREE | — | — | — | — | — | — | — | Inventory all empty states across organizer and shopper flows. Write human-voice copy for each (no dead ends — every empty state gets a CTA and a human sentence). UX/copy-only, no schema or API changes. Spec: `claude_docs/ux-spotchecks/design-polish-vision-2026-03-19.md` |
 | 82 | Trademark — FindA.Sale | BIZ | LEGAL | — | — | — | — | — | — | 📋 | File USPTO trademark on "FindA.Sale" brand name if not already done. ~$250–400/class + attorney fees (~$1,500–2,500 total). First priority IP action. Attorney required. |
 | 83 | Trade Secret Housekeeping | BIZ | LEGAL | — | — | — | — | — | — | 📋 | Document proprietary algorithms (fraud scoring, Near-Miss Nudge logic, City Heat Index formula, Flip Report scoring, AI condition grading prompts) as trade secrets in internal docs. Ensure all contractors/contributors have signed NDAs or are covered by agreements. No filing required — zero cost. |
+| 84 | Approach Notes (Arrival Assistant) | SHO | SIMPLE | — | — | — | — | — | — | — | Push notification at 500m with parking/entrance directions. Geolocation-dependent. Trigger met: Front Door Locator + Entrance Pin shipped. |
+| 85 | Treasure Hunt QR (In-Sale Scavenger Hunt) | SHO | FREE | — | — | — | — | — | — | — | QR stickers on unique items → badge collection. Dwell time driver. Trigger met: gamification scaffold (badges/XP/streaks) shipped. |
+| 86 | Shopper Profile + Friend Network | SHO | FREE | — | — | — | — | — | — | — | Public mini-card, badges, finds, friend activity. Social proof layer. Trigger met: gamification + UGC Photo Tags shipped. |
+| 87 | Brand & Designer Tracking | SHO | FREE | — | — | — | — | — | — | — | Follow specific brands/designers → alerts on matching items. Trigger met: tag system + Wishlist Alerts (#32) shipped. |
+| 88 | Haul Post Gallery (UGC Social Proof) | SHO | FREE | — | — | — | — | — | — | — | Post-purchase "show off your finds" with item linking + reactions. Trigger met: UGC Photo Tags (#47) shipped. |
+| 89 | Unified Print Kit | ORG | SIMPLE | — | — | — | — | — | — | — | Combined PDF: yard sign QR + item barcode stickers. Attribution loop. Trigger met: QR Code Signs shipped. |
+| 90 | Sale Soundtrack (Ambient Vibes) | SHO | FREE | — | — | — | — | — | — | — | AI-suggested Spotify/Apple Music playlists by sale type. External links only — zero licensing risk. Low-effort fun differentiator. |
+| 91 | Auto-Markdown (Smart Clearance) | ORG | PRO | — | — | — | — | — | — | — | Auto-discount engine: 50% day 2, 75% day 3, configurable floor. Removes manual repricing. Patrick promoted from deferred. |
+| 92 | City Weekend Landing Pages (Metro Explorer) | SHO | FREE | — | — | — | — | — | — | — | SEO-indexed per-metro pages (/grand-rapids-estate-sales). ISR + Schema.org markup. High SEO ROI. Patrick promoted from deferred. |
 
 ---
 
@@ -310,14 +356,8 @@ Production MVP launched Q1 2026.
 | Feature | Role | Tier | Reason | Revisit Trigger |
 |---------|------|------|--------|-----------------|
 | QR/Barcode Item Labels | ORG | SIMPLE | Print scannable labels during intake → POS scan for instant lookup. High potential from retail experience. Pairs with POS v2. | Strong candidate when POS sees real usage |
-| City Weekend Landing Pages (Metro Explorer) | SHO | FREE | SEO-indexed per-metro pages. ISR + Schema.org markup. High SEO ROI but slow payoff (6–12 wk indexing). | After 10+ active sales in GR |
 | Featured Listings (Feature Boost) | ORG | PAID_ADDON | Paid homepage placement ($50–100/sale). Zero value pre-scale — needs 500+ daily shoppers. | After 500+ organizer accounts + 10+ active sales |
-| Auto-Markdown (Smart Clearance) | ORG | PRO | Auto-discount engine: 50% day 2, 75% day 3. Removes manual repricing. | Week 3–4 of beta once organizers run 1–2 sales |
-| Approach Notes (Arrival Assistant) | SHO | SIMPLE | Push notification at 500m: "Parking around back, enter via side gate." Geolocation-dependent. | After Front Door Locator + Entrance Pin ship |
 | Crowd-Sourced Corrections (Community Intel) | SHO | FREE | Shoppers report "still available?" status + correct entrance locations. Vote-based ranking. | After 500+ concurrent shoppers exist |
-| Treasure Hunt QR (In-Sale Scavenger Hunt) | SHO | FREE | Organizer prints QR stickers for unique items → shoppers collect badges. Dwell time + impulse purchase driver. | After gamification scaffold ships |
-| Shopper Profile + Friend Network | SHO | FREE | Public mini-card showing badges, finds, friend activity. Social proof layer. | After gamification + UGC features |
-| Unified Print Kit | ORG | SIMPLE | Combined PDF: yard sign QR + item barcode stickers. Attribution loop. | After QR/Barcode Labels promoted |
 | Fast Pass for Sales (Priority Entry) | SHO | PAID_ADDON | $5–15 per pass, 30-min early access, capped at 20–50 passes. Revenue stream for organizers. | After beta proves high-demand sales |
 | Sale Grand Finale Events | ORG | PRO | Last 2 hours: live-streamed event, flash auctions, 5x XP. Requires streaming infra. | After Live Stream Sale Events |
 | VIP Behind-the-Scenes Tours | ORG | PAID_ADDON | $99–299 video shoot package with creator. Professional content for organizer marketing. | After creator network develops |
@@ -329,7 +369,6 @@ Production MVP launched Q1 2026.
 |---------|------|------|--------|-----------------|
 | Restoration & Upcycling Marketplace | BOTH | FREE | Before/after project gallery. "Studio Pro" tier for restorers. Creator economy play. | After UGC Photo Tags proves community appetite |
 | Book Club & Vinyl Community Hubs | SHO | FREE | Moderated collector hubs with feeds, swaps, events, challenges. Niche community retention. | After Collector Passport proves specialty-interest demand |
-| Brand & Designer Tracking | SHO | FREE | Follow specific brands/designers (Eames, Hermès). Alerts when matching items post. | After tag system + Wishlist Alerts ship |
 
 ### Long-Term Platform Vision (R&D Phase)
 
@@ -358,11 +397,9 @@ Production MVP launched Q1 2026.
 | API-First Organizer Toolkit | ORG | TEAMS | OAuth2 auth, docs, rate limiting, versioning for public API. Behind Premium Tier. Enables Zapier. | After core features stabilize — Q4 2026-Q1 2027 |
 | Zapier/Make.com Integration Hub | ORG | TEAMS | Requires API-First Toolkit first. Official Zapier app with triggers + actions. 2.2M businesses use Zapier. | After API-First ships — Q1-Q2 2027 |
 | TikTok-Style Item Reveal Feed | SHO | FREE | Vertical swipe feed of item reveals. Only works with high photo quality + item volume (100+/area). | After Rapidfire + Listing Factory drive quality up |
-| Haul Post Gallery (UGC Social Proof) | SHO | FREE | Post-purchase "show off your finds" with item linking. Builds on UGC Photo Tags. | After UGC Photo Tags ships |
 | Organizer AMAs (Reddit-Style Q&A) | BOTH | FREE | Scheduled pre-sale preview + Q&A sessions. Requires chat infrastructure + organizer willingness. | After 10+ active organizers |
 | Workflow Automations (Built-in IFTTT) | ORG | PRO | Rule builder: Trigger → Condition → Action. Start with 5-10 hardcoded automations. | Hardcoded Q3 2026; custom rules 2027 |
 | Auto-Reprice (Market-Responsive Pricing) | ORG | PRO | AI adjusts prices based on real-time demand signals. Extends Auto-Markdown. Requires transaction data. | After 6+ months transaction data |
-| Sale Soundtrack (Ambient Vibes) | SHO | FREE | AI-suggested Spotify/Apple Music playlists matched to sale type. Stick to external playlist links. | Anytime — low priority but fun marketing splash |
 
 *Deprecated (won't build): Co-Branded Yard Signs, Multi-Format Marketing Kit.*
 
@@ -399,6 +436,8 @@ Roadmap (bottom) — 7 locked UX/product decisions from S155 (holds expiry, heal
 claude_docs/architecture/ — 13 ADR files covering feature-specific technical specs (#13/#60 Teams Bundle, #17/#19 Bid Bot/Passkey, #30/#46/#69 AI/Offline, #40/#44/#48 Hubs/Trail, #52/#53/#54 Encyclopedia/Aggregator/Appraisal, #65 Tiers, #68 Command Center)
 claude_docs/feature-decisions/ — 7 files covering architecture choices (camera workflow, cash fee collection, push coordinator, manager subagent)
 decisions-log.md — governance/process decisions (subagent-first gate, file delivery rule, roadmap schema)
+FindaSale\claude_docs\feature-notes.md - design decisions based on emotion and animations
+
 ---
 
 ## Maintenance
