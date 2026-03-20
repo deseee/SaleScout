@@ -7,21 +7,16 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Active Objective
 
-**Session 214 COMPLETE (2026-03-20) — CHROME VERIFICATION + #70 FULLY COMPLETE:**
-- ✅ **Chrome re-verify DONE:** 13/15 PASS — all S212/S213 fixes confirmed. 2 "fails" were wrong test URLs (not real bugs). Flag: `/organizer/subscription` PRO user sees upgrade CTA — possible `useOrganizerTier` issue, queued S215.
-- ✅ **#70 FULLY COMPLETE:** LiveFeedTicker placed on sale detail page (`/sales/[id]`). Real-time feed live for shoppers.
-- ✅ **#19 Passkey: DEPLOYED** — live on Railway + Vercel, no further action needed.
+**Session 213 COMPLETE (2026-03-20) — REDIS ENV + #70 SOCKET DISPATCH + P1/P2 BUG FIXES:**
+- ✅ **Redis infrastructure live:** REDIS_URL + NEXT_PUBLIC_SOCKET_URL set on Railway + Vercel
+- ✅ **P1 fix SHIPPED:** `GET /sales/cities` — `getCities` via `$queryRaw` (bigint→Number conversion)
+- ✅ **P2 fixes SHIPPED (all remaining):** ThemeToggle dedup, Layout dedup (item-library, photo-ops)
+- ✅ **#70 dev dispatch COMPLETE:** Redis adapter + JWT socket auth + `useLiveFeed` + `LiveFeedTicker`
 - Last Updated: 2026-03-20
 
-**Push pending (Patrick):**
-```powershell
-cd C:\Users\desee\ClaudeProjects\FindaSale
-git add packages/frontend/pages/sales/[id].tsx
-git commit -m "feat: place LiveFeedTicker on sale detail page — completes feature #70"
-.\push.ps1
-```
+**#19 Passkey — CLEAR TO DEPLOY ✅ (no further work needed)**
 
-**Pricing Model (LOCKED):**
+**Pricing Model (LOCKED — Session 207):**
 - **SIMPLE (Free):** 10% platform fee, 200 items/sale included, 5 photos/item, 100 AI tags/month
 - **PRO ($29/month or $290/year):** 8% platform fee, 500 items/sale, 10 photos/item, 2,000 AI tags/month, unlimited concurrent sales, batch operations, analytics, brand kit, exports
 - **TEAMS ($79/month or $790/year):** 8% platform fee, 2,000 items/sale, 15 photos/item, unlimited AI tags, multi-user access, API/webhooks, white-label, priority support
@@ -32,22 +27,26 @@ git commit -m "feat: place LiveFeedTicker on sale detail page — completes feat
 
 **DB test accounts (Neon production — current):**
 - `user1@example.com` / `password123` → ADMIN role, SIMPLE tier organizer
-- `user2@example.com` / `password123` → ORGANIZER, PRO tier ✅
-- `user3@example.com` / `password123` → ORGANIZER, TEAMS tier ✅
+- `user2@example.com` / `password123` → ORGANIZER, PRO tier ✅ (fixed S211)
+- `user3@example.com` / `password123` → ORGANIZER, TEAMS tier ✅ (fixed S211)
 - `user11@example.com` / `password123` → Shopper
 
 ---
 
-**Next up (S215):**
-- [ ] Subscription tier bug — PRO user sees upgrade CTA (`useOrganizerTier` fix)
-- [ ] P2 backlog: error shape inconsistency, holds pagination, hub N+1
-- [ ] Design polish: #76 skeleton loaders, #77 celebration screen, #81 empty states
-- [ ] Platform safety P0: #93 account age gate, #95 velocity limits, #96 premium disclosure
-- [ ] Architect ADR: #72 Dual-Role Account Schema (gates #73, #74, #75)
-- [ ] Chrome audit: 7 secondary routes + sale detail LiveFeedTicker verify
-- [ ] Deferred pre-wires: consignment fields, affiliate payout table to schema
-- [ ] #92 City Weekend Landing Pages (SEO sprint)
-- [ ] #51 Sale Ripples: Neon migration + `prisma generate` still pending (Patrick action)
+**Next up (S214+):**
+- [x] Fix 7 P0 bugs from audit ✅ S212 COMPLETE
+- [x] Fix P1 dark mode on premium + insights ✅ S212 SHIPPED
+- [x] Fix P1 messages blank page ✅ S212 SHIPPED
+- [x] Fix P1 subscription error state for PRO/TEAMS ✅ S212 SHIPPED
+- [x] Fix P1 webhooks tier gating ✅ S212 SHIPPED
+- [x] Fix P1 cities page — `GET /sales/cities` endpoint ✅ S213 SHIPPED
+- [x] Fix P2 remaining (ThemeToggle dedup, Layout dedup) ✅ S213 SHIPPED
+- [x] Redis env live on Railway + Vercel ✅ S213 COMPLETE
+- [x] Dev dispatch: Redis adapter + JWT socket auth + LiveFeedTicker for #70 ✅ S213 SHIPPED
+- [x] Secondary route audit P0s fixed (price history import + visibility) ✅ S213 SHIPPED
+- [x] Secondary route audit P1s fixed (encyclopedia ownership, price history item-level, hub discovery cap) ✅ S213 SHIPPED
+- [ ] #19 Passkey — CLEAR TO DEPLOY ✅ (no further work needed)
+- [ ] P2 audit findings: inconsistent error shapes, missing pagination on holds, N+1 hub query
 
 ---
 
