@@ -7,6 +7,22 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Active Objective
 
+**Session 210 COMPLETE (2026-03-20) — QA AUDITS + SOCKET.IO FIXES:**
+- #19 Passkey — PASSED QA. P0 race fix confirmed correct. Clear to deploy.
+- #70 Live Sale Feed — QA found 5 issues. 2 fixed this session (memory leak + event name mismatch). 3 blocked on Patrick/ops actions (see below).
+- Architect signed off on Redis adapter + JWT socket auth design.
+- Fixed `packages/frontend/hooks/useLiveFeed.ts` — named callback ref, socket.off() + socket.disconnect() on unmount
+- Fixed `packages/frontend/pages/items/[id].tsx` — 'join-item' → 'join:item', payload fix
+- Roadmap updated: #70 annotated with blockers and decisions
+- Railway Redis (Option A) approved by Patrick 2026-03-20
+- Last Updated: 2026-03-20
+
+**#70 Live Sale Feed — Remaining blockers (Patrick + Dev actions required):**
+- **Patrick → Railway:** Add Redis service (dashboard → + New → Database → Add Redis → copy REDIS_URL)
+- **Patrick → Railway env:** Confirm `REDIS_URL` is injected into backend service env vars
+- **Patrick → Vercel env:** Add `NEXT_PUBLIC_SOCKET_URL=https://backend-production-153c9.up.railway.app` (Production) + add to `packages/frontend/.env.local` for local dev
+- **Dev dispatch (after above):** Implement Redis adapter in `socket.ts` + JWT auth middleware (`io.use()`) reusing `auth.ts` verify logic + frontend `useLiveFeed`/`useSaleStatus` pass `{ auth: { token } }` — full Architect spec in session-log S210
+
 **Session 209 COMPLETE (2026-03-20) — DARK MODE SWEEP (16 files):**
 - Audited 20 pages for dark mode gaps — 1 critical (index.tsx), 14 partial (🟡), 5 solid (✅)
 - Fixed SaleCard.tsx dark mode — card container bg, content area bg, placeholder icon opacity, organizer row
@@ -41,43 +57,14 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 - **Post-Beta:** Featured Placement $29.99/7d, AI Tagging Premium $4.99/mo (SIMPLE), Affiliate 2–3%, B2B Data Products (DEFERRED)
 - **Sources:** pricing-and-tiers-overview-2026-03-19.md (complete spec), BUSINESS_PLAN.md (updated), b2b-b2e-b2c-innovation-broad-2026-03-19.md (B2B/B2E/B2C strategy)
 
-**Pending Patrick push (S208 + S209 combined — ALL CHANGES):**
+**Pending Patrick push (S210 wrap — docs only):**
 ```powershell
 cd C:\Users\desee\ClaudeProjects\FindaSale
-git add packages/frontend/components/Layout.tsx
-git add packages/frontend/components/SaleCard.tsx
-git add "packages/frontend/pages/items/[id].tsx"
-git add packages/frontend/pages/index.tsx
-git add packages/frontend/pages/map.tsx
-git add packages/frontend/pages/search.tsx
-git add packages/frontend/pages/feed.tsx
-git add packages/frontend/pages/calendar.tsx
-git add packages/frontend/pages/trending.tsx
-git add packages/frontend/pages/leaderboard.tsx
-git add packages/frontend/pages/notifications.tsx
-git add packages/frontend/pages/surprise-me.tsx
-git add packages/frontend/pages/organizer/dashboard.tsx
-git add "packages/frontend/pages/organizer/flip-report/[saleId].tsx"
-git add "packages/frontend/pages/organizer/photo-ops/[saleId].tsx"
-git add "packages/frontend/pages/organizers/[id].tsx"
-git add packages/frontend/pages/shopper/favorites.tsx
-git add packages/frontend/pages/shopper/alerts.tsx
-git add packages/frontend/pages/shopper/holds.tsx
-git add packages/frontend/pages/shopper/purchases.tsx
-git add packages/frontend/pages/shopper/receipts.tsx
-git add packages/frontend/pages/shopper/trails.tsx
-git add packages/frontend/pages/shopper/disputes.tsx
-git add "packages/frontend/pages/shopper/loot-log/[purchaseId].tsx"
-git add "packages/frontend/pages/shopper/loot-log/public/[userId].tsx"
-git add packages/frontend/pages/shopper/loyalty.tsx
-git add "packages/frontend/pages/shoppers/[id].tsx"
-git add claude_docs/strategy/BUSINESS_PLAN.md
 git add claude_docs/strategy/roadmap.md
-git add claude_docs/audits/chrome-audit-2026-03-20.md
-git add claude_docs/ux-spotchecks/nav-dashboard-consolidation-2026-03-20.md
 git add claude_docs/STATE.md
 git add claude_docs/session-log.md
-git commit -m "S208+S209: dark mode sweep (27 files) — shopper nav, 16 pages, SaleCard; badge fix; empty states; upsell copy; nav consolidation"
+git add claude_docs/next-session-prompt.md
+git commit -m "S210: QA audits (passkey PASS, live-feed BLOCKED), socket fixes, Redis option A approved, roadmap+docs updated"
 .\push.ps1
 ```
 
@@ -90,10 +77,11 @@ git commit -m "S208+S209: dark mode sweep (27 files) — shopper nav, 16 pages, 
 ---
 
 **Next up (S211+):**
-- [ ] Chrome MCP visual verification of dark mode fixes (deferred — MCP unavailable S208–S210)
-- [ ] #19 Passkey — CLEAR TO DEPLOY ✅ (code review passed S210)
-- [ ] #70 Live Sale Feed — BLOCKED ❌ — dispatch findasale-dev to fix 5 issues (Redis adapter, JWT auth on socket, useLiveFeed cleanup, NEXT_PUBLIC_SOCKET_URL env, join-item→join:item event name)
-- [ ] Nav density + dashboard button review (S208 changes live after push — verify UX)
+- [ ] Check Chrome MCP connectivity — if available, visual verify dark mode fixes on live site
+- [ ] Patrick: provision Railway Redis + set REDIS_URL + set NEXT_PUBLIC_SOCKET_URL in Vercel (see next-session-prompt.md for exact steps)
+- [ ] Dev dispatch (after Patrick ops): Redis adapter + JWT socket auth for #70
+- [ ] #19 Passkey — CLEAR TO DEPLOY ✅ (no further work needed)
+- [ ] Nav + dashboard UX review post-S208 (live now — verify layout feels right)
 
 ---
 

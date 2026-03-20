@@ -250,7 +250,7 @@ Production MVP launched Q1 2026.
 | 54 | Crowdsourced Appraisal (Base) | BOTH | FREE | ✅ | ✅ | ✅ | ✅ | ✅S202 | ✅ | 📋 | Request/submit/vote appraisals; AI Sprint 3 deferred |
 | 60 | Premium Tier Bundle | ORG | PRO | ✅ | ✅ | ✅ | ✅ | ✅S202 | ✅ | 📋 | Tier landing page + comparison matrix + upgrade CTA. Sprint 2 frontend complete. |
 | 69 | Local-First Offline Mode | BOTH | PRO | — | ✅ | ✅ | ✅ | ✅S202 | ✅ | 📋 | Service worker sync queue; offline catalog |
-| 70 | Live Sale Feed | SHO | SIMPLE | ✅ | ✅ | ✅ | 📋 | 📋 | — | 📋 | Real-time sale activity feed |
+| 70 | Live Sale Feed | SHO | SIMPLE | ✅ | ✅ | ✅ | 📋 | 📋 | — | 📋 | Real-time sale activity feed. **BLOCKED S210** — requires: (1) Railway Redis add-on (Option A approved 2026-03-20) + `REDIS_URL` env + `@socket.io/redis-adapter`+`ioredis` deps; (2) JWT auth on Socket.io handshake; (3) `NEXT_PUBLIC_SOCKET_URL` Vercel env var. Memory leak + event name mismatch already fixed (S210). |
 | 47 | UGC Photo Tags | SHO | FREE | ✅ | ✅ | ✅ | ✅ | 📋 | ✅ | 📋 | Shopper-submitted item photos + moderation |
 | 7 | Shopper Referral Rewards | SHO | FREE | ✅ | ✅ | ✅ | ✅ | 📋 | ✅ | 📋 | Referral tracking + rewards distribution |
 

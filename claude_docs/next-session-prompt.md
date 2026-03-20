@@ -1,71 +1,123 @@
-# Next Session Resume Prompt — Session 207 (Business Plan + E2E Guide Audit)
-*Written: 2026-03-19*
+# Next Session Resume Prompt — S211
+*Written: 2026-03-20*
 *Session ended: normally*
 
-## Resume From
-S206 complete. Patrick needs to push 4 files (roadmap.md, STATE.md, session-log.md, next-session-prompt.md). Check git log for `S206` commit. If not pushed, give Patrick the push block below.
+---
 
-## Pending Push Block (if not already done)
+## Step 1 — Check Chrome MCP Connectivity
 
-### S205 push (if still pending)
-```powershell
-cd C:\Users\desee\ClaudeProjects\FindaSale
-git add packages/backend/src/index.ts
-git commit -m "S205: register 13 dead backend routes"
-.\push.ps1
+At session start, attempt a Chrome MCP call to verify it's connected this session.
+The tool names are `mcp__Claude_in_Chrome__*`. Try navigating to the live site:
+
+**Test URL:** `https://finda.sale` (or check NEXT_PUBLIC_APP_URL in Railway env)
+
+If Chrome MCP is available:
+- Navigate to the live site in dark mode (toggle via top-right ThemeToggle)
+- Visually verify the dark mode fixes from S208–S209 are live:
+  - Shopper nav drawer links — should be warm-100 text (not invisible black-on-dark)
+  - SaleCard — card container, content area should have dark:bg-gray-800
+  - pages: map, search, feed, calendar — check for obvious white blocks on dark bg
+  - shopper pages: alerts, holds, purchases, receipts — check for white panels
+- Screenshot each page and note any remaining issues
+- File findings in `claude_docs/audits/chrome-audit-dark-mode-S211.md`
+
+If Chrome MCP is NOT available:
+- Note it in session log, defer visual audit again, proceed to Step 2.
+
+---
+
+## Step 2 — Railway Redis Setup (Option A — Patrick must do first)
+
+Patrick approved Railway Redis on 2026-03-20. Before dispatching Dev for #70, Patrick must complete these ops steps:
+
+### 2a. Provision Redis on Railway
+1. Open [railway.app](https://railway.app) → FindaSale project
+2. Click **+ New** → **Database** → **Add Redis**
+3. Railway creates a Redis service and auto-injects `REDIS_URL` into services in the same project
+4. Verify: go to your **backend service** → **Variables** tab → confirm `REDIS_URL` appears
+
+### 2b. Add frontend socket URL to Vercel
+1. Open [vercel.com](https://vercel.com) → FindaSale project → **Settings** → **Environment Variables**
+2. Add new variable:
+   - **Name:** `NEXT_PUBLIC_SOCKET_URL`
+   - **Value:** `https://backend-production-153c9.up.railway.app`
+   - **Environment:** Production (and Preview if desired)
+3. Click Save. Vercel will use this on next deploy.
+
+### 2c. Add to local dev env
+In `packages/frontend/.env.local` (create if missing), add:
+```
+NEXT_PUBLIC_SOCKET_URL=http://localhost:3001
 ```
 
-### S206 push
-```powershell
-cd C:\Users\desee\ClaudeProjects\FindaSale
-git add claude_docs/strategy/roadmap.md claude_docs/STATE.md claude_docs/session-log.md claude_docs/next-session-prompt.md
-git commit -m "S206: restore Patrick checklist to roadmap, promote 9 deferred items to backlog, move automations+connectors to STATE.md"
-.\push.ps1
-```
+### 2d. Confirm with Claude
+Tell Claude: "Redis is provisioned, REDIS_URL is in Railway, NEXT_PUBLIC_SOCKET_URL is in Vercel."
+Claude will then dispatch Dev for the full implementation.
 
-### Cleanup (if still pending from S205)
-```powershell
-Remove-Item claude_docs\operations\patrick-checklist.md, claude_docs\operations\automated-checks.md, claude_docs\operations\agent-task-queue.md
-```
+---
 
-## S207 Mission: Business Plan Audit + E2E Guide Update
+## Step 3 — Dev Dispatch: #70 Live Sale Feed (after Step 2 complete)
 
-The business-plan and patrick-e2e-guide-2026-03-19 have become outdated after our extensive feature implementations in the past sessions.
+Dispatch `findasale-dev` with this context:
 
-### Task 1: Business Plan Audit
-Audit the business plan and use `claude_docs/strategy/roadmap.md` as the basis for changes.
+**Task:** Implement Railway Redis adapter + JWT Socket.io auth for #70 Live Sale Feed.
 
-**Key directives from Patrick:**
-1. Have `findasale-records` check that the entire document follows all branding voice guidelines
-2. Properly reflect that FindA.Sale supports ALL types of sales — not just estate sales. We support yard sales, garage sales, flea markets, rummage sales, charity sales, corporate liquidations, moving sales, church bazaars, etc. (full list was established in previous sessions — check brand docs)
-3. Emphasize our **photo-based workflow** and **payment systems** and **time savings for organizers**
-4. Emphasize the **fun treasure-hunt-inspired companion experience for shoppers**
-5. **Price can't be the differentiator and features can't be the differentiator** — competitors will copy both
-6. The real moat: make our photo-based workflow so good that organizers **want to export our watermarked images and templates to eBay, Amazon, and other marketplaces** — not just social media and EstateSales.NET
-7. Route to `findasale-records` for final doc review + brand voice compliance
-8. Route to `findasale-marketing` (or brand-voice plugin) to verify tone/messaging alignment
+**Architect decision (2026-03-20, locked):**
 
-**Agents to dispatch:**
-- `findasale-records` — audit + approve all doc changes
-- `findasale-marketing` or `marketing:brand-review` — brand voice compliance pass
+### Redis Adapter
+- Package: `@socket.io/redis-adapter` + `ioredis` (approved by Patrick)
+- File: `packages/backend/src/lib/socket.ts`
+- Location: after `new Server()`, before `.on('connection')`
+- Conditional: only initialize if `process.env.REDIS_URL` is set
+- Fallback: if unset, log warning and continue with in-memory (dev compat)
+- Install: `pnpm add @socket.io/redis-adapter ioredis` in `packages/backend`
 
-### Task 2: E2E Testing Guide Update
-Update `claude_docs/testing-guides/patrick-e2e-guide-2026-03-19.md` to include instructions for ALL currently shipped features.
+### JWT Auth on Socket
+- Pattern: `io.use()` middleware — runs before any connection handler
+- Token source: `socket.handshake.auth.token`
+- Verification: reuse the JWT verify function from `packages/backend/src/middleware/auth.ts` — do NOT duplicate logic
+- On success: attach `socket.data.user = decodedUser`
+- On failure: `next(new Error('Unauthorized'))` — Socket.io client receives connect_error
+- Scope: ALL connections (not just room joins)
 
-**Key directives:**
-- Slot newly shipped features near similar pre-existing tests where possible (group by flow, not by ship date)
-- Cover all 80+ shipped features across organizer core, analytics, marketing, sales tools, shopper discovery, engagement, gamification, and platform/AI sections
-- Reference the DB test accounts for each flow
-- Make it copy-paste friendly for Patrick to follow in browser
+### Frontend changes
+- `packages/frontend/hooks/useLiveFeed.ts` — pass `{ auth: { token: getAccessToken() } }` to `io()` call
+- `packages/frontend/hooks/useSaleStatus.ts` — same token pass
+- Find how other frontend files get the access token (grep for `getAccessToken` or `useAuth` or cookie read) — do NOT assume, read first
 
-### What S206 Accomplished
-- Restored Patrick's Checklist to roadmap (business formation, credentials, beta recruitment, pre-beta prep)
-- Moved automations + connectors to STATE.md
-- Promoted 9 items from deferred to backlog (#84–#92)
-- Roadmap now at v61
+### Constraints
+- CORE.md §13 Schema-First Pre-Flight Gate mandatory
+- Zero TypeScript errors before returning
+- No new files in packages/shared
+- pnpm-lock.yaml must be committed alongside package.json changes
+
+---
+
+## Current Status Summary
+
+### Feature #70 Live Sale Feed
+- DB ✅ | API ✅ | UI ✅ | QA 📋 (blocked) | Chrome 📋 | Human 📋
+- Memory leak fixed (S210) ✅
+- Event name mismatch fixed (S210) ✅
+- Remaining: Redis adapter, JWT socket auth, NEXT_PUBLIC_SOCKET_URL env var
+
+### Feature #19 Passkey
+- CLEAR TO DEPLOY ✅ — no further code changes needed
+
+### Dark Mode
+- 27 pages/components fixed across S208–S209
+- Chrome visual verification deferred (MCP unavailable S208–S210)
+
+---
 
 ## DB Test Accounts
-- user1@example.com / password123 → ORGANIZER SIMPLE
-- user2@example.com / password123 → ORGANIZER PRO
-- user3@example.com / password123 → ORGANIZER TEAMS
-- user11@example.com / password123 → Shopper
+- `user1@example.com` / `password123` → ORGANIZER SIMPLE
+- `user2@example.com` / `password123` → ORGANIZER PRO
+- `user3@example.com` / `password123` → ORGANIZER TEAMS
+- `user11@example.com` / `password123` → Shopper
+
+## Pending Patrick Actions
+1. Provision Railway Redis (Step 2a above)
+2. Add NEXT_PUBLIC_SOCKET_URL to Vercel (Step 2b)
+3. Add NEXT_PUBLIC_SOCKET_URL to .env.local (Step 2c)
+4. Tell Claude when done → Dev dispatch fires automatically

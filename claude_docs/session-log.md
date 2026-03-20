@@ -25,7 +25,17 @@
 - Estimated remediation: 5–8 hours (Redis setup, JWT auth, cleanup fixes, Railway config, env var)
 - **Action required:** Dispatch findasale-dev + findasale-ops for fixes before #70 can ship
 
-**Files changed this session:** None (QA/audit only)
+**Files changed (code — pushed mid-session):**
+- `packages/frontend/hooks/useLiveFeed.ts` — socket memory leak fix (socket.off + disconnect on unmount)
+- `packages/frontend/pages/items/[id].tsx` — event name mismatch (join-item → join:item), payload fix
+
+**Files changed (docs — wrap push):**
+- `claude_docs/strategy/roadmap.md` — #70 annotated with blockers + Railway Redis Option A decision
+- `claude_docs/STATE.md` — S210 complete, #70 blockers documented
+- `claude_docs/session-log.md` — this entry
+- `claude_docs/next-session-prompt.md` — Chrome MCP check + full Railway Redis setup instructions
+
+**Session scoreboard:** Files changed: 6 | Compressions: 0 | Subagents: Explore, dev×3, architect, ops, QA×2 | Push method: PS1
 
 ---
 
