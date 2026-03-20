@@ -7,26 +7,14 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Active Objective
 
-**Session 213 COMPLETE (2026-03-20) — REDIS ENV + P1/P2 BUG FIXES:**
-- ✅ **Redis infrastructure live:**
-  - REDIS_URL (`${{Redis.REDIS_URL}}`) added to Railway backend service via Raw Editor
-  - NEXT_PUBLIC_SOCKET_URL added to Vercel frontend env vars
-  - Railway cache-bust push (Dockerfile.production S213) triggered redeploy
-- ✅ **P1 fix SHIPPED:** `GET /sales/cities` endpoint — cities page empty select now resolved
-  - `getCities` controller: `prisma.sale.groupBy` on city where status=PUBLISHED + endDate >= now
-  - Route registered at `/cities` (before `/:id` to avoid Express conflict)
-- ✅ **P2 fixes SHIPPED (all 3 remaining):**
-  - ThemeToggle duplicate removed from desktop nav in Layout.tsx (mobile-only now)
-  - Duplicate Layout wrapper fixed: item-library.tsx, photo-ops/[saleId].tsx
-  - reputation.tsx already correct (single Layout wrapper confirmed)
-  - Dashboard "Unlock Pro Features" confirmed correct — properly gated by `{isSimple && (...)}`
-- **#70 Live Sale Feed — Redis env now live, ready for socket auth dev dispatch**
+**Session 213 COMPLETE (2026-03-20) — REDIS ENV + #70 SOCKET DISPATCH + P1/P2 BUG FIXES:**
+- ✅ **Redis infrastructure live:** REDIS_URL + NEXT_PUBLIC_SOCKET_URL set on Railway + Vercel
+- ✅ **P1 fix SHIPPED:** `GET /sales/cities` — `getCities` via `$queryRaw` (bigint→Number conversion)
+- ✅ **P2 fixes SHIPPED (all remaining):** ThemeToggle dedup, Layout dedup (item-library, photo-ops)
+- ✅ **#70 dev dispatch COMPLETE:** Redis adapter + JWT socket auth + `useLiveFeed` + `LiveFeedTicker`
 - Last Updated: 2026-03-20
-
-**#70 Live Sale Feed — BLOCKED on Patrick ops (unchanged from S210):**
-- Patrick → Railway: Add Redis service + confirm REDIS_URL in backend env
 - Patrick → Vercel: Add `NEXT_PUBLIC_SOCKET_URL=https://backend-production-153c9.up.railway.app`
-- Full steps in next-session-prompt.md
+- Dev dispatch pending: Redis adapter + JWT socket auth
 
 **#19 Passkey — CLEAR TO DEPLOY ✅ (no further work needed)**
 
@@ -56,7 +44,7 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 - [x] Fix P1 cities page — `GET /sales/cities` endpoint ✅ S213 SHIPPED
 - [x] Fix P2 remaining (ThemeToggle dedup, Layout dedup) ✅ S213 SHIPPED
 - [x] Redis env live on Railway + Vercel ✅ S213 COMPLETE
-- [ ] Dev dispatch: Redis adapter + JWT socket auth for #70 Live Sale Feed
+- [x] Dev dispatch: Redis adapter + JWT socket auth + LiveFeedTicker for #70 ✅ S213 SHIPPED
 - [ ] #19 Passkey — CLEAR TO DEPLOY ✅ (no further work needed)
 - [ ] Follow-up audit: 6 secondary routes not tested (categories, tags, condition-guide, public profiles, item detail)
 
