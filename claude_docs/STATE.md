@@ -7,46 +7,32 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Active Objective
 
-**Session 210 COMPLETE (2026-03-20) — QA AUDITS + SOCKET.IO FIXES:**
-- #19 Passkey — PASSED QA. P0 race fix confirmed correct. Clear to deploy.
-- #70 Live Sale Feed — QA found 5 issues. 2 fixed this session (memory leak + event name mismatch). 3 blocked on Patrick/ops actions (see below).
-- Architect signed off on Redis adapter + JWT socket auth design.
-- Fixed `packages/frontend/hooks/useLiveFeed.ts` — named callback ref, socket.off() + socket.disconnect() on unmount
-- Fixed `packages/frontend/pages/items/[id].tsx` — 'join-item' → 'join:item', payload fix
-- Roadmap updated: #70 annotated with blockers and decisions
-- Railway Redis (Option A) approved by Patrick 2026-03-20
+**Session 211 COMPLETE (2026-03-20) — COMPREHENSIVE CHROME VISUAL AUDIT (ALL TIERS + ROLES):**
+- 70+ routes tested across 5 user roles (public, shopper, SIMPLE org, PRO org, TEAMS org)
+- Fixed tier seed data: created `POST /api/dev/fix-seed-tiers` endpoint — user1→ADMIN, user2→PRO, user3→TEAMS
+- Created admin tier update endpoint: `PATCH /api/admin/organizers/:id/tier`
+- Discovered 7 P0 bugs blocking beta: tier display bug (systemic), workspace 401, command-center crash, typology crash, wishlists redirect, /organizer/sales 404, encyclopedia crash
+- Discovered 6 P1 issues: premium dark mode, insights dark mode, messages blank, cities empty, subscription error, webhooks tier gating
+- 9 unbuilt feature pages cataloged (expected 404s, not bugs)
+- Full report: `claude_docs/audits/chrome-audit-comprehensive-S211.md`
+- Dockerfile cache bust pushed to unblock Railway deploy
 - Last Updated: 2026-03-20
 
-**#70 Live Sale Feed — Remaining blockers (Patrick + Dev actions required):**
-- **Patrick → Railway:** Add Redis service (dashboard → + New → Database → Add Redis → copy REDIS_URL)
-- **Patrick → Railway env:** Confirm `REDIS_URL` is injected into backend service env vars
-- **Patrick → Vercel env:** Add `NEXT_PUBLIC_SOCKET_URL=https://backend-production-153c9.up.railway.app` (Production) + add to `packages/frontend/.env.local` for local dev
-- **Dev dispatch (after above):** Implement Redis adapter in `socket.ts` + JWT auth middleware (`io.use()`) reusing `auth.ts` verify logic + frontend `useLiveFeed`/`useSaleStatus` pass `{ auth: { token } }` — full Architect spec in session-log S210
+**7 P0 bugs must be fixed before beta (priority order):**
+1. Tier display bug — frontend reads tier from Stripe API instead of JWT. All paid tiers show as "Free/SIMPLE"
+2. `/organizer/workspace` 401 — TEAMS JWT rejected by workspace auth middleware
+3. `/organizer/command-center` crash — React hook error #310 (conditional hook in useCommandCenter)
+4. `/organizer/typology` crash — runtime ErrorBoundary crash
+5. `/wishlists` redirect — goes to `/auth/login` (404) instead of `/login`
+6. `/organizer/sales` 404 — "Manage Sales" dashboard button leads to nonexistent page
+7. `/encyclopedia` crash — EncyclopediaCard null reference when data present
 
-**Session 209 COMPLETE (2026-03-20) — DARK MODE SWEEP (16 files):**
-- Audited 20 pages for dark mode gaps — 1 critical (index.tsx), 14 partial (🟡), 5 solid (✅)
-- Fixed SaleCard.tsx dark mode — card container bg, content area bg, placeholder icon opacity, organizer row
-- Fixed pages/index.tsx — landing page dark mode (badges, headings, counts, error/empty states)
-- Fixed pages/map.tsx, search.tsx, feed.tsx — public discovery pages
-- Fixed pages/calendar.tsx, trending.tsx, leaderboard.tsx, notifications.tsx — content pages
-- Fixed pages/shopper/alerts.tsx, holds.tsx, purchases.tsx, receipts.tsx, trails.tsx (+ slate→warm migration), disputes.tsx — shopper pages
-- Fixed pages/surprise-me.tsx — utility page
-- All TypeScript clean (zero errors across all 16 files). Staged for Patrick push (see block below).
-- Last Updated: 2026-03-20
+**#70 Live Sale Feed — BLOCKED on Patrick ops (unchanged from S210):**
+- Patrick → Railway: Add Redis service + confirm REDIS_URL in backend env
+- Patrick → Vercel: Add `NEXT_PUBLIC_SOCKET_URL=https://backend-production-153c9.up.railway.app`
+- Full steps in next-session-prompt.md
 
-**Session 208 COMPLETE (2026-03-20) — DOCUMENTATION + AUDIT + CODE FIXES (DARK MODE + UX + NAV):**
-- Updated BUSINESS_PLAN.md to v2 (platform fee correction, Platform Safety section, Section 12 B2B/pipeline analysis)
-- Updated roadmap.md to v64 (pre-wire annotations on 9 deferred items)
-- Created chrome-audit-2026-03-20.md (code + live inspection; 4 critical dark mode bugs identified)
-- Fixed dark mode on shopper nav (13 links in Layout.tsx), favorites.tsx, loyalty.tsx, loot-log pages
-- Fixed SaleCard badge explosion (5-badge flex → single-badge priority: SOLD > LIVE > FLASH > AUCTION > TODAY) + dark mode
-- Fixed 3 bare error pages (organizers/[id], shoppers/[id], items/[id]) with EmptyState + CTA
-- Fixed upsell copy and palette on flip-report, photo-ops, dashboard (blue → amber)
-- Nav consolidation (Layout.tsx): static header 8→5 items (Calendar/Cities removed), inline organizer/shopper desktop links moved to avatar dropdown, Neighborhoods removed from drawer, locked PRO items grouped into collapsed "Unlock with PRO" section at drawer bottom, Plan a Sale hidden from shoppers
-- Dashboard cleanup (dashboard.tsx): Quick Actions always expanded; Essential Tools/Pro Features/Community collapsed by default on mobile; sales list order confirmed above actions
-- UX spec filed: claude_docs/ux-spotchecks/nav-dashboard-consolidation-2026-03-20.md
-- All TypeScript clean (zero errors). Fixes staged for Patrick push (see block below)
-- Last Updated: 2026-03-20
+**#19 Passkey — CLEAR TO DEPLOY ✅ (no further work needed)**
 
 **Pricing Model (LOCKED — Session 207):**
 - **SIMPLE (Free):** 10% platform fee, 200 items/sale included, 5 photos/item, 100 AI tags/month
@@ -57,31 +43,21 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 - **Post-Beta:** Featured Placement $29.99/7d, AI Tagging Premium $4.99/mo (SIMPLE), Affiliate 2–3%, B2B Data Products (DEFERRED)
 - **Sources:** pricing-and-tiers-overview-2026-03-19.md (complete spec), BUSINESS_PLAN.md (updated), b2b-b2e-b2c-innovation-broad-2026-03-19.md (B2B/B2E/B2C strategy)
 
-**Pending Patrick push (S210 wrap — docs only):**
-```powershell
-cd C:\Users\desee\ClaudeProjects\FindaSale
-git add claude_docs/strategy/roadmap.md
-git add claude_docs/STATE.md
-git add claude_docs/session-log.md
-git add claude_docs/next-session-prompt.md
-git commit -m "S210: QA audits (passkey PASS, live-feed BLOCKED), socket fixes, Redis option A approved, roadmap+docs updated"
-.\push.ps1
-```
-
 **DB test accounts (Neon production — current):**
-- `user1@example.com` / `password123` → ORGANIZER, SIMPLE tier
-- `user2@example.com` / `password123` → ORGANIZER, PRO tier
-- `user3@example.com` / `password123` → ORGANIZER, TEAMS tier
+- `user1@example.com` / `password123` → ADMIN role, SIMPLE tier organizer
+- `user2@example.com` / `password123` → ORGANIZER, PRO tier ✅ (fixed S211)
+- `user3@example.com` / `password123` → ORGANIZER, TEAMS tier ✅ (fixed S211)
 - `user11@example.com` / `password123` → Shopper
 
 ---
 
-**Next up (S211+):**
-- [ ] Check Chrome MCP connectivity — if available, visual verify dark mode fixes on live site
-- [ ] Patrick: provision Railway Redis + set REDIS_URL + set NEXT_PUBLIC_SOCKET_URL in Vercel (see next-session-prompt.md for exact steps)
+**Next up (S212+):**
+- [ ] Fix 7 P0 bugs from audit (dispatch findasale-dev — see next-session-prompt.md for full plan)
+- [ ] Fix P1 dark mode regressions on premium + insights pages
+- [ ] Patrick: provision Railway Redis + set REDIS_URL + set NEXT_PUBLIC_SOCKET_URL in Vercel
 - [ ] Dev dispatch (after Patrick ops): Redis adapter + JWT socket auth for #70
 - [ ] #19 Passkey — CLEAR TO DEPLOY ✅ (no further work needed)
-- [ ] Nav + dashboard UX review post-S208 (live now — verify layout feels right)
+- [ ] Follow-up audit: 6 secondary routes not tested (categories, tags, condition-guide, public profiles, item detail)
 
 ---
 
