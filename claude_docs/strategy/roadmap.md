@@ -1,6 +1,6 @@
 # ROADMAP – FindA.Sale
 
-**Last Updated:** 2026-03-20 (v66 — S211 comprehensive Chrome audit: updated Chrome column for 25+ features based on 70-route visual audit across 5 user roles. #19 Passkey QA confirmed. 7 features marked ⚠️ (bugs found). See `claude_docs/audits/chrome-audit-comprehensive-S211.md`.)
+**Last Updated:** 2026-03-20 (v67 — #70 Live Sale Feed fully complete: LiveFeedTicker placed on sale detail page. Chrome re-verify: 13/15 pass on S212/S213 fixes. #19 Passkey deployed.)
 
 **Status:** Production MVP live at finda.sale. Beta: GO. Full build history: `claude_docs/strategy/COMPLETED_PHASES.md`.
 
@@ -250,7 +250,7 @@ Production MVP launched Q1 2026.
 | 54 | Crowdsourced Appraisal (Base) | BOTH | FREE | ✅ | ✅ | ✅ | ✅ | ✅S202 | ✅ | 📋 | Request/submit/vote appraisals; AI Sprint 3 deferred |
 | 60 | Premium Tier Bundle | ORG | PRO | ✅ | ✅ | ✅ | ✅ | ⚠️ | ✅ | 📋 | Tier landing page + comparison matrix + upgrade CTA. Sprint 2 frontend complete. |
 | 69 | Local-First Offline Mode | BOTH | PRO | — | ✅ | ✅ | ✅ | ✅S202 | ✅ | 📋 | Service worker sync queue; offline catalog |
-| 70 | Live Sale Feed | SHO | SIMPLE | ✅ | ✅ | ✅ | 📋 | 📋 | — | 📋 | Real-time sale activity feed. **BLOCKED S210** — requires: (1) Railway Redis add-on (Option A approved 2026-03-20) + `REDIS_URL` env + `@socket.io/redis-adapter`+`ioredis` deps; (2) JWT auth on Socket.io handshake; (3) `NEXT_PUBLIC_SOCKET_URL` Vercel env var. Memory leak + event name mismatch already fixed (S210). |
+| 70 | Live Sale Feed | SHO | SIMPLE | ✅ | ✅ | ✅ | ✅ | 📋 | — | 📋 | Real-time sale activity feed. Redis adapter + JWT socket auth + LiveFeedTicker on sale detail page. Redis live on Railway. Chrome verify pending (sale detail page). |
 | 47 | UGC Photo Tags | SHO | FREE | ✅ | ✅ | ✅ | ✅ | 📋 | ✅ | 📋 | Shopper-submitted item photos + moderation |
 | 7 | Shopper Referral Rewards | SHO | FREE | ✅ | ✅ | ✅ | ✅ | 📋 | ✅ | 📋 | Referral tracking + rewards distribution |
 

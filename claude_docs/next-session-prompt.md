@@ -1,117 +1,95 @@
-# Next Session Resume Prompt — S212
+# Next Session Resume Prompt — S215
 *Written: 2026-03-20*
 *Session ended: normally*
 
 ---
 
-## Priority: Fix 7 P0 Bugs from Chrome Audit
+## Resume From
 
-The S211 comprehensive audit found 7 P0 bugs blocking beta. Fix them in this priority order.
-Full audit report: `claude_docs/audits/chrome-audit-comprehensive-S211.md`
-
-### P0-1: Tier Display Bug (Systemic — highest priority)
-
-**Problem:** PRO and TEAMS users see "Current Plan: Free/SIMPLE" on `/organizer/premium`, `/organizer/upgrade`, `/organizer/subscription`, and dashboard "🔒 Unlock Pro Features" card.
-
-**Root cause:** Frontend billing/subscription components fetch tier from `GET /api/billing/subscription` which reads from Stripe. Test users have no Stripe subscription → always shows Free. The JWT already contains the correct `subscriptionTier` claim.
-
-**Fix strategy:** Frontend should read tier from JWT/auth context as source of truth. Stripe billing data should be supplementary (for payment method, invoice history, etc.) but NOT the tier source. The `useOrganizerTier` hook and any billing-dependent tier reads need to be updated.
-
-**Files to investigate:**
-- `packages/frontend/hooks/useOrganizerTier.ts` (or similar — grep for `useOrganizerTier`)
-- `packages/frontend/pages/organizer/premium.tsx`
-- `packages/frontend/pages/organizer/upgrade.tsx`
-- `packages/frontend/pages/organizer/subscription.tsx`
-- `packages/frontend/pages/organizer/dashboard.tsx` (the "Unlock Pro Features" card)
-- Auth context / JWT decode logic
-
-**Dispatch:** `findasale-dev` — this touches 4-6 frontend files, must go through subagent.
-
-### P0-2: Workspace 401 Unauthorized
-
-**Problem:** `/organizer/workspace` returns 401 from backend even with valid TEAMS JWT (`subscriptionTier: "TEAMS"`, `organizerTokenVersion: 1`).
-
-**Investigate:**
-- Backend workspace route middleware — is it checking `tokenVersion` against DB and finding a mismatch? (The fix-seed-tiers endpoint incremented tokenVersion to force JWT refresh, but the JWT was freshly issued after the increment.)
-- Is there a secondary auth check beyond the standard `authenticate` middleware?
-- Is the workspace route checking `req.user.organizer.subscriptionTier` and the user object doesn't include the organizer relation?
-
-**Files:** `packages/backend/src/routes/workspace.ts` (or similar), `packages/backend/src/middleware/auth.ts`
-
-### P0-3: Command Center Crash (React Hook #310)
-
-**Problem:** `/organizer/command-center` crashes with React error #310 — "Rendered more hooks than during the previous render."
-
-**Root cause:** `useCommandCenter` hook has a conditional `useQuery` call. Hooks cannot be called conditionally.
-
-**Fix:** Move the condition inside the `useQuery` `enabled` option, or restructure to avoid conditional hook calls.
-
-**Files:** `packages/frontend/hooks/useCommandCenter.ts`, `packages/frontend/pages/organizer/command-center.tsx`
-
-### P0-4: Typology Crash
-
-**Problem:** `/organizer/typology` shows ErrorBoundary "Something went wrong." No specific error visible in production minified build.
-
-**Fix:** Read the typology page source, check for null safety issues, conditional hooks, or missing data guards.
-
-**Files:** `packages/frontend/pages/organizer/typology.tsx`, `packages/frontend/hooks/useTypology.ts`
-
-### P0-5: Wishlists Redirect to /auth/login
-
-**Problem:** `/wishlists` redirects to `/auth/login` (which is a 404). Should redirect to `/login`.
-
-**Fix:** Find the auth redirect in the wishlists page or its auth guard and change `/auth/login` to `/login`.
-
-**Files:** `packages/frontend/pages/wishlists.tsx` (or routing/auth guard)
-
-### P0-6: /organizer/sales 404
-
-**Problem:** Dashboard "Manage Sales" button navigates to `/organizer/sales` which doesn't exist.
-
-**Fix options:**
-1. Create a simple `/organizer/sales` page that lists the organizer's sales (similar to dashboard sales list but full-page)
-2. OR change the dashboard button to navigate to an existing page (e.g., `/organizer/dashboard` scroll-to-sales section)
-
-### P0-7: Encyclopedia Crash
-
-**Problem:** `/encyclopedia` crashes with `TypeError: Cannot read properties of undefined (reading 'replace')` in EncyclopediaCard component when data is present. Empty state works fine.
-
-**Fix:** Add null safety check in EncyclopediaCard before calling `.replace()`.
-
-**Files:** `packages/frontend/components/EncyclopediaCard.tsx`
+Session wrap for S214. Deploy subagents in parallel on ALL items below — do not wait for Patrick to say "continue" between agent returns (conversation-defaults Rule 30).
 
 ---
 
-## Also Pending: #70 Live Sale Feed
+## Deploy These Subagents in Parallel at Session Start
 
-Blocked on Patrick provisioning Railway Redis + setting `NEXT_PUBLIC_SOCKET_URL` in Vercel.
+### 1. findasale-dev — Subscription tier bug fix
+`/organizer/subscription` shows "Upgrade to PRO" CTA for PRO-tier users instead of the support message. Root cause: `useOrganizerTier()` may return 'SIMPLE' incorrectly when user is logged in as PRO. Investigate `hooks/useOrganizerTier.ts` (or equivalent), trace the JWT payload → tier mapping, and fix. Test accounts: user2@example.com (PRO), user3@example.com (TEAMS).
 
-### Patrick steps:
-1. Open [railway.app](https://railway.app) → FindaSale project → **+ New** → **Database** → **Add Redis**
-2. Verify `REDIS_URL` appears in backend service → Variables tab
-3. Open [vercel.com](https://vercel.com) → FindaSale → Settings → Environment Variables → Add `NEXT_PUBLIC_SOCKET_URL=https://backend-production-153c9.up.railway.app` (Production)
-4. Add to `packages/frontend/.env.local`: `NEXT_PUBLIC_SOCKET_URL=http://localhost:3001`
-5. Tell Claude when done → Dev dispatch fires for Redis adapter + JWT socket auth
+### 2. findasale-dev — P2 backlog
+Three items in one dispatch:
+- **Error shape inconsistency**: some backend controllers return `{ message }`, others return `{ error }`. Audit all controllers and standardize to `{ message }` (or whichever is more prevalent). Frontend error handling depends on this.
+- **Holds pagination**: organizer holds list (`/organizer/holds`) loads all holds with no pagination. Add standard cursor/page-based pagination.
+- **Hub N+1 query**: hub membership display performs N+1 query pattern. Fix with a proper join/include.
 
-Full Architect spec: session-log S210.
+### 3. findasale-dev — Design polish sprint (frontend-only, no schema)
+Build these three features in one dispatch — all frontend-only, zero schema changes:
+- **#76 Skeleton Loaders — Item Grids**: replace spinners with ghost card layouts across all item/sale grids. Spec: `claude_docs/ux-spotchecks/design-polish-vision-2026-03-19.md`
+- **#77 Sale Published Celebration Screen**: full-screen moment when organizer publishes a sale — triggers on `Sale.status → PUBLISHED`. Confetti + "You're live" + sale name. Replaces generic toast. Spec: same file.
+- **#81 Empty State Audit + Copy Pass**: inventory all empty states across organizer and shopper flows. Write human-voice copy + CTA for each. UX/copy only. Spec: same file.
+
+### 4. findasale-architect — Dual-Role Account Schema ADR (#72)
+Feature #72 (Dual-Role Account Schema) is the architectural gate for #73 (Two-Channel Notifications), #74 (Role-Aware Registration Consent), and #75 (Tier Lapse State Logic). Produce an ADR in `claude_docs/architecture/` covering: `roles[]` array design, `subscriptions[]` table, migration path from current single `role` enum, and recommended implementation order for #73–#75. Design decision only — no dev yet.
+
+### 5. findasale-dev — Platform Safety P0 sprint (pre-beta required)
+Build these backend-only safety features:
+- **#93 Bidder Account Age Gate (7-day)**: block bids from accounts < 7 days old. Middleware on bid endpoint. Ref: anti-abuse spec in `claude_docs/architecture/`.
+- **#95 Bidding Velocity Limits**: rate-limit 10+ bids in < 1 minute per account. Redis-based (REDIS_URL already live on Railway).
+- **#96 Buyer Premium Disclosure**: checkout UI shows buyer premium as a separate line item with checkbox confirmation required before payment completes.
 
 ---
 
-## Also Pending: #19 Passkey
+## Chrome Verification Needed (7 pages — targeted, not full audit)
 
-QA-cleared, clear to deploy when ready. No further code changes needed.
+Secondary routes never verified in S211 comprehensive audit, plus the new LiveFeedTicker placement:
+- `/categories` — category browsing page
+- `/categories/[category]` — individual category
+- `/tags/[slug]` — tag page
+- `/condition-guide` — condition reference
+- `/organizers/[id]` — public organizer profile
+- `/items/[id]` — item detail page
+- `/sales/[id]` — sale detail page (verify LiveFeedTicker renders and gracefully hides when not connected)
+
+Use Chrome MCP with user2 (PRO organizer) and user11 (shopper).
 
 ---
 
-## DB Test Accounts
-- `user1@example.com` / `password123` → ADMIN role, SIMPLE tier organizer
-- `user2@example.com` / `password123` → ORGANIZER, PRO tier ✅
-- `user3@example.com` / `password123` → ORGANIZER, TEAMS tier ✅
-- `user11@example.com` / `password123` → Shopper
+## Deferred Pre-Wires (dispatch to Architect or dev — low effort, high future value)
 
-## Session Start Checklist
-1. Load STATE.md + this file
-2. Check Chrome MCP connectivity (`mcp__Claude_in_Chrome__navigate` to `https://finda.sale`)
-3. Dispatch `findasale-dev` for P0-1 (tier display bug) — highest impact, unblocks the most testing
-4. While dev works on P0-1, dispatch a second dev for P0-3 through P0-7 (the simpler crashes/redirects)
-5. P0-2 (workspace 401) may require backend investigation first — read the workspace route before dispatching
+- Add `consignorId` + `consignmentSplitPct` fields to `Item` schema now. Enables consignment feature via config-flag activation with zero migration cost at trigger.
+- Add affiliate payout calculation table + `affiliateReferralCode` to schema now. Affiliate backend is 60% built — pre-wire the payout table so activation is a config flag.
+
+---
+
+## SEO Sprint Candidate
+
+**#92 City Weekend Landing Pages**: ISR pages at `/grand-rapids-estate-sales` etc. Zero new schema — queries existing `Sale` + `Item` + `Organizer` data. Schema.org markup. High organic traffic ROI before beta. Dispatch findasale-dev when capacity allows.
+
+---
+
+## Roadmap Status After S214
+
+- #70 Live Sale Feed: FULLY COMPLETE ✅ — LiveFeedTicker placed on sale detail page
+- #19 Passkey: DEPLOYED ✅ — live on Railway + Vercel, no action needed
+- S212/S213 bug fixes: Chrome-verified ✅ (13/15 PASS; 2 were wrong test URLs)
+- P2 backlog: error shape, holds pagination, hub N+1 — queued S215
+- Platform safety #93–#121: queued for pre-beta sprint
+- #51 Sale Ripples: Neon migration still pending (Patrick action)
+
+---
+
+## Push Pending (Patrick must run before S215)
+
+```powershell
+cd C:\Users\desee\ClaudeProjects\FindaSale
+git add packages/frontend/pages/sales/[id].tsx
+git commit -m "feat: place LiveFeedTicker on sale detail page — completes feature #70"
+.\push.ps1
+```
+
+---
+
+## Environment Notes
+- Railway and Vercel GREEN as of S214
+- Redis live on Railway (REDIS_URL set), NEXT_PUBLIC_SOCKET_URL set on Vercel
+- `.\push.ps1` for all git pushes (never `git push` directly)
+- #51 Ripples: Neon migration + `prisma generate` outstanding (see schema change protocol)
