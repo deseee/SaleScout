@@ -7,25 +7,21 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Active Objective
 
-**Session 211 COMPLETE (2026-03-20) — COMPREHENSIVE CHROME VISUAL AUDIT (ALL TIERS + ROLES):**
-- 70+ routes tested across 5 user roles (public, shopper, SIMPLE org, PRO org, TEAMS org)
-- Fixed tier seed data: created `POST /api/dev/fix-seed-tiers` endpoint — user1→ADMIN, user2→PRO, user3→TEAMS
-- Created admin tier update endpoint: `PATCH /api/admin/organizers/:id/tier`
-- Discovered 7 P0 bugs blocking beta: tier display bug (systemic), workspace 401, command-center crash, typology crash, wishlists redirect, /organizer/sales 404, encyclopedia crash
-- Discovered 6 P1 issues: premium dark mode, insights dark mode, messages blank, cities empty, subscription error, webhooks tier gating
-- 9 unbuilt feature pages cataloged (expected 404s, not bugs)
-- Full report: `claude_docs/audits/chrome-audit-comprehensive-S211.md`
-- Dockerfile cache bust pushed to unblock Railway deploy
+**Session 213 COMPLETE (2026-03-20) — REDIS ENV + P1/P2 BUG FIXES:**
+- ✅ **Redis infrastructure live:**
+  - REDIS_URL (`${{Redis.REDIS_URL}}`) added to Railway backend service via Raw Editor
+  - NEXT_PUBLIC_SOCKET_URL added to Vercel frontend env vars
+  - Railway cache-bust push (Dockerfile.production S213) triggered redeploy
+- ✅ **P1 fix SHIPPED:** `GET /sales/cities` endpoint — cities page empty select now resolved
+  - `getCities` controller: `prisma.sale.groupBy` on city where status=PUBLISHED + endDate >= now
+  - Route registered at `/cities` (before `/:id` to avoid Express conflict)
+- ✅ **P2 fixes SHIPPED (all 3 remaining):**
+  - ThemeToggle duplicate removed from desktop nav in Layout.tsx (mobile-only now)
+  - Duplicate Layout wrapper fixed: item-library.tsx, photo-ops/[saleId].tsx
+  - reputation.tsx already correct (single Layout wrapper confirmed)
+  - Dashboard "Unlock Pro Features" confirmed correct — properly gated by `{isSimple && (...)}`
+- **#70 Live Sale Feed — Redis env now live, ready for socket auth dev dispatch**
 - Last Updated: 2026-03-20
-
-**7 P0 bugs must be fixed before beta (priority order):**
-1. Tier display bug — frontend reads tier from Stripe API instead of JWT. All paid tiers show as "Free/SIMPLE"
-2. `/organizer/workspace` 401 — TEAMS JWT rejected by workspace auth middleware
-3. `/organizer/command-center` crash — React hook error #310 (conditional hook in useCommandCenter)
-4. `/organizer/typology` crash — runtime ErrorBoundary crash
-5. `/wishlists` redirect — goes to `/auth/login` (404) instead of `/login`
-6. `/organizer/sales` 404 — "Manage Sales" dashboard button leads to nonexistent page
-7. `/encyclopedia` crash — EncyclopediaCard null reference when data present
 
 **#70 Live Sale Feed — BLOCKED on Patrick ops (unchanged from S210):**
 - Patrick → Railway: Add Redis service + confirm REDIS_URL in backend env
@@ -51,11 +47,16 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ---
 
-**Next up (S212+):**
-- [ ] Fix 7 P0 bugs from audit (dispatch findasale-dev — see next-session-prompt.md for full plan)
-- [ ] Fix P1 dark mode regressions on premium + insights pages
-- [ ] Patrick: provision Railway Redis + set REDIS_URL + set NEXT_PUBLIC_SOCKET_URL in Vercel
-- [ ] Dev dispatch (after Patrick ops): Redis adapter + JWT socket auth for #70
+**Next up (S214+):**
+- [x] Fix 7 P0 bugs from audit ✅ S212 COMPLETE
+- [x] Fix P1 dark mode on premium + insights ✅ S212 SHIPPED
+- [x] Fix P1 messages blank page ✅ S212 SHIPPED
+- [x] Fix P1 subscription error state for PRO/TEAMS ✅ S212 SHIPPED
+- [x] Fix P1 webhooks tier gating ✅ S212 SHIPPED
+- [x] Fix P1 cities page — `GET /sales/cities` endpoint ✅ S213 SHIPPED
+- [x] Fix P2 remaining (ThemeToggle dedup, Layout dedup) ✅ S213 SHIPPED
+- [x] Redis env live on Railway + Vercel ✅ S213 COMPLETE
+- [ ] Dev dispatch: Redis adapter + JWT socket auth for #70 Live Sale Feed
 - [ ] #19 Passkey — CLEAR TO DEPLOY ✅ (no further work needed)
 - [ ] Follow-up audit: 6 secondary routes not tested (categories, tags, condition-guide, public profiles, item detail)
 

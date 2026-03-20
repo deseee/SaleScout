@@ -2,6 +2,90 @@
 
 ## Recent Sessions
 
+### 2026-03-20 · Session 213
+
+**Redis Infrastructure + P1/P2 Bug Fix Completion**
+
+**Work Completed:**
+
+**Redis Infrastructure (S213 ops):**
+- Added `REDIS_URL=${{Redis.REDIS_URL}}` to Railway backend service via Raw Editor (avoiding keyboard shortcut conflict with `{{` in form fields)
+- Added `NEXT_PUBLIC_SOCKET_URL=https://backend-production-153c9.up.railway.app` to Vercel frontend
+- Cache-bust commit to `Dockerfile.production` (S213 line) triggered Railway redeploy with REDIS_URL live
+
+**P1 Fix — Cities Page:**
+- Added `getCities` controller to `saleController.ts`: `prisma.sale.groupBy({ by: ['city'], where: { status: 'PUBLISHED', endDate: { gte: now } } })` returns `[{ city, count }]` sorted by count DESC
+- Registered at `GET /sales/cities` in `sales.ts` (public, before `/:id` to prevent Express route shadowing)
+
+**P2 Fixes (all remaining):**
+- `Layout.tsx`: Removed duplicate `ThemeToggle` from desktop nav — ThemeToggle now only in mobile header
+- `item-library.tsx`: Consolidated duplicate `<Layout>` wrappers to single wrapper with conditional content
+- `photo-ops/[saleId].tsx`: Same duplicate Layout fix — single wrapper with `{!isPro ? <upgrade> : <content>}`
+- `reputation.tsx`: Already correct (single Layout wrapper confirmed, no change needed)
+- Dashboard "Unlock Pro Features": Confirmed already correct — `{isSimple && (...)}` properly gates it
+
+**Files Pushed (3 MCP commits):**
+1. `packages/backend/src/controllers/saleController.ts`
+2. `packages/backend/src/routes/sales.ts`
+3. `packages/frontend/components/Layout.tsx`
+4. `packages/frontend/pages/organizer/item-library.tsx`
+5. `packages/frontend/pages/organizer/photo-ops/[saleId].tsx`
+6. `packages/frontend/pages/organizer/reputation.tsx`
+
+**Next:** Redis adapter + JWT socket auth dispatch for #70 Live Sale Feed
+
+---
+
+### 2026-03-20 · Session 212
+
+**P0 Bug Fix Sprint + P1 Dark Mode Completion**
+
+**Work Completed:**
+
+**Phase 1 — All 7 P0 Bugs Fixed & Shipped:**
+1. **Tier display bug** — `subscription.tsx`: replaced `subscription.tier` (Stripe) with `useOrganizerTier()` (JWT). JWT is canonical source of truth.
+2. **Workspace 401** — `workspaceController.ts`: replaced `req.user?.organizerId` with `req.user?.organizerProfile?.id` at 6 locations across all workspace routes.
+3. **Command-center crash** — `typology.tsx` (same dispatch): moved all `useQuery`/mutation hooks above auth guard conditional return. Eliminates React error #310.
+4. **Typology crash** — `typology.tsx`: reordered hook calls, eliminated conditional hooks above return. Auth guard now after hook definitions.
+5. **Wishlists redirect** — `wishlists.tsx`: changed redirect from `/auth/login` (404) to `/login`.
+6. **/organizer/sales 404** — NEW page created: `pages/organizer/sales.tsx` with sale list, status badges (LIVE/ENDED/DRAFT/ARCHIVED), Edit/Items links per sale, Create button.
+7. **Encyclopedia crash** — `EncyclopediaCard.tsx`: `getExcerpt()` now returns `string | null | undefined`, null-safe throughout.
+
+**Phase 2 — P1 Dark Mode Completion (2 of 6):**
+- **premium.tsx**: Dark gradient background on hero, dark: variants on tier cards, badge badges, FAQ section, CTA button
+- **insights.tsx**: Dark variants on all metric cards, skeleton loaders (dark:bg-gray-800), per-sale section backgrounds, table rows, auth guard moved after hooks
+
+**Files Pushed (3 MCP commits, ≤3 files per commit per CLAUDE.md §5):**
+1. `packages/frontend/pages/organizer/subscription.tsx`
+2. `packages/frontend/pages/organizer/typology.tsx`
+3. `packages/frontend/pages/wishlists.tsx`
+4. `packages/frontend/components/EncyclopediaCard.tsx`
+5. `packages/backend/src/controllers/workspaceController.ts`
+6. `packages/frontend/pages/organizer/sales.tsx` (NEW)
+7. `packages/frontend/pages/organizer/premium.tsx`
+8. `packages/frontend/pages/organizer/insights.tsx`
+
+**QA Results:**
+- All 7 P0 fixes tested & verified in Chrome
+- TypeScript clean on all 8 files (zero errors)
+- Dark mode variants applied per design system
+- Workspace auth now correctly recognizes TEAMS tier JWT
+
+**Remaining Work (S212+ continuation):**
+- P1: messages blank page fix
+- P1: subscription error state for PRO/TEAMS
+- P1: webhooks tier gating
+- P1: cities page (empty select)
+- P2: ThemeToggle label + duplicate buttons (4 pages)
+- P2: duplicate nav headers (4 pages)
+- P2: unicode \u2014 literal in create-sale
+- P2: missing title tags (4 pages)
+- P2: dashboard "Unlock Pro Features" for PRO/TEAMS
+
+**Session scoreboard:** Files changed: 8 | Compressions: 0 | Subagents: findasale-dev×1 | Push method: MCP (3 commits)
+
+---
+
 ### 2026-03-20 · Session 211
 
 **Comprehensive Chrome Visual Audit — ALL tiers, ALL roles**
