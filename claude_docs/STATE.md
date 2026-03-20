@@ -7,15 +7,18 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Active Objective
 
-**Session 208 COMPLETE (2026-03-20) — DOCUMENTATION + AUDIT + CODE FIXES (DARK MODE + UX):**
+**Session 208 COMPLETE (2026-03-20) — DOCUMENTATION + AUDIT + CODE FIXES (DARK MODE + UX + NAV):**
 - Updated BUSINESS_PLAN.md to v2 (platform fee correction, Platform Safety section, Section 12 B2B/pipeline analysis)
 - Updated roadmap.md to v64 (pre-wire annotations on 9 deferred items)
 - Created chrome-audit-2026-03-20.md (code + live inspection; 4 critical dark mode bugs identified)
-- Fixed dark mode on 3 shopper pages: favorites, loyalty, loot-log (all 13+ dark: classes added)
-- Fixed SaleCard badge explosion (5-badge flex → single-badge priority function: SOLD > LIVE > FLASH > AUCTION > TODAY) + dark mode
-- Fixed 3 error pages (organizers/[id], shoppers/[id], items/[id]) with styled EmptyState + CTA
-- Fixed upsell copy and palette on 4 pages (flip-report, photo-ops, dashboard: blue → amber)
-- All TypeScript clean (zero errors). 0 new commits (fixes staged for Patrick push)
+- Fixed dark mode on shopper nav (13 links in Layout.tsx), favorites.tsx, loyalty.tsx, loot-log pages
+- Fixed SaleCard badge explosion (5-badge flex → single-badge priority: SOLD > LIVE > FLASH > AUCTION > TODAY) + dark mode
+- Fixed 3 bare error pages (organizers/[id], shoppers/[id], items/[id]) with EmptyState + CTA
+- Fixed upsell copy and palette on flip-report, photo-ops, dashboard (blue → amber)
+- Nav consolidation (Layout.tsx): static header 8→5 items (Calendar/Cities removed), inline organizer/shopper desktop links moved to avatar dropdown, Neighborhoods removed from drawer, locked PRO items grouped into collapsed "Unlock with PRO" section at drawer bottom, Plan a Sale hidden from shoppers
+- Dashboard cleanup (dashboard.tsx): Quick Actions always expanded; Essential Tools/Pro Features/Community collapsed by default on mobile; sales list order confirmed above actions
+- UX spec filed: claude_docs/ux-spotchecks/nav-dashboard-consolidation-2026-03-20.md
+- All TypeScript clean (zero errors). Fixes staged for Patrick push (see block below)
 - Last Updated: 2026-03-20
 
 **Pricing Model (LOCKED — Session 207):**
@@ -27,11 +30,28 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 - **Post-Beta:** Featured Placement $29.99/7d, AI Tagging Premium $4.99/mo (SIMPLE), Affiliate 2–3%, B2B Data Products (DEFERRED)
 - **Sources:** pricing-and-tiers-overview-2026-03-19.md (complete spec), BUSINESS_PLAN.md (updated), b2b-b2e-b2c-innovation-broad-2026-03-19.md (B2B/B2E/B2C strategy)
 
-**Pending Patrick pushes (Session 207):**
+**Pending Patrick push (Session 208 — ALL CHANGES):**
 ```powershell
 cd C:\Users\desee\ClaudeProjects\FindaSale
-git add claude_docs/strategy/pricing-and-tiers-overview-2026-03-19.md claude_docs/strategy/BUSINESS_PLAN.md claude_docs/strategy/roadmap.md claude_docs/STATE.md claude_docs/session-log.md
-git commit -m "S207: lock pricing model, add B2B/B2E/B2C innovation roadmap items, tiered photo storage"
+git add packages/frontend/components/Layout.tsx
+git add packages/frontend/components/SaleCard.tsx
+git add "packages/frontend/pages/items/[id].tsx"
+git add packages/frontend/pages/organizer/dashboard.tsx
+git add "packages/frontend/pages/organizer/flip-report/[saleId].tsx"
+git add "packages/frontend/pages/organizer/photo-ops/[saleId].tsx"
+git add "packages/frontend/pages/organizers/[id].tsx"
+git add packages/frontend/pages/shopper/favorites.tsx
+git add "packages/frontend/pages/shopper/loot-log/[purchaseId].tsx"
+git add "packages/frontend/pages/shopper/loot-log/public/[userId].tsx"
+git add packages/frontend/pages/shopper/loyalty.tsx
+git add "packages/frontend/pages/shoppers/[id].tsx"
+git add claude_docs/strategy/BUSINESS_PLAN.md
+git add claude_docs/strategy/roadmap.md
+git add claude_docs/audits/chrome-audit-2026-03-20.md
+git add claude_docs/ux-spotchecks/nav-dashboard-consolidation-2026-03-20.md
+git add claude_docs/STATE.md
+git add claude_docs/session-log.md
+git commit -m "S208: dark mode (shopper nav/favorites/loyalty/SaleCard), badge fix, empty states, upsell copy, nav consolidation (5 items), dashboard mobile collapse"
 .\push.ps1
 ```
 
