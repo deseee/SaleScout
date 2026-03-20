@@ -7,14 +7,16 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Active Objective
 
-**Session 207 COMPLETE (2026-03-19) — PRICING LOCK + B2B/B2E/B2C INNOVATION + ROADMAP V63:**
-- Locked all pricing decisions (10%/8%/8% tiered, 5% auction buyer premium, $29/$79 subscriptions, overages model)
-- Created pricing-and-tiers-overview-2026-03-19.md with full locked specifications
-- Updated BUSINESS_PLAN.md: pricing sections, revenue model, subscription tiers, post-beta add-ons
-- Added 15 B2B/B2E/B2C innovation items to roadmap Deferred section (require 200+ organizers)
-- Added tiered photo storage migration (#121) as P1 Platform Safety item
-- Roadmap now at v63 (from v62); total deferred innovations: 43 items
-- Updated session-log.md with Session 207 work summary
+**Session 208 COMPLETE (2026-03-20) — DOCUMENTATION + AUDIT + CODE FIXES (DARK MODE + UX):**
+- Updated BUSINESS_PLAN.md to v2 (platform fee correction, Platform Safety section, Section 12 B2B/pipeline analysis)
+- Updated roadmap.md to v64 (pre-wire annotations on 9 deferred items)
+- Created chrome-audit-2026-03-20.md (code + live inspection; 4 critical dark mode bugs identified)
+- Fixed dark mode on 3 shopper pages: favorites, loyalty, loot-log (all 13+ dark: classes added)
+- Fixed SaleCard badge explosion (5-badge flex → single-badge priority function: SOLD > LIVE > FLASH > AUCTION > TODAY) + dark mode
+- Fixed 3 error pages (organizers/[id], shoppers/[id], items/[id]) with styled EmptyState + CTA
+- Fixed upsell copy and palette on 4 pages (flip-report, photo-ops, dashboard: blue → amber)
+- All TypeScript clean (zero errors). 0 new commits (fixes staged for Patrick push)
+- Last Updated: 2026-03-20
 
 **Pricing Model (LOCKED — Session 207):**
 - **SIMPLE (Free):** 10% platform fee, 200 items/sale included, 5 photos/item, 100 AI tags/month
@@ -41,10 +43,11 @@ git commit -m "S207: lock pricing model, add B2B/B2E/B2C innovation roadmap item
 
 ---
 
-**Next up (S206) — CHROME + NAV + HUMAN PREP:**
-- [ ] Chrome column verification — test features in browser via Chrome MCP
-- [ ] Nav column audit — verify nav links in Layout.tsx match roadmap
-- [ ] Human column prep — organize E2E test flows for Patrick
+**Next up (S209+) — DARK MODE COMPLETION + NAV DENSITY + DASHBOARD CONSOLIDATION:**
+- [ ] Chrome MCP visual verification (deferred — MCP unavailable this session)
+- [ ] Dark mode audit remaining pages (Explore, Map, search, etc. — not yet audited)
+- [ ] Nav density reduction (currently 17–24 items per nav; requires UX/architect decision)
+- [ ] Dashboard button consolidation (25 buttons → grouped actions; requires UX decision)
 - [ ] #19 Passkey re-QA — end-to-end after P0 race fix
 - [ ] #70 Live Sale Feed — needs live Socket.io testing
 

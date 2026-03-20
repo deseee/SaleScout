@@ -1,6 +1,6 @@
 # ROADMAP – FindA.Sale
 
-**Last Updated:** 2026-03-19 (v63 — Session 207 Wrap: Added B2B/B2E/B2C Innovation Deferred section (15 revenue-stream items requiring 200+ organizers), Tiered Photo Storage (P1 Platform Safety), and updated pricing model to 10%/8%/8% tiered with 5% auction buyer premium. Total deferred innovations: 43 items.)
+**Last Updated:** 2026-03-19 (v64 — Added pre-wire annotations to 9 deferred items: Canary Deploy, Audit Library, Affiliate Program, Consignment Integration, QuickBooks Integration, Estate Planning Toolkit, Multi-Language Support, API-First Toolkit, Agentic AI Scout. Pre-wire notes identify schema fields, config stubs, and framework installs that can be done before revisit triggers are met.)
 
 **Status:** Production MVP live at finda.sale. Beta: GO. Full build history: `claude_docs/strategy/COMPLETED_PHASES.md`.
 
@@ -364,17 +364,17 @@ Production MVP launched Q1 2026.
 | Feature | Role | Tier | Reason | Revisit Trigger |
 |---------|------|------|--------|-----------------|
 | Zero-Downtime Migration Framework | INFRA | TEAMS | Blue-green migrations for large tables (items, purchases). Critical as data grows past 10k rows. Architect designs; Dev builds helpers. | When table sizes warrant it |
-| Canary Deploy + Auto-Rollback | INFRA | SIMPLE | Deploy to Vercel preview + Railway staging first; auto-rollback if smoke tests fail. Enables daily deploys without risk. | After beta stabilizes |
-| Audit Automation Library | INFRA | SIMPLE | Codify 8 pre-beta audit paths as reusable tests; run on every deploy. health-scout creates `audit_baseline.json`. | After beta launch |
+| Canary Deploy + Auto-Rollback | INFRA | SIMPLE | Deploy to Vercel preview + Railway staging first; auto-rollback if smoke tests fail. Enables daily deploys without risk. | After beta stabilizes — **trigger effectively met; pre-wire: Vercel preview env + Railway staging slot config can be set up now** |
+| Audit Automation Library | INFRA | SIMPLE | Codify 8 pre-beta audit paths as reusable tests; run on every deploy. health-scout creates `audit_baseline.json`. | After beta launch — **trigger effectively met; pre-wire: health-scout baseline JSON and test harness can be scaffolded now** |
 
 ### Market Expansion & Positioning
 
 | Feature | Role | Tier | Reason | Revisit Trigger |
 |---------|------|------|--------|-----------------|
-| Affiliate Program | ORG | TEAMS | Backend 60% built. Referral badges (SIMPLE) + loyalty passport integration worth exploring first. Full payouts deferred. | After referral badges prove demand |
+| Affiliate Program | ORG | TEAMS | Backend 60% built. Referral badges (SIMPLE) + loyalty passport integration worth exploring first. Full payouts deferred. | After referral badges prove demand — **pre-wire: payout calculation engine + referral code table can be added to schema now; activation becomes a config flag** |
 | White-label MaaS | ORG | TEAMS | Business decision — beta validation first | After beta data |
-| Consignment Integration | ORG | PRO | Thrift store POS — post-beta complexity | After beta data |
-| QuickBooks Integration | ORG | SIMPLE | CSV export covers 80% of need | When organizers ask |
+| Consignment Integration | ORG | PRO | Thrift store POS — post-beta complexity | After beta data — **pre-wire: add `consignorId` + `consignmentSplitPct` fields to Item schema now; extends inventory library with zero migration at trigger** |
+| QuickBooks Integration | ORG | SIMPLE | CSV export covers 80% of need | When organizers ask — **pre-wire: add QB-compatible column ordering + account codes to existing CSV export; zero-build activation when demand arrives** |
 | Multi-metro expansion | ORG | SIMPLE | Beta validation first | After beta data |
 | BUSINESS_PLAN.md rewrite | PUB | TEAMS | Reflect national positioning and current fee/feature state | After beta data confirms positioning |
 
@@ -419,7 +419,7 @@ Production MVP launched Q1 2026.
 |---------|------|------|--------|-----------------|
 | FindA.Sale Network (Tier 3 Services) | PUB | TEAMS | Multi-sided ecosystem: organizers + buyers + restorers + appraisers + shippers + designers. Platform as infrastructure OS. | Transformative — after platform proves all 3 tiers viable |
 | AI Buying Agent Scout | SHO | PRO | Personal AI shopping agent. Learns taste, proactively watches sales, auto-notifies. Premium $9.99/mo. | After ML pipeline + personalization data |
-| Estate Planning Toolkit | ORG | TEAMS | Heir/executor liquidation assistant: inventory builder, appraisal integration, tax reporting. Upstream demand creation. | After core organizer features stable |
+| Estate Planning Toolkit | ORG | TEAMS | Heir/executor liquidation assistant: inventory builder, appraisal integration, tax reporting. Upstream demand creation. | After core organizer features stable — **trigger effectively met; pre-wire: add `executorUserId` + `estateId` to Organizer schema; intake fields cost zero to add now** |
 | State of Estate Sales Report | ORG | PAID_ADDON | Monthly anonymized data report: pricing trends, category velocity, regional hotspots. B2B intelligence ($199/yr). | After 6+ months transaction data |
 
 ### B2B/B2E/B2C Innovation Streams (Future Revenue Moats)
@@ -455,11 +455,11 @@ Deferred until 200+ organizers across 5+ metro areas. Requires aggregated anonym
 | Priority Checkout Pass ($2.99) | SHO | PAID_ADDON | Requires in-person QR validation + POS integration + organizer opt-in. Only viable at high-traffic sales. | After POS v2 sees real usage |
 | Scan-to-Know (NFC Item Tags) | BOTH | SIMPLE | NFC tags add $0.05-$0.15/item cost. Start with QR labels first. Evolution of QR/Barcode Labels. | After QR labels prove demand |
 | Smart Cart (Running Total) | SHO | SIMPLE | Only works for items with digital prices. Requires organizer adoption of digital pricing + QR/NFC. | After QR Labels + POS established |
-| Agentic AI Assistant ("Scout") | SHO | PRO | Requires Wishlist Alerts + Collector Passport + sold-item data. XL complexity. Overlaps with AI Buying Agent Scout. | After Wishlist + Collector Passport + 6 months data |
+| Agentic AI Assistant ("Scout") | SHO | PRO | Requires Wishlist Alerts + Collector Passport + sold-item data. XL complexity. Overlaps with AI Buying Agent Scout. | After Wishlist + Collector Passport + 6 months data — **pre-wire: add `tasteProfile` JSONB field to User schema now; preference data accrues passively from wishlist/save behavior before feature ships** |
 | Voice Search + Navigation | SHO | SIMPLE | Web Speech API browser-native. Nice-to-have, not a retention driver. | After core search polished |
 | RaaS for Organizers (Resale-as-a-Service) | ORG | TEAMS | Long-term platform vision: full business management suite. Japan/EU circular economy model. | After individual features prove themselves — 2027+ |
-| Multi-Language Support (Spanish First) | PUB | SIMPLE | 42M native Spanish speakers in U.S. i18n framework. Important for national scale, not urgent for GR beta. | Before national expansion — Q1 2027 |
-| API-First Organizer Toolkit | ORG | TEAMS | OAuth2 auth, docs, rate limiting, versioning for public API. Behind Premium Tier. Enables Zapier. | After core features stabilize — Q4 2026-Q1 2027 |
+| Multi-Language Support (Spanish First) | PUB | SIMPLE | 42M native Spanish speakers in U.S. i18n framework. Important for national scale, not urgent for GR beta. | Before national expansion — Q1 2027 — **pre-wire: install next-intl now and extract all UI strings to locale files; every future UI addition becomes translation-ready automatically** |
+| API-First Organizer Toolkit | ORG | TEAMS | OAuth2 auth, docs, rate limiting, versioning for public API. Behind Premium Tier. Enables Zapier. | After core features stabilize — Q4 2026-Q1 2027 — **pre-wire: add `ApiKey` table to schema + auth middleware stub now; no migration needed at launch** |
 | Zapier/Make.com Integration Hub | ORG | TEAMS | Requires API-First Toolkit first. Official Zapier app with triggers + actions. 2.2M businesses use Zapier. | After API-First ships — Q1-Q2 2027 |
 | TikTok-Style Item Reveal Feed | SHO | FREE | Vertical swipe feed of item reveals. Only works with high photo quality + item volume (100+/area). | After Rapidfire + Listing Factory drive quality up |
 | Organizer AMAs (Reddit-Style Q&A) | BOTH | FREE | Scheduled pre-sale preview + Q&A sessions. Requires chat infrastructure + organizer willingness. | After 10+ active organizers |

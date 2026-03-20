@@ -9,7 +9,7 @@
 ## 1. Executive Summary
 
 **Company Name:** FindA.Sale
-**Location:** Grand Rapids, Michigan
+**Location:** Paw Paw, Michigan
 **Founding Date:** 2025
 **Business Structure:** Michigan LLC (filed)
 **Website:** finda.sale
@@ -23,7 +23,7 @@
 **Competitive Advantage:** The unified organizer + shopper platform powered by a photo-first workflow. Photo upload → AI-generated titles, descriptions, and pricing → organizer refinement → publication across FindA.Sale AND exportable to eBay, Amazon, and other marketplaces. This workflow becomes the organizer's moat: once locked into our system, the professional outputs make it easy to syndicate inventory everywhere. We don't compete on price (competitors will copy fees) or features (competitors will copy features). We compete on workflow efficiency and professional asset generation.
 
 **Financial Highlights:**
-- **Revenue Model:** 10% platform fee on all sales (organizer-paid, deducted at payout)
+- **Revenue Model:** Tiered platform fees — 10% (SIMPLE/Free), 8% (PRO $29/mo), 8% (TEAMS $79/mo); plus 5% buyer premium on auctions only. Organizer-paid, deducted at payout.
 - **Monthly Operating Costs (beta):** ~$300–400
 - **Break-Even:** 1–2 medium sales/month ($5,000–$10,000 GMV each)
 - **Year 1 Projection:** 8–80 active organizers, $40K–$650K monthly GMV, $1.5K–$30K net monthly revenue
@@ -45,18 +45,18 @@
 ### Business Name, Location, and Legal Structure
 
 **Company Name:** FindA.Sale
-**Registered Address:** Grand Rapids, Michigan (USA)
+**Registered Address:** Paw Paw, Michigan (USA)
 **Legal Structure:** Michigan Limited Liability Company (LLC) — filed with Michigan Department of Labor and Economic Opportunity (LARA)
 **Federal Tax ID (EIN):** Obtained
 **Business License:** Michigan sales tax permit active (triggered at EIN issuance)
 
 ### History and Founding
 
-FindA.Sale emerged from founder Patrick DeSee's direct observation of inefficiency across the entire resale ecosystem. After extensive conversations with estate sale organizers, garage sale hosts, auctioneers, and flea market operators in Grand Rapids, consistent pain points surfaced across all event types: outdated software built on 1990s architectures, opaque fee structures, poor mobile experience, no AI inventory support, and fragmented tools requiring separate systems for photos, payments, messaging, and analytics.
+FindA.Sale emerged from founder Patrick's direct observation of inefficiency across the entire resale ecosystem. After extensive conversations with estate sale organizers, garage sale hosts, auctioneers, and flea market operators, consistent pain points surfaced across all event types: outdated software built on 1990s architectures, opaque fee structures, poor mobile experience, no AI inventory support, and fragmented tools requiring separate systems for photos, payments, messaging, and analytics.
 
 Simultaneously, shoppers complained about stale listings, poor photo quality, inability to search by item, and no unified discovery—they had to check 10 different platforms to find available sales in their area.
 
-Between late 2024 and early 2026, FindA.Sale was built iteratively using AI-assisted development (Claude), shipping 71 features across five parallel development tracks. The platform launched as a production MVP in January 2026, fully functional but with zero paying customers. Beta recruitment began Q1 2026 with a focus on validating the core value proposition: rapid listing creation via photo upload and AI intelligence, combined with discovery and purchase workflows for shoppers.
+Between late 2024 and early 2026, FindA.Sale was built iteratively using AI-assisted development, shipping 71 features across five parallel development tracks. The platform launched as a production MVP in January 2026, fully functional but with zero paying customers. Beta recruitment began Q1 2026 with a focus on validating the core value proposition: rapid listing creation via photo upload and AI intelligence, combined with discovery and purchase workflows for shoppers.
 
 ### Mission and Vision
 
@@ -339,6 +339,47 @@ At the heart of FindA.Sale is a radical simplification: **photos are the primary
 - AuctionNinja: $19/month + $250 setup + 2% fee
 - DIY Auctions: 10% fee (auction-only, no organizer tools)
 - **FindA.Sale: 10%/8%/8% tiered, zero upfront, subscription optional, best organizer tools + shopper discovery**
+
+### Platform Integrity & Cost Control
+
+FindA.Sale treats platform safety and cost discipline as core infrastructure — not bolt-ons. Twenty-nine purpose-built controls (implemented before and during beta) protect payment health, prevent abuse, and keep variable costs predictable as the platform scales.
+
+**Anti-Abuse & Auction Integrity (P0 — Before Beta):**
+- Account age gate (7-day minimum before bidding) blocks throwaway shill accounts
+- Same-IP bidder detection flags organizer/bidder collusion patterns for manual review
+- Bidding velocity limits (10+ bids in <1 minute triggers rate limit)
+- Buyer premium disclosure shown as a 4-point UI element with checkbox confirmation before checkout
+- Post-purchase confirmation email with itemized premium breakdown (chargeback evidence)
+- Chargeback defense system auto-captures checkout evidence and submits to Stripe on dispute
+- Export rate limiting (1 CSV/JSON export per account per month) prevents data harvesting
+- First-month refund cap (50%) blocks free-trial abuse
+- Email deduplication hard gate prevents multi-account signup with the same address
+- Payment method deduplication across organizer accounts
+
+**Trust & Reputation Infrastructure (P1 — Before Growth):**
+- Organizer reputation score (1–5 stars based on chargebacks, cancellations, and returns)
+- Winning bid velocity check flags auctions where winning bid is <10% of estimated value
+- Off-platform transaction detection (30-day pattern: low-price sales with no activity)
+- IP-based multi-account soft-linking and merge suggestions
+- Bid cancellation audit trail (flags patterns across accounts)
+- Verified purchase badge on reviews (only confirmed buyers can review)
+- Review timing anomaly detection (reviews posted <1 hour after purchase or from shared IP)
+- Chargeback + serial buyer suspension (graduated: flag at 2+, suspend at 3+)
+- Aggregate chargeback monitoring triggers pre-auth and payment hold if rate exceeds 0.8%
+- Sale cancellation audit detects rapid cancellations post-publication with large hold counts
+
+**Cost Control Infrastructure:**
+- Photo retention policy: auto-archive at 90 days, delete at 1 year — reduces Cloudinary costs indefinitely
+- AI cost ceiling with Ollama fallback: auto-switches to local model if Claude API cost exceeds monthly threshold
+- Cloudinary bandwidth monitoring with alerts before overage bills accumulate
+- Photo compression at upload (auto-compress on-device; reject out-of-spec files)
+- Bot/scraper CDN rate limiting on image endpoints prevents bandwidth spikes
+- Database record archival (quarterly soft-delete of stale sales/items reduces Neon compute)
+- Async AI tagging queue prevents Claude API rate limiting during peak batch uploads
+- Tiered photo storage migration (Cloudinary → Backblaze B2 + Bunny CDN for warm/cold storage): targets ~70% storage cost reduction at scale
+
+**Why This Matters for Investors and Organizers:**
+Stripe account health is existential for a marketplace. One bad month above 1% dispute rate can trigger payment holds, account restrictions, or termination. FindA.Sale's multi-layer abuse architecture is designed to keep dispute rates below 0.3% — well inside Stripe's risk threshold — from day one. The cost control infrastructure means that as volume grows, per-transaction infrastructure costs shrink rather than scale linearly.
 
 ---
 
@@ -691,7 +732,9 @@ Example: $100K GMV with 30% PRO/TEAMS = ($100K × 0.097) + ($870/mo sub) = $10.6
 1. **Featured Placement:** $29.99 per 7-day featured sale (with transparency label)
 2. **AI Tagging Premium:** $4.99/month for unlimited tags (SIMPLE heavy users only)
 3. **Affiliate Commissions:** 2–3% on referred organizers
-4. **B2B Data Products:** Aggregated secondhand market intelligence, valuation API, trend reports (DEFERRED to 200+ organizers)
+4. **B2B Data Products:** Aggregated secondhand market intelligence, valuation API, trend reports (DEFERRED to 200+ organizers — see Section 12)
+5. **Shopper Microtransactions (Deferred to 1,000+ DAU):** Hunt Pass ($4.99/30 days), Featured Listing Boosts, Priority Checkout Passes, Instant Appraisal Tokens
+6. **White-Label Platform (B2B SaaS):** Flea market operator white-label, Consignment Shop Operations Suite — DEFERRED to post-beta feature stability
 
 ### Revenue Projections (Conservative)
 
@@ -857,9 +900,9 @@ $4,000 ÷ $5,000 (avg sale) = 0.8 sales/month
 
 ### Founder & CEO
 
-**Patrick DeSee**
+**Patrick**
 - **Title:** Founder & CEO
-- **Background:** Grand Rapids native with deep knowledge of local estate sale market and real estate community
+- **Background:** Retail and property owner with deep knowledge of local estate sale market and real estate community
 - **Experience:** Product management, AI-assisted development (14 months, 71 features with Claude), field research with 20+ estate sale organizers
 - **Relevant Relationships:** Probate attorneys, real estate agents, senior living facilities, antique dealers
 - **Current Role:** Product strategy, partnerships, customer interviews, fundraising
@@ -888,7 +931,7 @@ All strategic and technical documents are in `/claude_docs/`:
 **Strategy:**
 - `STATE.md` — Current project state, locked decisions, pending actions
 - `STACK.md` — Technology stack, architecture principles
-- `roadmap.md` — 71 shipped features, in-progress work, backlog
+- `roadmap.md` — 71 shipped features, in-progress work, backlog, 29 Platform Safety features, 43 deferred innovations
 - `COMPLETED_PHASES.md` — Build history across 21 development phases
 
 **Brand & Marketing:**
@@ -915,7 +958,7 @@ All strategic and technical documents are in `/claude_docs/`:
 
 **NPS:** Net Promoter Score (0–100, target >50)
 
-**Platform Fee:** Percentage of sale amount retained by FindA.Sale (10% locked decision)
+**Platform Fee:** Percentage of sale amount retained by FindA.Sale. Tiered: 10% (SIMPLE/Free), 8% (PRO $29/mo), 8% (TEAMS $79/mo). Plus 5% buyer premium on auction items only. Locked decision.
 
 **PWA:** Progressive Web App (installable, offline-capable, push notifications)
 
@@ -926,6 +969,158 @@ All strategic and technical documents are in `/claude_docs/`:
 **TAM:** Total addressable market ($400M for community resales)
 
 **Virtual Queue:** Digital line management (shoppers join remotely, receive position updates via SMS)
+
+---
+
+## 12. Product Pipeline, Innovation Streams & Long-Term Vision
+
+### 12a. Near-Term Backlog (Q2–Q3 2026)
+
+These features are fully specified and ready to build. They are not yet in the shipped product but are committed to the roadmap.
+
+**Platform Architecture — Dual-Role Account System (#72–75):**
+The highest-priority pre-scale infrastructure. Currently each account is either an organizer or a shopper. A `roles[]` array + `subscriptions[]` table unlocks the ability for one person to operate both sides of the platform. Downstream: two-channel notification system (OPERATIONAL for organizers, DISCOVERY for shoppers), role-aware registration consent, and proper tier-lapse state logic that suspends organizer features on billing lapse without freezing shopper access.
+
+**UX Polish Sprint (#76–81):**
+Frontend-only improvements with no schema changes. Skeleton loaders replace spinners across all item/sale grids; a full-screen celebration moment when an organizer publishes a sale; an Inspiration Page (masonry grid of best available item photos shoppable inline); Revolut-style earnings counter animation; redesigned purchase confirmation screen; and a complete empty state audit with human-voice copy throughout. These features increase perceived quality and conversion without adding infrastructure complexity.
+
+**Legal Housekeeping (#82–83):**
+USPTO trademark filing on "FindA.Sale" ($250–400/class + attorney fees). Trade secret documentation for proprietary algorithms (fraud scoring, Near-Miss Nudge logic, City Heat Index formula, Flip Report scoring, AI condition grading prompts) and NDA coverage for contributors.
+
+**Triggered Backlog (#84–92 — Trigger Conditions Already Met):**
+The following backlog items have their stated trigger conditions satisfied. They can be built immediately without further platform prerequisites:
+
+| # | Feature | Trigger Met Because |
+|---|---------|---------------------|
+| 84 | Approach Notes (arrival push at 500m) | Front Door Locator + Entrance Pin shipped |
+| 85 | Treasure Hunt QR (in-sale scavenger hunt) | Badge/XP/streak gamification scaffold shipped |
+| 86 | Shopper Profile + Friend Network | Gamification + UGC Photo Tags shipped |
+| 87 | Brand & Designer Tracking | Tag system + Wishlist Alerts shipped |
+| 88 | Haul Post Gallery (UGC social proof) | UGC Photo Tags (#47) shipped |
+| 89 | Unified Print Kit (QR yard sign + barcode stickers) | QR Code Signs shipped |
+| 90 | Sale Soundtrack (Spotify/Apple Music playlists) | No infrastructure dependency — external links only |
+| 91 | Auto-Markdown (Smart Clearance) | Promoted from deferred; PRO organizer value prop |
+| 92 | City Weekend Landing Pages (Metro Explorer) | Promoted from deferred; ISR + Schema.org, high SEO ROI |
+
+---
+
+### 12b. Deferred Features — Likely to Build (Waiting on Triggers)
+
+These features are designed and specced. They are deferred because they require a user base or data volume that doesn't exist yet — not because they lack product value or technical feasibility.
+
+**Advanced Organizer Features:**
+- **Instant Flash Auctions** — time-limited price drops with live bidding. Trigger: 4–6 weeks of beta shopper activity data.
+- **Live Stream Sale Events** — video-powered sale previews and walkthroughs. Trigger: beta proves organizer appetite. Estimated 3–4 sprint build.
+- **Affiliate Program** — referral tracking with badge integration and fee-bypass rewards. Trigger: shopper referral rewards (#7, shipped) demonstrate demand. Backend 60% complete.
+- **Auto-Reprice (Market-Responsive Pricing)** — AI price adjustments from demand signals. Extends Auto-Markdown. Trigger: 6+ months transaction data.
+- **Workflow Automations (Built-in IFTTT)** — rule builder with Trigger → Condition → Action. 5–10 hardcoded automations first. Trigger: Q3 2026 for hardcoded; custom rules Q1 2027.
+- **API-First Organizer Toolkit** — OAuth2, versioned docs, rate limiting, public API behind PRO/TEAMS tier. Enables Zapier. Trigger: Q4 2026–Q1 2027 after feature stabilization.
+- **Zapier/Make.com Integration Hub** — official Zapier app with triggers + actions. Trigger: after API-First ships.
+- **Multi-Language Support (Spanish First)** — 42M native Spanish speakers in U.S. i18n framework. Trigger: before national expansion, Q1 2027.
+
+**Shopper & Community Features:**
+- **Book Club & Vinyl Community Hubs** — moderated collector hubs with feeds, swaps, events. Trigger: Collector Passport proves specialty-interest demand (Collector Passport shipped — eligible for evaluation).
+- **Restoration & Upcycling Marketplace** — before/after project gallery; "Studio Pro" creator tier. Trigger: UGC Photo Tags proves community appetite (UGC Photo Tags shipped — eligible for evaluation).
+- **TikTok-Style Item Reveal Feed** — vertical swipe discovery. Trigger: Rapidfire + Listing Factory drive item photo quality high enough (both shipped — eligible for evaluation).
+- **Organizer AMAs (Reddit-Style Q&A)** — pre-sale preview + Q&A sessions. Trigger: 10+ active organizers.
+- **Mystery Box Drops** — curated surprise purchases. Trigger: badge/XP system (shipped) + Michigan gambling/sweepstakes legal clearance.
+- **Featured Listings (Feature Boost)** — paid homepage placement. Trigger: 500+ organizer accounts + 10+ active concurrent sales.
+- **Fast Pass (Priority Entry)** — $5–15 per pass, 30-min early access. Trigger: beta proves high-demand sales exist.
+- **QR/Barcode Item Labels** — scan labels at POS for instant lookup. Trigger: POS v2 real-world usage data.
+
+**Infrastructure:**
+- **Canary Deploy + Auto-Rollback** — deploy to Vercel preview + Railway staging before production; auto-rollback on smoke test failure. Trigger: after beta stabilizes (effectively: now).
+- **Audit Automation Library** — codify 8 pre-beta audit paths as reusable tests; run on every deploy. Trigger: after beta launch (effectively: now).
+
+**Pre-Wire Strategy — Build Before Revisit Trigger:**
+Several deferred features can be partially built or wired (schema, flags, API stubs) without activating them for users — reducing implementation time when the trigger is reached:
+
+| Feature | What Can Be Pre-Wired Now | Benefit at Trigger |
+|---------|---------------------------|-------------------|
+| Affiliate Program | Payout calculation engine + referral code system | Activation becomes a config flag, not a build sprint |
+| Consignment Integration | Schema fields (consignor, split %) extend inventory library | Migration-free when thrift store partners appear |
+| QuickBooks Integration | QB-compatible CSV export format added to existing export pipeline | Zero-build activation: existing CSV already 80% there |
+| Multi-Language (i18n framework) | Install next-intl, extract all UI strings to locale files | All future UI additions are translation-ready automatically |
+| API-First Organizer Toolkit | Auth flow + API key table in schema | No schema migration needed when API tier launches |
+| Agentic AI Scout | Wishlist preference model + user taste profile schema | Data accrues passively before the feature ships |
+| Estate Planning Toolkit | Executor user type + intake schema fields | Zero-migration launch when upstream demand validates |
+
+The principle: build fast now, activate when the market is ready. At current development velocity (5–7 sprints/month), infrastructure scaffolding today makes activations into single-sprint releases rather than multi-sprint projects.
+
+---
+
+### 12c. B2B / B2E / B2C Innovation Streams
+
+These are future revenue moats that require a critical mass of platform data — approximately 200+ organizers across 5+ metro areas and 6–12 months of credible transaction history. They represent the shift from a marketplace to a data platform. Full analysis: `claude_docs/strategy/b2b-b2e-b2c-innovation-broad-2026-03-19.md`.
+
+**B2B Revenue Streams:**
+
+*Secondhand Market Intelligence Feed ($99–$499/mo):*
+Aggregated and anonymized data: category pricing trends, regional inventory velocity, seasonal demand patterns. Target customers: antique dealers, resellers, category retailers. Requires 200+ organizers and 12+ months of data. This is the most defensible data product because no competitor has organizer-level transaction data at regional scale.
+
+*Home Contents Valuation API for Appraisers & Insurers ($499–$999/mo):*
+Real-transaction valuation models trained on FindA.Sale data — not appraisal comps or list prices, but actual sale prices of comparable items. License to estate appraisers, insurance companies, and tax professionals. Trigger: 200+ organizers + 6+ months credible data.
+
+*Antiques Dealer Early Access Platform:*
+Dedicated marketplace and curated feeds for professional dealers (antiquarians, gallery owners, auction houses). First-look access to high-value estate inventories. Premium subscription or commission on referrals. Trigger: 200+ organizers + professional demand validation.
+
+*Flea Market Operator White-Label Platform ($1K–$5K/month per operator):*
+White-label FindA.Sale for flea market operators managing 100+ vendors per weekend. Customizable vendor registration, booth lookup, item aggregation. The existing multi-user TEAMS infrastructure is the foundation. Trigger: core features stable + multi-organizer workflows proven.
+
+*Consignment Shop Operations Suite ($99–$199/month per shop):*
+Full SaaS for independent consignment shops: inventory, multi-vendor, POS, settlement. FindA.Sale becomes the fulfillment and marketing layer. Trigger: core organizer features stable + consignment demand validated.
+
+*Valuation Engine API Licensing:*
+White-label API for eBay, Shopify, and other marketplace integrations — real-time pricing suggestions powered by FindA.Sale transaction data. Per-query pricing model. Trigger: API-First Toolkit ships (Q1 2027+).
+
+*Moving Company Logistics Integration:*
+White-label partnership and data feed. Help moving companies identify estate liquidation opportunities. Commission on referrals or subscription access. Trigger: 500+ organizers.
+
+*Liquidation Insurance Product:*
+Partner with specialty insurer: FindA.Sale users insure auction liquidations against underperformance. 3–5% commission on policies written. Trigger: 200+ organizers + claims data validated.
+
+**B2E Revenue Streams (Business-to-Entity / Government):**
+
+*Municipal Economic Intelligence ($500–$2K/month):*
+Sell anonymized estate sale data to city planners and economic development authorities. Insights: household wealth distribution, downsizing trends, real estate health signals. Target: City Planner Associations, regional economic research groups. Trigger: 200+ organizers across 10+ cities.
+
+*Circular Economy Data Feed ($199–$499/mo):*
+ESG and sustainability data: average item lifecycle cost, resale percentages by category, waste reduction metrics. Target: ESG consultants, corporate sustainability teams, nonprofits. Trigger: 300+ organizers + data normalization.
+
+**B2C Revenue Streams:**
+
+*Nonprofit Fundraising Suite:*
+Turnkey platform for nonprofits running rummage sales and silent auctions. FindA.Sale handles fulfillment; nonprofit retains 100% of proceeds. Revenue: 10% of nonprofit GMV. Trigger: core nonprofit use cases proven in beta.
+
+*Organizer Certification Program ($99/course, lifetime badge):*
+Accredited training and badge system for professional estate organizers. Courses: valuation, pricing psychology, buyer psychology, legal compliance. Revenue: course fees + badge marketplace. Trigger: 1,000+ shoppers + 200+ organizers.
+
+**Speculative Long-Term (Post-2027):**
+- *Estate Sale Futures Market:* Institutional buyers bid on estate sale portfolios. High-risk, high-reward. Regulatory review required.
+- *Full-Service Liquidation Platform:* FindA.Sale coordinates end-to-end estate liquidation (12–18% of GMV). Operational complexity TBD.
+- *Shopper Behavior API ($499–$999/mo):* Anonymized behavioral data licensed to retailers and B2C marketplaces. Requires 10,000+ shoppers and 12+ months behavioral data.
+
+**Why This Matters Now:**
+These streams don't require building anything today — they require collecting the right data in the right structure. The photo storage migration (tiered Cloudinary → B2/Bunny), the async AI tagging queue, and the database archival policy already in the safety infrastructure are also the foundations for the data platform. Every safety feature built before beta is also a data quality investment.
+
+---
+
+### 12d. Long-Term Platform Vision
+
+**FindA.Sale as Infrastructure OS:**
+The long-term vision is a multi-sided ecosystem — organizers + buyers + restorers + appraisers + shippers + designers — where FindA.Sale is the operating infrastructure for the entire secondhand economy. This is not a feature; it's what happens when all three tiers (B2C marketplace, B2B data, B2E intelligence) are proven viable.
+
+**AI Buying Agent Scout (Premium $9.99/mo):**
+Personal AI shopping agent that learns the shopper's taste profile, proactively monitors new sales, and notifies on matches before they sell. Requires Wishlist Alerts + Collector Passport + sold-item data (both shipped; data accrual begins in beta). Trigger: ML pipeline and 6+ months behavioral data.
+
+**Estate Planning Toolkit:**
+Heir/executor liquidation assistant: inventory builder, appraisal integration, tax reporting. Upstream demand creation (reaches people before they need the marketplace). Trigger: core organizer features stable.
+
+**State of Estate Sales Annual Report ($199/yr, B2B):**
+Monthly anonymized data report: pricing trends by category, regional velocity, seasonal hotspots. Trigger: 6+ months transaction data.
+
+**RaaS — Resale-as-a-Service:**
+Full business management suite for organizers. The Japan/EU circular economy model at regional U.S. scale. Trigger: 2027+, individual features prove themselves first.
 
 ---
 
@@ -948,6 +1143,6 @@ This business plan reflects FindA.Sale's strategic position as of 2026-03-19. It
 - **Year 3:** 500+ organizers across 25+ states, $45M GMV, path to Series A
 
 **Document Authority:** Tier 1 Strategic Document
-**Last Updated:** 2026-03-19
+**Last Updated:** 2026-03-19 (v2 — Added Platform Safety & Cost Control §3, corrected tiered fee model throughout, expanded §8 post-beta revenue, added §12 Product Pipeline / B2B/B2E/B2C Innovation Streams / Pre-Trigger Analysis)
 **Next Review:** 2026-06-19 (Quarterly)
 **Author:** Claude (with Patrick DeSee, Founder)

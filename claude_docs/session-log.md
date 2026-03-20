@@ -2,6 +2,78 @@
 
 ## Recent Sessions
 
+### 2026-03-20 · Session 208
+
+**Documentation Audit + Dark Mode Completion + Badge/UX Fixes**
+
+**Work Completed (3 Phases):**
+
+**Phase 1 — Documentation:**
+- Updated `claude_docs/strategy/BUSINESS_PLAN.md` to v2: corrected platform fee assumptions, added Platform Safety section, added Section 12 with B2B/pipeline/pre-wire analysis
+- Updated `claude_docs/strategy/roadmap.md` to v64: added pre-wire status annotations on 9 deferred innovation items (future scoping)
+
+**Phase 2 — Audit:**
+- Completed `claude_docs/audits/chrome-audit-2026-03-20.md`: code review + live browser inspection via WebFetch. Identified 4 critical dark mode bugs:
+  1. Layout.tsx shopper nav drawer links missing dark: classes (13 links + dividers)
+  2. Favorites page missing dark: on card backgrounds + header
+  3. Loyalty page missing dark: on tier card + sections
+  4. SaleCard badge text contrast + badge explosion (5 badges stacked)
+
+**Phase 3 — Code Fixes (all TypeScript clean):**
+- **components/Layout.tsx**: Added dark: classes to 13 shopper drawer nav links + section dividers + login/logout/register blocks. Shopper nav now fully dark-mode compatible.
+- **pages/shopper/favorites.tsx**: Full dark mode pass. Added dark: to page wrapper, header, category tabs, item cards, empty/error states.
+- **pages/shopper/loyalty.tsx**: Full dark mode pass. Added dark: to page wrapper, tier card, stamps section, milestones, benefits, CTA button.
+- **components/SaleCard.tsx**: (1) Badge explosion fixed: replaced 5-badge flex stack with single-badge priority function (SOLD > LIVE > FLASH > AUCTION > TODAY). Text upgraded xs → sm, padding px-2.5 py-1. Flash Deal badge red-600 → amber-600 (brand align). (2) Dark mode: card container dark:bg-gray-800, organizer link dark:text-amber-400.
+- **pages/organizers/[id].tsx**: Replaced bare "Organizer not found" text with styled EmptyState (emoji + heading + description + CTA).
+- **pages/shoppers/[id].tsx**: Same treatment — "Shopper not found" → 🛍️ + EmptyState.
+- **pages/items/[id].tsx**: Same — "Item not found." → 🔍 + EmptyState + "Find More Treasures" CTA.
+- **pages/organizer/flip-report/[saleId].tsx**: Rewrote upsell copy with value prop. CTA: "Unlock Flip Report →"
+- **pages/organizer/photo-ops/[saleId].tsx**: Added value prop subtitle to PRO upgrade gate.
+- **pages/organizer/dashboard.tsx**: Pro upsell headline updated: "Save time. Understand what sells. Build a brand that brings shoppers back." Blue palette → amber.
+- **pages/shopper/loot-log/public/[userId].tsx**: Replaced all slate-* Tailwind classes with warm-* equivalents (palette consistency).
+- **pages/shopper/loot-log/[purchaseId].tsx**: Same slate → warm palette fix.
+
+**QA Results:**
+- TypeScript clean across all 12 modified files (zero errors)
+- Dark mode coverage expanded: Layout nav + 2 shopper pages now fully compliant
+- Badge explosion fixed: SaleCard now shows single priority badge (no stacking)
+- Empty state UX: 3 error pages now branded + actionable
+
+**Files Changed (S208) — Staged for Patrick Push:**
+1. `claude_docs/strategy/BUSINESS_PLAN.md` — EDITED (platform fee section, Platform Safety section, Section 12 added)
+2. `claude_docs/strategy/roadmap.md` — EDITED (v63→v64, pre-wire annotations on 9 deferred items)
+3. `claude_docs/audits/chrome-audit-2026-03-20.md` — CREATED (code + live browser audit, 4 critical dark bugs documented)
+4. `components/Layout.tsx` — EDITED (shopper drawer nav dark: classes)
+5. `pages/shopper/favorites.tsx` — EDITED (full dark mode pass)
+6. `pages/shopper/loyalty.tsx` — EDITED (full dark mode pass)
+7. `components/SaleCard.tsx` — EDITED (badge explosion fix + dark mode)
+8. `pages/organizers/[id].tsx` — EDITED (EmptyState)
+9. `pages/shoppers/[id].tsx` — EDITED (EmptyState)
+10. `pages/items/[id].tsx` — EDITED (EmptyState)
+11. `pages/organizer/flip-report/[saleId].tsx` — EDITED (upsell copy + CTA)
+12. `pages/organizer/photo-ops/[saleId].tsx` — EDITED (value prop subtitle)
+13. `pages/organizer/dashboard.tsx` — EDITED (pro upsell copy + amber palette)
+14. `pages/shopper/loot-log/public/[userId].tsx` — EDITED (slate → warm palette)
+15. `pages/shopper/loot-log/[purchaseId].tsx` — EDITED (slate → warm palette)
+
+**Outstanding (Not Done This Session):**
+- Nav density (17–24 items/nav) — NOT addressed, requires UX/architect decision
+- Dashboard 25 buttons → grouped actions — NOT addressed, requires UX decision
+- SaleCard full dark: coverage — PARTIAL (card bg + organizer link added; price/remaining items not audited)
+- Chrome MCP visual verification — DEFERRED (MCP unavailable this session)
+- Remaining shopper pages dark: gaps — NOT audited (Explore, Map, search, etc.)
+
+**Decisions:**
+- Badge priority order locked: SOLD > LIVE > FLASH > AUCTION > TODAY (prevents all collisions)
+- Empty state pattern: 3 new error pages now use styled EmptyState component (consistent with rest of app)
+- Palette: blue → amber on all organizer upsell copy (brand alignment with primary accent)
+
+**Next:** Patrick reviews + pushes files via `.\push.ps1`. S209: Chrome MCP visual verification if available; nav density + dashboard UX decisions; remaining dark mode audit (Explore, Map, etc.).
+
+**Blockers:** None — all changes staged, TypeScript green, ready for Patrick push.
+
+---
+
 ### 2026-03-19 · Session 207
 
 **Pricing Lock + B2B/B2E/B2C Innovation + Records Wrap**
