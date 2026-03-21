@@ -1,63 +1,61 @@
-# Next Session Prompt — S227
+# Next Session Prompt — S228
 
-## Primary Objective: Projects-First Workflow — Phase 2 & Phase 3
+## First: Verify Railway + Stripe Checkout
 
-Phase 1 (Build & Fix) is complete and pushed. This session implements the remaining two phases.
+Railway cache-bust was pushed at the end of S227 (commit 57fabb05, ~22:44 UTC). Check Railway build status:
+1. Open Railway dashboard and confirm new deployment from that commit is LIVE
+2. Test `/api/stripe/checkout-session` endpoint — should return 200, not 404
+3. Test the Upgrade flow on /pricing as an authenticated SIMPLE-tier organizer
 
-## Phase 2 — Friction Audit + QA Validation (~1 hour)
+If still 404 after Railway shows READY: dispatch findasale-ops to investigate the backend route mounting.
 
-### 2a. Update daily-friction-audit scheduled task
-- Add auto-dispatch action loop: ALL findings (HIGH, MEDIUM, LOW) auto-dispatch the appropriate agent (findasale-records for doc staleness, findasale-dev for code issues) in the same run.
-- Only the most minor cosmetic findings may persist 1-2 days without action.
-- If a finding persists 3+ consecutive audits → escalate to Patrick with `## Patrick Direct` block.
-- If auto-dispatched fix fails → re-classify finding as BLOCKED with error reason, escalate next session start.
+## Primary Work: Fix /pricing WARN Findings
 
-### 2b. Reduce context-freshness-check to weekly
-- Change scheduled task frequency from daily to weekly. Projects auto-loads mean daily freshness checks are less critical.
+QA audit from S227 found 2 issues on /pricing. Dispatch **findasale-dev** for both:
 
-### 2c. Run a test QA audit
-- Pick one feature (suggestion: /favorites or /pricing) and run the new QA dispatch pattern:
-  1. Identify roles × tiers × operations
-  2. Generate specific test scenarios
-  3. Batch by page into focused dispatches
-  4. Track results in conversation
-- This validates the QA DISPATCH GATE added to CLAUDE.md §7.
+### WARN 1: Unauthenticated button text
+- **Issue:** PRO and TEAMS tier cards show "Upgrade to PRO" / "Upgrade to TEAMS" for unauthenticated users — should be "Sign up for PRO" / "Sign up for TEAMS"
+- **File:** likely `packages/frontend/pages/pricing.tsx` — check auth state and conditionally render button label
+- **Acceptance:** Unauthenticated visitors see "Sign up for X"; authenticated SIMPLE users see "Upgrade to X"
 
-### 2d. Verify Phase 1 changes
-- Confirm subagent routing still works (dispatch one small task to findasale-dev).
-- Confirm conversation-defaults v7 is active (check if Patrick installed the .skill file).
-- Confirm CORE.md is no longer being loaded (it should be superseded by root CLAUDE.md).
+### WARN 2: No post-Stripe return feedback
+- **Issue:** After Stripe checkout redirects back to dashboard, there's no parsing of `?upgrade=success` or `?upgrade=cancelled` query params — user sees no confirmation
+- **Files:** Stripe checkout session likely sets `success_url` and `cancel_url` with `?upgrade=success` / `?upgrade=cancelled`. Dashboard needs to read these params and show a toast or banner.
+- **Acceptance:** Dashboard shows success toast on `?upgrade=success`; shows neutral message on `?upgrade=cancelled`; clears params from URL after reading
 
-## Phase 3 — Cleanup (only after Phase 2 is QA'd)
+## Secondary: Verify Archived Skill Installs
 
-### 3a. Delete from active use (keep in git history):
-- `.checkpoint-manifest.json`
-- `MESSAGE_BOARD.json`
+In S227 we packaged and presented:
+- `context-maintenance.skill` — archived redirect to findasale-records
+- `findasale-push-coordinator.skill` — archived redirect to CLAUDE.md §5+§11
 
-### 3b. Archive skills:
-- `context-maintenance` — merge essential logic (STATE.md + session-log sync) into `findasale-records`, then archive standalone skill.
-- `findasale-push-coordinator` — push rules are in CLAUDE.md now; dedicated agent adds overhead without value.
+If Patrick hasn't clicked "Copy to your skills" for both, prompt him to do so. You can confirm by asking Patrick or by checking which skill descriptions appear in the session's available skills list.
 
-### 3c. Remove CORE.md from active use
-- Content now lives in root CLAUDE.md. CORE.md stays in git history but should not be loaded or referenced.
+## Patrick: Local Sync
 
-## Pre-Session Checklist
+Multiple MCP pushes happened in S227. Run this to sync your local repo before any commits:
 
-1. Load STATE.md
-2. Confirm Patrick installed conversation-defaults.skill (ask if unclear)
-3. Check if S225 push block was completed (InstallPrompt.tsx, _app.tsx, InspirationGrid.tsx)
-4. Check scheduled tasks list to find daily-friction-audit and context-freshness-check task IDs
+```
+git pull
+```
+
+or just run `.\push.ps1` — it self-heals with fetch+merge.
+
+## Roadmap: What's Next
+
+Once the /pricing fixes are dispatched, pick from:
+- **#73** Two-Channel Notification System (gated by #72 ✅ now unblocked)
+- **#74** Role-Aware Registration Consent Flow (gated by #72 ✅)
+- **#75** Tier Lapse State Logic (gated by #72 ✅)
+- **Pre-beta safety #106–#109:** Organizer Reputation Scoring, Chargeback+Collusion Tracking, Winning Bid Velocity Check, Off-Platform Transaction Detection
+- **Railway env vars still needed:** `AI_COST_CEILING_USD` (set to monthly budget), `MAILERLITE_SHOPPERS_GROUP_ID=182012431062533831`
 
 ## Reference
 
-- Proposal: `claude_docs/operations/projects-first-workflow-proposal.md`
-- Board review: 11-0-1 Go with modifications (all addressed in proposal)
-- Phase 1 commits: a5e58dd, c8a5242, 3b2c879
-
-## Vercel URL
-https://findasale-git-main-patricks-projects-f27190f8.vercel.app
-
-## Test Accounts
-- Shopper: user11@example.com / password123
-- Organizer PRO: user2@example.com / password123
-- Admin: user1@example.com / password123
+- Vercel URL: https://findasale-git-main-patricks-projects-f27190f8.vercel.app
+- Test accounts:
+  - Shopper: user11@example.com / password123
+  - Organizer PRO: user2@example.com / password123
+  - Admin/SIMPLE: user1@example.com / password123
+- CLAUDE.md v5.0 is the single authority. CORE.md is retired.
+- Scheduled tasks: 11 active (see findasale-records SKILL.md for full list)
