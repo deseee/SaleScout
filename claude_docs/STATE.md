@@ -7,6 +7,15 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Active Objective
 
+**Session 216 COMPLETE (2026-03-20) — DUAL-ROLE SCHEMA PHASE 1 + PLATFORM SAFETY + CHROME AUDITS:**
+- ✅ **#76 Skeleton loaders:** CONFIRMED shipped from S215 (SkeletonCards.tsx exists, referenced in 5 files). Verified.
+- ✅ **Chrome audit: 7 secondary routes** — ALL PASS. No P0/P1. Report: `claude_docs/audits/chrome-secondary-routes-s216.md`
+- ✅ **#72 Dual-Role Account Phase 1 COMPLETE:** `User.roles` array field + `UserRoleSubscription` table + `RoleConsent` table. Migration SQL: `packages/database/prisma/migrations/20260320204815_add_dual_role_schema/migration.sql`. Backend utility: `packages/backend/src/lib/roleUtils.ts` (backward-compatible role checking). **PENDING PATRICK ACTION:** Run `prisma migrate deploy` + `prisma generate` against Neon before Phase 2 work.
+- ✅ **Platform safety #94/#97/#98/#99 COMPLETE:** Coupon rate limiting (Redis, 10/min), admin pagination hard cap (100), request correlation IDs (UUID middleware), coupon collision retry (3 attempts).
+- ✅ **P1 fix: Date input on create-sale** — FIXED. Added `min` attribute to both date inputs enabling HTML5 picker. Confirmed by Chrome audit.
+- ✅ **Chrome audit: Organizer happy path** — P1 found + fixed same session. P2 notes: sale card click handler, LiveFeedTicker live data verification. Report: `claude_docs/audits/organizer-happy-path-s216.md`
+- Last Updated: 2026-03-20
+
 **Session 215 COMPLETE (2026-03-20) — MASSIVE PARALLEL SPRINT + TS ERROR RECOVERY:**
 - ✅ **Subscription tier bug fixed:** AuthContext was reading `organizerTier` instead of `subscriptionTier` from JWT
 - ✅ **P2 backlog shipped:** Error shape standardization (27 controllers → `{ message }`), holds pagination, hub N+1 fix
@@ -15,8 +24,6 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 - ✅ **Architect ADR filed:** #72 Dual-Role Account Schema → `claude_docs/architecture/adr-072-dual-role-account-schema.md`
 - ✅ **Schema pre-wires:** Consignment fields + affiliate payout table migrated to Neon (2 migrations applied)
 - ✅ **#92 SEO city pages:** ISR `/city/[city]` with Schema.org JSON-LD, Grand Rapids pre-built
-- ⚠️ **#76 Skeleton loaders:** dispatched but not confirmed shipped — verify S216
-- ⚠️ **Chrome audit of 7 routes:** dispatched but not confirmed — verify S216
 - ✅ **Railway recovery:** Dockerfile truncation recovered, 17 TS errors fixed across 4 files (3 MCP pushes)
 - Last Updated: 2026-03-20
 
@@ -37,16 +44,23 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ---
 
-**Next up (S216):**
-- [ ] Verify #76 skeleton loaders shipped (S215 dispatch - unconfirmed)
-- [ ] Verify Chrome audit of 7 secondary routes completed (S215 dispatch - unconfirmed)
-- [ ] #51 Sale Ripples: Neon migration + `prisma generate` still pending (Patrick action)
-- [ ] #72 implementation: roles[] array + UserRoleSubscription table (ADR approved S215)
+**Next up (S217):**
+- [ ] **PATRICK ACTION (S216 blocker):** Run Prisma migration for #72 Phase 1:
+  ```powershell
+  cd C:\Users\desee\ClaudeProjects\FindaSale\packages\database
+  $env:DATABASE_URL="postgresql://neondb_owner:npg_VYBnJs8Gt3bf@ep-plain-sound-aeefcq1y.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require"
+  npx prisma migrate deploy
+  npx prisma generate
+  ```
+- [ ] #72 Phase 2: JWT generation + auth middleware updates (gated by Phase 1 migration)
 - [ ] #73 Two-Channel Notifications (gated by #72)
 - [ ] #74 Role-Aware Registration Consent (gated by #72)
 - [ ] #75 Tier Lapse State Logic (gated by #72)
-- [ ] Platform safety continued: #94-#121 from pre-beta safety list
-- [ ] Error shape follow-up: syncController helper functions still use `{ message: { message, retryable } }` pattern - consider flattening for consistency with FailedOperation interface
+- [ ] Chrome re-verify: create-sale flow after date input fix deployed
+- [ ] #51 Sale Ripples: Neon migration + `prisma generate` still pending (Patrick action, lower priority than #72)
+- [ ] Platform safety continued: #100-#121 from pre-beta safety list
+- [ ] P2: Sale card click handler on homepage carousel
+- [ ] P2: LiveFeedTicker live event verification
 
 ---
 
