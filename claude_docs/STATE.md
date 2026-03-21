@@ -7,6 +7,19 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Active Objective
 
+**Session 227 COMPLETE (2026-03-21) — WORKFLOW CLEANUP SPRINT (Phase 2+3):**
+- ✅ Phase 2a: `daily-friction-audit` scheduled task updated with auto-dispatch action loop — HIGH/MEDIUM/LOW findings auto-dispatch findasale-records or findasale-dev; 3+ consecutive appearances → `## Patrick Direct` block
+- ✅ Phase 2b: `context-freshness-check` changed from daily to weekly Monday 8am
+- ✅ Phase 2c: QA audit on /pricing — 2 WARN findings: unauthenticated button text ("Upgrade" should be "Sign up for PRO/TEAMS"), no `?upgrade=success/cancelled` handling on dashboard return from Stripe
+- ✅ Phase 3a: `.checkpoint-manifest.json` and `MESSAGE_BOARD.json` deleted from active use
+- ✅ Phase 3b: `context-maintenance` and `findasale-push-coordinator` skills archived — source SKILL.md files updated; .skill packages built
+- ✅ Phase 3c: CORE.md fully retired — CLAUDE.md v5.0 is now the single authority
+- ✅ CLAUDE.md 3-region merge conflict resolved — v5.0 §§7-12 intact
+- ✅ Railway Dockerfile cache-bust pushed (commit 57fabb05) — forces fresh Docker build to unblock Stripe checkout 404
+- ⚠️ Railway rebuild IN PROGRESS — Stripe checkout fix pending build completion
+- ⚠️ /pricing WARN findings (button text + upgrade return handling) — dispatch findasale-dev next session
+- Last Updated: 2026-03-21
+
 **Session 225 COMPLETE (2026-03-21) — COMPREHENSIVE AUDIT S212–S224 + CHROME VERIFICATION + 3 BUG FIXES:**
 - ✅ Prisma migration (#72 Phase 2) confirmed applied by Patrick at session start. #73/#74/#75 now unblocked.
 - ✅ All S224 features Chrome-verified: /pricing, /shopper/favorites, /shopper/messages, /organizer/messages, FavoriteButton, leaderboard sort, inspiration page
@@ -14,7 +27,7 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 - ✅ Bug #1 FIXED: PWA banner reappears after "Not now" — added sessionStorage dual-layer to InstallPrompt.tsx
 - ✅ Bug #2 FIXED: Shopper onboarding popup fires on wrong pages — added shopperFirstPages allowlist to _app.tsx
 - ✅ Bug #3 FIXED: Inspiration page all images broken — added photoUrls fallback + placeholder to InspirationGrid.tsx
-- ⚠️ PENDING PUSH: `InstallPrompt.tsx`, `_app.tsx`, `InspirationGrid.tsx` — Patrick must run push block
+- ✅ DEPLOYED: InstallPrompt.tsx, _app.tsx, InspirationGrid.tsx — confirmed live at Vercel + Railway (commit 3c3d765)
 - ⚠️ S205–S211 session history irrecoverable (not in session-log.md or archive). No known open bugs from those sessions.
 - Health report: `claude_docs/health-reports/2026-03-21-s225-audit.md`
 - Last Updated: 2026-03-21
@@ -92,15 +105,12 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 - ✅ **item-library.tsx:** Removed stray `<Layout>` wrapper
 - ✅ **brand-kit.tsx:** Added `!data.id` guard before second API call; PRO fields (font/banner/accent) editable for PRO/TEAMS, disabled with upgrade prompt for SIMPLE
 - ✅ **dashboard.tsx:** Welcome name uses `user?.name?.split(' ')[0] || 'there'`; How It Works section gated by `!orgProfile?.onboardingComplete`
-- **Audit findings NOT bugs:** Item Library "0 items" (correct — Oscar has no library items); Command Center "No active sales" (correct — seed data has stale dates, not a code bug); Brand Kit 429 (temporary rate limit from test session, not a code bug)
-- **Known QA gaps remaining:** Patrick flagged comprehensive audit still incomplete — TEAMS tier, shopper flows, sale creation flow, auction flows, many engagement features unverified. Next session: systematic full-platform QA.
 - Last Updated: 2026-03-21
 
 **Session 217 COMPLETE (2026-03-21) — PRE-BETA SAFETY AUDIT + #102 PRICE VALIDATION:**
 - ✅ **#100–#103 Pre-Beta Safety Audit:** 4 items audited. #100 (password reset rate limit) ✅ already implemented. #101 (sale publish ownership check) ✅ already implemented. #102 (item price >= 0 validation) ⚠️ MISSING → FIXED. Added price validation to itemController.ts createItem() and updateItem() for price, auctionStartPrice, auctionReservePrice. #103 (Stripe webhook signature verification) ✅ already implemented.
 - ✅ **File Changed:** packages/backend/src/controllers/itemController.ts (price validation added, ~60 lines)
 - ✅ **TypeScript Check:** PASS (0 errors)
-- ✅ **MESSAGE_BOARD.json:** Updated with safety audit completion message
 - Last Updated: 2026-03-21
 
 **Session 218 COMPLETE (2026-03-20) — SECURITY HARDENING BATCH + #72 PHASE 2 + FEATURES (#78, #79, #104, #105) + CHROME P0 FIX:**
@@ -111,17 +121,7 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 - ✅ **Roadmap #104 AI Cost Ceiling:** Redis-based token tracking, monthly ceiling via `AI_COST_CEILING_USD` env var, auto-alert. Files: aiCostTracker.ts (new), cloudAIService.ts, adminController.ts, batchAnalyzeController.ts
 - ✅ **Roadmap #105 Cloudinary Bandwidth Monitoring:** Serve-event tracker, 80% threshold alert. Files: cloudinaryBandwidthTracker.ts (new), uploadController.ts, routes/admin.ts
 - ✅ **P0 Chrome fix:** Featured Sales carousel cards — title/location/dates now visible. File: SaleCard.tsx
-- ✅ **Chrome audit P2 results:** Sale card navigation PASS. LiveFeedTicker rendering PASS.
 - Last Updated: 2026-03-20
-
-**Next up (S219):**
-- [ ] QA: #72 Phase 2 auth middleware (flagged — touches JWT + auth)
-- [ ] Chrome verify: /inspiration page renders correctly, Earnings Counter animation fires
-- [ ] Continue pre-beta safety: #106–#109 (Organizer Reputation Scoring, Chargeback+Collusion Tracking, Winning Bid Velocity Check, Off-Platform Transaction Detection)
-- [ ] #73 Two-Channel Notification System (gated by #72 ✅ now unblocked)
-- [ ] #74 Role-Aware Registration Consent Flow (gated by #72 ✅)
-- [ ] #75 Tier Lapse State Logic (gated by #72 ✅)
-- [ ] New env vars needed on Railway: `AI_COST_CEILING_USD` (set to monthly budget), `MAILERLITE_SHOPPERS_GROUP_ID=182012431062533831`, verify `RESEND_API_KEY` + `RESEND_FROM_EMAIL`
 
 ---
 
@@ -144,5 +144,5 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 - **MailerLite MCP** - draft, schedule, and send email campaigns directly from Claude.
 - *CRM deferred - Close requires paid trial. Spreadsheet/markdown for organizer tracking until beta scale warrants it.*
 
-### Scheduled Automations (10 active)
-Competitor monitoring, context refresh, context freshness check, UX spots, health scout (weekly), monthly digest, workflow retrospective, weekly Power User sweep, daily friction audit (Mon-Fri 8:30am), weekly pipeline briefing (Mon 9am). Managed by Cowork Power User + findasale-workflow + findasale-sales-ops agents.
+### Scheduled Automations (11 active)
+Competitor monitoring, context freshness check (weekly Mon), UX spots, health scout (weekly), monthly digest, workflow retrospective, weekly Power User sweep, daily friction audit with action loop (Mon-Fri 8:38am), weekly pipeline briefing (Mon 9am), session warmup (on-demand), session wrap (on-demand). Managed by findasale-records + findasale-workflow + findasale-sales-ops agents.
