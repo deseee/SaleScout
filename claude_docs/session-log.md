@@ -2,6 +2,33 @@
 
 ## Recent Sessions
 
+### 2026-03-21 · Session 225
+
+**Comprehensive Audit S212–S224 + Chrome Verification + 3 Bug Fixes**
+
+**Work completed:**
+- Prisma migration (#72 Phase 2) confirmed live at session start. #73/#74/#75 unblocked.
+- Chrome-verified all 11 S224 features — all PASS.
+- Message Organizer button confirmed working in code (dev audit). Earlier Chrome test had stale auth state.
+- **Bug #1 FIXED:** PWA banner reappears after "Not now" on page navigation. Fix: sessionStorage dual-layer in InstallPrompt.tsx.
+- **Bug #2 FIXED:** Shopper onboarding popup fires on all pages (favorites, messages, inspiration). Fix: shopperFirstPages allowlist in _app.tsx.
+- **Bug #3 FIXED:** Inspiration page all item images broken (seed data has no photos). Fix: photoUrls fallback + gray placeholder in InspirationGrid.tsx.
+- Session log audit S212–S224: all documented fixes confirmed shipped. S205–S211 history irrecoverable (not in log).
+- Health report written: `claude_docs/health-reports/2026-03-21-s225-audit.md`
+
+**Files changed:** InstallPrompt.tsx, _app.tsx, InspirationGrid.tsx (all pending Patrick push)
+
+**Pending Patrick actions:**
+```powershell
+git add packages/frontend/components/InstallPrompt.tsx packages/frontend/pages/_app.tsx packages/frontend/components/InspirationGrid.tsx
+git commit -m "S225: Fix PWA banner session persist, scope shopper onboarding popup, add inspiration photo fallback"
+.\push.ps1
+```
+
+**Token notes:** 1 dev dispatch (button investigation — no changes), 1 dev dispatch (3 bug fixes).
+
+---
+
 ### 2026-03-21 · Session 224
 
 **Chrome Verification + Bug Sprint + Feature Build (#23/#26/#28/#29)**

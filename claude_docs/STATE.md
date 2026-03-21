@@ -7,6 +7,18 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Active Objective
 
+**Session 225 COMPLETE (2026-03-21) — COMPREHENSIVE AUDIT S212–S224 + CHROME VERIFICATION + 3 BUG FIXES:**
+- ✅ Prisma migration (#72 Phase 2) confirmed applied by Patrick at session start. #73/#74/#75 now unblocked.
+- ✅ All S224 features Chrome-verified: /pricing, /shopper/favorites, /shopper/messages, /organizer/messages, FavoriteButton, leaderboard sort, inspiration page
+- ✅ Message Organizer button confirmed working in code (dev agent audit). Earlier test failure was stale auth state.
+- ✅ Bug #1 FIXED: PWA banner reappears after "Not now" — added sessionStorage dual-layer to InstallPrompt.tsx
+- ✅ Bug #2 FIXED: Shopper onboarding popup fires on wrong pages — added shopperFirstPages allowlist to _app.tsx
+- ✅ Bug #3 FIXED: Inspiration page all images broken — added photoUrls fallback + placeholder to InspirationGrid.tsx
+- ⚠️ PENDING PUSH: `InstallPrompt.tsx`, `_app.tsx`, `InspirationGrid.tsx` — Patrick must run push block
+- ⚠️ S205–S211 session history irrecoverable (not in session-log.md or archive). No known open bugs from those sessions.
+- Health report: `claude_docs/health-reports/2026-03-21-s225-audit.md`
+- Last Updated: 2026-03-21
+
 **Session 224 COMPLETE (2026-03-21) — CHROME VERIFICATION + BUG SPRINT + FEATURE BUILD:**
 - ✅ Chrome-verified /inspiration page LIVE — masonry grid rendering, items from multiple sales, no app errors
 - ✅ Shopper leaderboard sort FIXED — was sorted by streakPoints (arbitrary), now computes display score first then sorts DESC. Frank (750pts) now #1, not #9.
