@@ -2,6 +2,29 @@
 
 ## Recent Sessions
 
+### 2026-03-20 · Session 216
+
+**Dual-Role Account Phase 1 + Platform Safety + Chrome Audits**
+
+**Work completed:**
+- **#72 Dual-Role Account Phase 1 COMPLETE:** Schema migration added `User.roles String[] @default(["SHOPPER"])`, `UserRoleSubscription` table, `RoleConsent` table per ADR-072. Migration SQL: `packages/database/prisma/migrations/20260320204815_add_dual_role_schema/migration.sql`. Backend utility `roleUtils.ts` with backward-compatible role checking. **PENDING PATRICK ACTION:** Run `prisma migrate deploy` + `prisma generate` against Neon before Phase 2.
+- **Platform Safety #94/#97/#98/#99 COMPLETE:** Coupon rate limiting (Redis ZSET, 10/min, user-based), admin pagination cap (100 rows, betaInviteController), request correlation IDs (UUID middleware), coupon collision retry (3 attempts). 6 files changed: 2 new middleware, 4 controllers updated. Zero schema changes.
+- **Pre-Beta Safety Audit #100-#103:** Password reset rate limit (already implemented), sale publish ownership check (already implemented), item price validation (FIXED — added validation to itemController.ts createItem/updateItem for price >= 0), Stripe webhook signature verification (already implemented). 1 file changed (itemController.ts, ~60 lines). Zero schema changes. TS check PASS.
+- **Chrome Audit: 7 Secondary Routes PASS:** Categories, category detail, tags, condition-guide, organizers, items, sales detail + LiveFeedTicker placement confirmed. No P0/P1 issues. All routes 200 OK.
+- **Chrome Audit: Organizer Happy Path (PRO tier):** Login PASS, Dashboard PASS, Create Sale form P1 BLOCKER (date inputs non-responsive), Shopper discovery PASS, secondary P2 (sale card clicks, LiveFeedTicker rendering). **P1 DATE INPUT FIX:** Added `min` attribute to startDate + endDate inputs enabling HTML5 date picker. Deployed to Vercel.
+- **Documentation:** Chrome audit reports filed at `claude_docs/audits/chrome-secondary-routes-s216.md` and `claude_docs/audits/organizer-happy-path-s216.md`.
+
+**Decisions:**
+- #72 Phase 1 is committed and migrated. Phase 2 (JWT generation + auth middleware) gates #73/#74/#75 — hold until Patrick runs Prisma actions.
+- Platform safety batch completed 4 items. Recommendations: Continue with #104-#107 (CSRF, SQL injection, account enumeration, DDoS).
+- Date input fix minimal, deployed, ready for re-verification. Sale card click handler flagged as P2 for S217 Chrome check.
+
+**Blockers resolved:** Railway + Vercel GREEN throughout. All code ready for Patrick push.
+
+**Next:** S217 roadmap batch planning + Phase 2 dispatch + continue platform safety.
+
+---
+
 ### 2026-03-20 · Session 215
 
 **Massive Parallel Sprint: 8 Subagent Dispatches + Railway TS Error Recovery**

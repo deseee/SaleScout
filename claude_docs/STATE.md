@@ -7,6 +7,9 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Active Objective
 
+**Session 217+ DISPATCH PLANNING — ROADMAP BATCH IDENTIFICATION:**
+- S217 session will start by reading `claude_docs/strategy/roadmap.md` (v67, 71 features). Identify top 5 unshipped items by beta-blocking severity. Group candidates for subagent batch dispatch (do not implement — only identify). Targeting: #72 Phase 2, #51 Sale Ripples, #100-#121 platform safety continued, #42 Voice-to-Tag, P2 carousel/LiveFeedTicker fixes.
+
 **Session 216 COMPLETE (2026-03-20) — DUAL-ROLE SCHEMA PHASE 1 + PLATFORM SAFETY + CHROME AUDITS:**
 - ✅ **#76 Skeleton loaders:** CONFIRMED shipped from S215 (SkeletonCards.tsx exists, referenced in 5 files). Verified.
 - ✅ **Chrome audit: 7 secondary routes** — ALL PASS. No P0/P1. Report: `claude_docs/audits/chrome-secondary-routes-s216.md`
