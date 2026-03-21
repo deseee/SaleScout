@@ -1,5 +1,5 @@
 # Dynamic Project Context
-*Generated at 2026-03-20T21:31:19.551Z*
+*Generated at 2026-03-21T16:43:34.480Z*
 *Run `node scripts/update-context.js` on Windows to refresh.*
 
 ## Last Session
@@ -16,12 +16,12 @@ See report for details.
 
 ## Signals
 ⚠ Env drift — in .env.example but missing from .env: MAILERLITE_API_KEY, DEFAULT_CITY, DEFAULT_STATE, DEFAULT_STATE_ABBREV, DEFAULT_LAT, DEFAULT_LNG, DEFAULT_RADIUS_MILES, DEFAULT_COUNTY, DEFAULT_TIMEZONE
-⚠ 9+ TODO/FIXME markers in source (showing up to 5):
-  /sessions/eloquent-optimistic-volta/mnt/FindaSale/packages/backend/src/controllers/appraisalController.ts:38:    // TODO: Add PAID_ADDON check if billing is wired
-  /sessions/eloquent-optimistic-volta/mnt/FindaSale/packages/backend/src/controllers/heatmapController.ts:26:    // TODO: Validate lat/lng/zoom bounds if needed in Phase 2
-  /sessions/eloquent-optimistic-volta/mnt/FindaSale/packages/backend/src/controllers/itemController.ts:1026:        description: null, // TODO: Add description to schema if needed
-  /sessions/eloquent-optimistic-volta/mnt/FindaSale/packages/backend/src/routes/items.ts:25:// TODO: Once shared is properly set up as a workspace dep with path aliases, import from '@findasale/shared'
-  /sessions/eloquent-optimistic-volta/mnt/FindaSale/packages/backend/src/services/snoozeService.ts:96:  // TODO: Query Prisma for a snooze audit table (if implemented) to find expired snoozed subscribers
+⚠ 10+ TODO/FIXME markers in source (showing up to 5):
+  /sessions/charming-eloquent-dijkstra/mnt/FindaSale/packages/backend/src/controllers/appraisalController.ts:38:    // TODO: Add PAID_ADDON check if billing is wired
+  /sessions/charming-eloquent-dijkstra/mnt/FindaSale/packages/backend/src/controllers/authController.ts:358:    // TODO: Send email with reset link (non-blocking)
+  /sessions/charming-eloquent-dijkstra/mnt/FindaSale/packages/backend/src/controllers/fraudController.ts:175:    // TODO: Add suspendedAt field to User schema (#73-phase3) — logging suspension for now
+  /sessions/charming-eloquent-dijkstra/mnt/FindaSale/packages/backend/src/controllers/fraudController.ts:223:    // TODO: Clear suspendedAt field in User schema (#73-phase3) — logging restoration for now
+  /sessions/charming-eloquent-dijkstra/mnt/FindaSale/packages/backend/src/controllers/heatmapController.ts:26:    // TODO: Validate lat/lng/zoom bounds if needed in Phase 2
 
 ## Project File Tree
 ```
@@ -1011,7 +1011,9 @@ See report for details.
 │       │   └── SKILL.md
 │       └── skill-creator/
 │           └── SKILL.md
+├── BUG_FIX_DISPATCH_S221.md
 ├── CLAUDE.md
+├── CONSIGNMENT_AFFILIATE_MIGRATION.md
 ├── FEATURE25_AUDIT.txt
 ├── FEATURE_54_COMPLETION.md
 ├── IMPLEMENTATION_FINAL_REPORT.md
@@ -1063,7 +1065,9 @@ See report for details.
 │   │   ├── ADR-068-COMMAND-CENTER-DASHBOARD.md
 │   │   ├── ADR-068-QUICK-REFERENCE.md
 │   │   ├── ADR-068-SPRINT1-IMPLEMENTATION-SPEC.md
-│   │   └── ADR-PHASE4-BRIEF.md
+│   │   ├── ADR-PHASE4-BRIEF.md
+│   │   ├── adr-072-dual-role-account-schema.md
+│   │   └── adr-073-two-channel-notification-system.md
 │   ├── archive/ (22 files)
 │   ├── audits/
 │   │   ├── CHROME-AUDIT-SESSION-208-SUMMARY.md
@@ -1077,9 +1081,13 @@ See report for details.
 │   │   ├── chrome-audit-comprehensive-S211.md
 │   │   ├── chrome-live-audit-2026-03-20-CHECKLIST.md
 │   │   ├── chrome-live-audit-2026-03-20.md
+│   │   ├── chrome-secondary-routes-s216.md
+│   │   ├── create-sale-verify-s216.md
 │   │   ├── design-critique-2026-03-18.md
+│   │   ├── organizer-happy-path-s216.md
 │   │   ├── passkey-qa-audit-s200.md
 │   │   ├── periodic-docs-audit-2026-03-18.md
+│   │   ├── s222-qa-audit.md
 │   │   └── ux-audit-nav-overload-2026-03-18.md
 │   ├── beta-launch/ (5 files)
 │   ├── brand/ (9 files)
@@ -1100,6 +1108,8 @@ See report for details.
 │   ├── guides/ (0 files)
 │   ├── health-reports/ (6 files)
 │   ├── improvement-memos/ (1 files)
+│   ├── legal/
+│   │   └── consent-review-74-registration-flow.md
 │   ├── logs/ (2 files)
 │   ├── marketing/
 │   │   └── content-pipeline/
@@ -1110,6 +1120,7 @@ See report for details.
 │   ├── next-session-prompt.md
 │   ├── operations/ (44 files)
 │   ├── research/ (11 files)
+│   ├── security-audit-s218.md
 │   ├── self-healing/ (1 files)
 │   ├── self_healing_skills.md
 │   ├── session-log-archive.md
@@ -1159,12 +1170,12 @@ See report for details.
 │   │   │   │   └── itemQueries.ts
 │   │   │   ├── index.ts
 │   │   │   ├── instrument.ts
-│   │   │   ├── jobs/ (13 files)
-│   │   │   ├── lib/ (7 files)
-│   │   │   ├── middleware/ (6 files)
+│   │   │   ├── jobs/ (14 files)
+│   │   │   ├── lib/ (10 files)
+│   │   │   ├── middleware/ (11 files)
 │   │   │   ├── models/ (1 files)
 │   │   │   ├── routes/ (96 files)
-│   │   │   ├── services/ (48 files)
+│   │   │   ├── services/ (50 files)
 │   │   │   ├── types/ (1 files)
 │   │   │   └── utils/ (4 files)
 │   │   └── tsconfig.json
@@ -1176,7 +1187,7 @@ See report for details.
 │   │   ├── package-lock.json
 │   │   ├── package.json
 │   │   ├── prisma/
-│   │   │   ├── migrations/ (111 migrations)
+│   │   │   ├── migrations/ (114 migrations)
 │   │   │   ├── schema.prisma
 │   │   │   └── seed.ts
 │   │   └── tsconfig.json
@@ -1187,16 +1198,16 @@ See report for details.
 │   │   ├── CLAUDE.md
 │   │   ├── Dockerfile
 │   │   ├── FEATURE_33_OG_META_WIRING.md
-│   │   ├── components/ (158 files)
+│   │   ├── components/ (160 files)
 │   │   ├── context/ (1 files)
 │   │   ├── contexts/ (3 files)
-│   │   ├── hooks/ (48 files)
+│   │   ├── hooks/ (49 files)
 │   │   ├── lib/ (9 files)
 │   │   ├── next-env.d.ts
 │   │   ├── next-sitemap.config.js
 │   │   ├── next.config.js
 │   │   ├── package.json
-│   │   ├── pages/ (53 files)
+│   │   ├── pages/ (54 files)
 │   │   ├── postcss.config.js
 │   │   ├── public/ (14 files)
 │   │   ├── sentry.client.config.ts

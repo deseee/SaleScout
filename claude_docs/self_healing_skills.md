@@ -154,3 +154,38 @@ appears, apply the fix directly without investigation.
 **Edge Cases:** The error fires at build time, not runtime — always caught before code reaches users. Railway will loop on the error until a fix is pushed.
 **Test Command:** `tsc --noEmit` in `packages/backend` (catches most field name errors)
 **Confidence:** 100%
+
+
+---
+
+## Pattern 10: User ID vs Organizer ID (Frontend Passes Wrong ID to Organizer Endpoints)
+
+**Trigger:** Organizer feature page shows error or empty data despite user being authenticated. API endpoint returns 404 or "not found" for the organizer.
+**Environment:** Frontend — any page that fetches organizer-specific data by ID
+**Pattern:** `user.id` from JWT/AuthContext is the `User` table cuid. `organizer.id` is the `Organizer` table cuid — a completely different value. Any endpoint that routes on `/:id` in the organizer namespace expects the Organizer ID. Pages that pass `user?.id` directly will always get 404s.
+**Known instances:** S221 — reputation.tsx passed `user?.id` to `useReputationBreakdown()`, which calls `/api/organizers/:id/reputation`. Endpoint looked up Organizer by that ID — not found.
+**Steps:**
+1. Add `const [organizerId, setOrganizerId] = useState<string>('')` to the page
+2. Add a `useEffect` that calls `api.get('/organizers/me')` and sets `organizerId` from `res.data.id`
+3. Replace `user?.id` with `organizerId` in any hook/API call that needs the organizer record
+4. Add `enabled: !!organizerId` guard on queries that depend on organizerId
+**Edge Cases:** `/organizers/me` is authenticated — requires valid JWT. Only call it after `user?.id` is confirmed truthy. The `brand-kit.tsx` pattern (fetch me → get data.id → fetch full profile with that ID) is the reference implementation.
+**Test Command:** In DevTools Network tab, check that requests to `/api/organizers/[id]/...` use a cuid that matches the Organizer table, not the User table.
+**Confidence:** 100%
+
+---
+
+## Pattern 11: Service Worker Intercepting All Requests (Offline Mode Page)
+
+**Trigger:** Browser shows "Offline Mode" page or blank page. All API requests return from cache or fail. Logging in redirects to offline page. Clearing localStorage doesn't help.
+**Environment:** Browser (any) — happens after PWA service worker is installed
+**Pattern:** Next.js PWA service worker caches the app shell and intercepts all requests. When it intercepts and fails to match a cached route, it serves the offline fallback page instead of passing through to the server.
+**Known instances:** S221 — Oscar's browser had service worker registered, causing all organizer pages to serve the offline fallback.
+**Steps:**
+1. Open browser DevTools → Application → Service Workers
+2. Click "Unregister" for any registered service workers, OR
+3. Run in browser console: `navigator.serviceWorker.getRegistrations().then(regs => { regs.forEach(r => r.unregister()); location.reload(); })`
+4. Hard-reload the page (Ctrl+Shift+R)
+**Edge Cases:** Affects PWA-installed instances more than regular browser sessions. Can also happen in Incognito if SW was somehow registered. The JS console snippet is the fastest fix.
+**Test Command:** DevTools → Application → Service Workers → confirm no active registrations.
+**Confidence:** 100%

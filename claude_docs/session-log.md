@@ -2,6 +2,67 @@
 
 ## Recent Sessions
 
+### 2026-03-21 · Session 223
+
+**S222 Audit Bug Fix Sprint — 7 Bugs Fixed (57 files)**
+
+**Work completed:**
+- **BUG #22 (P0) FIXED:** Role guard migration — 46 frontend files, 56 patterns migrated from `user.role !== 'ORGANIZER'` to `!user.roles?.includes('ORGANIZER')`. Login + register redirect fixed for ADMIN users. 0 TS errors.
+- **BUG #25 (P1) FIXED:** Sale detail items empty — `PUBLIC_ITEM_FILTER` in `itemQueries.ts` changed from requiring `draftStatus: 'PUBLISHED'` to excluding only `DRAFT`. Allows PENDING_REVIEW and legacy items to show publicly.
+- **BUG #20 (P1) FIXED:** Leaderboard sort — removed stale `orderBy: { totalSales: 'desc' }` from Prisma query, fetch 100 organizers, sort by actual `completedSalesCount` DESC post-query, then slice top 20.
+- **BUG #30 (P1) FIXED:** Follow button CSRF race — `csrf.ts` was regenerating token on OPTIONS preflight, causing mismatch on the subsequent POST. Added `if (req.method === 'OPTIONS') return next()` guard.
+- **BUG #15 (P2) FIXED:** Reputation crash — unsafe `reputation?.score.toFixed(1)` → `(reputation?.score || 0).toFixed(1)`.
+- **BUG #3 (P2) FIXED:** Dashboard active sales count — now filters to `status === 'PUBLISHED'` only.
+- **BUG #7 (P2) FIXED:** How It Works section — condition changed to require `orgProfile && !orgProfile.onboardingComplete`.
+- **BUG #27 (P2) SKIPPED:** Unlabeled counters not found in current codebase — may be stale or removed feature.
+
+**Decisions:** `PUBLIC_ITEM_FILTER` should exclude DRAFT only (not require PUBLISHED) so legacy and pending-review items appear. CSRF middleware must skip token refresh on OPTIONS preflight to avoid breaking the preflight→POST cycle.
+
+**Next up:** Chrome-verify all 7 fixes deployed. Continue P2/P3 queue: #13 (Inspiration ISR), #23 (subscription page), #26 (favorite button), #28 (Hunt Pass overlap), #29 (Message Organizer button), #6/#8/#19 (429 error handling), #24 (geolocation login stall).
+
+**Blockers:** None — all fixes are code changes, no schema migrations.
+
+---
+
+### 2026-03-21 · Session 222
+
+**Full QA Audit as Human Auditor + Rate Limit Architecture Fix**
+
+**Work completed:**
+- **Rate limit architecture overhauled:** 7 files pushed. Polling reduced, global limit raised 200→500, /health/latency exempted. 429 interceptor added to api.ts.
+- **Leaderboard crash fixed:** badges optional + ?. null safety. Verified deployed — 20 shoppers render.
+- **Full 4-role QA audit completed:** PRO (Oscar), SIMPLE/ADMIN (Nina), TEAMS (Quincy), Shopper (Ian). 18 bugs identified, 3 fixed (rate limit, leaderboard crash, POS).
+- **P0 discovery: BUG #22** — `user.role !== 'ORGANIZER'` guards block ADMIN users from ALL organizer pages. 40+ instances across frontend. Nina (ADMIN role with ORGANIZER in roles array) cannot access any organizer page.
+- **P1 discoveries:** Leaderboard sort broken (#20), sale detail items always empty (#25), follow button POST never fires (#30).
+- **Shopper flow gaps:** No favorite button (#26), no "Message Organizer" button (#29), Hunt Pass + PWA overlap (#28).
+- **Full audit report:** `claude_docs/audits/s222-qa-audit.md`
+
+**Decisions:** `user.role` (singular) is unreliable for role checks — must use `user.roles` (array) from #72 dual-role JWT. Login should never block on geolocation permission. ISR pages that depend on backend API at build time are fragile — need client-side fallback.
+
+**Next up:** Fix BUG #22 (P0 role guards, ~40 files), then #25 (items empty), #20 (sort), #30 (follow). Full priority list in audit report.
+
+**Blockers:** None — all fixes are frontend code changes.
+
+---
+
+### 2026-03-21 · Session 221
+
+**Live PRO Feature Audit as Oscar Bell + Bug Fixes**
+
+**Work completed:**
+- **Railway unblocked:** leaderboardController.ts had 3 TS errors (TS2322/TS2339/TS7006) blocking Railway build. Root cause: `{ sort: 'desc', nulls: 'last' }` not valid Prisma SortOrder type, and `userBadges` select not present in inferred Docker Prisma client type. Fix: removed `userBadges` select entirely, changed `orderBy` to simple `'desc'`, added JS null sort post-query.
+- **Reputation page fixed:** Two-cause failure — route mounted at `/api` instead of `/api/organizers` (didn't match frontend's `/api/organizers/:id/reputation`), AND page passed `user.id` (User table) instead of `organizer.id` (Organizer table — different cuids). Fixed both: route mount in index.ts + added `/organizers/me` fetch in reputation.tsx to resolve correct ID.
+- **4 frontend fixes:** fraud-signals (`res.data.data` → `res.data.sales`), item-library (Layout removal), brand-kit (data.id guard + tier-aware PRO fields), dashboard (first-name welcome + onboarding gate on How It Works).
+- **All 5 files pushed via MCP** (2 batches: index.ts + fraud-signals + item-library, then reputation + brand-kit). dashboard.tsx pushed by Patrick via push.ps1. Total: 6 files changed.
+
+**Decisions:** User ID ≠ Organizer ID. The `User.id` and `Organizer.id` are separate cuids in separate tables. Any organizer feature that needs the organizer record must call `/organizers/me` to get the organizer ID — never use `user.id` from JWT.
+
+**Next up:** Systematic full-platform QA — TEAMS tier features, shopper flows, create-sale/publish flow, auction/bidding, engagement features. Patrick flagged large QA gaps still remaining.
+
+**Blockers:** None. Railway + Vercel deploying. Global rate limit (200/15min) can exhaust during heavy test sessions — wait 15 min or use different IP if 429s appear on data fetches.
+
+---
+
 ### 2026-03-20 · Session 216
 
 **Dual-Role Account Phase 1 + Platform Safety + Chrome Audits**

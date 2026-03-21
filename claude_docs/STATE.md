@@ -7,10 +7,20 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Active Objective
 
-**Session 217+ DISPATCH PLANNING — ROADMAP BATCH IDENTIFICATION:**
-- S217 session will start by reading `claude_docs/strategy/roadmap.md` (v67, 71 features). Identify top 5 unshipped items by beta-blocking severity. Group candidates for subagent batch dispatch (do not implement — only identify). Targeting: #72 Phase 2, #51 Sale Ripples, #100-#121 platform safety continued, #42 Voice-to-Tag, P2 carousel/LiveFeedTicker fixes.
+**Session 222 COMPLETE (2026-03-21) — FULL QA AUDIT (4 ROLES) + RATE LIMIT FIX + 18 BUGS IDENTIFIED:**
+- ✅ **Rate limit architecture fixed:** 7 files pushed. Polling reduced, global limit raised 200→500, /health/latency exempted.
+- ✅ **Leaderboard crash fixed:** badges optional + ?. null safety. Verified deployed — page loads with 20 shoppers.
+- ✅ **Re-audit complete:** Tested PRO (Oscar), SIMPLE/ADMIN (Nina), TEAMS (Quincy), Shopper (Ian). Create-sale form verified.
+- ✅ **POS fix verified:** BUG #17 was rate-limit related — POS now shows 2 published sales correctly.
+- **18 confirmed bugs (unfixed — see `claude_docs/audits/s222-qa-audit.md`):**
+  - P0-CRITICAL: #22 (role guard blocks ADMIN users from all organizer pages — 40+ instances of `user.role !== 'ORGANIZER'`)
+  - P1-HIGH: #20 (leaderboard sort broken), #25 (sale detail items always empty), #30 (follow button POST never fires)
+  - P2-MEDIUM: #3 (dashboard counts DRAFT as active), #7 (How It Works on null), #13 (Inspiration ISR empty), #15 (reputation crash), #23 (subscription page useless without Stripe), #26 (no favorite/save button), #27 (unlabeled counters), #28 (Hunt Pass + PWA overlap), #29 (no Message Organizer button)
+  - P3-LOW: #6 (no 429 UI messaging), #8 (false empty state), #19 (sale detail "not found" on 429), #24 (login stalls on geolocation)
+- Last Updated: 2026-03-21
+- Last Updated: 2026-03-21
 
-**Session 216 COMPLETE (2026-03-20) — DUAL-ROLE SCHEMA PHASE 1 + PLATFORM SAFETY + CHROME AUDITS:**
+**Session 221 COMPLETE (2026-03-21) — LIVE PRO FEATURE AUDIT AS OSCAR (USER2) + BUG FIXES:**
 - ✅ **#76 Skeleton loaders:** CONFIRMED shipped from S215 (SkeletonCards.tsx exists, referenced in 5 files). Verified.
 - ✅ **Chrome audit: 7 secondary routes** — ALL PASS. No P0/P1. Report: `claude_docs/audits/chrome-secondary-routes-s216.md`
 - ✅ **#72 Dual-Role Account Phase 1 COMPLETE:** `User.roles` array field + `UserRoleSubscription` table + `RoleConsent` table. Migration SQL: `packages/database/prisma/migrations/20260320204815_add_dual_role_schema/migration.sql`. Backend utility: `packages/backend/src/lib/roleUtils.ts` (backward-compatible role checking). **PENDING PATRICK ACTION:** Run `prisma migrate deploy` + `prisma generate` against Neon before Phase 2 work.
@@ -46,6 +56,17 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 - `user11@example.com` / `password123` → Shopper
 
 ---
+
+**Session 221 COMPLETE (2026-03-21) — LIVE PRO FEATURE AUDIT AS OSCAR (USER2) + BUG FIXES:**
+- ✅ **Railway unblocked:** leaderboardController.ts TS errors (TS2322/TS2339/TS7006) fixed — removed `userBadges` from select (not in inferred Docker Prisma type), replaced `nulls: 'last'` orderBy with JS null sort post-query, changed `take: 50` with `.slice(0, 20)` after sort.
+- ✅ **Reputation page fully fixed:** Two bugs: (1) route was mounted at `app.use('/api', reputationRoutes)` → changed to `app.use('/api/organizers', reputationRoutes)` to match frontend calls to `/api/organizers/:id/reputation`; (2) page was passing `user.id` (User table cuid) instead of `organizer.id` (Organizer table cuid) — fixed by fetching `/organizers/me` and using returned `.id`.
+- ✅ **fraud-signals.tsx:** `res.data.data` → `res.data.sales` (matches actual API response shape)
+- ✅ **item-library.tsx:** Removed stray `<Layout>` wrapper
+- ✅ **brand-kit.tsx:** Added `!data.id` guard before second API call; PRO fields (font/banner/accent) editable for PRO/TEAMS, disabled with upgrade prompt for SIMPLE
+- ✅ **dashboard.tsx:** Welcome name uses `user?.name?.split(' ')[0] || 'there'`; How It Works section gated by `!orgProfile?.onboardingComplete`
+- **Audit findings NOT bugs:** Item Library "0 items" (correct — Oscar has no library items); Command Center "No active sales" (correct — seed data has stale dates, not a code bug); Brand Kit 429 (temporary rate limit from test session, not a code bug)
+- **Known QA gaps remaining:** Patrick flagged comprehensive audit still incomplete — TEAMS tier, shopper flows, sale creation flow, auction flows, many engagement features unverified. Next session: systematic full-platform QA.
+- Last Updated: 2026-03-21
 
 **Session 217 COMPLETE (2026-03-21) — PRE-BETA SAFETY AUDIT + #102 PRICE VALIDATION:**
 - ✅ **#100–#103 Pre-Beta Safety Audit:** 4 items audited. #100 (password reset rate limit) ✅ already implemented. #101 (sale publish ownership check) ✅ already implemented. #102 (item price >= 0 validation) ⚠️ MISSING → FIXED. Added price validation to itemController.ts createItem() and updateItem() for price, auctionStartPrice, auctionReservePrice. #103 (Stripe webhook signature verification) ✅ already implemented.
