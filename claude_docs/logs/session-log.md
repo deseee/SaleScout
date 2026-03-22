@@ -16,6 +16,24 @@ Keep only the 5 most recent sessions. Delete older entries — git history and S
 
 ## Recent Sessions
 
+### Session 231 — 2026-03-22 — Bug Queue Completion + AvatarDropdown (P0 UX Fix)
+
+**Worked on:** (1) Verified BUG #22 live via Chrome MCP — Nina (ADMIN) now gets 200 from `GET /api/organizers/me`. (2) BUG #22 sweep: dispatched findasale-dev to fix all 54 inline `role !== 'ORGANIZER'` checks across 24 backend files (21 controllers + 3 routes). (3) Fixed BUG #30: `sales/[id].tsx` line 379 — `organizerId={sale.organizer.userId}` → `sale.organizer.id`. (4) Fixed BUG #31: `FavoriteButton.tsx` SVG fill via explicit props (Tailwind classes don't map to SVG attributes). (5) Fixed BUG #32: `favoriteController.ts` toggleItemFavorite now checks DB for existing record; verified bidirectional toggle live via Chrome API test. (6) Fixed BUG #33: `OnboardingModal.tsx` handleSkip writes localStorage synchronously before onComplete(). (7) Built `AvatarDropdown.tsx` (new component) — replaces 20+ inline desktop header auth links; wired into `Layout.tsx`. P0 UX fix per nav-dashboard-consolidation-2026-03-20 spec. (8) Layout.tsx: renamed Explore→Feed nav link; mobile Pro Tools section uses TierGatedNavLink. (9) Sale page: "Back to home" label, dark mode additions.
+
+**Decisions:** AvatarDropdown shows initials-only (no profile photo field on User model yet). `user.organizerTier` is a tier string, not an image URL — avatar rendering logic corrected. Mobile drawer untouched per spec. BUG #22 sweep scope was larger than STATE.md stated (54 occurrences vs 15 estimated).
+
+**Token efficiency:** Chrome MCP verification before dispatch (confirmed live bugs, not just code audit). 2 dev subagent dispatches. 1 MCP push (AvatarDropdown + Layout together, under 25k token limit). Larger BUG #22 sweep (24 files) handled by subagent, handed to Patrick for manual push.
+
+**Token burn:** ~95k tokens (est.), 1 compression event (started from prior session summary).
+
+**Next up:** Features #106–#109 (rate limit burst, DB pooling, API timeout guards, graceful degradation). After Patrick completes Prisma actions + missing Railway env vars.
+
+**Blockers:** Patrick manual push required (sales/[id].tsx + 24 BUG #22 sweep files). Neon Prisma actions still pending Patrick. Railway env vars missing.
+
+**Files changed (MCP pushed):** `packages/frontend/components/AvatarDropdown.tsx` (new), `packages/frontend/components/Layout.tsx`, `packages/frontend/components/FavoriteButton.tsx`, `packages/frontend/components/OnboardingModal.tsx`, `packages/backend/src/controllers/favoriteController.ts` | **Files pending Patrick push:** `packages/frontend/pages/sales/[id].tsx`, 24 backend BUG #22 sweep files (21 controllers + 3 routes) | Compressions: 1 | Subagents: findasale-dev (×2), findasale-records (wrap) | Push method: MCP (2 calls) + Patrick PS1 pending
+
+---
+
 ### Session 230 — 2026-03-21 — S227 QA Audit Completion + BUG #22 Backend Fix
 
 **Worked on:** (1) Completed deep functional QA audit across 4 roles (Ian/Shopper, Nina/ADMIN, Oscar/PRO, Quincy/TEAMS) using Chrome MCP browser automation with XHR/fetch interception. Tested cross-role round-trips: messaging ✅, Buy Now ✅, favorites (broken), Follow (broken). (2) Confirmed BUG #22 backend: Nina's JWT has `role: "ADMIN"`, not `"ORGANIZER"`. Direct API call `GET /api/organizers/me` → 403. UI shows "Unable to load sales" + infinite onboarding loop. (3) Confirmed BUG #30: Follow button fires 0 network requests — endpoint exists and is correct, bug is in frontend onClick handler. (4) Wrote full audit report to `claude_docs/audits/s227-qa-audit.md`. (5) Fixed BUG #22 backend: added `requireOrganizer` export to `auth.ts` (checks both `roles?.includes('ORGANIZER')` and `role === 'ORGANIZER'`); updated 5 inline guards in `organizers.ts`.
@@ -86,24 +104,5 @@ Keep only the 5 most recent sessions. Delete older entries — git history and S
 
 **Files changed:** `CLAUDE.md` (v5.0 — merged CORE.md), `packages/frontend/CLAUDE.md`, `packages/backend/CLAUDE.md`, `packages/database/CLAUDE.md`, `packages/shared/CLAUDE.md`, `.skills/skills/conversation-defaults/SKILL.md` (trimmed), `claude_docs/projects-first-workflow-proposal.md` (new) | Compressions: 0 | Subagents: 1 (findasale-advisory-board) | Push method: Patrick PS1
 
----
-
-### Session 225 — 2026-03-21 — Comprehensive Audit S212–S224 + Chrome Verification + 3 Bug Fixes
-
-**Worked on:** (1) Prisma migration #72 Phase 2 confirmed applied by Patrick. #73/#74/#75 unblocked. (2) Chrome-verified all S224 features: /pricing, /shopper/favorites, /shopper/messages, /organizer/messages, FavoriteButton, leaderboard sort, inspiration page — ALL PASS. (3) Message Organizer confirmed working in code (dev agent audit). Earlier test failure was stale auth state. (4) Bug #1 FIXED: PWA banner reappears after "Not now" — added sessionStorage dual-layer to InstallPrompt.tsx. (5) Bug #2 FIXED: Shopper onboarding popup fires on wrong pages — added shopperFirstPages allowlist to _app.tsx. (6) Bug #3 FIXED: Inspiration page all images broken — added photoUrls fallback + placeholder to InspirationGrid.tsx.
-
-**Decisions:** All 3 bugs fixed via findasale-dev dispatch. Chrome verification passed — no new P0/P1 found. Audit doc: `claude_docs/health-reports/2026-03-21-s225-audit.md`.
-
-**Token efficiency:** 1 dev subagent (3 bug fixes), 1 Chrome audit subagent. Medium burn.
-
-**Token burn:** ~85k tokens (est.), 0 compressions.
-
-**Next up:** S226 — CLAUDE.md v5.0 merge, CORE.md retirement, conversation-defaults trim.
-
-**Blockers:** None after bug fixes pushed.
-
-**Files changed:** `packages/frontend/components/InstallPrompt.tsx`, `packages/frontend/pages/_app.tsx`, `packages/frontend/components/InspirationGrid.tsx`, `claude_docs/health-reports/2026-03-21-s225-audit.md` (new), `claude_docs/STATE.md`, `claude_docs/logs/session-log.md`, `claude_docs/next-session-prompt.md` | Compressions: 0 | Subagents: 2 (findasale-dev, findasale-qa) | Push method: Patrick PS1
-
----
 
 

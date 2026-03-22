@@ -7,6 +7,21 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Active Objective
 
+**Session 231 COMPLETE (2026-03-22) — BUG QUEUE COMPLETION + AVATAR DROPDOWN (P0 UX FIX):**
+- ✅ BUG #22 verified live: Chrome test confirmed Nina (ADMIN) gets 200 from `GET /api/organizers/me` — fix working
+- ✅ BUG #22 sweep: 54 inline `role !== 'ORGANIZER'` checks across 24 backend files (21 controllers + 3 routes) fixed
+- ✅ BUG #30 fixed: `sales/[id].tsx` line 379 — `organizerId={sale.organizer.userId}` → `organizerId={sale.organizer.id}`
+- ✅ BUG #31 fixed: `FavoriteButton.tsx` — SVG fill via explicit props instead of Tailwind classes
+- ✅ BUG #32 fixed: `favoriteController.ts` — toggle checks DB for existing record before add/remove; verified live (bidirectional)
+- ✅ BUG #33 fixed: `OnboardingModal.tsx` — handleSkip writes localStorage synchronously before onComplete()
+- ✅ AvatarDropdown.tsx built (new): replaces 20+ inline desktop header auth links — Dashboard, Plan a Sale, Insights (PRO), Workspace (TEAMS), Subscription, Settings, Sign Out. P0 UX fix per nav-dashboard-consolidation-2026-03-20 spec.
+- ✅ Layout.tsx: Desktop auth nav Feed link (was Explore → `/`); mobile Pro Tools using TierGatedNavLink
+- ✅ Sale page UX: "Back to home" label, ~15 dark mode class additions
+- ⚠️ PENDING PATRICK PUSH: `sales/[id].tsx` + 24 BUG #22 sweep backend files (see instructions in chat)
+- ⚠️ PENDING: `prisma migrate deploy + prisma generate` against Neon (still blocking #73/#74/#75 runtime — NOT YET DONE)
+- ⚠️ PENDING Railway env vars: `AI_COST_CEILING_USD=5.00`, `MAILERLITE_SHOPPERS_GROUP_ID=182012431062533831`
+- Last Updated: 2026-03-22
+
 **Session 230 COMPLETE (2026-03-21) — S227 QA AUDIT COMPLETION + BUG #22 BACKEND FIX:**
 - ✅ Full 4-role deep functional QA audit completed (Chrome MCP browser automation, XHR/fetch interception, direct JWT API calls)
 - ✅ BUG #22 backend confirmed: `GET /api/organizers/me` → 403 for Nina (ADMIN). Root cause: `requireOrganizer` checked `role === 'ORGANIZER'` (singular); Nina's JWT has `role: "ADMIN"`. Fixed in `auth.ts` (added `requireOrganizer` export) + `organizers.ts` (5 inline checks updated to also check `roles?.includes('ORGANIZER')`).
