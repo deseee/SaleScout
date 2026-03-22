@@ -1,97 +1,72 @@
-# Next Session Prompt — S229
+# Next Session Prompt — S230
 
 **Date:** 2026-03-21
-**Status:** S228 COMPLETE — Awaiting Patrick push + Prisma actions
+**Status:** S229 COMPLETE — Builds repaired, pending Railway/Vercel green confirmation + Prisma actions
 
 ---
 
 ## Immediate Actions
 
-### 1. Verify S228 Rebuild (Railway + Vercel)
-Patrick must push S228 commit first (11 files). After push:
-- Check Railway backend build logs — should show successful rebuild
-- Check Vercel frontend build logs — should show successful rebuild
-- Test `/api/sales` endpoint (200 OK expected)
-- Test Stripe checkout flow (`/pricing` → select tier → Stripe modal)
-- Confirm pricing.tsx double `/api/` path is fixed (commit af096e0 already pushed)
+### 1. Verify Railway + Vercel Build Green
+Latest commit fixed `subscriptionStatus` JWT issue. Confirm both are green before any new work:
+- Railway backend: should show successful `npx tsc` + startup
+- Vercel frontend: should show clean build with no type errors
 
-### 2. Patrick Manual Actions (Blocking #73/#74/#75 Features)
-**CRITICAL: Must be completed before any feature can be tested:**
+### 2. Patrick Manual Actions (Still Blocking #73/#74/#75 Runtime)
+**CRITICAL — these have NOT been run yet:**
 ```powershell
 cd C:\Users\desee\ClaudeProjects\FindaSale\packages\database
 $env:DATABASE_URL="postgresql://neondb_owner:npg_VYBnJs8Gt3bf@ep-plain-sound-aeefcq1y.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require"
-npx prisma migrate deploy   # applies new migrations to Neon (RoleConsent, tierLapsedAt, etc)
+npx prisma migrate deploy   # applies RoleConsent + dual-role schema migrations to Neon
 npx prisma generate         # regenerates TypeScript client with new fields
 ```
 
-Without these, the following will FAIL at runtime:
-- Feature #73 notifications won't compile (missing fields in Prisma client)
-- Feature #74 RoleConsent records won't save (table doesn't exist in runtime)
-- Feature #75 tierLapsedAt timestamp won't work (field doesn't exist in runtime)
+Without these:
+- Feature #73 notifications won't save to DB (table may not exist in Neon)
+- Feature #74 RoleConsent records won't save (table doesn't exist at runtime)
+- Feature #75 lapse banner visible but subscriptionStatus won't update (webhook writes fail)
 
 ---
 
 ## Next Features: #106–#109 Pre-Beta Safety Batch
 
-Work queue for S229+:
-
 | # | Feature | Scope | Estimate | Notes |
 |---|---------|-------|----------|-------|
-| #106 | Rate limit burst capacity | Redis, 429 fallback | M | Detect spike patterns, allow temporary overages with backoff |
-| #107 | Database connection pooling | Railway, Neon | M | Prevent connection exhaustion under heavy load |
+| #106 | Rate limit burst capacity | Redis, 429 fallback | M | Spike detection, temp overages with backoff |
+| #107 | Database connection pooling | Railway, Neon | M | Prevent connection exhaustion under load |
 | #108 | API timeout guards | Backend, all routes | S | 30s timeout on all external calls (Stripe, Resend, AI) |
 | #109 | Graceful degradation on outages | Notification, email, AI | M | Queue fallback when external services timeout |
 
-All 4 are pre-beta safety features. Estimate: 2 sessions if back-to-back.
+Estimate: 2 sessions back-to-back.
 
 ---
 
 ## Outstanding Configuration
 
 **Railway Environment Variables (Still Missing):**
-- `AI_COST_CEILING_USD` — Daily spend limit for Claude API calls (used in Feature #104, already implemented). Default recommended: `5.00`
-- `MAILERLITE_SHOPPERS_GROUP_ID` — MailerLite segment ID for onboarded shoppers (for feature #105 email campaigns). Value: `182012431062533831`
-
-Both needed for:
-- Feature #104 (AI cost tracking) to enforce ceiling
-- Feature #105 (Cloudinary bandwidth tracking) to trigger alerts
-
-**Set these in Railway Variables tab, then redeploy backend:**
 ```
 AI_COST_CEILING_USD=5.00
 MAILERLITE_SHOPPERS_GROUP_ID=182012431062533831
 ```
+Set in Railway Variables tab → redeploy backend.
 
 ---
 
-## S228 Summary
+## S229 Summary
 
-Three major features completed (code ready, awaiting Prisma actions):
-- **#73 (Two-Channel Notifications)** — In-app DB + Resend email, fail-open pattern
-- **#74 (Role-Aware Consent)** — Inline checkboxes on registration, role-conditional
-- **#75 (Tier Lapse Logic)** — Subscription.deleted/payment_failed webhooks, 403 guard on item create, lapse banner on dashboard
-
-Plus P1 pricing.tsx fix (double `/api/` path) — already pushed (commit af096e0).
-
----
-
-## Files Changed (S228)
-
-11 files pending Patrick push (see session-log.md S228 entry for git commands).
+Build repair session. No new features. All 6 issues resolved:
+- **stripeController.ts** — 3 webhook handlers using `findUnique` on non-`@unique` field → `findFirst`
+- **useNotifications.ts** — named import for default export → fixed + hook deleted (dead code)
+- **#75 lapse banner** — `tierLapsedAt` is on `UserRoleSubscription`, not `Organizer`; switched to `subscriptionStatus === 'canceled'` which IS on Organizer + in JWT
+- **Lapse banner CTA** — `/organizer/billing` (404) → `/organizer/subscription`
+- **notifications.tsx** — `window.location.href` → `router.push` (internal) / `window.open` (external)
 
 ---
 
-## Decision Log (Locked — S228)
+## Decision Log (Locked — S229)
 
-- **#75 Tier Lapse:** When subscription ends or payment fails, itemController 403s attempts to create items beyond tier limit. Dashboard shows lapse banner. No soft-delete — data stays intact, user can re-upgrade.
-- **#74 Consent:** Role-based inline checkboxes. Shopper always free, no consent needed. ORGANIZER/ADMIN email consent unchecked by default. All roles must agree to `/terms`.
-- **#73 Notifications:** Dual-channel (DB + Resend). Fail-open: if Resend times out, DB write succeeds anyway. In-app visible at `/messages`, email asynchronous.
-
----
-
-## Blockers
-
-None. Code is ready. Waiting on Patrick for push + Prisma actions.
+- **`tierLapsedAt` not in JWT:** Field lives on `UserRoleSubscription`, not `Organizer`. JWT is built from `organizerProfile` (Organizer). Use `subscriptionStatus: 'canceled'` to detect lapse state — it's set by the webhook handlers.
+- **Dead hook deleted:** `useNotifications.ts` had no callers. `notifications.tsx` owns its own state. Hook deleted to eliminate maintenance surface.
 
 ---
 
@@ -107,4 +82,4 @@ None. Code is ready. Waiting on Patrick for push + Prisma actions.
 
 ---
 
-**Next Session Lead:** findasale-records (rebuild verification) / findasale-dev (feature #106–#109 dispatch if ready)
+**Next Session Lead:** Verify builds green → run Prisma actions → findasale-dev (#106–#109 dispatch)

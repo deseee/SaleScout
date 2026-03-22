@@ -7,15 +7,24 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Active Objective
 
+**Session 229 COMPLETE (2026-03-21) — RAILWAY/VERCEL BUILD REPAIR + FRONTEND QA AUDIT + #75 LAPSE BANNER FIX:**
+- ✅ Railway build unblocked: stripeController.ts — 3x `findUnique`→`findFirst` for non-unique `stripeCustomerId`, null guard on `invoice.customer`, typed `(err: unknown)` catch handlers
+- ✅ Vercel build unblocked: `useNotifications.ts` named import → default import for `api`
+- ✅ Frontend QA audit: 2 BLOCKERs + 4 WARNs found and fixed same session
+- ✅ BLOCKER 1 fixed: #75 lapse banner was permanently invisible — `tierLapsedAt` is on `UserRoleSubscription` not `Organizer`. Switched to `subscriptionStatus === 'canceled'` (IS on Organizer). Added `subscriptionStatus` to all 3 JWT payloads + `AuthContext.tsx` User type + both parsing blocks
+- ✅ BLOCKER 2 fixed: Lapse banner CTA pointed to `/organizer/billing` (404) → changed to `/organizer/subscription`
+- ✅ WARN fixed: `useNotifications.ts` hook was dead code (no callers) + polled without auth guard → deleted
+- ✅ WARN fixed: `notifications.tsx` used `window.location.href` for all links → `router.push` for internal, `window.open` for external
+- ⚠️ PENDING: `prisma migrate deploy + prisma generate` against Neon (still blocking #73/#74/#75 runtime — NOT YET DONE)
+- Last Updated: 2026-03-21
+
 **Session 228 COMPLETE (2026-03-21) — FEATURES #73/#74/#75 + PRICING PATCH + RAILWAY VERIFICATION:**
 - ✅ Railway + Stripe verification: backend UP (health latency 200, /api/sales 200), Stripe checkout tested
-- ✅ P1 pricing.tsx bug FIXED: double `/api/` path removed in baseURL call to `/stripe/checkout-session`. Committed af096e0, pushed.
-- ✅ Feature #73 — Two-Channel Notification System: notificationService.ts (DB + Resend email, fail-open), triggers in message/sale/stripe controllers, useNotifications.ts hook (30s polling)
-- ✅ Feature #74 — Role-Aware Registration Consent Flow: register.tsx inline consent checkboxes (unchecked default, role-conditional), authController RoleConsent records, businessVerificationAcceptedAt deferred, /terms link unified
-- ✅ Feature #75 — Tier Lapse State Logic: tierLimits.ts + tierEnforcement.ts, stripeController subscription.deleted/payment_failed/updated handlers, itemController 403 guard for lapsed SIMPLE over limit, dashboard lapse banner with upgrade CTA
-- ✅ Build errors repaired: tierLapsedAt removed (Docker Prisma issue — needs `prisma migrate deploy`), Customer type narrowed, itemPhoto → photo
-- ✅ Architecture spec created: `claude_docs/architecture/feature-spec-75-tier-lapse-logic.md`
-- ⚠️ PENDING PATRICK PUSH: 11-file commit (#73/#74/#75 + authController + register + dashboard)
+- ✅ P1 pricing.tsx bug FIXED: double `/api/` path removed. Committed af096e0, pushed.
+- ✅ Feature #73 — Two-Channel Notification System: notificationService.ts (DB + Resend email, fail-open), triggers in message/sale/stripe controllers
+- ✅ Feature #74 — Role-Aware Registration Consent Flow: register.tsx inline consent checkboxes (unchecked default, role-conditional), authController RoleConsent records
+- ✅ Feature #75 — Tier Lapse State Logic: tierLimits.ts + tierEnforcement.ts, stripeController webhook handlers, itemController 403 guard, dashboard lapse banner
+- ✅ S228 11-file push CONFIRMED DONE (Patrick pushed; Vercel was building from it at S229 start)
 - Last Updated: 2026-03-21
 
 **Session 227 COMPLETE (2026-03-21) — WORKFLOW CLEANUP SPRINT (Phase 2+3):**

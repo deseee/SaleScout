@@ -16,6 +16,24 @@ Keep only the 5 most recent sessions. Delete older entries — git history and S
 
 ## Recent Sessions
 
+### Session 229 — 2026-03-21 — Railway/Vercel Build Repair + Frontend QA Audit + #75 Lapse Banner Fix
+
+**Worked on:** (1) Railway build failures: stripeController.ts — 3x `findUnique`→`findFirst` for non-`@unique` `stripeCustomerId` field, null guard on `invoice.customer`, typed catch `(err: unknown)`. (2) Vercel build failure: `useNotifications.ts` named import → default import for `api`. (3) Full frontend QA audit — TypeScript clean. 2 BLOCKERs found: (a) #75 lapse banner dead — `tierLapsedAt` is on `UserRoleSubscription`, not `Organizer`; banner always invisible. (b) Lapse banner CTA → `/organizer/billing` (page doesn't exist). 4 WARNs: dead hook, polling without auth guard, `window.location.href` for internal nav, dead code branch in register.tsx. (4) All BLOCKERs + WARNs fixed: switched banner condition to `subscriptionStatus === 'canceled'` (valid Organizer field), added `subscriptionStatus` to all 3 JWT sign blocks + AuthContext, changed CTA to `/organizer/subscription`, deleted dead `useNotifications.ts` hook, fixed `notifications.tsx` nav to `router.push`/`window.open`. Required 3 push rounds due to wrong-model discovery mid-session.
+
+**Decisions:** `tierLapsedAt` cannot go in JWT — it's on `UserRoleSubscription` not `Organizer`. `subscriptionStatus: 'canceled'` is the correct signal for the lapse banner. Dead hook deleted (no callers; notifications.tsx has own implementation).
+
+**Token efficiency:** All inline edits (each <20 lines, 1-2 files). QA audit via findasale-qa subagent. Medium burn from 3 build-repair cycles.
+
+**Token burn:** ~90k tokens (est.), 0 compressions.
+
+**Next up:** Verify Railway + Vercel build green on latest commit. Run `prisma migrate deploy + prisma generate` against Neon (still pending — blocks #73/#74/#75 runtime). Then features #106–#109 (pre-beta safety batch).
+
+**Blockers:** Neon Prisma actions still pending Patrick.
+
+**Files changed:** `packages/backend/src/controllers/stripeController.ts`, `packages/backend/src/controllers/authController.ts`, `packages/frontend/hooks/useNotifications.ts` (deleted), `packages/frontend/components/AuthContext.tsx`, `packages/frontend/pages/notifications.tsx`, `packages/frontend/pages/organizer/dashboard.tsx`, `claude_docs/STATE.md`, `claude_docs/logs/session-log.md`, `claude_docs/next-session-prompt.md` | Compressions: 0 | Subagents: 1 (findasale-qa) | Push method: Patrick PS1 (3 commits)
+
+---
+
 ### Session 227 — 2026-03-21 — Workflow Cleanup Sprint (Phase 2+3): Friction Audit Action Loop, Skill Archival, CLAUDE.md v5.0 Finalization
 
 **Worked on:** (1) Phase 2a: Updated `daily-friction-audit` scheduled task with auto-dispatch action loop — HIGH/MEDIUM/LOW findings now auto-dispatch to findasale-records or findasale-dev; 3+ consecutive appearances triggers `## Patrick Direct` block; cosmetic items may defer 1-2 days. (2) Phase 2b: Changed `context-freshness-check` from daily to weekly Monday 8am (cron: `0 8 * * 1`). (3) Phase 2c: QA audit on /pricing page — 2 WARN findings: unauthenticated "Upgrade" button text (should be "Sign up for PRO/TEAMS"), no `?upgrade=success/cancelled` handling on dashboard return from Stripe. (4) Phase 3a: Deleted `.checkpoint-manifest.json` and `MESSAGE_BOARD.json`. (5) Phase 3b: Archived `context-maintenance` and `findasale-push-coordinator` skills — source SKILL.md files updated with ARCHIVED frontmatter + redirect notices; .skill packages built and presented to Patrick. (6) Phase 3c: CORE.md fully retired — CLAUDE.md v5.0 is now the single authority; all references updated. (7) Resolved CLAUDE.md 3-region merge conflict — kept v5.0 §§7-12 from remote, Behavior rules line from HEAD, both MCP limits sections. (8) Railway Dockerfile cache-bust pushed via MCP — forces fresh Docker build to unblock Stripe checkout 404.
@@ -86,20 +104,3 @@ Keep only the 5 most recent sessions. Delete older entries — git history and S
 
 **Files changed:** `packages/database/prisma/schema.prisma`, migration SQL (new), `roleUtils.ts` (new), `couponRateLimiter.ts` (new), `correlationId.ts` (new), `packages/backend/src/app.ts`, `betaInviteController.ts`, `couponService.ts`, `packages/frontend/pages/organizer/create-sale.tsx`, audit reports (2 new) | Compressions: 0 | Subagents: 0 | Push method: Patrick PS1
 
----
-
-### Session 214 — 2026-03-20 — Chrome Re-Verify (S212/S213) + Feature #70 Complete
-
-**Worked on:** (1) Chrome re-verification of 15 pages — 13/15 PASS. (2) Feature #70 FULLY COMPLETE — `LiveFeedTicker.tsx` + `useLiveFeed.ts` placed on sale detail page. Zero TS errors. (3) #19 Passkey confirmed deployed. (4) Roadmap review + S215 sprint planning: platform safety P0 sprint (#93, #95, #96), design polish (#76, #77, #81), Architect ADR for #72, #92 SEO sprint.
-
-**Decisions:** Comprehensive audit deferred to beta launch week. #92 City Weekend Landing Pages identified as high-ROI SEO before beta.
-
-**Token efficiency:** 1 dev subagent (LiveFeedTicker placement), 1 records subagent. Chrome verification via general-purpose agent. Low-medium burn.
-
-**Token burn:** ~60k tokens (est.), 1 checkpoint logged.
-
-**Next up:** S215 — 5 parallel subagents: dev (subscription tier fix), dev (P2 backlog), dev (design polish), architect (#72 ADR), dev (platform safety).
-
-**Blockers:** Push pending for `sales/[id].tsx`. #51 Ripples Neon migration outstanding.
-
-**Files changed:** `packages/frontend/pages/sales/[id].tsx`, `claude_docs/next-session-prompt.md`, `claude_docs/STATE.md`, `claude_docs/logs/session-log.md`, `claude_docs/strategy/roadmap.md` | Compressions: 0 | Subagents: 2 | Push method: Patrick PS1
