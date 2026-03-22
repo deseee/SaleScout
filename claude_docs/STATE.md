@@ -19,9 +19,9 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
   - `weekly-brand-drift-detector` — Monday 10am, brand voice drift scan against DECISIONS.md
   - `monday-digest` — Monday 8am, Patrick-readable weekly summary to patrick-dashboard.md
 - ✅ Memories saved: design continuity enforcement, multi-endpoint testing, workflow automation plateau
-- ⚠️ PENDING PATRICK: Push `packages/frontend/pages/sales/[id].tsx` (sale detail fixes — on local disk)
-- ⚠️ PENDING PATRICK: Install 3 skill files from `claude_docs/skills-package/` (Polish Agent + dev/qa patches)
-- ⚠️ PENDING PATRICK: Run `weekly-full-site-audit` once manually to pre-approve Chrome MCP tools for automated runs
+- ⚠️ PENDING PATRICK: Push `packages/frontend/pages/sales/[id].tsx` + discard 9 stale local files (see next-session-prompt.md)
+- ✅ Skills installed: findasale-polish, findasale-dev (patched S239), findasale-qa (patched S239)
+- 🔴 AUTOMATED AUDIT — S240 must fix in order: H-004 nested main tags sitewide → H-001 item pages broken → H-002 /settings hang → H-003 /notifications DOM dup → D-001 brand drift (9 pages)
 - ⚠️ PENDING: D-007 Teams tier member cap decision (Patrick input needed)
 - Last Updated: 2026-03-22
 

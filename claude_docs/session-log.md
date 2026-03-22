@@ -21,7 +21,9 @@
 
 ✅ Memories saved: design continuity enforcement, multi-endpoint testing, workflow automation plateau.
 
-**Pending Patrick:** Push sales/[id].tsx, install 3 skill files, run site audit once manually, resolve 9 local git conflicts, decide Teams member cap.
+**Automated audit ran same session:** 4 HIGH findings — nested main tags sitewide (H-004, root cause), item pages broken for shoppers (H-001), /settings hang logged-out (H-002), /notifications DOM duplication (H-003). 9 pages with D-001 brand drift. S240 dispatches dev on these immediately.
+
+**Pending Patrick:** Push sales/[id].tsx (discard 9 stale local files first). Skills confirmed installed.
 
 ---
 
