@@ -308,9 +308,12 @@ Log violations in the session wrap report. Delete temp files. Escalate directory
 
 ## Session Wrap Protocol
 
-At the end of any meaningful work session, run these steps in order:
+At the end of any meaningful work session, run these steps in **this exact order**:
 
-1. **Session log update**: Prepend (top) to `claude_docs/logs/session-log.md` — keep only the 5 most recent entries, delete older ones:
+**Doc Update Order (MANDATORY — do all or none):**
+1. **Update STATE.md** — source of truth for session state. Move completed items from "In Progress" to their appropriate section. Update "Last Updated" timestamp. Add any new Known Gotchas. Remove resolved ones.
+2. **Update next-session-prompt.md** — pending Patrick actions + what comes next. NEVER include credentials — reference `.env` only.
+3. **Update session-log.md** — prepend (top) new entry; keep only the 5 most recent entries, delete older ones. Format:
    ```
    ## Session [N] — [date]
    ### Completed
@@ -320,36 +323,26 @@ At the end of any meaningful work session, run these steps in order:
    ### Notes
    - [anything Patrick should know]
    ```
+4. **Update patrick-dashboard.md** — Patrick-readable status summary with build status, pending actions, next decisions.
+5. **Provide Patrick the `.\push.ps1` block** — all four files above must be in it.
 
-2. **STATE.md sync**: Move completed items from "In Progress" to their
-   appropriate section. Update "Last Updated" timestamp. Add any new Known
-   Gotchas. Remove resolved ones.
+**Critical rule:** Never update one without the others. Never push STATE.md without also updating next-session-prompt.md and patrick-dashboard.md. This ensures Patrick always has a current snapshot of project state.
 
-3. **context.md check**: If context.md is older than 24 hours, flag to Patrick
+**Additional wrap tasks (after doc update order):**
+
+6. **context.md check**: If context.md is older than 24 hours, flag to Patrick
    that it should be regenerated: `node scripts/update-context.js`
 
-4. **COMPLETED_PHASES.md**: If a full phase or sprint completed, add a summary
+7. **COMPLETED_PHASES.md**: If a full phase or sprint completed, add a summary
    entry. Keep it brief — one paragraph max per phase.
 
-4b. **Stamp .last-wrap**: After writing next-session-prompt.md, stamp the wrap timestamp:
+8. **Stamp .last-wrap**: After writing all docs, stamp the wrap timestamp:
    ```bash
    PROJECT_ROOT=$(ls -d /sessions/*/mnt/FindaSale 2>/dev/null | head -1)
    date -u +"%Y-%m-%dT%H:%M:%SZ" > "$PROJECT_ROOT/claude_docs/.last-wrap"
    ```
 
-5. **Wrap commit — include self-created files**: The wrap process itself writes
-   files (STATE.md, session-log.md, next-session-prompt.md, context.md,
-   claude_docs/.last-wrap). These are written DURING the wrap, so they are never
-   in Patrick's prior commit. Always include them explicitly in the wrap commit
-   block — never assume they were already staged. The commit block must always
-   contain at minimum:
-   ```
-   git add claude_docs/.last-wrap claude_docs/STATE.md claude_docs/logs/session-log.md claude_docs/next-session-prompt.md context.md
-   git commit -m "Session [N] wrap: STATE, session-log, context, next-session-prompt"
-   .\push.ps1
-   ```
-   If other files were changed during the session, add them to the same commit.
-   Never split the wrap into two messages — all wrap-written files go in one block.
+9. **Wrap commit — include all changed files**: Always provide a complete copy-paste block with explicit `git add [file]` lines for all wrap-written files (STATE.md, session-log.md, next-session-prompt.md, patrick-dashboard.md, context.md, .last-wrap, and any other changed files). Never assume files were already staged. Always include `.\push.ps1`. Never use `git add -A`.
 
 ---
 

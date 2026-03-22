@@ -22,21 +22,22 @@ equivalents. Custom skills have project context; generics don't.
 
 Every session, before any work:
 
-1. Check active MCP tools (GitHub, Stripe, etc.)
-2. Load CORE.md, context.md, STATE.md — extract sprint queue
-3. Skim session-log.md (last 1–2 entries)
-4. GitHub sync check: compare local STATE.md `Last Updated` vs remote.
+1. Check active MCP tools (GitHub, Stripe, MailerLite, Stripe, Vercel, etc.)
+2. Load STATE.md (latest 1–2 session entries + pending Patrick actions)
+3. Load next-session-prompt.md (what comes next)
+4. Skim session-log.md (validate state matches recent entries)
+5. GitHub sync check: compare local STATE.md `Last Updated` vs remote.
    If different → tell Patrick to run `.\push.ps1` first. Block until synced.
-5. Announce estimated context budget: "~Xk tokens available this session."
+6. Announce estimated context budget: "~Xk tokens available this session."
 
 Skip re-loading on subsequent turns if context was already loaded this session.
 First message of any session always triggers init (conversation-defaults Rule 3).
 
 **§2.1: Post-Compression Re-Init**
 After any autocompaction event (detected by resume message or context summarization),
-immediately re-run ALL five init steps above before resuming work. Autocompaction is a
-session boundary — treat it the same as a new session start. Do not skip steps 3–5.
-Log: "[POST-COMPRESS-INIT] Completed steps 1–5 at turn N."
+immediately re-run ALL six init steps above before resuming work. Autocompaction is a
+session boundary — treat it the same as a new session start. Do not skip steps 2–6.
+Log: "[POST-COMPRESS-INIT] Completed steps 1–6 at turn N."
 
 ---
 
@@ -76,48 +77,32 @@ Warn at 170k used (85%) — pause and plan wrap. Hard stop at 190k (95%).
 
 ## 4. Push Rules
 
-**MCP GitHub limits:** Max 3 files per `push_files` call. Files >200 lines
+**IMPORTANT:** This section contains universal rules for any project. For FindA.Sale-specific push rules (which take precedence), see project CLAUDE.md §5. CLAUDE.md §5 is the authoritative source for this project.
+
+**Universal rules:**
+
+**MCP GitHub limits (universal baseline):** Max 3 files per `push_files` call. Files >200 lines
 push solo via `create_or_update_file`. Max 3 agents dispatched in parallel.
 
-**MCP vs PowerShell:** Use MCP for 1–3 small files already in context.
-Tell Patrick `.\push.ps1` for 4+ files, large files, or session wrap.
+**Pre-push verification:** Read function/type signatures before pushing code.
+Grep patterns before pushing build fixes. One Read call prevents 3 failed deploys.
 
-**Pre-push verification:** Read function/type signatures before pushing
-TypeScript. Grep entire frontend for a pattern before pushing a build fix.
-One Read call prevents 3 failed deploys.
+**MCP file content rule:** `create_or_update_file` replaces the entire remote file —
+it does not merge or append. Always read the full file first. Always push the
+COMPLETE file content, never truncated or partial lines.
 
-**MCP file content rule (Session 167 audit):** `create_or_update_file` replaces
-the entire remote file — it does not merge or append. Always read the full file
-first. Always push the COMPLETE file content, never truncated or partial lines.
-Truncated schema.prisma (Session 166) and itemController.ts (Session 167) both
-broke Railway builds. No exceptions.
+**MCP truncation gate:** Before every `create_or_update_file` call, compare:
+(a) line count of content to push vs. (b) line count on GitHub. If push content
+is more than 20% shorter AND no intentional deletion, STOP — rebuild.
 
-**MCP truncation gate (mandatory pre-push check):** Before every
-`create_or_update_file` call, compare: (a) line count of the content you are
-about to push vs. (b) line count of the file currently on GitHub (from the
-`get_file_contents` call you already made for the SHA). If the push content is
-more than 20% shorter than the existing file AND you did not intend to delete
-code, STOP — you are about to truncate. Re-read the local file in full and
-rebuild the push content. This gate catches the #1 cause of production outages
-in this project (Sessions 166–167).
+**Merge conflict re-staging:** After resolving any merge conflict, explicitly
+re-stage ALL files in conflict state before committing. Missing re-stage causes
+abort loops. Always: resolve → `git add [all-conflict-files]` → `git commit`.
 
-**Standing rules:** STATE.md pushes only at wrap. Wrap-only docs
-(session-log, STATE, next-session-prompt) never MCP-pushed mid-session.
-package.json and pnpm-lock.yaml always committed together.
-
-**Complete push instruction blocks (Session 167 audit):** Every push block given
-to Patrick must list ALL modified tracked files, ALL new untracked files, ALL
-merge-conflict-resolved files, and ALL migration files. No partial lists. Incomplete
-instruction blocks caused 4–5 follow-up rounds in Session 166. One complete block per push.
-
-**After MCP push:** Do not edit those files locally without `git fetch` first.
-
-**Merge conflict re-staging (Session 167 audit):** After resolving any merge
-conflict, explicitly re-stage ALL files that were in conflict state before
-committing. Missing re-stage causes "staged but uncommitted" abort loops.
-Always: resolve → `git add [all-conflict-files]` → `git commit` → `.\push.ps1`.
-
-**Commit block format (always):** Any time git commit instructions are given to Patrick — mid-session or at wrap — provide a complete copy-paste block. Never give a file list and stop. The block must always include explicit `git add [file]` lines, a `git commit -m "..."` line, and `.\push.ps1`. Never `git add -A`. Never omit the commit message. Never omit `.\push.ps1`. This rule applies to every git instruction in every session, not just at wrap.
+**Commit block format:** Any time git commit instructions are given — mid-session
+or at wrap — provide a complete copy-paste block with explicit `git add [file]`
+lines, `git commit -m "..."`, and push method. Never `git add -A`. Never omit
+commit message. Never omit push command.
 
 **§4.10: Compression-Aware Push Checklist**
 After any compression event, before pushing:

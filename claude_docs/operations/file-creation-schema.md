@@ -89,11 +89,19 @@ claude_docs/
 ├── research/               Investigation reports (backlog ID prefix required)
 ├── self-healing/           Self-healing skills file
 ├── skills-package/         Skill documentation and SKILL.md directories
+├── architecture/           Architecture decision records (ADRs)
+├── audits/                 QA audit reports, Chrome audits, live app audits
+├── feature-decisions/      Product decision records for specific features
 ├── strategy/               Roadmap, business plan, pricing
+├── ux-spotchecks/          UX audit snapshots and spot-check reports
 └── workflow-retrospectives/ Session efficiency analyses
 ```
 
-**Directories removed (session 144):** `audits/`, `marketing/`, `qa/`, `security/`, `session-wraps/`, `ux-spotchecks/`, `improvement-memos/`, `operations/context-audit/`. All contents archived.
+**Directories re-approved (session 234, 2026-03-22):** `architecture/`, `audits/`, `feature-decisions/`, `ux-spotchecks/` permanently added to the locked folder map. These directories kept being recreated organically across sessions — approving them stops the recurring violation. Rationale: `architecture/` holds ADRs (18 files, core engineering artifact), `audits/` holds QA/Chrome/live-app audit reports (20 files, actively referenced), `feature-decisions/` holds per-feature decision records (7 files, distinct from feature-notes/), `ux-spotchecks/` holds UX audit snapshots (5 files, distinct from health-reports/).
+
+**Note on other flagged dirs:** `legal/`, `marketing/`, `improvement-memos/`, `testing-guides/` — contents should be routed to `operations/`, `brand/`, or `guides/` respectively. These are NOT approved as permanent directories; Records should consolidate on next audit pass.
+
+**Directories removed (session 144):** `qa/`, `security/`, `session-wraps/`, `operations/context-audit/`. All contents archived.
 
 ---
 

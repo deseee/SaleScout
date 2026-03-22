@@ -226,3 +226,168 @@ Recurring bugs and their confirmed fixes. Add an entry when a pattern has been s
 **Test Command:** Browser Network tab → filter by the backend domain → confirm no double `/api/api/` in any request URL.
 
 **Confidence:** HIGH — structurally certain to recur whenever a new page is written without checking existing usage patterns.
+
+---
+
+## SH-011: uuid@13+ ESM Crash in Node Backend
+
+**Trigger:** Backend crashes with `SyntaxError: Cannot use import statement outside a module` when UUID is generated. Sentry reports: `NODEJS-1 (FATAL, 160 events)`.
+
+**Environment:** Any backend code using `import { v4 as uuidv4 } from 'uuid'` with uuid v13+.
+
+**Pattern:** uuid v13 dropped CommonJS support; backend is CommonJS. The package exports only ES modules, causing the import to fail at runtime.
+
+**Known instances:** Session 233 identified this as root cause of 160 Sentry events; fixed by downgrading to uuid@^9.x.x.
+
+**Steps:**
+1. Check `packages/backend/package.json` → verify `uuid` version is `^9.0.0` or newer in the v9 range (NOT v13+)
+2. If uuid@13+ is installed: run `pnpm remove uuid && pnpm add uuid@^9.0.0`
+3. Clear node_modules and lockfile: `rm -rf node_modules pnpm-lock.yaml && pnpm install`
+4. Restart backend
+
+**Edge Cases:**
+- This only affects Node.js/backend code; frontend can use uuid@13+ without issues
+- Check if any transitive dependencies require uuid@13+ — if so, request a version bump of that dependency
+
+**Test Command:** `node -e "const {v4}=require('uuid'); console.log(v4())"` — should output a UUID without SyntaxError.
+
+**Confidence:** HIGH — version lock is permanent; no recurrence expected.
+
+---
+
+## SH-012: CORS Hardcoded Origins — Must Include Both finda.sale Variants
+
+**Trigger:** Request from `www.finda.sale` returns CORS 403 error even though `finda.sale` works. Network tab shows `Access-Control-Allow-Origin` header missing.
+
+**Environment:** `packages/backend/src/index.ts` → cors middleware setup.
+
+**Pattern:** CORS allowed origins are hardcoded for security: only `finda.sale` and `www.finda.sale` are in the whitelist. If the request comes from a variant not in the list, CORS blocks it. Wildcard `*` is forbidden for security.
+
+**Known instances:** Session 233 confirmed this prevents local dev CORS errors with production database; prevents unauthorized cross-origin access.
+
+**Steps:**
+1. Check `packages/backend/src/index.ts` → search `cors({ origin:`.
+2. Verify list includes BOTH `finda.sale` AND `www.finda.sale`.
+3. If localhost or staging variants need to be allowed, add them explicitly (e.g., `http://localhost:3000`), but never use wildcard.
+
+**Edge Cases:**
+- `http://localhost:*` is NOT a valid CORS origin — must be exact domain + port
+- Subdomain variants (e.g., `api.finda.sale`) must be added separately if they exist
+- For testing against prod database, either test via the prod domain or mock CORS locally
+
+**Test Command:** Browser DevTools Network tab → check request headers for `Access-Control-Allow-Origin` response header. If missing or mismatched, CORS is blocking.
+
+**Confidence:** HIGH — CORS policy is explicitly enforced for security; no relaxation expected.
+
+---
+
+## SH-013: Prisma findUnique Fails on Non-Unique Fields
+
+**Trigger:** Prisma error: `Argument must be \`@id\` or \`@unique\`…` when using `findUnique()` with a field like `stripeCustomerId`.
+
+**Environment:** Any backend code querying the database with Prisma.
+
+**Pattern:** `findUnique()` requires the WHERE field to have @id or @unique constraint in the schema. Using it on a regular field (even if it's indexed) fails. Must use `findFirst()` instead.
+
+**Known instances:** Not yet seen in FindA.Sale codebase, but structurally certain to recur with any new non-unique lookups (stripe fields, email-like fields, etc.).
+
+**Steps:**
+1. Check schema for the field: is it marked `@unique`?
+2. If NOT @unique: change `findUnique()` to `findFirst()`
+3. If it SHOULD be unique: add `@unique` to the schema and run `prisma migrate dev`
+
+Example:
+```typescript
+// WRONG:
+const user = await prisma.user.findUnique({ where: { stripeCustomerId: X } });
+
+// CORRECT:
+const user = await prisma.user.findFirst({ where: { stripeCustomerId: X } });
+```
+
+**Edge Cases:**
+- `findFirst()` returns the first match (not deterministic without sorting) — if uniqueness is intended, add `@unique` to schema instead
+- `findUnique()` is faster (uses index directly); only use `findFirst()` when the field is genuinely non-unique
+
+**Test Command:** Run the query; if Prisma throws "Argument must be @id or @unique", switch to `findFirst()`.
+
+**Confidence:** MEDIUM — Prisma pattern, not FindA.Sale-specific but commonly mistaken by new developers.
+
+---
+
+## SH-014: Shared Imports Cause Vercel Build Failure
+
+**Trigger:** Vercel build fails: `Module not found: Can't resolve '@findasale/shared'…` after importing from shared in frontend code.
+
+**Environment:** `packages/frontend/` code importing from `@findasale/shared` via pnpm workspace alias.
+
+**Pattern:** Vercel uses strict Node.js module resolution and doesn't resolve pnpm workspace symlinks in production builds. Frontend may only import types from backend API responses or context providers, not from the shared package.
+
+**Known instances:** Session 234 confirmed this breaks Vercel; prevented via linter rules.
+
+**Steps:**
+1. Check if frontend code has any `import { X } from '@findasale/shared'` lines
+2. Remove all shared imports from frontend
+3. For types that were imported: either infer them from backend API response interfaces, or re-define them locally in frontend
+4. For utilities or constants: implement them in frontend or backend, not shared
+
+**Edge Cases:**
+- Backend may import from shared without issues
+- Types re-exported from shared in backend (e.g., `OrganizerReputationDTO`) can be inferred in frontend from API responses
+- Do NOT use shared as a utility library; it's a types-only cross-boundary repository
+
+**Test Command:** Frontend build: `pnpm build` — should succeed without "Can't resolve '@findasale/shared'" errors.
+
+**Confidence:** HIGH — Vercel's module resolution is deterministic; shared imports will always fail in production.
+
+---
+
+## SH-015: Passkey Challenge Race Condition — Use Redis Atomic getDel
+
+**Trigger:** Concurrent login attempts with the same passkey credential create duplicate challenges. User's second login attempt in quick succession finds TWO valid challenges (last one wins, or both are consumed).
+
+**Environment:** `packages/backend/src/controllers/authController.ts` → passkey challenge flow.
+
+**Pattern:** S234 fixed this: challenge storage moved from in-memory Map to Redis with atomic `getDel`. Without atomicity, a race condition occurs between checking if a challenge exists and consuming it.
+
+**Known instances:** Session 200 flagged as P0 unverified race condition; S234 confirmed fix: Redis `getDel` is atomic (get + delete in single operation).
+
+**Steps:**
+1. Check `authController.ts` → `generateChallenge()` and `verifyChallenge()` functions
+2. Verify challenges are stored in Redis (not in-memory Map)
+3. Verify `verifyChallenge()` uses `await redis.getDel(challengeKey)` (atomic)
+4. Verify challenge flow is tagged (auth vs registration) to prevent cross-flow reuse
+
+**Edge Cases:**
+- Redis must be running and connected; if Redis is down, fallback to in-memory (with race condition risk)
+- Challenge TTL should be short (5-10 minutes) to prevent reuse window
+
+**Test Command:** Simulate concurrent login: open two tabs, start passkey auth simultaneously, verify only one succeeds.
+
+**Confidence:** HIGH — S234 confirmed atomic `getDel` eliminates the race; Redis backend is required.
+
+---
+
+## SH-016: Stripe Payment Intent Unique Constraint — Use randomUUID for Cash Sales
+
+**Trigger:** Multiple concurrent cash sales fail with Prisma P2002: `Unique constraint failed on stripePaymentIntentId`.
+
+**Environment:** Any cash payment flow in backend (e.g., `terminalController.ts`).
+
+**Pattern:** `Purchase.stripePaymentIntentId` has @unique constraint. Cash sales don't have a real Stripe PI, so a placeholder must be generated. Using `Date.now() + Math.random()` is collision-unsafe — two requests in the same millisecond produce identical IDs. Must use `randomUUID()` from Node's `crypto` module.
+
+**Known instances:** Session 153 — QA flagged as BLOCKER; fixed by switching to `cash_${randomUUID()}`.
+
+**Steps:**
+1. Find any cash payment handler (search `cash_` in backend)
+2. Verify it uses `const piId = \`cash_\${randomUUID()}\`` (NOT `Date.now()` or `Math.random()`)
+3. Import randomUUID: `import { randomUUID } from 'crypto'` (Node.js built-in, no install needed)
+4. One UUID per transaction, not per cart item
+
+**Edge Cases:**
+- `randomUUID()` is available in Node.js ≥14.17 — safe for this stack
+- All Purchase records for a single cash transaction share the same `cash_${uuid}` PI ID
+
+**Test Command:** `node -e "const {randomUUID}=require('crypto'); console.log(randomUUID())"` — should output a valid UUID.
+
+**Confidence:** HIGH — UUID v4 provides 2^122 entropy; collision is cryptographically impossible.

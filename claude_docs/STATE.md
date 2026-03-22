@@ -7,6 +7,22 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Active Objective
 
+**Session 235 COMPLETE (2026-03-22) — CONTEXT DOCS UPDATE + RESEARCH + SKILLS AUDIT + PROJECT HYGIENE:**
+- ✅ Innovation research dispatched on 4 topics (Amazon integrations/POD, BizBuySell deep dive, Joybird UX, digital estate assets) — research memos saved to `claude_docs/research/` and consolidated in `INNOVATION_HANDOFF_2026-03-22.md`
+- ✅ Confirmed Organizer Reputation Score (Feature #71) already fully built and Chrome-verified. Print Kit (Printful/POD) is new feature idea from innovation research — does NOT exist yet
+- ✅ Skills scope audit: 9 of 24 skills had estate-sale-only framing. 7 updated .skill packages produced and presented to Patrick: findasale-innovation, findasale-ux, findasale-marketing (fee fixed: 5%/7% → 10% flat), findasale-qa, cowork-power-user, findasale-advisory-board, findasale-hacker
+- ✅ Project folder hygiene: 19 temp files deleted, 26 files archived, session-log rotated from 264→112 lines. Full audit report: `claude_docs/audits/records-audit-2026-03-22.md`
+- ✅ file-creation-schema.md updated: architecture/, audits/, feature-decisions/, ux-spotchecks/ now in locked folder map
+- ✅ CLAUDE.md §10 updated: hard subagent file hygiene rule (no project root drops, no unauthorized dirs, scratch→VM working dir)
+- **Pending Patrick Actions:**
+  - Install 7 updated .skill files from `updated-skills/` folder
+  - Delete `updated-skills/` folder after install
+  - Push session changes (CLAUDE.md, file-creation-schema.md, research/audit files)
+- **Still pending from S234:**
+  - Prisma migrate deploy + prisma generate (blocking #73/#74/#75 runtime)
+  - Railway env vars: AI_COST_CEILING_USD=5.00, MAILERLITE_SHOPPERS_GROUP_ID=182012431062533831
+- Last Updated: 2026-03-22
+
 **Session 234 COMPLETE (2026-03-22) — BUILD FIXES + PASSKEY SECURITY + FEATURES #106-#109 PRE-BETA SAFETY:**
 - ✅ pnpm-lock.yaml regenerated — uuid@9 was added but lockfile stale. Fixed Railway/Vercel frozen-lockfile error
 - ✅ RippleIndicator.tsx TypeScript error fixed — `session?.user?.role` cast to `any`. Unblocked Vercel build
@@ -22,10 +38,6 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 - ✅ **#108 API timeout guards:** new `packages/backend/src/middleware/requestTimeout.ts` — 30s timeout, 503 response, registered in index.ts
 - ✅ **#109 Graceful degradation:** cloudAIService.ts and notificationService.ts wrapped in try/catch — external service failures no longer crash the process
 - ✅ **QA Verdict:** CONDITIONAL GO for beta — messages thread, Stripe checkout, admin invites, follow system pass live smoke test. Follow system + edit-sale dates not tested live but code confirmed fixed. All #106-#109 code reviewed clean.
-- **Still-Pending Patrick Actions:**
-  - pnpm-lock.yaml regeneration (rate-limit-redis added to lockfile)
-  - Railway env vars for #107 (DATABASE_URL_UNPOOLED)
-  - prisma generate after env vars set
 - Last Updated: 2026-03-22
 
 **Session 233 COMPLETE (2026-03-22) — FULL BUG QUEUE DISPATCH (24 QA BUGS + 11 SENTRY ERRORS FIXED):**

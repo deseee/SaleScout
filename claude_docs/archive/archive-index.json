@@ -1,6 +1,6 @@
 {
   "_schema": "Archive Index v1 — Records-only write access. All agents may read to check existence. To retrieve a file, dispatch findasale-records.",
-  "_lastUpdated": "2026-03-13",
+  "_lastUpdated": "2026-03-22",
   "_archivedBy": "findasale-records session 157",
   "entries": [
     {
@@ -250,6 +250,54 @@
       "originSession": 139,
       "dateArchived": "2026-03-11",
       "summary": "Skill modifications needed to prevent session 138 repeat"
+    },
+    {
+      "file": "improvement-memos/power-user-sweep-2026-03-16.md",
+      "topic": "Power user sweep improvements",
+      "archivedFrom": "claude_docs/improvement-memos/",
+      "originSession": 235,
+      "dateArchived": "2026-03-22",
+      "summary": "Power user agent improvements and fixes identified during sweep. Consolidated from unapproved improvement-memos/ directory."
+    },
+    {
+      "file": "operations/consent-review-74-registration-flow.md",
+      "topic": "Legal compliance review — role-aware registration consent",
+      "archivedFrom": "claude_docs/legal/",
+      "originSession": 235,
+      "dateArchived": "2026-03-22",
+      "summary": "Legal compliance analysis for feature #74 registration consent flow. Moved from unapproved legal/ directory to operations/ for ongoing compliance reference."
+    },
+    {
+      "file": "guides/patrick-e2e-guide-2026-03-19.md",
+      "topic": "Patrick end-to-end testing guide",
+      "archivedFrom": "claude_docs/testing-guides/",
+      "originSession": 235,
+      "dateArchived": "2026-03-22",
+      "summary": "Comprehensive E2E testing guide for Patrick and QA team. Moved from unapproved testing-guides/ directory to guides/."
+    },
+    {
+      "file": "brand/content-pipeline/",
+      "topic": "Brand content pipeline",
+      "archivedFrom": "claude_docs/marketing/content-pipeline/",
+      "originSession": 235,
+      "dateArchived": "2026-03-22",
+      "summary": "Marketing content pipeline materials. Moved from unapproved marketing/ directory to brand/ for brand asset organization."
+    },
+    {
+      "file": "feature-notes/65-progressive-disclosure.md",
+      "topic": "Feature #65 progressive disclosure UX spec",
+      "archivedFrom": "claude_docs/features/",
+      "originSession": 235,
+      "dateArchived": "2026-03-22",
+      "summary": "UX specification for progressive disclosure feature. Consolidated from single-file features/ directory into feature-notes/."
+    },
+    {
+      "file": "strategy/advisory-board-adr-065-pricing-analysis-2026-03-16.md",
+      "topic": "Advisory board ADR — pricing analysis",
+      "archivedFrom": "claude_docs/strategic/",
+      "originSession": 235,
+      "dateArchived": "2026-03-22",
+      "summary": "Advisory board decision record for pricing analysis. Consolidated from duplicate strategic/ directory into strategy/."
     }
   ]
 }

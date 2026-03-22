@@ -246,6 +246,8 @@ The VM cannot run `git push` (no HTTPS auth), but the MCP bypasses this for smal
 
 **Skill update protocol:** Editing a SKILL.md in git does NOT activate the change. Active skills are read-only at `/sessions/[session-id]/mnt/.skills/skills/`. To activate: package as `.skill` zip, Patrick installs via Cowork UI.
 
+**Subagent file hygiene (hard rule):** Subagents must NEVER write files to the project root (`$PROJECT_ROOT/`), create directories not in the locked folder map (`operations/file-creation-schema.md`), or leave temp/handoff/artifact files in `claude_docs/` root. All scratch and working files go to the VM working directory (`/sessions/[session-id]/`). All deliverables go to the correct `claude_docs/` subdirectory. Violations are flagged by Records at session wrap — but the goal is zero violations, not clean-up.
+
 ---
 
 ## 11. Token Efficiency Rules
@@ -266,10 +268,19 @@ The VM cannot run `git push` (no HTTPS auth), but the MCP bypasses this for smal
 
 Before ending any session:
 
-1. Update session-log.md (completed work, files changed, compression events)
-2. Update next-session-prompt.md (next task, blockers, pending Patrick actions). NEVER include credentials.
-3. Provide Patrick the `.\push.ps1` block — every changed file as explicit `git add [file]` lines.
-4. Track subagent files: maintain running changed-files list. Cross-reference against `git status` at wrap.
+**Doc Update Order (mandatory at every session wrap — in this exact order):**
+1. Update STATE.md (source of truth for session state)
+2. Update next-session-prompt.md (pending Patrick actions + what comes next). NEVER include credentials.
+3. Update session-log.md (prepend new entry, keep 5 most recent)
+4. Update patrick-dashboard.md (Patrick-readable status summary)
+5. Provide Patrick the `.\push.ps1` block — all four files above must be in it
+
+**Critical rule:** Never update one without the others. Never push STATE.md without also updating next-session-prompt.md and patrick-dashboard.md. This ensures Patrick always has a current snapshot of project state.
+
+**Subagent files:**
+- Maintain running changed-files list from all subagent dispatches
+- Cross-reference against `git status` at wrap
+- Include all tracked and untracked files in the final push block
 
 ---
 

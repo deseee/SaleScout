@@ -1,4 +1,7 @@
 # FindA.Sale Pricing Analysis & Revenue Model
+
+> **Source of truth for current pricing:** STATE.md "Pricing Model (LOCKED)" section. This document provides historical analysis and strategic rationale. For current tier prices, fees, and overages, always read STATE.md first.
+
 **Date:** 2026-03-15
 **Author:** Investor Agent (Pricing & ROI Lead)
 **Status:** Actionable Recommendations - Awaiting Patrick Approval
