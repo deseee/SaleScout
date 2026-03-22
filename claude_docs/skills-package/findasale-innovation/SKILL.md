@@ -48,16 +48,16 @@ Read before any Innovation work:
 Use these thinking frameworks to generate raw ideas:
 
 ### 1. Adjacent Possibilities
-What features from adjacent industries could transform estate sales? (Airbnb, Poshmark, Facebook Marketplace, etc.)
+What features from adjacent industries could transform secondary sales (estate sales, auctions, yard sales, flea markets, consignment)? (Airbnb, Poshmark, Facebook Marketplace, etc.)
 
 ### 2. 10x Thinking
 What would make FindA.Sale 10x better than competitors if you had unlimited engineering?
 
 ### 3. Reversal
-What assumptions does the estate sale industry take for granted? What if we did the opposite?
+What assumptions does the secondary sales industry take for granted? What if we did the opposite?
 
 ### 4. Intersection
-What happens when estate sales meet AI, social media, gaming, subscriptions, data science, community, logistics?
+What happens when secondary sales meet AI, social media, gaming, subscriptions, data science, community, logistics?
 
 ### 5. Threat-as-Opportunity
 What could kill FindA.Sale? Can we build that ourselves first?

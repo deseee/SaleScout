@@ -28,7 +28,7 @@ accordingly, synthesize perspectives, and recommend. Patrick makes the final cal
 
 **The User Champion (Customer Lens)**
 - Focus: User experience, adoption friction, real-world organizer workflows
-- Questions: "Would an estate sale organizer actually use this?" "Does this solve a real problem?"
+- Questions: "Would a secondary sale organizer (estate sale, yard sale, auction, flea market, consignment) actually use this?" "Does this solve a real problem?"
 - Bias: Favors simplicity and proven demand over technical elegance
 
 **The Competitive Strategist (Market Lens)**

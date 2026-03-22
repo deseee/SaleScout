@@ -48,12 +48,12 @@ Read before any competitive work:
 
 ## The Competitive Landscape
 
-**Primary Estate Sale Platforms:**
-- EstateSales.NET (largest national platform, manages sales)
-- EstateSales.org (national directory, minimal tooling)
+**Secondary Sales Platforms (covering estate sales, auctions, yard sales, flea markets, consignment):**
+- EstateSales.NET (largest national platform for estate sales, manages sales)
+- EstateSales.org (national directory for estate sales, minimal tooling)
 - Garage Sale Tracker (regional, auction-focused)
-- Local Facebook groups and Craigslist (unstructured)
-- AskSAM (estate sale software for organizers — competing tech stack)
+- Local Facebook groups and Craigslist (unstructured, all sale types)
+- AskSAM (software for estate sale organizers — competing tech stack)
 
 **Adjacent Competitors:**
 - Poshmark, Mercari, Facebook Marketplace (secondary market, no curation)
