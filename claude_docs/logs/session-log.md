@@ -16,6 +16,24 @@ Keep only the 5 most recent sessions. Delete older entries — git history and S
 
 ## Recent Sessions
 
+### Session 235 — 2026-03-22 — Context Docs Overhaul + Innovation Research + Skills Audit + Project Hygiene
+
+**Worked on:** (1) Dispatched findasale-innovation on 4 research topics: Amazon integrations/POD, BizBuySell competitive deep dive, Joybird UX learnings, digital estate assets strategy. All research memos saved to `claude_docs/research/` + consolidated in `INNOVATION_HANDOFF_2026-03-22.md`. (2) Confirmed Feature #71 (Organizer Reputation Score) already fully built and Chrome-verified. Print Kit (Printful/POD integration) is NEW feature idea from research — does NOT exist yet. (3) Skills scope audit: 8 of 24 skills had estate-sale-only framing or stale fee models (5%/7% → 10% flat). All 8 updated and packaged (.skill files): findasale-innovation, findasale-ux, findasale-marketing, findasale-qa, cowork-power-user, findasale-advisory-board, findasale-hacker, findasale-records. Patrick installed all. (4) Project hygiene deep audit: 19 temp files deleted, 26 files archived to `archive/`, session-log rotated from 264→112 lines. Full audit report: `records-audit-2026-03-22.md`. (5) Doc structure issues fixed: CORE.md §2 dead reference removed, new `patrick-dashboard.md` (one-pager), new `operations/subagent-quick-ref.md` (agent entry points), new `operations/technical-brief.md` (stack + file locations), new `operations/contracts-schema-api-types.md` (layer pointer map). (6) CLAUDE.md §7 subagent-first gate reinforced, §10 file hygiene hard rule added. `file-creation-schema.md` updated with 4 new approved dirs (architecture/, audits/, feature-decisions/, ux-spotchecks/). (7) `self_healing_skills.md` updated: SH-011–SH-016 patterns added. (8) All changes pushed to GitHub (commit 6c0af66).
+
+**Decisions:** Skills reframing to ALL secondary sales types (estate, yard, auction, flea, consignment) vs estate-only. Print Kit concept locked for innovation roadmap. Session wrap enforced: STATE → next-session-prompt → session-log → patrick-dashboard bundle order (prevents doc sync gaps).
+
+**Token efficiency:** High. Parallel research dispatch + doc overhaul simultaneous. Skills repackaging + git operations in parallel with record cleanup. Zero wasted dispatch cycles.
+
+**Token burn:** ~95k tokens (est.), 0 compressions. Well within budget.
+
+**Next up:** S236: Frontend QA + UX audit (parallel findasale-qa + findasale-ux), Re-dispatch innovation agent with corrected scope, Passkey race condition full-stack verification, Features #106–#109 if QA clears.
+
+**Blockers:** Patrick must run Prisma migrate deploy + Railway env vars before S236 QA (still pending from S234). Without Neon schema sync, #73/#74/#75 runtime errors will block live testing.
+
+**Files changed (all pushed):** `CLAUDE.md`, `claude_docs/CORE.md`, `claude_docs/STATE.md`, `claude_docs/next-session-prompt.md`, `claude_docs/patrick-dashboard.md`, `claude_docs/operations/file-creation-schema.md`, `claude_docs/operations/subagent-quick-ref.md` (new), `claude_docs/operations/technical-brief.md` (new), `claude_docs/operations/contracts-schema-api-types.md` (new), `claude_docs/self-healing/self_healing_skills.md`, `claude_docs/audits/records-audit-2026-03-22.md` (new), `claude_docs/audits/doc-structure-audit-2026-03-22.md` (new), 4 research memos + INNOVATION_HANDOFF_2026-03-22.md, `claude_docs/archive/archive-index.json` (updated). Skills: findasale-innovation, findasale-ux, findasale-marketing, findasale-qa, cowork-power-user, findasale-advisory-board, findasale-hacker, findasale-records (all installed). | Compressions: 0 | Subagents: findasale-innovation (research), findasale-records (wrap) | Push method: MCP + git commit 6c0af66
+
+---
+
 ### Session 234 — 2026-03-22 — Build Fixes + Passkey Security Hardening + Features #106–#109 Pre-Beta Safety Batch
 
 **Worked on:** (1) Fixed pnpm-lock.yaml frozen-lockfile Railway error — uuid@9 added but lockfile stale. (2) Fixed RippleIndicator.tsx TypeScript build error — `session?.user?.role` cast to `any`. (3) Fixed express-rate-limit v8 ERR_ERL_KEY_GEN_IPV6 in 4 rate limiters — added `keyGenerator` callback. (4) Dockerfile cache-busted to force Railway redeploy. (5) **Passkey security:** Moved challenge storage from in-memory Map to Redis with atomic getDel (P1 race condition fix). Added counter update atomicity with `updateMany` + `counter: { lt: newCounter }` (P2 replay attack). Added flow-type tagging to challenges. (6) **#106–#109 features:** Rate-limit-redis added with fallback, DB connection pooling config (directUrl split), API timeout middleware (30s, 503), graceful degradation wrappers on AI/notification services. (7) Patrick actions: Prisma migrate deploy + generate against Neon (DONE). Railway env vars for pooling (AI_COST_CEILING_USD + MAILERLITE_SHOPPERS_GROUP_ID set).
@@ -48,7 +66,7 @@ Keep only the 5 most recent sessions. Delete older entries — git history and S
 
 **Blockers:** Prisma actions pending Patrick. Railway env vars pending Patrick. Passkey security audit queued.
 
-**Files changed:** 23 QA bug fix files (backend controllers/routes + frontend pages/components) + 11 Sentry fix files (backend package.json, index.ts + 9 frontend files) — both pushed by Patrick via `.\.push.ps1`. Full file list in two push blocks delivered in-session. | Compressions: 0 | Subagents: 9 (5× findasale-dev, 1× findasale-records, 3× general-purpose dev) | Push method: Patrick PS1 (×2)
+**Files changed:** 23 QA bug fix files (backend controllers/routes + frontend pages/components) + 11 Sentry fix files (backend package.json, index.ts + 9 frontend files) — both pushed by Patrick via `.\push.ps1`. Full file list in two push blocks delivered in-session. | Compressions: 0 | Subagents: 9 (5× findasale-dev, 1× findasale-records, 3× general-purpose dev) | Push method: Patrick PS1 (×2)
 
 ---
 
@@ -87,24 +105,3 @@ Keep only the 5 most recent sessions. Delete older entries — git history and S
 **Files changed (MCP pushed):** `packages/frontend/components/AvatarDropdown.tsx` (new), `packages/frontend/components/Layout.tsx`, `packages/frontend/components/FavoriteButton.tsx`, `packages/frontend/components/OnboardingModal.tsx`, `packages/backend/src/controllers/favoriteController.ts` | **Files pending Patrick push:** `packages/frontend/pages/sales/[id].tsx`, 24 backend BUG #22 sweep files (21 controllers + 3 routes) | Compressions: 1 | Subagents: findasale-dev (×2), findasale-records (wrap) | Push method: MCP (2 calls) + Patrick PS1 pending
 
 ---
-
-### Session 230 — 2026-03-21 — S227 QA Audit Completion + BUG #22 Backend Fix
-
-**Worked on:** (1) Completed deep functional QA audit across 4 roles (Ian/Shopper, Nina/ADMIN, Oscar/PRO, Quincy/TEAMS) using Chrome MCP browser automation with XHR/fetch interception. Tested cross-role round-trips: messaging ✅, Buy Now ✅, favorites (broken), Follow (broken). (2) Confirmed BUG #22 backend: Nina's JWT has `role: "ADMIN"`, not `"ORGANIZER"`. Direct API call `GET /api/organizers/me` → 403. UI shows "Unable to load sales" + infinite onboarding loop. (3) Confirmed BUG #30: Follow button fires 0 network requests — endpoint exists and is correct, bug is in frontend onClick handler. (4) Wrote full audit report to `claude_docs/audits/s227-qa-audit.md`. (5) Fixed BUG #22 backend: added `requireOrganizer` export to `auth.ts` (checks both `roles?.includes('ORGANIZER')` and `role === 'ORGANIZER'`); updated 5 inline guards in `organizers.ts`.
-
-**Decisions:** BUG #22 backend fix scoped to `organizers.ts` (5 confirmed broken routes). 15 other files with same pattern flagged for follow-up sweep. BUG #30 root cause is frontend — `POST /:id/follow` endpoint confirmed correct in backend.
-
-**Token efficiency:** QA audit used Chrome MCP browser automation (no code subagent). Fix inline (2 files, <20 lines total). Efficient session. Started from prior compressed context.
-
-**Token burn:** ~85k tokens (est.), 1 compression (context limit hit in prior session — resumed from summary).
-
-**Next up:** Verify BUG #22 fix live (Nina can now load sales). Dispatch BUG #30 (frontend Follow handler), BUG #31/#32 (favorites visual + toggle logic), BUG #33 (onboarding persistence). 15-file `role !== 'ORGANIZER'` sweep. Run Prisma actions (still blocking #73/#74/#75). Then #106–#109 pre-beta safety batch.
-
-**Blockers:** Neon Prisma actions still pending Patrick. BUG #22 backend fix not yet pushed/verified live.
-
-**Files changed:** `packages/backend/src/middleware/auth.ts` (requireOrganizer added), `packages/backend/src/routes/organizers.ts` (5 role checks fixed), `claude_docs/audits/s227-qa-audit.md` (new), `claude_docs/STATE.md`, `claude_docs/logs/session-log.md`, `claude_docs/next-session-prompt.md` | Compressions: 1 (prior session) | Subagents: findasale-dev (BUG #22 fix), findasale-records (wrap) | Push method: Patrick PS1
-
----
-
----
-

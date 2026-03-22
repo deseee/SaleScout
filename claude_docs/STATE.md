@@ -7,20 +7,22 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Active Objective
 
+**Session 236 — Ready to Start**
+
+**Completed Sessions (carry forward knowledge):**
+
 **Session 235 COMPLETE (2026-03-22) — CONTEXT DOCS UPDATE + RESEARCH + SKILLS AUDIT + PROJECT HYGIENE:**
 - ✅ Innovation research dispatched on 4 topics (Amazon integrations/POD, BizBuySell deep dive, Joybird UX, digital estate assets) — research memos saved to `claude_docs/research/` and consolidated in `INNOVATION_HANDOFF_2026-03-22.md`
 - ✅ Confirmed Organizer Reputation Score (Feature #71) already fully built and Chrome-verified. Print Kit (Printful/POD) is new feature idea from innovation research — does NOT exist yet
-- ✅ Skills scope audit: 9 of 24 skills had estate-sale-only framing. 7 updated .skill packages produced and presented to Patrick: findasale-innovation, findasale-ux, findasale-marketing (fee fixed: 5%/7% → 10% flat), findasale-qa, cowork-power-user, findasale-advisory-board, findasale-hacker
+- ✅ Skills scope audit: 8 of 24 skills had estate-sale-only framing. All 8 updated .skill packages produced and installed by Patrick: findasale-innovation, findasale-ux, findasale-marketing (fee fixed: 5%/7% → 10% flat), findasale-qa, cowork-power-user, findasale-advisory-board, findasale-hacker, findasale-records
 - ✅ Project folder hygiene: 19 temp files deleted, 26 files archived, session-log rotated from 264→112 lines. Full audit report: `claude_docs/audits/records-audit-2026-03-22.md`
 - ✅ file-creation-schema.md updated: architecture/, audits/, feature-decisions/, ux-spotchecks/ now in locked folder map
 - ✅ CLAUDE.md §10 updated: hard subagent file hygiene rule (no project root drops, no unauthorized dirs, scratch→VM working dir)
-- **Pending Patrick Actions:**
-  - Install 7 updated .skill files from `updated-skills/` folder
-  - Delete `updated-skills/` folder after install
-  - Push session changes (CLAUDE.md, file-creation-schema.md, research/audit files)
+- ✅ All S235 changes pushed to GitHub (commit 6c0af66)
+- ✅ Session wrap complete: STATE.md, next-session-prompt.md, session-log.md, patrick-dashboard.md all updated
 - **Still pending from S234:**
-  - Prisma migrate deploy + prisma generate (blocking #73/#74/#75 runtime)
-  - Railway env vars: AI_COST_CEILING_USD=5.00, MAILERLITE_SHOPPERS_GROUP_ID=182012431062533831
+  - Prisma migrate deploy + prisma generate (blocking #73/#74/#75 runtime) — Patrick action
+  - Railway env vars: AI_COST_CEILING_USD=5.00, MAILERLITE_SHOPPERS_GROUP_ID=182012431062533831 — Patrick action
 - Last Updated: 2026-03-22
 
 **Session 234 COMPLETE (2026-03-22) — BUILD FIXES + PASSKEY SECURITY + FEATURES #106-#109 PRE-BETA SAFETY:**
@@ -105,17 +107,6 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 - ⚠️ PENDING: `prisma migrate deploy + prisma generate` against Neon (still blocking #73/#74/#75 runtime — NOT YET DONE)
 - ⚠️ PENDING Railway env vars: `AI_COST_CEILING_USD=5.00`, `MAILERLITE_SHOPPERS_GROUP_ID=182012431062533831`
 - Last Updated: 2026-03-22
-
-**Session 230 COMPLETE (2026-03-21) — S227 QA AUDIT COMPLETION + BUG #22 BACKEND FIX:**
-- ✅ Full 4-role deep functional QA audit completed (Chrome MCP browser automation, XHR/fetch interception, direct JWT API calls)
-- ✅ BUG #22 backend confirmed: `GET /api/organizers/me` → 403 for Nina (ADMIN). Root cause: `requireOrganizer` checked `role === 'ORGANIZER'` (singular); Nina's JWT has `role: "ADMIN"`. Fixed in `auth.ts` (added `requireOrganizer` export) + `organizers.ts` (5 inline checks updated to also check `roles?.includes('ORGANIZER')`)
-- ✅ BUG #30 confirmed dead: Follow button fires ZERO network requests (0 XHR, 0 fetch). Endpoint `POST /:id/follow` exists and is correct — bug is in frontend click handler. Flagged for separate frontend dispatch.
-- ✅ Audit report written: `claude_docs/audits/s227-qa-audit.md`
-- ✅ BUGs resolved since S222: #25 (items load), #29 (Message Organizer), #22 frontend, #20 shopper sort
-- ⚠️ Still broken: BUG #22 backend (fix shipped S230, not yet live-verified), BUG #30 (frontend), BUG #31 (heart SVG fill), BUG #32 (favorites toggle always removes), BUG #33 (onboarding tour loops)
-- ⚠️ 15 other backend files have same `role !== 'ORGANIZER'` pattern — needs follow-up sweep dispatch to findasale-dev
-- ⚠️ PENDING: `prisma migrate deploy + prisma generate` against Neon (still blocking #73/#74/#75 runtime — NOT YET DONE)
-- Last Updated: 2026-03-21
 
 ---
 
