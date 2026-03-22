@@ -1,43 +1,67 @@
-# Next Session Prompt — S230
+# Next Session Prompt — S231
 
 **Date:** 2026-03-21
-**Status:** S229 COMPLETE — Builds repaired, pending Railway/Vercel green confirmation + Prisma actions
+**Status:** S230 COMPLETE — QA audit done, BUG #22 backend fixed (not yet pushed/verified)
 
 ---
 
-## Immediate Actions
+## First: Push S230 Changes
 
-### 1. Verify Railway + Vercel Build Green
-Latest commit fixed `subscriptionStatus` JWT issue. Confirm both are green before any new work:
-- Railway backend: should show successful `npx tsc` + startup
-- Vercel frontend: should show clean build with no type errors
+```powershell
+cd C:\Users\desee\ClaudeProjects\FindaSale
+git add packages/backend/src/middleware/auth.ts packages/backend/src/routes/organizers.ts
+git add claude_docs/audits/s227-qa-audit.md
+git add claude_docs/STATE.md claude_docs/logs/session-log.md claude_docs/next-session-prompt.md claude_docs/.last-wrap
+git commit -m "S230: BUG #22 backend fix (requireOrganizer checks roles array) + QA audit report"
+.\push.ps1
+```
 
-### 2. Patrick Manual Actions (Still Blocking #73/#74/#75 Runtime)
-**CRITICAL — these have NOT been run yet:**
+---
+
+## 1. Verify BUG #22 Backend Fix Live
+
+After push: log in as Nina (user1@example.com), navigate to `/organizer/sales`. Sales list should load (no more "Unable to load sales" error). Onboarding modal should complete without 403 loop.
+
+---
+
+## 2. Patrick Manual Actions (Still Blocking #73/#74/#75 Runtime)
+
+**CRITICAL — still not run:**
 ```powershell
 cd C:\Users\desee\ClaudeProjects\FindaSale\packages\database
 $env:DATABASE_URL="postgresql://neondb_owner:npg_VYBnJs8Gt3bf@ep-plain-sound-aeefcq1y.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require"
-npx prisma migrate deploy   # applies RoleConsent + dual-role schema migrations to Neon
-npx prisma generate         # regenerates TypeScript client with new fields
+npx prisma migrate deploy
+npx prisma generate
 ```
-
-Without these:
-- Feature #73 notifications won't save to DB (table may not exist in Neon)
-- Feature #74 RoleConsent records won't save (table doesn't exist at runtime)
-- Feature #75 lapse banner visible but subscriptionStatus won't update (webhook writes fail)
 
 ---
 
-## Next Features: #106–#109 Pre-Beta Safety Batch
+## 3. Bug Fix Dispatch Queue (S231)
 
-| # | Feature | Scope | Estimate | Notes |
-|---|---------|-------|----------|-------|
-| #106 | Rate limit burst capacity | Redis, 429 fallback | M | Spike detection, temp overages with backoff |
-| #107 | Database connection pooling | Railway, Neon | M | Prevent connection exhaustion under load |
-| #108 | API timeout guards | Backend, all routes | S | 30s timeout on all external calls (Stripe, Resend, AI) |
-| #109 | Graceful degradation on outages | Notification, email, AI | M | Queue fallback when external services timeout |
+Priority order from S230 QA audit:
 
-Estimate: 2 sessions back-to-back.
+| Bug | Severity | Scope | Notes |
+|-----|----------|-------|-------|
+| BUG #22 backend sweep | P0 → P1 | Backend, 15 files | 15 controllers still have `role !== 'ORGANIZER'`. `requireOrganizer` export is in `auth.ts` — dev just needs to import + apply. |
+| BUG #32 favorites toggle | P1 | Frontend | Toggle API always returns "Item removed." Favorites page always 0. Same component as #31. |
+| BUG #31 heart SVG fill | P1 | Frontend | SVG `fill` stays `none` regardless of toggle state. Aria-label toggles correctly. Same component. |
+| BUG #30 Follow handler | P1 | Frontend | Button fires ZERO requests. `POST /api/organizers/:id/follow` endpoint works (verified). Need organizer ID in button onClick. |
+| BUG #33 onboarding loop | P2 | Frontend | Skip doesn't persist `findasale_onboarded` to localStorage on navigation. |
+
+Dispatch BUG #31 + #32 together (same component). Then BUG #30. Then BUG #22 sweep.
+
+---
+
+## 4. Next Features: #106–#109 Pre-Beta Safety Batch
+
+Only after bugs above are cleared and Prisma actions run:
+
+| # | Feature | Scope | Estimate |
+|---|---------|-------|----------|
+| #106 | Rate limit burst capacity | Redis, 429 fallback | M |
+| #107 | Database connection pooling | Railway, Neon | M |
+| #108 | API timeout guards | Backend, all routes | S |
+| #109 | Graceful degradation on outages | Notification, email, AI | M |
 
 ---
 
@@ -48,38 +72,17 @@ Estimate: 2 sessions back-to-back.
 AI_COST_CEILING_USD=5.00
 MAILERLITE_SHOPPERS_GROUP_ID=182012431062533831
 ```
-Set in Railway Variables tab → redeploy backend.
-
----
-
-## S229 Summary
-
-Build repair session. No new features. All 6 issues resolved:
-- **stripeController.ts** — 3 webhook handlers using `findUnique` on non-`@unique` field → `findFirst`
-- **useNotifications.ts** — named import for default export → fixed + hook deleted (dead code)
-- **#75 lapse banner** — `tierLapsedAt` is on `UserRoleSubscription`, not `Organizer`; switched to `subscriptionStatus === 'canceled'` which IS on Organizer + in JWT
-- **Lapse banner CTA** — `/organizer/billing` (404) → `/organizer/subscription`
-- **notifications.tsx** — `window.location.href` → `router.push` (internal) / `window.open` (external)
-
----
-
-## Decision Log (Locked — S229)
-
-- **`tierLapsedAt` not in JWT:** Field lives on `UserRoleSubscription`, not `Organizer`. JWT is built from `organizerProfile` (Organizer). Use `subscriptionStatus: 'canceled'` to detect lapse state — it's set by the webhook handlers.
-- **Dead hook deleted:** `useNotifications.ts` had no callers. `notifications.tsx` owns its own state. Hook deleted to eliminate maintenance surface.
 
 ---
 
 ## Reference
 
 - Vercel URL: https://findasale-git-main-patricks-projects-f27190f8.vercel.app
-- Test accounts:
-  - Shopper: user11@example.com / password123
-  - Organizer PRO: user2@example.com / password123
-  - Admin/SIMPLE: user1@example.com / password123
-- CLAUDE.md v5.0 is the single authority
-- Scheduled tasks: 11 active (see findasale-records SKILL.md for full list)
+- Backend: https://backend-production-153c9.up.railway.app
+- Test accounts: Shopper user11, PRO user2, SIMPLE+ADMIN user1, TEAMS user3 (all password123)
+- Audit report: `claude_docs/audits/s227-qa-audit.md`
+- CLAUDE.md v5.0 is single authority
 
 ---
 
-**Next Session Lead:** Verify builds green → run Prisma actions → findasale-dev (#106–#109 dispatch)
+**Next Session Lead:** Push S230 changes → verify BUG #22 live → dispatch #31+#32 to findasale-dev → then #30 → then #22 sweep

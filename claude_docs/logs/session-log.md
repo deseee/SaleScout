@@ -16,6 +16,24 @@ Keep only the 5 most recent sessions. Delete older entries — git history and S
 
 ## Recent Sessions
 
+### Session 230 — 2026-03-21 — S227 QA Audit Completion + BUG #22 Backend Fix
+
+**Worked on:** (1) Completed deep functional QA audit across 4 roles (Ian/Shopper, Nina/ADMIN, Oscar/PRO, Quincy/TEAMS) using Chrome MCP browser automation with XHR/fetch interception. Tested cross-role round-trips: messaging ✅, Buy Now ✅, favorites (broken), Follow (broken). (2) Confirmed BUG #22 backend: Nina's JWT has `role: "ADMIN"`, not `"ORGANIZER"`. Direct API call `GET /api/organizers/me` → 403. UI shows "Unable to load sales" + infinite onboarding loop. (3) Confirmed BUG #30: Follow button fires 0 network requests — endpoint exists and is correct, bug is in frontend onClick handler. (4) Wrote full audit report to `claude_docs/audits/s227-qa-audit.md`. (5) Fixed BUG #22 backend: added `requireOrganizer` export to `auth.ts` (checks both `roles?.includes('ORGANIZER')` and `role === 'ORGANIZER'`); updated 5 inline guards in `organizers.ts`.
+
+**Decisions:** BUG #22 backend fix scoped to `organizers.ts` (5 confirmed broken routes). 15 other files with same pattern flagged for follow-up sweep. BUG #30 root cause is frontend — `POST /:id/follow` endpoint confirmed correct in backend.
+
+**Token efficiency:** QA audit used Chrome MCP browser automation (no code subagent). Fix inline (2 files, <20 lines total). Efficient session. Started from prior compressed context.
+
+**Token burn:** ~85k tokens (est.), 1 compression (context limit hit in prior session — resumed from summary).
+
+**Next up:** Verify BUG #22 fix live (Nina can now load sales). Dispatch BUG #30 (frontend Follow handler), BUG #31/#32 (favorites visual + toggle logic), BUG #33 (onboarding persistence). 15-file `role !== 'ORGANIZER'` sweep. Run Prisma actions (still blocking #73/#74/#75). Then #106–#109 pre-beta safety batch.
+
+**Blockers:** Neon Prisma actions still pending Patrick. BUG #22 backend fix not yet pushed/verified live.
+
+**Files changed:** `packages/backend/src/middleware/auth.ts` (requireOrganizer added), `packages/backend/src/routes/organizers.ts` (5 role checks fixed), `claude_docs/audits/s227-qa-audit.md` (new), `claude_docs/STATE.md`, `claude_docs/logs/session-log.md`, `claude_docs/next-session-prompt.md` | Compressions: 1 (prior session) | Subagents: findasale-dev (BUG #22 fix), findasale-records (wrap) | Push method: Patrick PS1
+
+---
+
 ### Session 229 — 2026-03-21 — Railway/Vercel Build Repair + Frontend QA Audit + #75 Lapse Banner Fix
 
 **Worked on:** (1) Railway build failures: stripeController.ts — 3x `findUnique`→`findFirst` for non-`@unique` `stripeCustomerId` field, null guard on `invoice.customer`, typed catch `(err: unknown)`. (2) Vercel build failure: `useNotifications.ts` named import → default import for `api`. (3) Full frontend QA audit — TypeScript clean. 2 BLOCKERs found: (a) #75 lapse banner dead — `tierLapsedAt` is on `UserRoleSubscription`, not `Organizer`; banner always invisible. (b) Lapse banner CTA → `/organizer/billing` (page doesn't exist). 4 WARNs: dead hook, polling without auth guard, `window.location.href` for internal nav, dead code branch in register.tsx. (4) All BLOCKERs + WARNs fixed: switched banner condition to `subscriptionStatus === 'canceled'` (valid Organizer field), added `subscriptionStatus` to all 3 JWT sign blocks + AuthContext, changed CTA to `/organizer/subscription`, deleted dead `useNotifications.ts` hook, fixed `notifications.tsx` nav to `router.push`/`window.open`. Required 3 push rounds due to wrong-model discovery mid-session.
@@ -88,19 +106,4 @@ Keep only the 5 most recent sessions. Delete older entries — git history and S
 
 ---
 
-### Session 216 — 2026-03-20 — Dual-Role Account Phase 1 + Platform Safety Sprint + Chrome Audits
-
-**Worked on:** (1) #76 Skeleton loaders CONFIRMED shipped from S215. (2) Chrome audit: 7 secondary routes — ALL PASS. Report: `claude_docs/audits/chrome-secondary-routes-s216.md`. (3) #72 Dual-Role Account Phase 1 COMPLETE — `User.roles` array, `UserRoleSubscription` table, `RoleConsent` table. Migration SQL: `20260320204815_add_dual_role_schema`. Backend utility: `roleUtils.ts`. **Patrick action: run `prisma migrate deploy + prisma generate` against Neon.** (4) Platform safety #94/#97/#98/#99 COMPLETE: coupon rate limiting (Redis, 10/min), admin pagination hard cap (100), request correlation IDs, coupon collision retry (3 attempts). (5) P1 fix: Date input on create-sale — added `min` attribute enabling HTML5 picker. (6) Chrome audit: Organizer happy path — P1 found + fixed same session.
-
-**Decisions:** #72 Phase 2 gated on Patrick running Neon migration. P2 items (carousel click + LiveFeedTicker live data) queued S217.
-
-**Token efficiency:** Records-agent work, Chrome audits via browser automation. Low-medium burn.
-
-**Token burn:** ~85k tokens (est.), 0 checkpoints.
-
-**Next up:** Patrick: execute Prisma migration + generate for #72. #72 Phase 2 (JWT + auth middleware). #73/#74/#75.
-
-**Blockers:** #72 Phase 2 blocked on Patrick running `prisma migrate deploy + prisma generate` against Neon.
-
-**Files changed:** `packages/database/prisma/schema.prisma`, migration SQL (new), `roleUtils.ts` (new), `couponRateLimiter.ts` (new), `correlationId.ts` (new), `packages/backend/src/app.ts`, `betaInviteController.ts`, `couponService.ts`, `packages/frontend/pages/organizer/create-sale.tsx`, audit reports (2 new) | Compressions: 0 | Subagents: 0 | Push method: Patrick PS1
 

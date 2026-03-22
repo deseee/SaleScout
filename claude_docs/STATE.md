@@ -7,6 +7,17 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Active Objective
 
+**Session 230 COMPLETE (2026-03-21) — S227 QA AUDIT COMPLETION + BUG #22 BACKEND FIX:**
+- ✅ Full 4-role deep functional QA audit completed (Chrome MCP browser automation, XHR/fetch interception, direct JWT API calls)
+- ✅ BUG #22 backend confirmed: `GET /api/organizers/me` → 403 for Nina (ADMIN). Root cause: `requireOrganizer` checked `role === 'ORGANIZER'` (singular); Nina's JWT has `role: "ADMIN"`. Fixed in `auth.ts` (added `requireOrganizer` export) + `organizers.ts` (5 inline checks updated to also check `roles?.includes('ORGANIZER')`).
+- ✅ BUG #30 confirmed dead: Follow button fires ZERO network requests (0 XHR, 0 fetch). Endpoint `POST /:id/follow` exists and is correct — bug is in frontend click handler. Flagged for separate frontend dispatch.
+- ✅ Audit report written: `claude_docs/audits/s227-qa-audit.md`
+- ✅ BUGs resolved since S222: #25 (items load), #29 (Message Organizer), #22 frontend, #20 shopper sort
+- ⚠️ Still broken: BUG #22 backend (fix shipped S230, not yet live-verified), BUG #30 (frontend), BUG #31 (heart SVG fill), BUG #32 (favorites toggle always removes), BUG #33 (onboarding tour loops)
+- ⚠️ 15 other backend files have same `role !== 'ORGANIZER'` pattern — needs follow-up sweep dispatch to findasale-dev
+- ⚠️ PENDING: `prisma migrate deploy + prisma generate` against Neon (still blocking #73/#74/#75 runtime — NOT YET DONE)
+- Last Updated: 2026-03-21
+
 **Session 229 COMPLETE (2026-03-21) — RAILWAY/VERCEL BUILD REPAIR + FRONTEND QA AUDIT + #75 LAPSE BANNER FIX:**
 - ✅ Railway build unblocked: stripeController.ts — 3x `findUnique`→`findFirst` for non-unique `stripeCustomerId`, null guard on `invoice.customer`, typed `(err: unknown)` catch handlers
 - ✅ Vercel build unblocked: `useNotifications.ts` named import → default import for `api`
