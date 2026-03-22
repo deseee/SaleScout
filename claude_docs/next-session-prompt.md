@@ -1,71 +1,92 @@
-# Next Session Prompt — S234
+# Next Session Prompt — S235
 
 **Date:** 2026-03-22
-**Status:** S233 COMPLETE — All 24 QA audit bugs + 11 Sentry production errors fixed and pushed. App is in significantly better shape. Beta blocker status improved.
+**Status:** S234 COMPLETE — Build fixes done. Passkey security hardened. Features #106–#109 pre-beta safety batch shipped. Railway env vars set. Prisma actions completed.
 
 ---
 
 ## Session Start Checklist
 
 1. Load `STATE.md`
-2. Check Sentry (https://deseee.sentry.io) — verify the 11 errors from S233 are resolving after deploy
-3. Verify Railway + Vercel build green after the two S233 pushes
+2. Check Sentry (https://deseee.sentry.io) — verify errors from S233 continue resolving after S234 passkey/timeout middleware deploys
+3. Verify Railway + Vercel build green after S234 push
 
 ---
 
 ## Still-Pending Patrick Actions
 
-**Prisma (CRITICAL — blocking #73/#74/#75 runtime):**
+**pnpm-lock.yaml regeneration (BLOCKING Railway build):**
+```powershell
+cd C:\Users\desee\ClaudeProjects\FindaSale
+pnpm install
+git add pnpm-lock.yaml packages/backend/package.json
+git commit -m "fix: add rate-limit-redis to lockfile"
+.\push.ps1
+```
+
+**Railway env vars for #107 (DATABASE_URL_UNPOOLED):**
+```
+DATABASE_URL=postgresql://neondb_owner:npg_VYBnJs8Gt3bf@ep-plain-sound-aeefcq1y-pooler.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require
+DATABASE_URL_UNPOOLED=postgresql://neondb_owner:npg_VYBnJs8Gt3bf@ep-plain-sound-aeefcq1y.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require
+```
+
+**prisma generate after Railway env vars set:**
 ```powershell
 cd C:\Users\desee\ClaudeProjects\FindaSale\packages\database
 $env:DATABASE_URL="postgresql://neondb_owner:npg_VYBnJs8Gt3bf@ep-plain-sound-aeefcq1y.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require"
-npx prisma migrate deploy
 npx prisma generate
 ```
 
-**Railway Environment Variables (still missing):**
-```
-AI_COST_CEILING_USD=5.00
-MAILERLITE_SHOPPERS_GROUP_ID=182012431062533831
-```
+---
+
+## 1. Start: Patrick Runs pnpm install + Lockfile Commit
+
+The rate-limit-redis package was added to backend but pnpm-lock.yaml is stale. Patrick must:
+1. Run `pnpm install` in project root
+2. Commit pnpm-lock.yaml + package.json
+3. Push (.\.push.ps1)
+
+This unblocks Railway build. Vercel depends on it.
 
 ---
 
-## 1. Passkey Security Audit (Queued — dispatch immediately)
+## 2. Patrick Sets Railway env vars for #107
 
-Dispatch `findasale-hacker` on the passkey concurrent session race condition flagged in S200 and never re-verified.
+After lockfile is committed:
+1. Set DATABASE_URL (pooled) and DATABASE_URL_UNPOOLED (direct) in Railway dashboard
+2. Run `prisma generate` locally to regenerate client with directUrl field
 
-**Context for hacker dispatch:**
-- Session S200 flagged a concurrent session race in `authenticateBegin` — a fixed key was used for the challenge, meaning two simultaneous login attempts could collide or allow replay.
-- The fix was applied at S200 but never re-tested under concurrent conditions.
-- This is a P0 security concern before any public beta with real users.
-- Ask hacker to: read the passkey auth flow in full, model the threat, verify the fix holds under concurrent load, and flag any other passkey-related auth surface areas.
+This completes #107 connection pooling config. Required before any database-heavy load testing.
 
 ---
 
-## 2. Features #106–#109 Pre-Beta Safety Batch
+## 3. Verify Builds Green
 
-After passkey audit clears:
-
-| # | Feature | Scope | Estimate |
-|---|---------|-------|----------|
-| #106 | Rate limit burst capacity | Redis, 429 fallback | M |
-| #107 | Database connection pooling | Railway, Neon | M |
-| #108 | API timeout guards | Backend, all routes | S |
-| #109 | Graceful degradation on outages | Notification, email, AI | M |
-
-Dispatch findasale-architect first for #107 (Neon pooling has specific config requirements — PgBouncer vs direct). Then findasale-dev for all four.
+After Patrick's lockfile + env var commits:
+1. Monitor Railway build — should complete without ERR_ERL_KEY_GEN_IPV6 or frozen-lockfile errors
+2. Monitor Vercel build — should complete without TypeScript errors
+3. If both green, proceed to QA
 
 ---
 
-## 3. Beta Readiness Check (after #106–#109)
+## 4. Full Follow System + Edit-Sale Dates Live Test (Deferred from S234 QA)
 
-Run a fresh QA audit pass — the previous NO-GO verdict had 24 bugs, all now fixed. A clean pass would unlock beta recruitment.
+**Scope:** Live test on https://finda.sale the two backend fixes that were code-verified but not live-tested:
+- **Follow system:** Organizer's follow button fires POST, counter increments, refresh persists
+- **Edit-sale dates:** Dates pre-populate from existing sale data (was blank in S232 BUG-07)
 
-Dispatch findasale-qa for a targeted re-audit focused on:
-- P0/High areas that were fixed (messages thread, Stripe checkout, admin invites, follow system)
-- Sentry errors that were fixed (verify they stop appearing after deploy)
-- Any regressions from the large fix batch
+Use test account `user2` (PRO organizer) or `user11` (shopper). Create/edit a test sale if needed.
+
+---
+
+## 5. Beta Recruitment Outreach (CONDITIONAL)
+
+**QA verdict from S234:** CONDITIONAL GO — all 24 prior bugs fixed, #106–#109 hardening complete, passkey security improved.
+
+If live testing (§4) clears all flows:
+- Dispatch `findasale-sales-ops` to start organizer recruitment outreach
+- Prepare 5–10 beta organizers list (Grand Rapids area, estate sale experience)
+- Outreach script: "We're launching FindA.Sale beta — early access to streamline estate sale management"
 
 ---
 
@@ -75,9 +96,10 @@ Dispatch findasale-qa for a targeted re-audit focused on:
 - Backend: https://backend-production-153c9.up.railway.app
 - Sentry: https://deseee.sentry.io/issues/errors-outages/
 - Test accounts: Shopper `user11`, PRO `user2`, SIMPLE+ADMIN `user1`, TEAMS `user3` (all `password123`)
-- QA audit (original): `claude_docs/operations/qa-audit-2026-03-22.md`
-- Previous passkey audit: `claude_docs/audits/passkey-qa-audit-s200.md`
+- QA audit (original — S232): `claude_docs/operations/qa-audit-2026-03-22.md`
+- Passkey security fixes: `packages/backend/src/lib/webauthnChallenges.ts`, `packages/backend/src/controllers/passkeyController.ts`
+- Features #106–#109: `packages/backend/src/middleware/requestTimeout.ts`, `packages/database/prisma/schema.prisma` (directUrl)
 
 ---
 
-**Next Session Lead:** Verify deploys green → check Sentry errors resolving → dispatch hacker on passkey → features #106–#109 → re-audit for beta GO/NO-GO
+**Next Session Lead:** Patrick runs pnpm install + env vars → verify builds green → live test follow system + edit dates → if PASS, dispatch sales-ops for beta recruitment

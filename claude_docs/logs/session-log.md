@@ -16,6 +16,24 @@ Keep only the 5 most recent sessions. Delete older entries — git history and S
 
 ## Recent Sessions
 
+### Session 234 — 2026-03-22 — Build Fixes + Passkey Security Hardening + Features #106–#109 Pre-Beta Safety Batch
+
+**Worked on:** (1) Fixed pnpm-lock.yaml frozen-lockfile Railway error — uuid@9 added but lockfile stale. (2) Fixed RippleIndicator.tsx TypeScript build error — `session?.user?.role` cast to `any`. (3) Fixed express-rate-limit v8 ERR_ERL_KEY_GEN_IPV6 in 4 rate limiters — added `keyGenerator` callback. (4) Dockerfile cache-busted to force Railway redeploy. (5) **Passkey security:** Moved challenge storage from in-memory Map to Redis with atomic getDel (P1 race condition fix). Added counter update atomicity with `updateMany` + `counter: { lt: newCounter }` (P2 replay attack). Added flow-type tagging to challenges. (6) **#106–#109 features:** Rate-limit-redis added with fallback, DB connection pooling config (directUrl split), API timeout middleware (30s, 503), graceful degradation wrappers on AI/notification services. (7) Patrick actions: Prisma migrate deploy + generate against Neon (DONE). Railway env vars for pooling (AI_COST_CEILING_USD + MAILERLITE_SHOPPERS_GROUP_ID set).
+
+**Decisions:** Redis passkey challenges are non-persisted (TTL 10min) — acceptable for security + simplicity. Atomic counter update prevents replay via decrement-check. Timeout middleware applies to all routes (no exclusions). Graceful degradation uses try/catch (no retry loop, fail-open).
+
+**Token efficiency:** High. Dispatch findasale-hacker for passkey security audit, findasale-dev for #106–#109, findasale-records for wrap. Zero wasted turns.
+
+**Token burn:** ~140k tokens (est.), 0 compressions. Near session ceiling.
+
+**Next up:** Dispatch findasale-hacker on passkey concurrent session retest. Features #106–#109 full QA. Beta readiness re-audit (all 24 prior bugs now fixed). If clean, start organizer recruitment.
+
+**Blockers:** pnpm-lock.yaml needs Patrick commit + push (rate-limit-redis). Railway env vars applied but prisma generate call pending to regenerate client with directUrl.
+
+**Files changed:** `packages/backend/package.json` (rate-limit-redis added), `packages/backend/src/index.ts` (keyGenerator + timeout + graceful degradation), `packages/backend/src/lib/webauthnChallenges.ts` (Redis + getDel atomicity), `packages/backend/src/lib/redis.ts` (Redis passkey client), `packages/backend/src/controllers/passkeyController.ts` (counter atomicity), `packages/database/prisma/schema.prisma` (directUrl), `packages/backend/src/middleware/requestTimeout.ts` (new), `packages/backend/src/services/cloudAIService.ts` (try/catch), `packages/backend/src/services/notificationService.ts` (try/catch), `pnpm-lock.yaml` | Compressions: 0 | Subagents: findasale-hacker, findasale-dev, findasale-records | Push method: Subagent + Patrick PS1 (pnpm-lock)
+
+---
+
 ### Session 233 — 2026-03-22 — Full Bug Queue Dispatch: 24 QA Bugs + 11 Sentry Errors Fixed
 
 **Worked on:** (1) Dispatched all 24 bugs from qa-audit-2026-03-22.md to findasale-dev in 5 parallel batches (P0s, High, Medium/API, Medium/Logic, Low/Polish). All fixed and pushed by Patrick. (2) Dispatched findasale-records to cross-check previous audits (s222, s227, passkey-s200) — found S227 missed bug (requireOrganizer blocking ADMIN, fixed in same batch). (3) Checked Sentry via Chrome MCP — found 11 live production errors not in the audit. Dispatched 3 parallel dev batches (backend, frontend-logic, frontend-infra) to fix all 11. All fixed and pushed. (4) Confirmed Sentry IS working (BUG-20 503 was intermittent). (5) Queued passkey race condition (S200 unverified P0) for findasale-hacker next session.
@@ -30,7 +48,7 @@ Keep only the 5 most recent sessions. Delete older entries — git history and S
 
 **Blockers:** Prisma actions pending Patrick. Railway env vars pending Patrick. Passkey security audit queued.
 
-**Files changed:** 23 QA bug fix files (backend controllers/routes + frontend pages/components) + 11 Sentry fix files (backend package.json, index.ts + 9 frontend files) — both pushed by Patrick via `.\push.ps1`. Full file list in two push blocks delivered in-session. | Compressions: 0 | Subagents: 9 (5× findasale-dev, 1× findasale-records, 3× general-purpose dev) | Push method: Patrick PS1 (×2)
+**Files changed:** 23 QA bug fix files (backend controllers/routes + frontend pages/components) + 11 Sentry fix files (backend package.json, index.ts + 9 frontend files) — both pushed by Patrick via `.\.push.ps1`. Full file list in two push blocks delivered in-session. | Compressions: 0 | Subagents: 9 (5× findasale-dev, 1× findasale-records, 3× general-purpose dev) | Push method: Patrick PS1 (×2)
 
 ---
 
@@ -87,23 +105,4 @@ Keep only the 5 most recent sessions. Delete older entries — git history and S
 **Files changed:** `packages/backend/src/middleware/auth.ts` (requireOrganizer added), `packages/backend/src/routes/organizers.ts` (5 role checks fixed), `claude_docs/audits/s227-qa-audit.md` (new), `claude_docs/STATE.md`, `claude_docs/logs/session-log.md`, `claude_docs/next-session-prompt.md` | Compressions: 1 (prior session) | Subagents: findasale-dev (BUG #22 fix), findasale-records (wrap) | Push method: Patrick PS1
 
 ---
-
-### Session 229 — 2026-03-21 — Railway/Vercel Build Repair + Frontend QA Audit + #75 Lapse Banner Fix
-
-**Worked on:** (1) Railway build failures: stripeController.ts — 3x `findUnique`→`findFirst` for non-`@unique` `stripeCustomerId` field, null guard on `invoice.customer`, typed catch `(err: unknown)`. (2) Vercel build failure: `useNotifications.ts` named import → default import for `api`. (3) Full frontend QA audit — TypeScript clean. 2 BLOCKERs found: (a) #75 lapse banner dead — `tierLapsedAt` is on `UserRoleSubscription`, not `Organizer`; banner always invisible. (b) Lapse banner CTA → `/organizer/billing` (page doesn't exist). 4 WARNs: dead hook, polling without auth guard, `window.location.href` for internal nav, dead code branch in register.tsx. (4) All BLOCKERs + WARNs fixed: switched banner condition to `subscriptionStatus === 'canceled'` (valid Organizer field), added `subscriptionStatus` to all 3 JWT sign blocks + AuthContext, changed CTA to `/organizer/subscription`, deleted dead `useNotifications.ts` hook, fixed `notifications.tsx` nav to `router.push`/`window.open`. Required 3 push rounds due to wrong-model discovery mid-session.
-
-**Decisions:** `tierLapsedAt` cannot go in JWT — it's on `UserRoleSubscription` not `Organizer`. `subscriptionStatus: 'canceled'` is the correct signal for the lapse banner. Dead hook deleted (no callers; notifications.tsx has own implementation).
-
-**Token efficiency:** All inline edits (each <20 lines, 1-2 files). QA audit via findasale-qa subagent. Medium burn from 3 build-repair cycles.
-
-**Token burn:** ~90k tokens (est.), 0 compressions.
-
-**Next up:** Verify Railway + Vercel build green on latest commit. Run `prisma migrate deploy + prisma generate` against Neon (still pending — blocks #73/#74/#75 runtime). Then features #106–#109 (pre-beta safety batch).
-
-**Blockers:** Neon Prisma actions still pending Patrick.
-
-**Files changed:** `packages/backend/src/controllers/stripeController.ts`, `packages/backend/src/controllers/authController.ts`, `packages/frontend/hooks/useNotifications.ts` (deleted), `packages/frontend/components/AuthContext.tsx`, `packages/frontend/pages/notifications.tsx`, `packages/frontend/pages/organizer/dashboard.tsx`, `claude_docs/STATE.md`, `claude_docs/logs/session-log.md`, `claude_docs/next-session-prompt.md` | Compressions: 0 | Subagents: 1 (findasale-qa) | Push method: Patrick PS1 (3 commits)
-
----
-
 
