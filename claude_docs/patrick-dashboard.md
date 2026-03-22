@@ -1,59 +1,47 @@
 # FindA.Sale — Patrick's Dashboard
-Last Updated: 2026-03-22 (Session 235 wrap complete)
+Last Updated: 2026-03-22 (Session 236 wrap)
 
 ## Build Status
 - **Vercel (Frontend):** ✅ Live — [finda.sale](https://finda.sale)
 - **Railway (Backend):** ✅ Live
-- **Sentry:** Review open issues at https://deseee.sentry.io — S234 passkey/timeout fixes should reduce error volume
+- **Sentry:** Review at https://deseee.sentry.io — S233/S234 fixes should have reduced error volume significantly
 
-## Live QA Verdict
-- **Status:** CONDITIONAL GO — All 24 S233 bugs fixed and verified in code. Awaiting live re-test in S236.
-- **Last tested:** 2026-03-22 (S233 code audit + S234 live verification)
-- **Gate for beta launch:** S236 must complete live QA audit before any organizer-facing recruitment
+## Live QA Status
+- **Status:** 17 frontend issues fixed in S236 (6 original bugs + 11 auth redirects across 10 files). 167 pages audited — all navigation links resolve, all major flows complete.
+- **Remaining risk:** Live smoke test not yet done (S237 will verify). Git repo has ~80 untracked doc files cluttering status.
+- **Beta tester readiness:** Code is shipped. Next session: live verification + realistic test data + mobile check.
 
-## Critical — Patrick Actions Required Before S236 Starts
+## No Blocking Patrick Actions
+Prisma + Railway env vars confirmed done. S236 push confirmed. No manual steps needed before S237.
 
-**1. Prisma + Railway env vars (blocks #73/#74/#75 runtime):**
-```powershell
-cd C:\Users\desee\ClaudeProjects\FindaSale\packages\database
-$env:DATABASE_URL="postgresql://neondb_owner:npg_VYBnJs8Gt3bf@ep-plain-sound-aeefcq1y.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require"
-npx prisma migrate deploy
-npx prisma generate
-```
-
-Then in Railway dashboard, set these environment variables:
-- `AI_COST_CEILING_USD=5.00`
-- `MAILERLITE_SHOPPERS_GROUP_ID=182012431062533831`
-
-(All skills already installed + S235 changes already pushed)
-
-## Next 3 Decisions for S236
-1. Approve Print Kit (Printful/POD integration) as new feature — from innovation research
-2. Review digital assets secondary revenue — legal review budget ($5–10K) recommended before development
-3. Confirm Passkey race condition P0 verification scope (full end-to-end test vs code-only review)
+## Next 3 Decisions
+1. Approve Reputation + Condition Tags as P0 pre-beta features (from `INNOVATION_HANDOFF_S236.md`)
+2. Confirm sale-type-aware discovery for Q3 roadmap
+3. Budget approval for digital assets legal review ($2-3K)
 
 ## Project Health
 - **Features shipped:** 71 across 4 tiers (SIMPLE/PRO/TEAMS + FREE shopper)
-- **Beta status:** Code-verified ready, pending live QA re-test (S236)
+- **Beta status:** Code shipped and audited. Live verification + data seeding in S237.
 - **Platform scope:** Estate sales, yard sales, auctions, flea markets, consignment
-- **Active users:** Early organizers in Grand Rapids, MI
-- **Primary goal:** Reduce organizer manual work
+- **This week:** Real potential customers testing the product freely in all roles
 
-## What Was Just Done (S235)
-- ✅ Innovation research: 4 topics completed, research memos in `claude_docs/research/`
-- ✅ Skills audit: 8 packages updated for all secondary sales types, all installed by Patrick
-- ✅ Project hygiene: 19 temp files deleted, 26 files archived, session-log rotated
-- ✅ Doc overhaul: CORE.md fixed, 4 new reference docs created, file-creation-schema updated
-- ✅ All changes pushed to GitHub (commit 6c0af66)
+## What Was Just Done (S236)
+- ✅ Fixed /settings 404, /wishlist 404, pricing contrast, organizer profile identity, Manage Plan verified
+- ✅ Fixed 11 `/auth/login` → `/login` redirect 404s across 10 files (would have blocked every unauthenticated interaction)
+- ✅ Created /creator/connect-stripe redirect
+- ✅ Comprehensive route audit: 167 pages, all nav links verified
+- ✅ Innovation re-run with broader secondary sales framing (5 research docs updated)
+- ✅ Advisory board: Print Kit deferred (templates approach), Etsy deferred, Reputation/Condition Tags approved P0
+- ✅ CLAUDE.md hardened: mandatory post-fix live verification, push ban absolute, VM temp files clarified
+- ✅ Power user workflow audit: S230-S235 changes stable, 3 doc fixes applied
 
-## S236 Work Queue
-1. **Frontend QA + UX audit** (parallel: findasale-qa + findasale-ux)
-   - Live test all 24 S233 bug fixes across all roles + tiers
-   - Full responsive + dark mode + accessibility pass
-2. **Re-dispatch innovation agent** with corrected scope (Amazon/POD, BizBuySell, Joybird, digital assets)
-3. **Passkey security end-to-end** verification (findasale-hacker)
-4. **Features #106–#109** if QA gives green light
+## S237 Work Queue
+1. **Live smoke test** (mandatory — new CLAUDE.md rule)
+2. **Git cleanup:** .gitignore for temp files, commit untracked docs
+3. **Seed realistic test data** for beta testers
+4. **Mobile verification** (PWA, touch targets, responsive)
+5. **Full role walkthroughs** (shopper, organizer, unauthenticated)
 
 ---
 
-**Note:** This file is updated by Records agent at every session wrap. Patrick should read this instead of STATE.md for a human-readable one-pager.
+**Note:** This file is updated by Records agent at every session wrap. Read this instead of STATE.md for a human-readable one-pager.

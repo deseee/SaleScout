@@ -1,66 +1,61 @@
 # Next Session Prompt — S237
 
-**Date:** 2026-03-22 (S235 wrap complete)
-**Status:** All S235 doc work + pushes complete. Skills installed. Patrick still needs Prisma + Railway env vars.
+**Date:** 2026-03-22 (S236 wrap complete)
+**Status:** All S236 code + docs pushed. Beta testers evaluating this week — every session until launch is tester-readiness focused.
 
 ---
 
 ## Session Start Checklist
 
-1. Load `STATE.md` — reflects S235 completion
-2. Review `patrick-dashboard.md` — one-pager of current status + pending Patrick actions
-3. Check `INNOVATION_HANDOFF_2026-03-22.md` — 4 research topics, Print Kit + digital assets most actionable
-4. Check Sentry (https://deseee.sentry.io) — S234 passkey/timeout fixes should continue reducing error volume
+1. Load `STATE.md` — reflects S236 completion
+2. **MANDATORY: Live smoke test** (CLAUDE.md §10 rule) — use Chrome MCP to verify every page fixed in S236:
+   - `/settings` → should redirect by role
+   - `/wishlist` → should redirect to `/shopper/favorites`
+   - `/profile` as organizer → should NOT show Hunt Pass, badges, bids
+   - `/organizer/premium` → pricing contrast should be readable
+   - Any page with bid/like/follow → should redirect to `/login` (not `/auth/login`)
+3. If ANY page fails live test → dispatch findasale-dev BEFORE all other work
 
 ---
 
-## Pending Patrick Actions (Must Complete Before S237 Starts)
+## S237 Priority: Tester-Ready Polish
 
-**1. Run Prisma + Railway env vars (S234 — CRITICAL BLOCKER):**
-```powershell
-cd C:\Users\desee\ClaudeProjects\FindaSale\packages\database
-$env:DATABASE_URL="postgresql://neondb_owner:npg_VYBnJs8Gt3bf@ep-plain-sound-aeefcq1y.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require"
-npx prisma migrate deploy
-npx prisma generate
-```
+Real potential customers are testing the product this week (starting ~2026-03-22). They explore freely in all roles. Every broken page costs credibility. Every confusing label loses trust. The product must feel finished.
 
-Then in Railway dashboard, set these environment variables:
-- `AI_COST_CEILING_USD=5.00`
-- `MAILERLITE_SHOPPERS_GROUP_ID=182012431062533831`
+**1. Git cleanup (first thing):**
+- Add `.gitignore` entries: `_tmp_*`, `.skills/`, `.claude/`, `package-lock.json`, `conversation-defaults-SKILL-*.tmp.*`
+- Commit all ~80 legitimate untracked doc files in one batch: `claude_docs/archive/`, `claude_docs/research/`, `claude_docs/audits/`, `claude_docs/operations/`, etc.
+- Goal: `git status` shows ZERO noise after this
 
-(S235 skills already installed and deleted `updated-skills/` folder)
+**2. Seed realistic test data:**
+- Create 2-3 real-looking sales with photos, descriptions, plausible prices
+- Use real Grand Rapids addresses (public places, not homes)
+- Real organizer names, not "Test Organizer 1"
+- Items with variety: furniture, collectibles, tools, kitchenware
+
+**3. Full role walkthrough:**
+- Walk through as SHOPPER: browse → search → view sale → view items → favorite → message organizer
+- Walk through as ORGANIZER: dashboard → create sale → add items → AI tagging → publish → view analytics
+- Walk through as unauthenticated user: browse → try to interact → login flow → back to where they were
+
+**4. Mobile verification:**
+- PWA install prompt working?
+- Touch targets large enough?
+- No horizontal scroll?
+- Navigation usable on small screens?
 
 ---
 
-## S237 Work Queue (In Order)
+## Pending Patrick Decisions
 
-**1. Frontend QA + UX audit** — parallel dispatch
-   - Dispatch **findasale-qa:** Live audit of all organizer + shopper flows post-S233 bug fixes. Test all 24 fixed bugs live: messages, checkout, follow, favorites, edit dates, dark mode, etc. Full role × tier × operation matrix.
-   - Dispatch **findasale-ux:** Polish audit — responsive, dark mode, mobile, accessibility pass. Use latest fixes from S233.
-
-**2. Re-dispatch innovation agent** — corrected scope
-   - Same 4 topics (Amazon/POD, BizBuySell, Joybird, digital assets)
-   - Broader secondary sales framing (not estate-sales-only)
-   - Skills now updated so output will be correct
-
-**3. Passkey race condition audit** — findasale-hacker
-   - S234 fix was code-reviewed clean but unverified live
-   - Full end-to-end passkey flow test across concurrent sessions
-   - Confirm Redis TTL + atomic getDel works under load
-
-**4. Features #106–#109 if QA clears**
-   - All code-verified S234
-   - Rate limit burst (rate-limit-redis), DB pooling (directUrl), API timeout (30s), graceful degradation
-   - Only proceed if QA gives GO
+1. Review `claude_docs/research/INNOVATION_HANDOFF_S236.md` — confirm Reputation + Condition Tags as P0 pre-beta features
+2. Confirm sale-type-aware discovery as Q3 feature
+3. Legal budget for digital assets review ($2-3K) — approve/defer
 
 ---
 
 ## Context Loading
 
-- New files to load at session start: `claude_docs/patrick-dashboard.md` (Patrick's status), `claude_docs/operations/subagent-quick-ref.md` (agent entry points)
-- Reference: `INNOVATION_HANDOFF_2026-03-22.md`, `claude_docs/operations/qa-audit-2026-03-22.md`
+- `claude_docs/patrick-dashboard.md` — one-pager status
+- `claude_docs/feature-decisions/demo-readiness-plan-S236.md` — demo script + readiness assessment
 - Test accounts: Shopper `user11@example.com`, PRO Organizer `user2@example.com`, SIMPLE+ADMIN `user1@example.com`, TEAMS `user3@example.com` (all `password123`)
-
----
-
-**Critical:** Prisma + Railway env vars must be applied before S237 QA dispatch can proceed. Without them, #73/#74/#75 runtime errors will block testing.

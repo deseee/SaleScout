@@ -16,6 +16,24 @@ Keep only the 5 most recent sessions. Delete older entries — git history and S
 
 ## Recent Sessions
 
+### Session 236 — 2026-03-22 — Beta Tester Readiness: Bug Blitz + Route Audit + Innovation Re-Run
+
+**Worked on:** (1) Fixed stale Prisma/env var PENDING references in STATE.md + next-session-prompt.md (confirmed done S234). (2) Parallel dispatches: findasale-qa live audit, findasale-ux polish audit, findasale-innovation re-run (broader secondary sales framing), cowork-power-user workflow audit. (3) QA found /settings 404, /wishlist 404, pricing contrast WCAG fail, organizer profile showing shopper content. All fixed via findasale-dev. (4) Comprehensive route audit: 167 pages checked. Found `/auth/login` → 404 in 10 files (11 instances) — critical for unauthenticated users trying to interact. All fixed. Created `/creator/connect-stripe.tsx` redirect. (5) Innovation re-run with corrected broader framing: Print Kit TAM 3-4x expansion, Etsy API new P1 (deferred by board — no revenue model), FB Marketplace + Amazon SP-API → REJECT. (6) Advisory board reviewed Print Kit (deferred — templates approach) and Etsy (deferred). Reputation + Condition Tags approved P0 pre-beta. (7) CLAUDE.md hardened: §5 push ban absolute, §10 VM temp files + mandatory post-fix live verification rule. (8) Power user audit: workflow changes stable, 3 doc clarifications applied. (9) Patrick pushed all 31 files + 3 S235 wrap files.
+
+**Decisions:** Print Kit deferred in favor of downloadable templates (organizers can print themselves). Etsy dual-listing deferred (no revenue model, TOS blocks commissions). Mandatory live-site smoke test after bug fix sessions now a hard CLAUDE.md rule. Real beta testers this week — product must feel finished, not like a beta.
+
+**Token efficiency:** High. 4 parallel subagent dispatches (QA, UX, Innovation, Power User) + 2 dev dispatches + advisory board + records. Route audit caught 11 auth redirect 404s that would have blocked every tester interaction.
+
+**Token burn:** ~180k tokens (est.), 0 compressions. Heavy session — 8 subagent dispatches total.
+
+**Next up:** S237: Live smoke test (mandatory), .gitignore cleanup + commit ~80 untracked doc files, seed realistic test data, mobile verification, full role walkthroughs.
+
+**Blockers:** None. All push complete. No Patrick manual actions blocking.
+
+**Files changed (all pushed):** `CLAUDE.md`, `claude_docs/STATE.md`, `claude_docs/next-session-prompt.md`, `claude_docs/patrick-dashboard.md`, `claude_docs/logs/session-log.md`, `claude_docs/.last-wrap`, 5 research docs, 3 audit/feature-decision docs, `claude_docs/operations/change-records-S236.md`, `claude_docs/improvement-memos/power-user-S236.md`, `packages/frontend/pages/settings.tsx` (new), `packages/frontend/pages/wishlist.tsx` (new), `packages/frontend/pages/creator/connect-stripe.tsx` (new), `packages/frontend/components/AvatarDropdown.tsx`, `packages/frontend/components/BuyingPoolCard.tsx`, `packages/frontend/components/TierComparisonTable.tsx`, `packages/frontend/pages/profile.tsx`, + 8 auth redirect fix files | Compressions: 0 | Subagents: 8 (qa, ux, innovation, power-user, dev×2, records, advisory-board) | Push method: Patrick PS1
+
+---
+
 ### Session 235 — 2026-03-22 — Context Docs Overhaul + Innovation Research + Skills Audit + Project Hygiene
 
 **Worked on:** (1) Dispatched findasale-innovation on 4 research topics: Amazon integrations/POD, BizBuySell competitive deep dive, Joybird UX learnings, digital estate assets strategy. All research memos saved to `claude_docs/research/` + consolidated in `INNOVATION_HANDOFF_2026-03-22.md`. (2) Confirmed Feature #71 (Organizer Reputation Score) already fully built and Chrome-verified. Print Kit (Printful/POD integration) is NEW feature idea from research — does NOT exist yet. (3) Skills scope audit: 8 of 24 skills had estate-sale-only framing or stale fee models (5%/7% → 10% flat). All 8 updated and packaged (.skill files): findasale-innovation, findasale-ux, findasale-marketing, findasale-qa, cowork-power-user, findasale-advisory-board, findasale-hacker, findasale-records. Patrick installed all. (4) Project hygiene deep audit: 19 temp files deleted, 26 files archived to `archive/`, session-log rotated from 264→112 lines. Full audit report: `records-audit-2026-03-22.md`. (5) Doc structure issues fixed: CORE.md §2 dead reference removed, new `patrick-dashboard.md` (one-pager), new `operations/subagent-quick-ref.md` (agent entry points), new `operations/technical-brief.md` (stack + file locations), new `operations/contracts-schema-api-types.md` (layer pointer map). (6) CLAUDE.md §7 subagent-first gate reinforced, §10 file hygiene hard rule added. `file-creation-schema.md` updated with 4 new approved dirs (architecture/, audits/, feature-decisions/, ux-spotchecks/). (7) `self_healing_skills.md` updated: SH-011–SH-016 patterns added. (8) All changes pushed to GitHub (commit 6c0af66).
@@ -87,21 +105,5 @@ Keep only the 5 most recent sessions. Delete older entries — git history and S
 **Files changed:** `claude_docs/operations/qa-audit-2026-03-22.md` (new), `claude_docs/STATE.md`, `claude_docs/logs/session-log.md`, `claude_docs/next-session-prompt.md` | Compressions: 2 | Subagents: findasale-records (wrap only) | Push method: Patrick PS1
 
 ---
-
-### Session 231 — 2026-03-22 — Bug Queue Completion + AvatarDropdown (P0 UX Fix)
-
-**Worked on:** (1) Verified BUG #22 live via Chrome MCP — Nina (ADMIN) now gets 200 from `GET /api/organizers/me`. (2) BUG #22 sweep: dispatched findasale-dev to fix all 54 inline `role !== 'ORGANIZER'` checks across 24 backend files (21 controllers + 3 routes). (3) Fixed BUG #30: `sales/[id].tsx` line 379 — `organizerId={sale.organizer.userId}` → `sale.organizer.id`. (4) Fixed BUG #31: `FavoriteButton.tsx` SVG fill via explicit props (Tailwind classes don't map to SVG attributes). (5) Fixed BUG #32: `favoriteController.ts` toggleItemFavorite now checks DB for existing record; verified bidirectional toggle live via Chrome API test. (6) Fixed BUG #33: `OnboardingModal.tsx` handleSkip writes localStorage synchronously before onComplete(). (7) Built `AvatarDropdown.tsx` (new component) — replaces 20+ inline desktop header auth links; wired into `Layout.tsx`. P0 UX fix per nav-dashboard-consolidation-2026-03-20 spec. (8) Layout.tsx: renamed Explore→Feed nav link; mobile Pro Tools section uses TierGatedNavLink. (9) Sale page: "Back to home" label, dark mode additions.
-
-**Decisions:** AvatarDropdown shows initials-only (no profile photo field on User model yet). `user.organizerTier` is a tier string, not an image URL — avatar rendering logic corrected. Mobile drawer untouched per spec. BUG #22 sweep scope was larger than STATE.md stated (54 occurrences vs 15 estimated).
-
-**Token efficiency:** Chrome MCP verification before dispatch (confirmed live bugs, not just code audit). 2 dev subagent dispatches. 1 MCP push (AvatarDropdown + Layout together, under 25k token limit). Larger BUG #22 sweep (24 files) handled by subagent, handed to Patrick for manual push.
-
-**Token burn:** ~95k tokens (est.), 1 compression event (started from prior session summary).
-
-**Next up:** Features #106–#109 (rate limit burst, DB pooling, API timeout guards, graceful degradation). After Patrick completes Prisma actions + missing Railway env vars.
-
-**Blockers:** Patrick manual push required (sales/[id].tsx + 24 BUG #22 sweep files). Neon Prisma actions still pending Patrick. Railway env vars missing.
-
-**Files changed (MCP pushed):** `packages/frontend/components/AvatarDropdown.tsx` (new), `packages/frontend/components/Layout.tsx`, `packages/frontend/components/FavoriteButton.tsx`, `packages/frontend/components/OnboardingModal.tsx`, `packages/backend/src/controllers/favoriteController.ts` | **Files pending Patrick push:** `packages/frontend/pages/sales/[id].tsx`, 24 backend BUG #22 sweep files (21 controllers + 3 routes) | Compressions: 1 | Subagents: findasale-dev (×2), findasale-records (wrap) | Push method: MCP (2 calls) + Patrick PS1 pending
 
 ---

@@ -7,22 +7,31 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Active Objective
 
-**Session 236 — Ready to Start**
+**Session 237 — Ready to Start**
 
 **Completed Sessions (carry forward knowledge):**
 
+**Session 236 COMPLETE (2026-03-22) — BETA TESTER READINESS: BUG BLITZ + ROUTE AUDIT + INNOVATION RE-RUN:**
+- ✅ Prisma migrate deploy + Railway env vars CONFIRMED DONE (completed S234, verified S236)
+- ✅ Stale doc references fixed: removed PENDING items from STATE.md + next-session-prompt.md
+- ✅ **QA + UX Audit (post-S233):** /settings 404, /wishlist 404, Manage Plan redirect, pricing contrast, organizer profile identity — all fixed
+- ✅ **Comprehensive route audit (167 pages):** Found `/auth/login` → 404 in 10 files (11 instances). All fixed to `/login`. Created `/creator/connect-stripe.tsx` redirect.
+- ✅ **Innovation re-run (broader secondary sales framing):** Print Kit TAM 3-4x expansion. Etsy API new P1 (deferred — no revenue model per board). FB Marketplace + Amazon SP-API syndication → REJECT. Sale-type-aware discovery → new P1.
+- ✅ **Advisory Board:** Print Kit → deferred (templates approach, no Printful dependency). Etsy dual-listing → deferred. Reputation + Condition Tags + Confidence Badge → approved P0 pre-beta.
+- ✅ **CLAUDE.md hardened:** §5 push ban absolute (no size exception), §10 VM temp files clarified, §10 post-fix live verification rule added
+- ✅ **Power User audit:** S230-S235 workflow changes holding, 3 doc clarifications applied, findasale-dev skill stale ref fixed
+- ✅ All S236 changes pushed to GitHub (31 files in S236 commit + 3 S235 wrap files)
+- ⚠️ NEXT SESSION: .gitignore cleanup (_tmp_*, .skills/, .claude/) + commit 80+ untracked doc files in one batch
+- ⚠️ NEXT SESSION: Live smoke test of all fixed pages (mandatory per new CLAUDE.md §10 rule)
+- ⚠️ NEXT SESSION: Seed realistic test data — real beta testers evaluating this week, not a demo
+- Last Updated: 2026-03-22
+
 **Session 235 COMPLETE (2026-03-22) — CONTEXT DOCS UPDATE + RESEARCH + SKILLS AUDIT + PROJECT HYGIENE:**
-- ✅ Innovation research dispatched on 4 topics (Amazon integrations/POD, BizBuySell deep dive, Joybird UX, digital estate assets) — research memos saved to `claude_docs/research/` and consolidated in `INNOVATION_HANDOFF_2026-03-22.md`
-- ✅ Confirmed Organizer Reputation Score (Feature #71) already fully built and Chrome-verified. Print Kit (Printful/POD) is new feature idea from innovation research — does NOT exist yet
-- ✅ Skills scope audit: 8 of 24 skills had estate-sale-only framing. All 8 updated .skill packages produced and installed by Patrick: findasale-innovation, findasale-ux, findasale-marketing (fee fixed: 5%/7% → 10% flat), findasale-qa, cowork-power-user, findasale-advisory-board, findasale-hacker, findasale-records
-- ✅ Project folder hygiene: 19 temp files deleted, 26 files archived, session-log rotated from 264→112 lines. Full audit report: `claude_docs/audits/records-audit-2026-03-22.md`
-- ✅ file-creation-schema.md updated: architecture/, audits/, feature-decisions/, ux-spotchecks/ now in locked folder map
-- ✅ CLAUDE.md §10 updated: hard subagent file hygiene rule (no project root drops, no unauthorized dirs, scratch→VM working dir)
-- ✅ All S235 changes pushed to GitHub (commit 6c0af66)
-- ✅ Session wrap complete: STATE.md, next-session-prompt.md, session-log.md, patrick-dashboard.md all updated
-- **Still pending from S234:**
-  - Prisma migrate deploy + prisma generate (blocking #73/#74/#75 runtime) — Patrick action
-  - Railway env vars: AI_COST_CEILING_USD=5.00, MAILERLITE_SHOPPERS_GROUP_ID=182012431062533831 — Patrick action
+- ✅ Innovation research: 4 topics, research memos in `claude_docs/research/`, consolidated in `INNOVATION_HANDOFF_2026-03-22.md`
+- ✅ Skills scope audit: 8 of 24 skills reframed from estate-sale-only to all secondary sales types
+- ✅ Project folder hygiene: 19 temp files deleted, 26 files archived, session-log rotated
+- ✅ CLAUDE.md §10 subagent file hygiene rule, file-creation-schema updated
+- ✅ All pushed (commit 6c0af66)
 - Last Updated: 2026-03-22
 
 **Session 234 COMPLETE (2026-03-22) — BUILD FIXES + PASSKEY SECURITY + FEATURES #106-#109 PRE-BETA SAFETY:**
