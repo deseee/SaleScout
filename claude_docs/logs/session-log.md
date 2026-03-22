@@ -16,6 +16,24 @@ Keep only the 5 most recent sessions. Delete older entries — git history and S
 
 ## Recent Sessions
 
+### Session 237 — 2026-03-22 — Smoke Test + Git Cleanup + Seed Data Fix
+
+**Worked on:** (1) Retried failed MCP push from S237 context carry-forward — pushed 3 fix files (SaleMapInner.tsx Leaflet CJS fix, profile.tsx organizer identity fix, next.config.js /auth redirect). (2) .gitignore updated: added _tmp_*, .skills/, .claude/, .last-wrap, package-lock.json, conversation-defaults-SKILL-*.tmp.* — all VM/Cowork noise now excluded. Pushed via MCP. (3) decisions-log.md updated with Brevo/Postmark email provider deferral entry. (4) Gave Patrick commit block for ~80 untracked claude_docs files (S198–S236 backlog) — Patrick ran and pushed. (5) Live smoke test: map working (24 tiles on /map, 8 tiles on sale detail). Organizer profile confirmed: no Hunt Pass/Bids/Referrals shown for Oscar Bell (user2, ORGANIZER). /auth/login → /login redirect confirmed. (6) Data quality audit: 16 sales exist but all say "Riverside, IL" (seed config bug). Items have good titles + realistic prices but generic descriptions. Dispatched fix script: `scripts/fix-seed-city.ts` updates city/state + strips " #N" title suffixes.
+
+**Decisions:** Email provider switch (Resend → Brevo/Postmark) deferred to roadmap — Resend 80/100 quota usage today was the weekly digest job (expected behavior). Fix-seed-city.ts approach: targeted update, no data wipe.
+
+**Token efficiency:** Medium. Context carry-forward from previous session (push retry was immediate). Smoke test via Chrome MCP + Vercel MCP. Git cleanup was methodical but necessary. Deferred full role walkthrough (session getting long).
+
+**Token burn:** ~60k tokens (est.), 0 compressions.
+
+**Next up:** Patrick: run `scripts/fix-seed-city.ts` against Neon (command in next-session-prompt). S238: Full role walkthrough (shopper + unauthenticated), mobile verification, Resend plan upgrade consideration.
+
+**Blockers:** Patrick must run fix-seed-city.ts before showing site to beta testers (Riverside IL is embarrassing).
+
+**Files changed:** `packages/frontend/components/SaleMapInner.tsx`, `packages/frontend/pages/profile.tsx`, `packages/frontend/next.config.js`, `.gitignore`, `claude_docs/decisions-log.md`, `scripts/fix-seed-city.ts` (new), `claude_docs/STATE.md`, `claude_docs/logs/session-log.md`, `claude_docs/next-session-prompt.md`, `claude_docs/patrick-dashboard.md` | Compressions: 0 | Subagents: 1 (fix-seed-city script) | Push method: MCP (code fixes + gitignore) + Patrick PS1 (doc batch)
+
+---
+
 ### Session 236 — 2026-03-22 — Beta Tester Readiness: Bug Blitz + Route Audit + Innovation Re-Run
 
 **Worked on:** (1) Fixed stale Prisma/env var PENDING references in STATE.md + next-session-prompt.md (confirmed done S234). (2) Parallel dispatches: findasale-qa live audit, findasale-ux polish audit, findasale-innovation re-run (broader secondary sales framing), cowork-power-user workflow audit. (3) QA found /settings 404, /wishlist 404, pricing contrast WCAG fail, organizer profile showing shopper content. All fixed via findasale-dev. (4) Comprehensive route audit: 167 pages checked. Found `/auth/login` → 404 in 10 files (11 instances) — critical for unauthenticated users trying to interact. All fixed. Created `/creator/connect-stripe.tsx` redirect. (5) Innovation re-run with corrected broader framing: Print Kit TAM 3-4x expansion, Etsy API new P1 (deferred by board — no revenue model), FB Marketplace + Amazon SP-API → REJECT. (6) Advisory board reviewed Print Kit (deferred — templates approach) and Etsy (deferred). Reputation + Condition Tags approved P0 pre-beta. (7) CLAUDE.md hardened: §5 push ban absolute, §10 VM temp files + mandatory post-fix live verification rule. (8) Power user audit: workflow changes stable, 3 doc clarifications applied. (9) Patrick pushed all 31 files + 3 S235 wrap files.

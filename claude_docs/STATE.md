@@ -7,7 +7,17 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Active Objective
 
-**Session 237 — Ready to Start**
+**Session 237 COMPLETE (2026-03-22) — SMOKE TEST + GIT CLEANUP + SEED DATA FIX:**
+- ✅ **Live smoke test (mandatory §10):** All S237 fixes verified in production
+  - Map: working on /map (24 tiles) and sale detail pages (8 tiles) — Leaflet CJS interop fix confirmed
+  - Profile: organizer sees "Organizer" badge + no Hunt Pass/Bids/Referrals — `user.role` fix confirmed
+  - `/auth/login` → `/login` redirect confirmed (permanent redirect working)
+- ✅ **Git cleanup:** `.gitignore` updated (_tmp_*, .skills/, .claude/, .last-wrap, package-lock.json excluded). ~80 untracked claude_docs files committed in batch (Patrick ran the commit block). Decision log updated with Brevo/Postmark deferral.
+- ✅ **3 code fixes pushed:** SaleMapInner.tsx (Leaflet CJS), profile.tsx (isOrganizerOnly), next.config.js (/auth redirect) — commit `feba006`
+- ✅ **Seed data city fix:** `scripts/fix-seed-city.ts` created — fixes "Riverside, IL" → "Grand Rapids, MI" + removes " #N" number suffixes from sale titles. Patrick must run it against Neon (command provided below).
+- ⚠️ PENDING PATRICK ACTION: Run `scripts/fix-seed-city.ts` against Neon (see next-session-prompt for exact command)
+- ⚠️ PENDING: Full role walkthrough (shopper + unauthenticated) — deferred, not done this session
+- Last Updated: 2026-03-22
 
 **Completed Sessions (carry forward knowledge):**
 
