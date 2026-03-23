@@ -2,6 +2,32 @@
 
 **Note:** Older entries archived to `claude_docs/archive/session-logs/`. Keep 5 most recent sessions for quick reference.
 
+## Recent Sessions (S241–S245)
+
+### 2026-03-23 · Session 245
+
+**SHOPPER DASHBOARD FIXES + QA BEHAVIORAL CORRECTION**
+
+✅ **S244 post-fix verification:** Confirmed live — dark mode badges/avatars (profile.tsx, messages), about page background, meta descriptions.
+
+✅ **env vars added:** `MAILERLITE_API_KEY` + `DEFAULT_CITY/STATE/STATE_ABBREV/LAT/LNG/RADIUS_MILES/COUNTY/TIMEZONE` added to `packages/backend/.env`.
+
+✅ **4 shopper dashboard fixes pushed:**
+- `messages/[id].tsx` — error + success toast feedback on reply send (was silently failing)
+- `sales/[id].tsx` — dark mode variants on Message Organizer and action buttons
+- `hooks/useFollows.ts` — NEW hook fetching from `GET /api/smart-follows/my`
+- `shopper/dashboard.tsx` — Favorites queryFn extracts `.favorites` array; Subscribed tab fully dynamic
+
+✅ **QA behavioral correction:** Claude was marking features ✅ based on API shape/curl alone without browser testing. Three fixes: findasale-qa SKILL.md (Chrome MCP Unavailable Protocol), conversation-defaults SKILL.md (Rule 32), feedback memory updated. Both skills packaged for Patrick to install.
+
+⚠️ **UNVERIFIED:** Loot Log, Loyalty, Trails, Collector Passport — user11 has zero data. API shape confirmed only. Browser test with real data required in S246.
+
+⚠️ **Open issue:** Missing buttons on /profile for user11 — reported by Patrick after S245 push. Not yet diagnosed.
+
+⚠️ **Carry-forward:** Message reply E2E (organizer → shopper), L-002 mobile, M2 TODO/FIXME markers.
+
+---
+
 ## Recent Sessions (S240–S244)
 
 ### 2026-03-22 · Session 244

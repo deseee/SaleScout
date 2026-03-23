@@ -1,52 +1,88 @@
-# Next Session Prompt — S245
+# Next Session Prompt — S246
 
-**Date:** 2026-03-22 (S244 wrap complete)
-**Status:** M1 fixed (unbounded findMany). Dark mode badge/avatar fixes. Meta descriptions broadened.
+**Date:** 2026-03-23 (S245 wrap complete)
+**Status:** Shopper dashboard bugs fixed + pushed. QA behavioral correction complete. Real browser testing required for 4 features.
 
 ---
 
-## S245 Priority
+## S246 Priority — COMPREHENSIVE SHOPPER FRONTEND QA SCAN
 
-**Priority 1 — POST-FIX VERIFICATION (CLAUDE.md §10):**
-Spot-check S244 fixes in Chrome MCP at finda.sale:
-- Messages dark mode: profile.tsx badges, messages/index.tsx + [id].tsx avatars render correctly dark mode
-- About page: dark background is consistent (dark:bg-gray-900)
-- Cities/neighborhoods: meta descriptions now include all sale types
+**This is the ONLY priority until complete. Do not start new feature work before this finishes.**
 
-**Priority 2 — MESSAGE REPLY END-TO-END TEST:**
-Critical for organizer↔shopper communication flow. Send message as `user2@example.com` (organizer), reply as `user11@example.com` (shopper), verify both sides see reply.
+### BEFORE ANYTHING ELSE — Install updated skills
 
-**Priority 3 — PATRICK MANUAL ACTIONS:**
-Obtain and add missing environment variables to `packages/backend/.env`:
-- `MAILERLITE_API_KEY` — get from MailerLite Integrations → API Keys
-- `DEFAULT_REGION`, `DEFAULT_LATITUDE`, `DEFAULT_LONGITUDE` — geographic defaults for sales without coordinates
+Two .skill files were packaged by skill-creator in S245. They must be installed before dispatching any QA work:
+- `findasale-qa` — updated with Chrome MCP Unavailable Protocol and real-data verification rules
+- `conversation-defaults` — updated with Rule 32 (no substitutes for browser testing)
 
-**Priority 4 — BETA TESTER FEEDBACK TRIAGE:**
-Real customers evaluating this week. Respond to any reported issues before starting new feature work.
+Patrick: Install both .skill files from the workspace folder via Cowork UI.
 
-**Priority 5 — OPTIONAL CLEANUP (if time):**
-- L-002: Mobile viewport real-device test (needs real iPhone or skip)
-- M2: Review 13 TODO/FIXME markers in backend (informational only)
+---
+
+### Priority 1 — REAL BROWSER QA (findasale-qa agent, Chrome MCP)
+
+Dispatch `findasale-qa` for a comprehensive shopper frontend scan. **This is not a code audit. This is browser testing with real data.**
+
+#### Features that are UNVERIFIED and need real data seeded + browser tested:
+
+These were marked "correct" in S245 based on API shape alone. user11 has ZERO entries for all of them. Each needs test data seeded, then verified in Chrome:
+
+1. **Loot Log** — user11 needs purchase entries. Navigate to `/shopper/loot-log`. Verify entries render.
+2. **Loyalty** — user11 needs loyalty stamps. Navigate to `/shopper/loyalty`. Verify stamps/progress render.
+3. **Trails** — user11 needs trail entries. Navigate to `/shopper/trails`. Verify trails render.
+4. **Collector Passport** — user11 needs passport data. Navigate to `/shopper/collector-passport`. Verify passport renders.
+
+For each: if the API has no endpoint to create test data, insert directly via curl to the backend or note it's blocked.
+
+#### Features to verify with fresh eyes after S245 push:
+
+5. **Favorites tab** — `/shopper/dashboard` → Favorites tab. Should show user11's saved items (API shape fix was pushed in S245).
+6. **Subscribed tab** — `/shopper/dashboard` → Subscribed tab. Should show organizers user11 follows (dynamic tab was pushed in S245).
+7. **Purchases tab** — `/shopper/dashboard` → Purchases. Does user11 have any purchases? If not, note EMPTY STATE renders correctly.
+8. **Pickups tab** — `/shopper/dashboard` → Pickups. Verify empty or populated state.
+9. **Overview tab** — Dashboard overview — no broken cards, no layout issues.
+10. **6 quick-link buttons** — Collection, Loyalty, Alerts, Trails, Loot Log, Receipts — click each, verify correct page loads.
+11. **Missing buttons on /profile** — Patrick reported buttons missing on user11's `/profile` page after S245 push. Investigate and diagnose.
+
+#### Message reply end-to-end (still pending from S244):
+
+12. Login as `user2@example.com` (organizer). Find or create a message thread with user11. Send a reply.
+13. Login as `user11@example.com` (shopper). Verify the organizer's reply appears in the inbox.
+14. Both sides must be verified. Do not mark as verified until both accounts confirm.
+
+---
+
+### QA Verification Standard (Rule 32 — CRITICAL)
+
+A feature is only ✅ Verified if ALL THREE are true:
+1. Navigated to the page in Chrome as user11 (shopper)
+2. Data was actually visible in the UI (not just returned by API)
+3. UI renders data correctly
+
+If Chrome MCP fails → status = UNVERIFIED. Never substitute API testing.
+If user11 has no data → seed it first, then test.
+
+---
+
+### Priority 2 (after QA scan complete)
+
+- Beta tester feedback triage — respond to any user-reported issues
+- L-002: Mobile viewport test (375px in Chrome DevTools — no real device needed)
 
 ---
 
 ## Context Loading
 
-- Read `claude_docs/brand/DECISIONS.md` at session start (mandatory)
+- Read `claude_docs/brand/DECISIONS.md` at session start
 - Test accounts: Shopper `user11@example.com`, PRO Organizer `user2@example.com`, SIMPLE+ADMIN `user1@example.com`, TEAMS `user3@example.com` (all `password123`)
 - Auth rate limit is 50 failed attempts per 15 min
-- QA skill v2 installed — Chrome MCP clickthrough-first methodology
-- All S243 + S244 fixes deployed to production
+- S245 push is live: messaging feedback, dashboard favorites fix, subscribed tab dynamic, dark mode buttons
 
 ---
 
-## S244 Files Changed
+## S245 Files Changed
 
-- `packages/backend/src/controllers/exportController.ts` — M1 fix (take: 5000 limits)
-- `packages/frontend/pages/profile.tsx` — dark mode badge fixes
-- `packages/frontend/pages/messages/index.tsx` — dark mode avatar fix
-- `packages/frontend/pages/messages/[id].tsx` — dark mode avatar fix
-- `packages/frontend/pages/about.tsx` — dark:bg-gray-900 consistency
-- `packages/frontend/pages/cities/index.tsx` — meta description broadened
-- `packages/frontend/pages/neighborhoods/index.tsx` — meta description broadened
-- `packages/frontend/pages/neighborhoods/[slug].tsx` — metaDesc broadened
+- `packages/frontend/pages/messages/[id].tsx` — error/success toast on reply send
+- `packages/frontend/pages/sales/[id].tsx` — dark mode button variants
+- `packages/frontend/hooks/useFollows.ts` — NEW hook for followed organizers
+- `packages/frontend/pages/shopper/dashboard.tsx` — favorites shape fix + subscribed tab dynamic

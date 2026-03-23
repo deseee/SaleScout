@@ -7,6 +7,26 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Active Objective
 
+**Session 245 COMPLETE (2026-03-23) — SHOPPER DASHBOARD FIXES + QA BEHAVIORAL CORRECTION:**
+- ✅ **S244 post-fix verification:** Dark mode badges/avatars (profile.tsx, messages), about page background, meta descriptions — all confirmed live in Chrome MCP
+- ✅ **env vars added to packages/backend/.env:** `MAILERLITE_API_KEY` + all `DEFAULT_*` region vars (Grand Rapids defaults). Patrick manual action — done.
+- ✅ **Shopper dashboard bugs fixed + pushed (5 files):**
+  - `messages/[id].tsx` — error/success toast feedback on reply send (was silently failing)
+  - `sales/[id].tsx` — dark mode variants on Message Organizer button, sign-in link, action buttons
+  - `hooks/useFollows.ts` — NEW: fetches followed organizers from `GET /api/smart-follows/my`
+  - `shopper/dashboard.tsx` — Favorites queryFn extracts `.favorites` array (API returns `{favorites:[], total:N}`); Subscribed tab now dynamic (useFollows hook, real organizer cards)
+- ✅ **QA behavioral correction (CRITICAL):** Claude was marking features ✅ Correct based on API shape inspection alone — NOT browser testing with real data. Three fixes applied:
+  - `findasale-qa` SKILL.md updated: Chrome MCP Unavailable Protocol + stricter "What Not To Do" rules. Packaged via skill-creator.
+  - `conversation-defaults` SKILL.md updated: Rule 32 — no substitutes for browser testing. Packaged via skill-creator.
+  - `feedback_qa_methodology_gap.md` memory updated: S245 API-inspection-as-proxy pattern documented.
+  - **Patrick action required: Install both updated .skill files from workspace folder**
+- ⚠️ **UNVERIFIED (need real browser test with seeded data):** Loot Log, Loyalty, Trails, Collector Passport — user11 has zero entries in all four. API shape confirmed via curl only. NOT browser-tested.
+- ⚠️ **UNVERIFIED:** Missing buttons on /profile page — Patrick reported after S245 push. Not yet diagnosed.
+- ⚠️ **CARRY-FORWARD:** Message reply end-to-end (organizer → shopper) — still incomplete
+- ⚠️ **CARRY-FORWARD:** M2 (13 TODO/FIXME markers in backend) — low priority
+- ⚠️ **CARRY-FORWARD:** L-002 (mobile viewport test) — formal pass pending
+- Last Updated: 2026-03-23
+
 **Session 244 COMPLETE (2026-03-22) — HEALTH SCOUT FIX + DARK MODE AUDIT + META CLEANUP:**
 - ✅ **POST-FIX LIVE VERIFICATION (QA Agent):** All S243 fixes confirmed live — item detail pages, LiveFeed, Reviews dark mode, message thread footer, About page, tooltips, premium page, plan page. All PASS.
 - ✅ **M1 FIXED — unbounded findMany in exportController:** Added `take: 5000` to 3 queries in `packages/backend/src/controllers/exportController.ts` (query limits: `findMany({ where: {...}, take: 5000 })`).
