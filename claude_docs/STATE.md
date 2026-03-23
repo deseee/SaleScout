@@ -7,14 +7,22 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Active Objective
 
+**Session 250 COMPLETE (2026-03-23) — SEED DATA OVERHAUL:**
+- ✅ **S249 item-library.tsx Vercel fix** — `user?.organizerProfileId` → `user?.id` (commit d12fb1b). Vercel confirmed GREEN.
+- ✅ **Seed data overhaul COMPLETE** — All 14 DATA items from S248 walkthrough now covered. seed.ts rewritten (828 lines). Seed ran clean on Neon with zero errors.
+  - 100 users, 10 organizers (3 tiers: 1×SIMPLE admin, 1×PRO, 1×TEAMS), 25 sales, 308 items (3 auction)
+  - 54 purchases (6 for user11), 9 bids (user11 active bidder), 8 badge types, wishlists + alerts, follows + smart follows
+  - Notifications (6 types), TreasureTrail (3-stop GR loop), ShopperStamps + milestone, CollectorPassport
+  - Referral chain (user12→user11→user13), 3 MissingListingBounties, UserStreaks, OrganizerReputations
+  - PointsTransactions, Conversations + Messages, 3 FraudSignals (admin command center)
+  - Stripe-enabled: user2 (PRO) + user3 (TEAMS) have stripeConnectId + stripeCustomerId
+- ⚠️ **S251 PRIORITY 1 — Strategic session:** Gamification spec, feature overlap consolidation, support tier definitions, page consolidation, F7 profile/settings split, shopper/organizer parity, TR1/OP1/OS3 original intent + fix decisions, double footer browser QA fix. Full topic list in S248-walkthrough-findings.md cross-cutting questions.
+- Last Updated: 2026-03-23
+
 **Session 249 COMPLETE (2026-03-23) — WALKTHROUGH BUG + DARK MODE FIX BATCH:**
-- ✅ **S249 push confirmed on GitHub main** (CLAUDE.md §7, S248-walkthrough-findings.md)
 - ✅ **18 bug fixes shipped:** FAQ characters (F1-F3), shopper tier message (P1), access denied redirect (P7), search expanded to items+organizers (H4), leaderboard organizer links (L8), contact form submit (C2), "sales near you" error state (SD3), dashboard stat buttons navigate (SD6), follow seller end-to-end (SD9), workspace domain→finda.sale (OS2), flip report empty state (FR1), item library auth fix (IL1), print inventory verified (PI1)
 - ✅ **8 dark mode violations fixed:** SD2 (overview), SD8 (pickups), M4 (route builder), AL2 (alerts), TY1 (typology), PY1 (payouts), ST1 (sales tab), H13 (organizer pages pass)
-- ⚠️ **Carry-forward to strategic session:** Double footers (I2, CP3, LY11, AL5, TR2, S3) + TR1/OP1/OS3 missing routes — investigate original intent in strategic session, then fix
-- ⚠️ **F7 deferred to strategic session** — Profile edit buttons (should /profile have edit controls, or is editing only in /settings?) — per Patrick S249
-- ⚠️ **S250 PRIORITY 1:** Verify push + Vercel green. Seed data overhaul (14 DATA items — features untestable without realistic data).
-- ⚠️ **S250 PRIORITY 2 (strategic session):** Gamification spec, feature overlap consolidation, support tier definitions, page consolidation, F7 profile/settings split, shopper/organizer parity, TR1/OP1/OS3 original intent + fix decisions, double footer browser QA fix. Full topic list in S248-walkthrough-findings.md cross-cutting questions.
+- ⚠️ **Carry-forward:** Double footers (I2, CP3, LY11, AL5, TR2, S3) + TR1/OP1/OS3 missing routes — decisions needed from Patrick
 - Last Updated: 2026-03-23
 
 **Session 248 COMPLETE (2026-03-23) — REMOVAL GATE + 114-ITEM WALKTHROUGH AUDIT:**

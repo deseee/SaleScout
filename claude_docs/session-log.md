@@ -2,7 +2,33 @@
 
 **Note:** Older entries archived to `claude_docs/archive/session-logs/`. Keep 5 most recent sessions for quick reference.
 
-## Recent Sessions (S245–S248)
+## Recent Sessions (S246–S250)
+
+### 2026-03-23 · Session 250
+
+**SEED DATA OVERHAUL**
+
+✅ **S249 Vercel fix confirmed** — item-library.tsx `organizerProfileId` → `id` fix (commit d12fb1b) deployed GREEN.
+
+✅ **seed.ts rewritten (828 lines):** All 14 DATA items from S248 walkthrough now seeded. Key fix: replaced `$transaction([...deleteMany()])` chain with `TRUNCATE TABLE "User","Badge","FeeStructure","Achievement" CASCADE` — PostgreSQL handles all FK chains automatically. Prior approach failed on `PushSubscription_userId_fkey`.
+
+✅ **Seed ran clean on Neon:** 100 users, 10 organizers (SIMPLE/PRO/TEAMS tiers), 25 sales, 308 items (3 auction), 54 purchases, 9 bids, 8 badge types, wishlists/alerts, follows, notifications, TreasureTrail, ShopperStamps, CollectorPassport, Referrals, Bounties, UserStreaks, OrganizerReputations, PointsTransactions, Conversations, FraudSignals. PRO + TEAMS organizers have Stripe connect IDs.
+
+⚠️ **S251:** Strategic session — 12 decisions queued (TR1/OP1/OS3 missing routes, double footers, gamification spec, feature overlap, support tiers, page consolidation, F7, homepage redesign). All require Patrick input before dispatch.
+
+---
+
+### 2026-03-23 · Session 249
+
+**WALKTHROUGH BUG + DARK MODE FIX BATCH**
+
+✅ **18 bugs fixed:** Search expanded to items+organizers (H4), leaderboard organizer links (L8), contact form submit (C2), sales near you error state (SD3), dashboard stat buttons navigate (SD6), follow seller end-to-end (SD9), FAQ character rendering (F1-F3), shopper pricing tier message (P1), access denied redirect (P7), workspace domain→finda.sale (OS2), flip report empty state (FR1), item library auth fix (IL1), print inventory verified (PI1).
+
+✅ **8 dark mode violations fixed:** SD2 (overview), SD8 (pickups), M4 (route builder), AL2 (alerts), TY1 (typology), PY1 (payouts), ST1 (sales tab), H13 (organizer pages pass).
+
+⚠️ **Carry-forward:** Double footers (I2, CP3, LY11, AL5, TR2, S3) + TR1/OP1/OS3 missing routes, F7 profile/settings split — all queued for strategic session.
+
+---
 
 ### 2026-03-23 · Session 248
 
