@@ -7,6 +7,24 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Active Objective
 
+**Session 240 COMPLETE (2026-03-22) — FULL AUDIT FIX + D-007 LOCKED:**
+- ✅ All 12 audit findings fixed and pushed (15 files):
+  - H-004: Layout.tsx `<main>` → `<div>` — eliminates nested main violation on every page (WCAG fix)
+  - H-003: /notifications DOM duplication resolved as side effect of H-004
+  - H-001: itemController.ts — removed overly strict status check blocking item detail pages
+  - H-002: settings.tsx — fixed infinite spinner for logged-out users, now redirects to `/login?redirect=/settings`
+  - M-001 + L-003: 9-page D-001 brand sweep — hubs, categories, calendar, neighborhoods, cities, surprise-me, FAQ, footer, homepage subtitle
+  - M-002: /hubs empty state — "Browse All Sales →" button added
+  - M-003: Admin redirect now goes to `/login?redirect=/admin` instead of homepage
+  - M-004: LiveFeed "Reconnecting..." removed — silent reconnect
+  - M-005: Sale detail filter label → "Show: All" (was ambiguous status statement)
+  - L-001: /shopper/dashboard redirect preserves `?redirect=/shopper/dashboard`
+- ✅ D-007 LOCKED: Teams cap = 12 members, Enterprise tier confirmed (isEnterpriseAccount flag, contact-sales, $500–800/mo, annual). DECISIONS.md updated.
+- ✅ Advisory board consulted for D-007 — board recommendation adopted by Patrick
+- ⚠️ PENDING: D-007 implementation — dispatch dev to add 12-member cap in backend + Org model migration + pricing page update
+- ⚠️ PENDING: Mobile real-device test (L-002) — browser automation cannot simulate mobile viewport, needs real iPhone SE
+- Last Updated: 2026-03-22
+
 **Session 239 COMPLETE (2026-03-22) — BUG FIXES + WORKFLOW AUTOMATION PLATEAU:**
 - ✅ NotificationBell dark mode fixed — all interactive states now have dark: variants. Pushed via MCP (commit fd4d87a)
 - ✅ Sale detail page layout fixed — removed duplicate Photos section, moved About into left column, reordered Items before UGC/Map. On Patrick's local disk, needs push.

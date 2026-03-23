@@ -150,28 +150,26 @@
 
 ---
 
-## D-007: Teams Tier — Member Cap (PENDING DECISION)
+## D-007: Teams Tier — Member Cap (LOCKED)
 
-**Status:** ⚠️ PENDING — requires Patrick's decision
+**Status:** ✅ LOCKED — S240 (2026-03-22), approved by Patrick via advisory board
 
-**Question:** Should the Teams tier have a hard cap on members? If so, what number? Should there be an Enterprise tier above Teams with custom seat counts?
+**Decision:** Teams tier caps at **12 members**. Enterprise tier exists above Teams with unlimited members, unlimited items/sale, priority support, and API consultation. Enterprise is contact-sales only ($500–800/mo floor, annual contracts), implemented as an `isEnterpriseAccount` feature flag on the Org model — not a billing tier in code. Enterprise eligibility: 50+ sales/year OR 3+ locations.
 
-**Context:** Standard SaaS practice is to cap team tiers at 10–15 members and offer Enterprise above for custom seats, SSO, dedicated support, SLA. This creates natural upgrade pressure and keeps infrastructure costs predictable.
+**Rationale:** 10 is too tight for regional crews with seasonal staff; 15 adds unnecessary overhead. 12 covers a full regional operation plus overflow. Enterprise above creates natural upgrade pressure without complicating the billing tier model.
 
-**Options:**
-- A) Teams tier caps at 10 members, Enterprise tier above with custom pricing
-- B) Teams tier caps at 15 members, Enterprise tier above
-- C) Teams tier uncapped, no Enterprise tier
-- D) Other
+**Implementation:**
+- Backend: add `maxTeamMembers: 12` enforcement in team membership controller; add `isEnterpriseAccount: Boolean` field to Org model via migration
+- Pricing page: update Teams tier to show "Up to 12 members" and add Enterprise CTA
+- Team management UI: show member count and cap; block additions beyond 12 for non-Enterprise orgs
 
 **Affected Surfaces:**
 - Pricing page
 - Team management UI
-- Stripe subscription products
-- Organizer onboarding flow
-- Backend team membership logic
+- Backend team membership controller
+- Org model (schema.prisma)
 
-**Last Updated:** 2026-03-22 (S239) — awaiting Patrick's input
+**Last Updated:** 2026-03-22 (S240)
 
 ---
 

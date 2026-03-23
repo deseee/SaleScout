@@ -1,51 +1,36 @@
-# Next Session Prompt — S240
+# Next Session Prompt — S241
 
-**Date:** 2026-03-22 (S239 wrap complete)
-**Status:** Automated audit ran — 4 HIGH findings blocking beta. Fix these first.
-
----
-
-## S240 Priority — Automated Audit Findings (dispatch dev immediately)
-
-🔴 **H-004 FIRST — Nested `<main>` tags sitewide** — Layout wraps in `<main>` AND page components also use `<main>`. Invalid HTML across every page, accessibility violation, likely root cause of H-003. Fix Layout.tsx to use `<div>` instead of `<main>`, or fix page components.
-
-🔴 **H-001 — Item pages broken for all shoppers** — `/items/[id]` shows "Item not found" for every item. Core shopper flow is broken right now. Beta testers cannot view items.
-
-🔴 **H-002 — `/settings` hangs for logged-out users** — Shows "Redirecting to your settings..." forever. Never redirects to login. Blank page title.
-
-🔴 **H-003 — `/notifications` DOM duplication** — Entire page layout nested inside itself. Likely caused by H-004 (nested main tags).
-
-⚠️ **D-001 drift — 9 pages still use estate-sale-only language** — Dispatch findasale-dev to sweep and fix per brand-voice-guide.
-
-Full audit: `claude_docs/audits/weekly-audit-2026-03-22.md`
+**Date:** 2026-03-22 (S240 wrap complete)
+**Status:** 12 audit findings fixed and pushed. D-007 locked. Site should be clean.
 
 ---
 
-## Patrick Actions Before S240
+## S241 Priority
 
-1. **Discard 9 stale local files** (already on GitHub from MCP push):
+**1. Live-verify S240 fixes (Chrome MCP — do this first):**
+- Item pages: click any item from a sale → should load item detail, not "Item not found"
+- `/settings` logged out: should redirect to `/login?redirect=/settings`, not hang
+- `/notifications` logged out: should show single layout, no DOM duplication
+- `/hubs`, `/categories`, `/calendar`, `/cities`, `/neighborhoods`: should no longer say "estate sales" only
+
+**2. Implement D-007 — Teams tier member cap:**
+Schema change required. Dispatch findasale-architect first for schema design, then findasale-dev for implementation.
+- Add `isEnterpriseAccount Boolean @default(false)` to Org model in schema.prisma
+- Add backend enforcement: reject team member additions > 12 for non-Enterprise orgs
+- Update pricing page: Teams tier shows "Up to 12 members" + Enterprise CTA
+- Update team management UI: show member count vs cap
+
+Per CLAUDE.md §6, this requires Patrick to run:
 ```powershell
-cd C:\Users\desee\ClaudeProjects\FindaSale
-git checkout -- packages/frontend/components/Layout.tsx packages/frontend/components/NotificationBell.tsx packages/frontend/pages/hubs/[slug].tsx packages/frontend/pages/hubs/index.tsx packages/frontend/pages/items/[id].tsx packages/frontend/pages/organizer/message-templates.tsx packages/frontend/pages/organizer/workspace.tsx packages/frontend/pages/profile.tsx packages/frontend/pages/shopper/dashboard.tsx packages/frontend/pages/shopper/disputes.tsx
+cd C:\Users\desee\ClaudeProjects\FindaSale\packages\database
+$env:DATABASE_URL="postgresql://neondb_owner:npg_VYBnJs8Gt3bf@ep-plain-sound-aeefcq1y.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require"
+npx prisma migrate deploy
+npx prisma generate
 ```
 
-2. **Push sale detail fix:**
-```powershell
-git pull
-git add packages/frontend/pages/sales/[id].tsx
-git commit -m "fix: sale detail layout - remove duplicate photos, move About into left column, reorder Items before UGC/Map"
-.\push.ps1
-```
-
-3. **Skills already installed** (confirmed in session) — Polish Agent, findasale-dev patch, findasale-qa patch all active.
-
----
-
-## Carry-Forward Decisions
-
-- D-007: Teams tier member cap — 10 or 15? Enterprise above?
-- Resend quota: Brevo (free) or Postmark ($15/mo)?
-- Innovation: Reputation + Condition Tags as P0 pre-beta?
+**3. Mobile real-device test (L-002 carry-forward):**
+Browser automation cannot simulate mobile viewport. Patrick should spot-check on real iPhone SE or similar:
+- Homepage, sale detail, item grid, nav/bottom tab, pricing page
 
 ---
 
@@ -53,3 +38,4 @@ git commit -m "fix: sale detail layout - remove duplicate photos, move About int
 
 - Test accounts: Shopper `user11@example.com`, PRO Organizer `user2@example.com`, SIMPLE+ADMIN `user1@example.com`, TEAMS `user3@example.com` (all `password123`)
 - Read `claude_docs/brand/DECISIONS.md` at session start (mandatory)
+- D-007 now locked — implementation pending, do not re-discuss tier numbers

@@ -2,7 +2,17 @@
 
 **Note:** Older entries archived to `claude_docs/archive/session-logs/`. Keep 5 most recent sessions for quick reference.
 
-## Recent Sessions (S233–S239)
+## Recent Sessions (S234–S240)
+
+### 2026-03-22 · Session 240
+
+**FULL AUDIT FIX + D-007 LOCKED**
+
+✅ All 12 findings from the weekly-full-site-audit fixed in one session: H-004 nested main tags (Layout.tsx fix, WCAG restore across every page), H-003 notifications DOM dup (resolved by H-004), H-001 item pages broken (itemController status check removed), H-002 settings infinite spinner (redirect fixed for logged-out users). Medium/low pass: 9-page D-001 brand sweep, /hubs empty state CTA, admin redirect, LiveFeed reconnecting removed, filter label clarified, shopper dashboard redirect preserved. 15 files pushed.
+
+✅ D-007 LOCKED — Teams tier caps at 12 members. Enterprise tier above (isEnterpriseAccount flag, contact-sales, $500–800/mo, annual contracts). DECISIONS.md updated. Implementation queued for S241.
+
+---
 
 ### 2026-03-22 · Session 239
 
