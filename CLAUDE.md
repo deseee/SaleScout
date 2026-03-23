@@ -172,6 +172,40 @@ MUST go through subagents. This is not advisory — it is a hard gate.
 - Single-line config fixes explicitly requested by Patrick
 - Conversation-defaults and skill SKILL.md files
 
+**REMOVAL GATE (fires before ANY subagent deletes user-facing content):**
+Any subagent action that removes a feature, nav link, UI element, route, page,
+component, or user-facing content MUST be returned to the main session as a
+**decision point** — not executed autonomously. The subagent must:
+1. List exactly what is being removed (component name, link text, route path)
+2. Explain why removal was considered (audit finding, 404, redundancy, etc.)
+3. Provide options: **REMOVE** / **FIX** (repair the broken thing) / **REDIRECT** / **REPLACE**
+4. Do NOT ship the removal. Return it as "DECISION NEEDED" in the handoff.
+The main session surfaces the decision to Patrick. Only Patrick may authorize removal.
+Removal without Patrick sign-off is a rule violation regardless of justification.
+**Examples of what triggers this gate:** deleting JSX, removing `<Link>` or `<a>` elements,
+commenting out routes, hiding navigation items, removing page files, deleting components.
+**Does NOT apply to:** removing code that is provably dead at the language level only —
+unused imports flagged by TypeScript/ESLint, variables assigned but never read,
+commented-out `console.log` or debug statements. If it's a page, route, component,
+function, link, API endpoint, or anything that COULD be reached by a user or called
+by another module, it is NOT dead code — it triggers the Removal Gate even if nothing
+currently links to it. "Not wired into nav yet" ≠ dead. "No callers found" ≠ dead.
+When in doubt, it triggers the gate.
+
+**Orchestrator triage (main session responsibility):**
+When a subagent returns a "DECISION NEEDED" block, the orchestrator evaluates it
+against project context (STATE.md, DECISIONS.md, roadmap, prior Patrick decisions):
+- **FIX / REDIRECT / REPLACE** — If the right action is clearly a fix, redirect, or
+  replacement (broken link → fix the target, wrong label → rename, missing content →
+  build it), the orchestrator dispatches the fix silently. No Patrick approval needed.
+  Mention the fix inline in the session summary.
+- **REMOVE** — If the orchestrator's assessment is that something should be removed
+  from the product entirely (feature isn't needed, page is redundant, element adds
+  confusion), this MUST be surfaced to Patrick with full context before execution.
+  Only Patrick authorizes removal.
+- **UNCLEAR** — If the orchestrator cannot confidently determine the right action,
+  surface to Patrick with options. Do not guess.
+
 **QA DISPATCH GATE (fires when orchestrator dispatches QA work):**
 Before dispatching any QA or audit task:
 1. Identify which roles are affected (SHOPPER, ORGANIZER, ADMIN)

@@ -206,3 +206,26 @@
 **Enforcement:** findasale-dev Human-Ready Gate. findasale-qa review checklist.
 
 **Last Updated:** 2026-03-22 (S239)
+
+---
+
+## D-010: No Autonomous Removal of User-Facing Content
+
+**Decision:** No subagent may remove a feature, nav link, UI element, route, page, or user-facing content without explicit Patrick approval. When an audit or QA finding identifies something as broken, redundant, or misplaced, the correct response is to surface a decision point (REMOVE / FIX / REDIRECT / REPLACE) — never to silently remove.
+
+**Rationale:** Recurring pattern across S237, S247, and earlier: audit flags something → subagent "fixes" by removing → working feature disappears → Patrick discovers it's gone → time wasted restoring. Removal is a product decision, not an implementation decision. "My Wishlists" link removed in S247 without approval; organizer profile content hidden in S237 with no replacement built. Both required emergency restoration.
+
+**Affected Surfaces:**
+- All navigation (AvatarDropdown, Layout drawer, BottomTabNav, footer, header)
+- All page files under `packages/frontend/pages/`
+- All route registrations in backend
+- Any JSX that renders links, buttons, or content sections visible to users
+- Any page, route, component, function, or endpoint that COULD be reached by a user or called by another module — "not wired into nav" and "no callers found" do NOT make something dead code
+
+**Enforcement:**
+- CLAUDE.md §7 Removal Gate (mandatory for all subagents)
+- findasale-dev pre-deletion check (must return decision point, not ship removal)
+- findasale-qa findings must use "DECISION NEEDED" label when recommending removal
+- Main session surfaces all removal decisions to Patrick verbatim
+
+**Last Updated:** 2026-03-23 (S248)
