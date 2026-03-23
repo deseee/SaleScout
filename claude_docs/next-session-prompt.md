@@ -1,83 +1,96 @@
-# Next Session Prompt — S255
+# Next Session Prompt — S254
 
-**Date:** 2026-03-23 (S254 complete, 2 P1 bugs found in live smoke test)
-**Status:** S252 smoke test passed. 2 P1 bugs found — Saved Items API shape mismatch + premium redirect. Fix both before re-verifying.
-
----
-
-## FIRST TASK — Dispatch findasale-dev to Fix BUG-1 (Saved Items API Shape Mismatch)
-
-**Location:** Backend `/api/favorites` endpoint + frontend `/shopper/wishlist` Saved Items tab + Seed data
-
-**Problem:**
-- Backend `/favorites` endpoint (`packages/backend/userController.ts` line 74) returns a **flat array** of Favorite objects: `Favorite[]`
-- Frontend `/shopper/wishlist` (`packages/frontend/pages/shopper/wishlist.tsx` line 117) expects a **shaped response**: `{ favorites: FavoriteItem[], categories: string[], total: number }`
-- Result: `favoritesData?.favorites` is always `undefined` → Saved Items tab always shows empty state even though user11 has data
-
-**Secondary issue:** Backend `/favorites` query includes `sale` relation but NOT `item` relation. Item-level favorites (where `itemId IS NOT NULL` on the Favorite model) won't have their item data loaded for display.
-
-**Tertiary issue:** Seed data only creates sale-level favorites for user11, not item-level favorites. Need to add 2–3 item-level favorites to user11 in seed.ts for testing.
-
-**Files to fix:**
-1. `packages/backend/src/controllers/userController.ts` — Update `/favorites` endpoint to return shaped response `{ favorites: FavoriteItem[], categories: string[], total: number }`. Filter to `itemId IS NOT NULL` for Saved Items. Add `item` relation to query.
-2. `packages/database/prisma/schema.prisma` — Verify FavoriteItem type exists in shared types (check if it maps to Favorite model with item/sale relations loaded).
-3. `packages/database/prisma/seed.ts` — Add 2–3 item-level favorites for user11 in seed function.
-4. `packages/frontend/pages/shopper/wishlist.tsx` — Verify destructuring matches shaped response (no code changes needed if backend fix completes).
-
-**Acceptance criteria:**
-- `/shopper/wishlist` Saved Items tab loads with user11's item-level favorites displayed
-- `/shopper/dashboard` Favorites tab shows same data
-- Backend `/favorites` endpoint returns `{ favorites, categories, total }` shape
-- Seed creates at least 2 item-level favorites for user11
+**Date:** 2026-03-23 (S253 complete)
+**Status:** Rate limiter fix + bids route + /organizer/upgrade redirect all live. 7 new bugs found in QA. 4 P1 fixes queued. 2 DECISION NEEDED items waiting on Patrick.
 
 ---
 
-## SECOND TASK — Dispatch findasale-dev to Fix BUG-2 (/organizer/premium Not Redirecting)
+## FIRST — Two DECISION NEEDED Items (Patrick Input Required Before Dev)
 
-**Location:** `packages/frontend/pages/organizer/premium.tsx`
+These two 404s need a direction before dispatching dev:
 
-**Problem:**
-- Expected per D-016 CTA consolidation: `/organizer/premium` should redirect to `/organizer/subscription`
-- Actual: Full page loads with "Premium Plans for Organizers" title + tier comparison table
-- No redirect happening
+**1. `/organizer/profile` — 404 (page doesn't exist)**
+Options:
+- A) Create a read-only profile view page at this route
+- B) Redirect to `/organizer/settings` (Profile tab — write controls already there)
+- C) Clean up any nav links pointing here and remove the route entirely
 
-**Fix:** Add redirect to `premium.tsx`:
-```tsx
-useEffect(() => { router.replace('/organizer/subscription'); }, []);
-```
-Alternative: Add redirect in `next.config.js` redirects array.
+**2. `/organizer/inventory` — 404 (page doesn't exist)**
+Options:
+- A) Create an inventory management page at this route
+- B) Redirect to `/organizer/sales` (exists, lists sales)
+- C) Clean up nav links and remove the route entirely
 
-**Files to fix:**
-1. `packages/frontend/pages/organizer/premium.tsx` — Add useEffect redirect to `/organizer/subscription` at top of component
-
-**Acceptance criteria:**
-- Navigation to `/organizer/premium` immediately redirects to `/organizer/subscription`
-- No "Premium Plans" page visible to users
+Once Patrick decides, dispatch the appropriate 1-2 line fix to findasale-dev.
 
 ---
 
-## THIRD TASK — Re-verify Saved Items Tab After Fixes
+## S254 Priority 1 — Fix /organizer/premium → redirect to /organizer/subscription
 
-Once findasale-dev completes both fixes:
-1. Run Chrome MCP smoke test on `/shopper/wishlist` Saved Items tab — should display user11's item-level favorites
-2. Run Chrome MCP smoke test on `/shopper/dashboard` Favorites tab — should show same data
-3. Verify `/organizer/premium` redirects to `/organizer/subscription`
-4. Mark S255 complete
+**~10-line fix. Same exact pattern as /organizer/upgrade.tsx (already fixed in S253).**
+
+Dispatch to findasale-dev:
+- File: `packages/frontend/pages/organizer/premium.tsx`
+- Replace entire file with `getServerSideProps` redirect to `/organizer/subscription`
+- Verify live: navigate to finda.sale/organizer/premium as logged-in organizer, confirm it lands on /organizer/subscription
+
+---
+
+## S254 Priority 2 — Fix bids page item photos missing
+
+Dispatch to findasale-dev to investigate:
+- `/api/bids` endpoint returns `photoUrls` from `item.photoUrls` (Prisma `select`)
+- In QA, the bids page rendered item titles and amounts but DOM had 0 `<img>` elements for items
+- Check: are seeded bid items' `photoUrls` populated? Run query against Neon to verify
+- Check: does the `bids.tsx` frontend render `photoUrls[0]` with a fallback? Or does it silently skip on empty array?
+- Fix whichever layer is broken (seed data, API response, or frontend render logic)
+
+---
+
+## S254 Priority 3 — Fix double onboarding modals on organizer dashboard
+
+Dispatch to findasale-dev:
+- On `/organizer/dashboard` fresh load (user2 = Bob Smith, PRO organizer), two onboarding modals stack simultaneously:
+  1. Background (light): "Step 1: Your Profile" — Business Name, Phone, Bio fields with "Remind Me Later" / "Save & Continue"
+  2. Foreground (dark): "Welcome to FindA.Sale! You're set up as a sale organizer. Let's go →" with "Skip"
+- Root cause: likely two separate onboarding modal components both checking the same incomplete condition (no profile setup + new user wizard)
+- Fix: ensure only one modal shows at a time; dismiss/complete one before showing the other
+
+---
+
+## S254 Priority 4 — Fix shopper onboarding "Skip" navigates to /login
+
+Dispatch to findasale-dev:
+- The shopper welcome modal ("Welcome to FindA.Sale! Discover estate sales..." with "Show me around" + "Skip") has a "Skip" link/button that navigates to `/login` instead of just closing the modal
+- Affects any shopper page that shows the onboarding modal
+- Fix: "Skip" should close/dismiss the modal and mark onboarding as skipped in local state (not navigate away)
+
+---
+
+## After Fixes — Re-run QA Checks
+
+Once dev fixes are pushed and Railway/Vercel deploys:
+1. Navigate to finda.sale/organizer/premium as user2 → confirm redirect to /organizer/subscription
+2. Navigate to finda.sale/shopper/bids as user11 → confirm item photos visible
+3. Log in as user2 (Bob Smith), go to /organizer/dashboard (hard reload) → confirm only ONE modal shows
+4. Log in as user11, navigate to any page with the shopper welcome modal → click "Skip" → confirm stays on page (no /login redirect)
+5. Re-run Item 7 after /organizer/profile DECISION NEEDED is resolved
 
 ---
 
 ## Test Accounts (Live on Neon)
 
 All password: `password123`
-- `user1@example.com` — ADMIN + SIMPLE organizer
-- `user2@example.com` — PRO organizer (Stripe connected)
+- `user1@example.com` — ADMIN + SIMPLE organizer (Alice Johnson)
+- `user2@example.com` — PRO organizer (Bob Smith) — use for organizer tests
 - `user3@example.com` — TEAMS organizer (Stripe connected)
-- `user11@example.com` — Shopper with full activity history (9 bids, 6 purchases, wishlists, follows, notifications)
+- `user11@example.com` — Shopper (Karen Anderson) — 9 bids, 6 purchases, wishlists, follows, notifications
 
 ---
 
 ## Context Loading
 
-- Read `claude_docs/STATE.md` — S254 summary + P1 bugs identified
-- Reference files: `packages/backend/src/controllers/userController.ts` (line 74), `packages/frontend/pages/shopper/wishlist.tsx` (line 117), `packages/frontend/pages/organizer/premium.tsx`
-- Both bugs are blocking user functionality. Fix and re-verify before moving to next work batch.
+- Read `claude_docs/STATE.md` — S253 completion, 4 P1 fix priorities, 2 DECISION NEEDED items
+- Last commit: `011d18b44552c8e512a8c8ce7b4f321781702384`
+- QA findings detail: `/sessions/gifted-eloquent-pascal/qa-findings-s253-remaining-2026-03-23.md` (in Cowork session — may not persist; use STATE.md as source of truth)
+- Beta week context: fixes are prioritized by user-visible impact
