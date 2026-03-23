@@ -1,59 +1,47 @@
-# Next Session Prompt — S256
+# Next Session Prompt — S257
 
-**Date:** 2026-03-23 (S255 complete)
-**Status:** All S254 bugs resolved and QA verified. S248 bug/dark backlog fully cleared. S256 is UX + strategic work.
-
----
-
-## Context
-
-Read `claude_docs/STATE.md` — S255 completion block.
-Read `claude_docs/S248-walkthrough-findings.md` — 41 UX items + 17 strategic items are the S256 work queue.
-Last commits: `29e7418` (5 fixes), `cecc437` (bids photo placeholder)
-
-Beta week is active — real users testing. Prioritize user-visible improvements.
+**Date:** 2026-03-23 (S256 complete)
+**Status:** SD4 fixed. 12 Tier 1 UX items shipped. UX specs for full 41-item backlog + onboarding exist. Live QA not yet run — MANDATORY FIRST TASK.
 
 ---
 
-## S256 PRIORITY 1 — UX Items from S248 (41 items)
+## MANDATORY FIRST TASK — Live QA Smoke Test
 
-Dispatch `findasale-ux` to:
-1. Read `claude_docs/S248-walkthrough-findings.md` — extract all UX-category items
-2. Group into logical batches (shopper flows, organizer flows, discovery/search, onboarding)
-3. Spec each batch with acceptance criteria
-4. Return grouped specs → main session batches into parallel `findasale-dev` dispatches
+**Before any new work**, dispatch `findasale-qa` to verify S256 changes are live and working on finda.sale:
 
-Do NOT send all 41 to dev at once — group by feature area, 8–12 items per dispatch.
+1. **SD4** — Log in as user11. Shopper dashboard → streak counter and points balance show real values (not 0/empty).
+2. **Nav labels** — Shopper dropdown shows "Shopper Dashboard". Organizer dropdown shows "Organizer Profile" and "Organizer Dashboard". Organizer dropdown includes Payouts link.
+3. **ThemeToggle** — Desktop header has toggle icon between notification bell and avatar. Clicking it switches theme.
+4. **shopper/settings** — Single footer (no double footer).
+5. **Shopper dashboard Overview tab** — Hunt Pass info card visible at top.
+6. **organizer/dashboard** — POS button visible above the fold. No duplicate Reputation Score card.
+7. **organizer/webhooks** — New webhook form shows testing help text with RequestBin/ngrok/Zapier links.
+8. **shopper/collector-passport** — Specialties and Keywords sections have descriptive help text.
 
----
-
-## S256 PRIORITY 2 — Organizer Onboarding Flow
-
-Current state: Two separate modals existed (welcome wizard + profile setup). Dashboard modal is now fixed to show only one at a time. But the full onboarding experience for a brand-new organizer has never been properly designed end-to-end.
-
-Dispatch `findasale-ux` to:
-- Map the current organizer onboarding path (what does a new user see from signup → first sale created?)
-- Identify gaps, dead ends, and confusing steps
-- Spec a clean single-flow onboarding experience
-- Return spec → dispatch `findasale-dev` to implement
+If any check fails → dispatch `findasale-dev` to fix before proceeding to new work.
 
 ---
 
-## S256 PRIORITY 3 — SD4: Streak and Points Show Nothing
+## S257 PRIORITY 1 — Tier 2+ UX Batches
 
-From S248 walkthrough item SD4: Shopper dashboard streak and points display empty/zero even for user11 who has seed data.
+UX specs are ready in `claude_docs/ux-spotchecks/S256-UX-SPECS-41-items-onboarding.md`.
 
-Quick fix — dispatch `findasale-dev`:
-- Check: does user11's seed data include UserStreaks + PointsTransactions?
-- Check: does the frontend correctly query and display these fields?
-- Fix whichever layer is empty
+Read the spec, identify remaining Tier 2+ batches (Tier 1 was completed in S256), and dispatch in parallel to `findasale-dev`. Target 8–12 items per dispatch.
 
 ---
 
-## S256 PRIORITY 4 — Strategic Items (17 items from S248)
+## S257 PRIORITY 2 — Organizer Onboarding Flow
+
+Spec exists in `claude_docs/ux-spotchecks/S256-UX-SPECS-41-items-onboarding.md` (5-step onboarding flow section at the bottom).
+
+Dispatch `findasale-dev` to implement. Reference the spec for acceptance criteria.
+
+---
+
+## S257 PRIORITY 3 — Strategic Items (17 items from S248)
 
 Read `claude_docs/S248-walkthrough-findings.md` strategic section.
-Route to appropriate agents:
+Route to:
 - Product strategy decisions → `findasale-advisory-board`
 - Feature ideas → `findasale-innovation`
 - Competitive implications → `findasale-competitor`
@@ -62,18 +50,18 @@ Do not dispatch to dev without advisory/innovation review first.
 
 ---
 
-## Test Accounts (Live on Neon)
+## Context
 
-All password: `password123`
-- `user1@example.com` — ADMIN + SIMPLE organizer (Alice Johnson)
-- `user2@example.com` — PRO organizer (Bob Smith)
-- `user3@example.com` — TEAMS organizer
-- `user11@example.com` — Shopper (Karen Anderson)
+Last commits: `b7b05c3` (SD4 streaks fix), `6dafd59` (nav labels + shopper settings), `af48ac2` (Tier 1 UX polish batch)
+
+Beta week is active — real users testing. Prioritize user-visible fixes and flows.
 
 ---
 
-## Notes
+## Test Accounts (Live on Neon)
 
-- "Skip" button on shopper modal was found to already be correctly coded. If beta testers report it navigating to /login, the issue is in a different modal instance — dispatch findasale-dev to find the second instance.
-- Persistent Inventory is in roadmap.md deferred section — do not build during beta.
-- seed.ts has an uncommitted photoUrl fix — already discarded via `git restore`. No action needed.
+All password: `password123`
+- `user1@example.com` — ADMIN + SIMPLE organizer
+- `user2@example.com` — PRO organizer (Stripe connected)
+- `user3@example.com` — TEAMS organizer (Stripe connected)
+- `user11@example.com` — Shopper with full activity (9 bids, 6 purchases, streaks, points)

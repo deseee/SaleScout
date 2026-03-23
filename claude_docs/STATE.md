@@ -7,6 +7,24 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Active Objective
 
+**Session 256 COMPLETE (2026-03-23) — UX POLISH BATCH + SD4 FIX:**
+- ✅ SD4 FIXED — `/api/streaks/profile` now returns `streakPoints`, `visitStreak`, `huntPassActive`, `huntPassExpiry` from User model (was only returning UserStreaks table data). Commit `b7b05c3`.
+- ✅ OD1/OD2 — Nav labels updated: "My Dashboard"→"Shopper Dashboard", "My Profile"→"Organizer Profile", "My Dashboard"→"Organizer Dashboard". Commit `6dafd59`.
+- ✅ OV3 — Payouts link added to organizer nav dropdown. Commit `6dafd59`.
+- ✅ S3 — shopper/settings.tsx double footer fixed (nested Layout wrapper removed). Commit `6dafd59`.
+- ✅ H5 — ThemeToggle added to desktop header (was mobile-only). Commit `af48ac2`.
+- ✅ SD5 — Hunt Pass info card added to shopper dashboard Overview tab top; Upgrade button tooltip added. Commit `af48ac2`.
+- ✅ SD7 — "Browse upcoming sales" EmptyState nudge repositioned after ActivitySummary. Commit `af48ac2`.
+- ✅ PR2 — Points/tier explainer text added to profile.tsx under Hunt Pass section. Commit `af48ac2`.
+- ✅ CP2 — Help text added for Specialties and Keywords on collector-passport.tsx. Commit `af48ac2`.
+- ✅ WH1 — Testing help text (RequestBin, ngrok, Zapier) added inside webhook form. Commit `af48ac2`.
+- ✅ OV2 — Duplicate Reputation Score card removed from organizer dashboard. Commit `af48ac2`.
+- ✅ ODB1 — POS button promoted to primary action area above the fold on organizer dashboard. Commit `af48ac2`.
+- ✅ UX specs created: `claude_docs/ux-spotchecks/S256-UX-SPECS-41-items-onboarding.md` + `S256-UX-HANDOFF.md`
+- ⚠️ **Live QA not yet run** — MANDATORY first task S257: smoke test all S256 changes via Chrome MCP (finda.sale)
+- ⚠️ **Remaining from S256 spec:** SD1 (tab restructure — complex), LY1-LY10 (gamification — strategic), P4 (17 strategic items → advisory/innovation), remaining Tier 2+ UX batches from S256-UX-SPECS
+- Last Updated: 2026-03-23
+
 **Session 255 COMPLETE (2026-03-23) — BUG FIX BATCH + DECISIONS:**
 - ✅ `/organizer/profile` → redirect to `/organizer/settings` (profile page retired, D-confirmed)
 - ✅ `/organizer/inventory` → "Coming Soon" Persistent Inventory stub (deferred post-beta)

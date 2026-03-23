@@ -2,6 +2,22 @@
 
 **Note:** Older entries archived to `claude_docs/archive/session-logs/`. Keep 5 most recent sessions for quick reference.
 
+## Recent Sessions (S252–S256)
+
+### 2026-03-23 · Session 256
+
+**UX POLISH BATCH + SD4 FIX**
+
+✅ **SD4 fixed** (commit `b7b05c3`): `/api/streaks/profile` enriched with `streakPoints`, `visitStreak`, `huntPassActive`, `huntPassExpiry` from User model. Shopper dashboard now shows real streak/points data for user11.
+
+✅ **12 Tier 1 UX items shipped** (commits `6dafd59`, `af48ac2`): Nav label clarifications (OD1/OD2), Payouts link in organizer nav (OV3), shopper settings double footer fix (S3), ThemeToggle on desktop header (H5), Hunt Pass info card on shopper dashboard (SD5), browse-sales nudge repositioned (SD7), points/tier explainer on profile (PR2), Specialties/Keywords help text on collector-passport (CP2), webhook testing help text (WH1), duplicate Reputation Score card removed from organizer dashboard (OV2), POS button promoted above the fold (ODB1).
+
+✅ **UX specs created:** `S256-UX-SPECS-41-items-onboarding.md` (full 41-item spec in 7 batches + organizer onboarding 5-step flow) + `S256-UX-HANDOFF.md` (tier priority breakdown).
+
+⚠️ **Live QA not yet run** — MANDATORY first task S257.
+
+📋 **S257 queued:** QA smoke test → Tier 2+ UX batches → organizer onboarding implementation → 17 strategic items to advisory/innovation.
+
 ## Recent Sessions (S251–S255)
 
 ### 2026-03-23 · Session 255
@@ -55,35 +71,5 @@
 ✅ **seed.ts rewritten (828 lines):** All 14 DATA items from S248 walkthrough now seeded. Key fix: replaced `$transaction([...deleteMany()])` chain with `TRUNCATE TABLE "User","Badge","FeeStructure","Achievement" CASCADE` — PostgreSQL handles all FK chains automatically. Prior approach failed on `PushSubscription_userId_fkey`.
 
 ✅ **Seed ran clean on Neon:** 100 users, 10 organizers (SIMPLE/PRO/TEAMS tiers), 25 sales, 308 items (3 auction), 54 purchases, 9 bids, 8 badge types, wishlists/alerts, follows, notifications, TreasureTrail, ShopperStamps, CollectorPassport, Referrals, Bounties, UserStreaks, OrganizerReputations, PointsTransactions, Conversations, FraudSignals. PRO + TEAMS organizers have Stripe connect IDs.
-
----
-
-### 2026-03-23 · Session 249
-
-**WALKTHROUGH BUG + DARK MODE FIX BATCH**
-
-✅ **18 bugs fixed:** Search expanded to items+organizers (H4), leaderboard organizer links (L8), contact form submit (C2), sales near you error state (SD3), dashboard stat buttons navigate (SD6), follow seller end-to-end (SD9), FAQ character rendering (F1-F3), shopper pricing tier message (P1), access denied redirect (P7), workspace domain→finda.sale (OS2), flip report empty state (FR1), item library auth fix (IL1), print inventory verified (PI1).
-
-✅ **8 dark mode violations fixed:** SD2 (overview), SD8 (pickups), M4 (route builder), AL2 (alerts), TY1 (typology), PY1 (payouts), ST1 (sales tab), H13 (organizer pages pass).
-
-⚠️ **Carry-forward:** Double footers (I2, CP3, LY11, AL5, TR2, S3) + TR1/OP1/OS3 missing routes, F7 profile/settings split — all queued for strategic session.
-
----
-
-### 2026-03-23 · Session 248
-
-**REMOVAL GATE IMPLEMENTATION + 114-ITEM FULL-SITE WALKTHROUGH**
-
-✅ **Vercel verified GREEN** — all S247 commits deployed.
-
-✅ **Security triage:** Health scout C1/H1/H2 findings already fixed in codebase. No code changes needed.
-
-✅ **Removal Gate (CLAUDE.md §7):** Added three new blocks — subagents must return "DECISION NEEDED" instead of executing removals; tightened dead-code exemption; orchestrator triage layer (FIX/REDIRECT/REPLACE dispatched silently, only REMOVE goes to Patrick).
-
-✅ **D-010 added to DECISIONS.md:** "No Autonomous Removal of User-Facing Content" — permanent standing decision.
-
-✅ **findasale-dev + findasale-qa skills updated:** Removal gate language packaged as .skill files for Patrick to install.
-
-✅ **114-item walkthrough documented:** Patrick did a full-site walkthrough during rate limit cooldown. Found 29 bugs, 8 dark mode violations, 41 UX issues, 14 test data gaps, 17 strategic questions, 5 duplicate/consolidation items. Organized into `claude_docs/S248-walkthrough-findings.md` as the work queue for upcoming sessions.
 
 ---
