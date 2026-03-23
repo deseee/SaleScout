@@ -1,40 +1,50 @@
-# Patrick's Dashboard — Session 246 Wrap (March 23, 2026)
+# Patrick's Dashboard — Session 247 Wrap (March 23, 2026)
 
 ## Build Status
 
-⚠️ **Two builds were broken coming into this session — both now fixed:**
+✅ **3 commits pushed — verify Vercel is GREEN:**
 
-Vercel was in ERROR state due to a stray `>` character accidentally introduced in profile.tsx during S246 dev work. That character caused a JSX parse failure. Fixed and pushed (commit 8918a51) — Vercel is rebuilding now.
+- Commit 1aa1082: Role-based nav fix + organizer profile sections
+- Commit c4b40fa: Restore "My Wishlists" link (was removed by subagent, caught and restored)
+- Commit fcfa835: verificationStatus type fix (was breaking Vercel build)
 
-Railway was failing TypeScript compilation because S244 added a `requireAdmin` import to verification.ts but the actual function was never added to auth.ts. Fixed and pushed (commit 7bf292e) — Railway is rebuilding now.
-
-Both hotfixes are clean targeted fixes with no side effects. Wait a few minutes and check finda.sale to confirm the site is back up.
+Check finda.sale after a few minutes to confirm deployment succeeded.
 
 ## What Happened This Session
 
-S246 ran the comprehensive shopper frontend QA scan. The agent clicked through 14 items across 4 groups using Chrome MCP.
+S247 fixed the organizer profile page and role-based navigation. You reported that user1's profile was showing only "Sale Interests" and "Push Notifications" — all other content was gone.
 
-**Passed (9 items):** Loot Log, Loyalty, Trails, and Collector Passport pages all load and show proper empty states for user11. The shopper dashboard Overview tab, Subscribed tab, and all 6 quick-link buttons (Collection, Loyalty, Alerts, Trails, Loot Log, Receipts) navigate correctly.
+**Root cause:** This was NOT a S246 regression. It traces back to S237 when an `isOrganizerOnly` gate was added to hide shopper content from organizers, but no replacement organizer content was ever built. The profile page was effectively blank for organizers for 10 sessions.
 
-**Fixed (1 item):** The Favorites tab was showing empty even though the Overview card showed "1 Saved Items." Root cause was the S245 fix — it extracted `.favorites` from the API response but the fallback logic could still return the full response object. Added an Array.isArray guard that guarantees the variable is always an array. This is pushed.
+**What got fixed:**
 
-**Inconclusive (1 item — needs your input):** The /profile page has no Edit buttons for name/bio/photo anywhere in the header. You reported this after S245. The QA agent confirmed the page loads but has no such buttons. We need to know: is this a feature gap (buttons should be there but never were built), or is profile editing on /settings instead?
+- **AvatarDropdown.tsx** — Admin detection added ("Admin Panel" link), shoppers get "My Dashboard" + "My Wishlists", organizers get "My Profile" + "Plan a Sale" + tier-gated items. All three roles now have clear, distinct menus.
+- **Layout.tsx mobile drawer** — Shopper dashboard link relabeled from "My Profile" to "My Dashboard". Separate "My Profile" link added for both shoppers and organizers.
+- **profile.tsx** — Three new organizer sections added: Verification Status card, Your Sales card with dashboard link, Quick Links grid (Plan a Sale, Settings, Subscription, Workspace for TEAMS).
 
-**Unverified (3 items):** Message reply end-to-end couldn't be tested because conversation links in the /messages inbox weren't navigating to thread pages in Chrome MCP. This may be a Chrome MCP clicking limitation. The Purchases and Pickups dashboard tabs were confirmed present but not fully clicked through.
+**Destructive removal caught:** The dev subagent removed "My Wishlists" from the avatar dropdown because a prior audit flagged it as a 404. Caught immediately, restored in a separate commit. This is the pattern we're permanently fixing next session.
+
+**Favorites vs Wishlists confusion surfaced:** "My Wishlists" in the dropdown points to `/shopper/favorites` (flat heart-saves). "My Wishlists" in the mobile drawer points to `/wishlists` (named shareable collections). Two different features with the same label. You're evaluating how to handle this.
+
+## What's Next (S248)
+
+**Priority 1 — Full Feature/Nav Audit:** Inventory every route in the frontend, cross-reference against every nav link, flag pages with no nav entry, links pointing to 404s, and ambiguous labels. Output will be a table for you to review before any changes are made.
+
+**Priority 2 — Permanent Fix for Destructive Removal Pattern:** Update CLAUDE.md §7 with a "Removal Gate," update findasale-dev and findasale-qa skills so subagents can't remove features/links/UI elements without surfacing the decision to you first. This is the #1 recurring issue across sessions.
 
 ## Action Items for Patrick
 
-- [ ] **Answer one question:** Does `/profile` need Edit Profile buttons for name/bio/photo? Or is that handled somewhere else (like `/settings`)? This has been flagged 3 sessions in a row.
-- [ ] **Confirm site is back up** — wait ~5 minutes and load finda.sale. If it's still showing an error, tell Claude.
-- [ ] **Nothing else needed.** Next session will verify message reply E2E, complete the remaining dashboard tab tests, and run a dark mode + mobile pass.
+- [ ] **Confirm Vercel is GREEN** — check finda.sale after deployment
+- [ ] **Favorites vs Wishlists decision** — should they be combined, separated further, or just relabeled? No rush, S248 audit will surface more context.
+- [ ] **/profile edit buttons (C1)** — still unanswered from S246. Does `/profile` need Edit buttons for name/bio/photo?
 
-## Open QA Items (for next session)
+## Open QA Items (carry-forward)
 
 | Item | Status | Notes |
 |------|--------|-------|
 | Message reply E2E (D1) | ❌ UNVERIFIED | Conversation links didn't navigate in Chrome MCP |
-| /profile edit buttons (C1) | ⚠️ NEEDS DECISION | Patrick must confirm expected behavior |
-| Purchases tab (B3) | ⚠️ PARTIAL | Tab button present, content not tested |
-| Pickups tab (B4) | ⚠️ PARTIAL | Tab button present, content not tested |
-| Dark mode full pass | ⏸ DEFERRED | Not run in S246 |
+| /profile edit buttons (C1) | ⚠️ NEEDS DECISION | Patrick hasn't confirmed expected behavior |
+| Purchases tab (B3) | ⚠️ PARTIAL | Tab present, content not tested |
+| Pickups tab (B4) | ⚠️ PARTIAL | Tab present, content not tested |
+| Dark mode full pass | ⏸ DEFERRED | Not run in S246 or S247 |
 | Mobile 375px (L-002) | ⏸ DEFERRED | Carry-forward from S244 |

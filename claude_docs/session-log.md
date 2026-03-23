@@ -2,7 +2,27 @@
 
 **Note:** Older entries archived to `claude_docs/archive/session-logs/`. Keep 5 most recent sessions for quick reference.
 
-## Recent Sessions (S242–S246)
+## Recent Sessions (S243–S247)
+
+### 2026-03-23 · Session 247
+
+**ROLE-BASED NAV FIX + ORGANIZER PROFILE SECTIONS + DESTRUCTIVE REMOVAL PATTERN**
+
+✅ **Root cause found:** Organizer profile (user1) showing only "Sale Interests + Push Notifications" since S237. The `isOrganizerOnly` gate hid shopper content but no organizer replacement was built. Not a S246 regression.
+
+✅ **AvatarDropdown.tsx fixed for all 3 roles:** Admin detection added (`isAdmin` via `user.roles`). Shoppers now see "My Dashboard" + "My Profile" + "My Wishlists". Organizers now see "Dashboard" + "My Profile" + "Plan a Sale" + tier-gated items. Admins see "Admin Panel" at top.
+
+✅ **Layout.tsx mobile drawer fixed:** Shopper section relabeled "My Profile" → "My Dashboard" for `/shopper/dashboard`. Added separate "My Profile" → `/profile` for both shoppers and organizers.
+
+✅ **profile.tsx organizer sections added:** Verification Status card (fetches `verificationStatus` from `/users/me` API — field exists in schema but not in JWT), Your Sales card with CTA to organizer dashboard, Quick Links grid (Plan a Sale, Settings, Subscription, Workspace if TEAMS tier).
+
+✅ **Vercel build fix:** Added `verificationStatus?: string` to User interface in AuthContext.tsx. Profile page uses `useQuery` to fetch from `/users/me` since JWT doesn't include this field.
+
+⚠️ **Destructive removal caught + restored:** Subagent removed "My Wishlists" link from avatar dropdown (flagged as 404 in prior audit). Caught by main session, restored immediately, and pushed as separate commit. Pattern documented — Patrick wants permanent fix in S248 via CLAUDE.md and skill changes.
+
+⚠️ **Favorites vs Wishlists discrepancy surfaced:** "My Wishlists" in dropdown → `/shopper/favorites` (flat heart-saves). "My Wishlists" in mobile drawer → `/wishlists` (named shareable collections). Two separate features with same label pointing to different routes. Patrick evaluating.
+
+---
 
 ### 2026-03-23 · Session 246
 
@@ -64,30 +84,8 @@
 
 ✅ **6 weekly audit fixes pushed via MCP:** H-001 (LiveFeed "Reconnecting..." removed), H-002 (ReviewsSection dark mode), M-001 (/premium + /workspace redirects), M-002 (footer all sale types per D-001), M-003 (message thread no footer), M-004 (about page mission statement broadened).
 
-✅ **6 of 9 S242 live verifications passed:** favorites hash routing, save button, pricing CTA, about blank space, map route planner, image fallback.
-
 ✅ **conversation-defaults v8:** Rule 31 added — execute unambiguous session-start actions immediately.
 
 **Carry-forward:** 3 S242 verifications remaining (tooltips, /premium, /plan). Message reply verification. /cities + /neighborhoods meta. L-002 mobile viewport.
-
----
-
-### 2026-03-22 · Session 242
-
-**BRAND SWEEP + D-007 + 13 UX BUG FIXES + QA SKILL REWRITE**
-
-✅ D-007 confirmed live: workspace creation works (user3@example.com TEAMS), member counter shows "0 / 12 members". Commit: b07f162.
-
-✅ Brand sweep (5 pages): /hubs, /categories, /calendar clean. /cities and /neighborhoods title tags + Layout duplication fixed. Commit: b07f162.
-
-✅ Auth rate limit raised 20→50. Commit: b07f162.
-
-✅ **13 UX bugs fixed from Patrick's 10-minute clickthrough.** 3 parallel dev agents dispatched. 9 code files changed across 3 commits (32c3ae8, d9eb70d, dd9443b): favorites hash routing, item likes rewired, pricing CTA for signed-in, about blank space, /organizer/premium sync, /plan brand broadening, map "Plan Your Route" button, organizer settings tooltips, InspirationGrid image fallback.
-
-✅ **QA skill rewritten (findasale-qa v2):** Chrome MCP clickthrough-first methodology replaces code-audit-first approach. Installed before 10pm Sunday audit.
-
-✅ **Critical feedback memory saved:** QA methodology gap — Claude tested code correctness but not product usability. Patrick found 13 bugs in 10 min that 2 days of code QA missed.
-
-**Carry-forward:** Live Chrome verification of all 13 fixes (S243 first task). L-002 mobile — Patrick has no iPhone, use DevTools or close. /cities + /neighborhoods meta descriptions still say "estate sales."
 
 ---

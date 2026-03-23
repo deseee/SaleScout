@@ -7,73 +7,34 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Active Objective
 
+**Session 247 COMPLETE (2026-03-23) — ROLE-BASED NAV FIX + ORGANIZER PROFILE + DESTRUCTIVE REMOVAL PATTERN:**
+- ✅ **Root cause found:** Organizer profile showing only "Sale Interests + Push Notifications" since S237. The `isOrganizerOnly` gate was added to hide shopper content but no organizer replacement content was ever built. Not a S246 regression.
+- ✅ **AvatarDropdown.tsx:** Added admin detection (`isAdmin`), "Admin Panel" link for admins, "My Profile" link for organizers (was missing), "My Dashboard" link for shoppers (was missing). "My Wishlists" preserved — pointed out it targets `/shopper/favorites` which may 404, but NOT removed (surfaced to Patrick instead).
+- ✅ **Layout.tsx mobile drawer:** Shopper section relabeled "My Profile" → "My Dashboard" for `/shopper/dashboard`. Added separate "My Profile" → `/profile` for both shoppers and organizers.
+- ✅ **profile.tsx:** Added 3 organizer sections inside `isOrganizerOnly` gate: Verification Status card (reads `verificationStatus` from `/users/me` API, not JWT), Your Sales card with link to organizer dashboard, Quick Links grid (Plan a Sale, Settings, Subscription, Workspace if TEAMS).
+- ✅ **AuthContext.tsx:** Added `verificationStatus?: string` to User interface. Profile page fetches from `/users/me` since JWT doesn't include this field.
+- ✅ **HOTFIX — Vercel build error:** `user.verificationStatus` → local `verificationStatus` variable sourced from API query. Commit fcfa835.
+- ⚠️ **IDENTIFIED (not fixed — surfaced to Patrick):** "My Wishlists" in AvatarDropdown points to `/shopper/favorites` but mobile drawer "My Wishlists" points to `/wishlists`. Favorites = flat heart-saves, Wishlists = named shareable collections. Separate features, confusing nav. Patrick deciding next steps.
+- ⚠️ **CRITICAL PATTERN — Destructive removal:** Subagent removed "My Wishlists" link without Patrick approval despite feedback memory prohibiting this. Caught and restored immediately. Patrick wants permanent fix via CLAUDE.md and/or skill changes in S248.
+- ⚠️ **S248 PRIORITY 1:** Full feature/nav audit against roadmap — every feature should be reachable by every role that needs it
+- ⚠️ **S248 PRIORITY 2:** Permanent fix for destructive removal pattern — CLAUDE.md §7 subagent gate changes + skill execution path changes
+- ⚠️ **CARRY-FORWARD:** D1 message reply E2E, B3/B4 (Purchases/Pickups), dark mode pass, L-002 mobile, M2 TODO/FIXME, /profile edit buttons (Patrick never answered)
+- Last Updated: 2026-03-23
+
 **Session 246 COMPLETE (2026-03-23) — SHOPPER QA SCAN + CRITICAL BUILD HOTFIXES:**
-- ✅ **QA scan: 14 items tested** across Groups A, B, C, D (findasale-qa agent, Chrome MCP)
-  - A1–A4 (Loot Log, Loyalty, Trails, Collector Passport): ✅ Pages load, empty states render correctly for user11 (zero data, as expected)
-  - B1 (Favorites tab): ✅ Fixed — Array.isArray guard in dashboard.tsx queryFn; tab was showing empty despite card showing "1 Saved Items"
-  - B2 (Subscribed tab): ✅ Verified — shows empty (0 follows), dynamic loading confirmed
-  - B3 (Purchases tab): ⚠️ PARTIAL — button present, full tab not clicked through
-  - B4 (Pickups tab): ⚠️ PARTIAL — button present, full tab not clicked through
-  - B5 (Overview tab): ✅ Verified — cards render correctly (0 Purchases, 1 Saved Items, 331 Points)
-  - B6 (6 quick-link buttons): ✅ All 6 navigate correctly (Collection, Loyalty, Alerts, Trails, Loot Log, Receipts)
-  - C1 (/profile missing buttons): ⚠️ INCONCLUSIVE — page loads, no edit/save buttons in header. Unclear if expected. Needs Patrick clarification: are edit buttons (name/bio/photo) a gap, or on /settings?
-  - D1 (message reply E2E): ❌ UNVERIFIED — conversation links in /messages inbox not navigating to thread pages. Root cause unclear (Chrome MCP limitation vs. routing issue).
-- ✅ **dashboard.tsx (B1 fix):** Favorites queryFn Array.isArray guard — guarantees `.favorites` array, never returns full API response object. Pushed commit 8b04b15.
-- ✅ **messages/index.tsx:** Dark mode CSS cleanup on conversation list items. Pushed commit 8b04b15.
-- ✅ **profile.tsx (dark mode):** Dark mode consistency improvements. Pushed commit 8b04b15.
-- ✅ **HOTFIX — profile.tsx stray `>` removed:** S246 dev agent introduced a stray `>` between `</div>` and `</td>` in the bids table — broke Vercel JSX parse. Fixed and pushed commit 8918a51. Vercel rebuilding.
-- ✅ **HOTFIX — auth.ts `requireAdmin` added:** S244 added `requireAdmin` import in verification.ts but never added the function to auth.ts — broke Railway TypeScript build. Fixed and pushed commit 7bf292e. Railway rebuilding.
-- ⚠️ **CARRY-FORWARD:** /profile missing edit buttons — Patrick must clarify: should profile page have name/bio/photo editing, and is it on /settings instead?
-- ⚠️ **CARRY-FORWARD:** D1 message reply E2E (organizer → shopper both sides) — still unverified
-- ⚠️ **CARRY-FORWARD:** B3/B4 (Purchases, Pickups tabs) — tabs present, content not fully tested
-- ⚠️ **CARRY-FORWARD:** Dark mode full pass — not tested in S246 (session time constraints)
-- ⚠️ **CARRY-FORWARD:** L-002 (mobile viewport 375px) — carry-forward from S244
-- ⚠️ **CARRY-FORWARD:** M2 (13 TODO/FIXME markers in backend) — low priority
+- ✅ QA scan: 14 items tested (9 passed, 1 fixed, 1 inconclusive, 3 unverified)
+- ✅ B1 Favorites fix pushed (Array.isArray guard)
+- ✅ HOTFIX: profile.tsx stray `>` + auth.ts `requireAdmin`
 - Last Updated: 2026-03-23
 
 **Session 245 COMPLETE (2026-03-23) — SHOPPER DASHBOARD FIXES + QA BEHAVIORAL CORRECTION:**
-- ✅ **S244 post-fix verification:** Dark mode badges/avatars (profile.tsx, messages), about page background, meta descriptions — all confirmed live in Chrome MCP
-- ✅ **env vars added to packages/backend/.env:** `MAILERLITE_API_KEY` + all `DEFAULT_*` region vars (Grand Rapids defaults). Patrick manual action — done.
-- ✅ **Shopper dashboard bugs fixed + pushed (5 files):**
-  - `messages/[id].tsx` — error/success toast feedback on reply send (was silently failing)
-  - `sales/[id].tsx` — dark mode variants on Message Organizer button, sign-in link, action buttons
-  - `hooks/useFollows.ts` — NEW: fetches followed organizers from `GET /api/smart-follows/my`
-  - `shopper/dashboard.tsx` — Favorites queryFn extracts `.favorites` array (API returns `{favorites:[], total:N}`); Subscribed tab now dynamic (useFollows hook, real organizer cards)
-- ✅ **QA behavioral correction (CRITICAL):** Claude was marking features ✅ Correct based on API shape inspection alone — NOT browser testing with real data. Three fixes applied:
-  - `findasale-qa` SKILL.md updated: Chrome MCP Unavailable Protocol + stricter "What Not To Do" rules. Packaged via skill-creator.
-  - `conversation-defaults` SKILL.md updated: Rule 32 — no substitutes for browser testing. Packaged via skill-creator.
-  - `feedback_qa_methodology_gap.md` memory updated: S245 API-inspection-as-proxy pattern documented.
-  - **Patrick action required: Install both updated .skill files from workspace folder**
-- ⚠️ **UNVERIFIED (need real browser test with seeded data):** Loot Log, Loyalty, Trails, Collector Passport — user11 has zero entries in all four. API shape confirmed via curl only. NOT browser-tested.
-- ⚠️ **UNVERIFIED:** Missing buttons on /profile page — Patrick reported after S245 push. Not yet diagnosed.
-- ⚠️ **CARRY-FORWARD:** Message reply end-to-end (organizer → shopper) — still incomplete
-- ⚠️ **CARRY-FORWARD:** M2 (13 TODO/FIXME markers in backend) — low priority
-- ⚠️ **CARRY-FORWARD:** L-002 (mobile viewport test) — formal pass pending
+- ✅ S244 post-fix verification confirmed live
+- ✅ 4 shopper dashboard fixes pushed
+- ✅ QA behavioral correction (Chrome MCP-first methodology)
 - Last Updated: 2026-03-23
 
-**Session 244 COMPLETE (2026-03-22) — HEALTH SCOUT FIX + DARK MODE AUDIT + META CLEANUP:**
-- ✅ **POST-FIX LIVE VERIFICATION (QA Agent):** All S243 fixes confirmed live — item detail pages, LiveFeed, Reviews dark mode, message thread footer, About page, tooltips, premium page, plan page. All PASS.
-- ✅ **M1 FIXED — unbounded findMany in exportController:** Added `take: 5000` to 3 queries in `packages/backend/src/controllers/exportController.ts` (query limits: `findMany({ where: {...}, take: 5000 })`).
-- ✅ **C1 + H1 + H2 verified (no code changes needed):** Unauthenticated admin verification routes (C1), JWT fallback (H1), /api/dev NODE_ENV guard (H2) — all already fixed in codebase from previous sessions.
-- ✅ **Dark mode badge/avatar fixes:** `profile.tsx` — badge/bid status/message variants dark-mode-aware. `messages/index.tsx` + `messages/[id].tsx` — amber avatar now proper contrast dark mode.
-- ✅ **About page dark mode consistency:** `about.tsx` — dark:bg-gray-900 (was dark:bg-gray-800) to match site-wide dark background.
-- ✅ **Meta descriptions broadened (all sale types):**
-  - `/cities/index.tsx` — "estate sales, yard sales, garage sales, and more"
-  - `/neighborhoods/index.tsx` — "estate sales, yard sales, garage sales, and more"
-  - `/neighborhoods/[slug].tsx` — metaDesc broadened to include all sale types
-- Last Updated: 2026-03-22
-
-**Session 242 COMPLETE (2026-03-22) — BRAND SWEEP + D-007 + 13 UX BUG FIXES + QA SKILL REWRITE:**
-- ✅ D-007 confirmed live: workspace creation works (user3@example.com TEAMS), member counter shows "0 / 12 members". Commit: b07f162
-- ✅ Brand sweep (5 pages): /hubs, /categories, /calendar clean. /cities and /neighborhoods title tags + Layout duplication fixed.
-- ✅ Auth rate limit raised 20→50.
-- ✅ **13 UX bugs fixed from Patrick's 10-minute clickthrough.** 3 parallel dev agents dispatched. 9 code files changed.
-- ✅ **QA skill rewritten (findasale-qa v2):** Chrome MCP clickthrough-first methodology replaces code-audit-first approach.
-- ✅ **Critical feedback memory saved:** QA methodology gap — Claude tested code correctness but not product usability.
-- Last Updated: 2026-03-22
-
-**Completed Sessions (carry forward knowledge):**
-
+**Session 244 COMPLETE (2026-03-22) — HEALTH SCOUT FIX + DARK MODE AUDIT + META CLEANUP**
+**Session 242 COMPLETE (2026-03-22) — BRAND SWEEP + D-007 + 13 UX BUG FIXES + QA SKILL REWRITE**
 **Session 241 COMPLETE (2026-03-22) — LIVE VERIFICATION + D-007 FULLY DEPLOYED**
 **Session 240 COMPLETE (2026-03-22) — FULL AUDIT FIX + D-007 LOCKED**
 **Session 239 COMPLETE (2026-03-22) — BUG FIXES + WORKFLOW AUTOMATION PLATEAU**
