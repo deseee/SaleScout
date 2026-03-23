@@ -7,17 +7,19 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Active Objective
 
-**Session 252 COMPLETE (2026-03-23) — LIVE SMOKE TEST + DECISIONS EXECUTED:**
-- ✅ **Smoke test COMPLETE** — Verified login, homepage, dashboard, loyalty passport, collector passport, leaderboard all passing live
-- ✅ **5 bugs fixed in live test:** Loot Log blank (API response transform), Dashboard tabs (router.push + hash), /shopper/notifications 404 (NotificationBell nav), /shopper/bids 404 (created page), TreasureTrail auth bug (useTrails hook axios call)
-- ✅ **All D-012 through D-016 decisions executed:** Pricing copy updated, CTAs consolidated, Profile/Settings split verified, Shopper settings scoped correctly
-- ✅ **Wishlist consolidation LIVE** — `/shopper/wishlist` unified page (3 tabs: Saved Items, Collections, Watching), nav updated, `/shopper/favorites` + `/shopper/alerts` now redirect to wishlist
-- ✅ **Sale Interests moved to shopper settings** (D-012 final step) — moved from organizer profile to `/shopper/settings` as "Followed Organizers" (Patrick authorized)
-- ✅ **Double footer root cause found + fixed** — shopper pages had individual Layout wrappers causing duplication with _app.tsx Layout. Fixed: loyalty, collector-passport, alerts, trails, bids (5 files). Need verification: organizer pages (I2, S3)
-- ✅ **TR1/OP1/OS3 confirmed NOT bugs** — TR1 (Create Trail 404) = route works, OP1 (Verification) = correctly routes to settings?tab=verification, OS3 (Workspace URL) = /workspace/[slug] works
-- ⚠️ **S253 PRIORITY 1:** Live smoke test of all 30 changed files before beta week concludes
-- ⚠️ **S253 PRIORITY 2:** Verify organizer double footers fixed (I2 = /organizer/inventory, S3 = /organizer/sales)
-- ⚠️ **S253 PRIORITY 3:** Verify dashboard tabs still responsive after fix
+**Session 254 COMPLETE (2026-03-23) — LIVE SMOKE TEST + P1 BUGS IDENTIFIED:**
+- ✅ **Full S252 smoke test COMPLETE** — Verified all 30 changed files render correctly
+- ✅ **Dashboard tabs:** Overview, Purchases, Favorites, Subscribed, Pickups all switch correctly via router.push + hash ✅
+- ✅ **Shopper pages double footers:** Loyalty, Collector Passport, Bids, Alerts, Trails — all fixed (single footer) ✅
+- ✅ **Redirects verified:** `/shopper/favorites` → `/shopper/wishlist` ✅, `/shopper/alerts` → `/shopper/wishlist` ✅, `/organizer/upgrade` → `/pricing` ✅
+- ✅ **Wishlist tabs:** Saved Items, Collections (2), Watching (2) — all switch correctly ✅
+- ✅ **Pricing page:** All 4 tiers + copy verified ✅
+- ✅ **Notifications page:** Loads with 4 notifications ✅
+- ✅ **Bids page:** Loads with 9 active bids ✅
+- ⚠️ **P1 BUG-1 Found:** Saved Items tab always empty — API response shape mismatch. Backend `/favorites` returns flat array `[Favorite]`, frontend expects `{ favorites: FavoriteItem[], categories: string[], total: number }`. Secondary: Backend query missing `item` relation for item-level favorites. Tertiary: Seed missing item-level favorites for user11.
+- ⚠️ **P1 BUG-2 Found:** `/organizer/premium` not redirecting — page still loads instead of redirecting to `/organizer/subscription` per D-016
+- ⚠️ **Not user-facing (no nav links):** `/organizer/profile` 404, `/shopper/profile` 404, `/organizer/inventory` 404 (item library at `/organizer/item-library`)
+- **S255 PRIORITIES:** Fix BUG-1 (Saved Items API shape + seed), Fix BUG-2 (premium redirect), re-verify Saved Items after fixes
 - Last Updated: 2026-03-23
 
 **Session 250 COMPLETE (2026-03-23) — SEED DATA OVERHAUL:**

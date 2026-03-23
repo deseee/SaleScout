@@ -2,7 +2,35 @@
 
 **Note:** Older entries archived to `claude_docs/archive/session-logs/`. Keep 5 most recent sessions for quick reference.
 
-## Recent Sessions (S247–S251)
+## Recent Sessions (S250–S254)
+
+### 2026-03-23 · Session 254
+
+**LIVE SMOKE TEST + P1 BUG IDENTIFICATION**
+
+✅ **Full S252 smoke test COMPLETE** — All 30 changed files verified live via Chrome MCP.
+
+✅ **All S252 fixes confirmed working:**
+- Dashboard tabs (Overview, Purchases, Favorites, Subscribed, Pickups) all switch correctly
+- Shopper page double footers fixed (loyalty, collector-passport, bids, alerts, trails show single footer)
+- Redirects working: `/shopper/favorites` → `/shopper/wishlist`, `/shopper/alerts` → `/shopper/wishlist`, `/organizer/upgrade` → `/pricing`
+- Wishlist tabs all functional (Saved Items, Collections ×2, Watching ×2 switch correctly)
+- Pricing page displays all 4 tiers with correct copy
+- Notifications page loads with 4 notifications
+- Bids page loads with 9 active bids
+
+⚠️ **2 P1 BUGS IDENTIFIED (blocking user features):**
+1. **BUG-1: Saved Items tab always empty** — API response shape mismatch. Backend `/favorites` returns flat array, frontend expects `{ favorites, categories, total }` object. Secondary: Backend missing `item` relation. Tertiary: Seed missing item-level favorites for user11. Files: userController.ts, wishlist.tsx, seed.ts.
+2. **BUG-2: /organizer/premium not redirecting** — Expected redirect to `/organizer/subscription` (D-016) but page still loads. File: premium.tsx.
+
+✅ **Not user-facing (no nav links point to these):**
+- `/organizer/profile` → 404
+- `/shopper/profile` → 404
+- `/organizer/inventory` → 404 (item library at `/organizer/item-library`)
+
+⚠️ **S255 Priorities:** Dispatch findasale-dev to fix BUG-1 + BUG-2, then re-verify Saved Items tab.
+
+---
 
 ### 2026-03-23 · Session 251
 
@@ -97,26 +125,6 @@
 ✅ **HOTFIX: auth.ts `requireAdmin`** — S244 added `requireAdmin` import in verification.ts but the function was never added to auth.ts. Broke Railway TypeScript build. Fixed commit 7bf292e.
 
 ⚠️ **Still open:** /profile edit buttons (C1 — inconclusive, needs Patrick clarification), message reply E2E (D1 — UNVERIFIED, conversation links not navigating in Chrome MCP), B3/B4 (Purchases/Pickups tabs not fully clicked through), dark mode pass deferred, L-002 mobile deferred.
-
----
-
-### 2026-03-23 · Session 245
-
-**SHOPPER DASHBOARD FIXES + QA BEHAVIORAL CORRECTION**
-
-✅ **S244 post-fix verification:** Confirmed live — dark mode badges/avatars (profile.tsx, messages), about page background, meta descriptions.
-
-✅ **env vars added:** `MAILERLITE_API_KEY` + `DEFAULT_CITY/STATE/STATE_ABBREV/LAT/LNG/RADIUS_MILES/COUNTY/TIMEZONE` added to `packages/backend/.env`.
-
-✅ **4 shopper dashboard fixes pushed:**
-- `messages/[id].tsx` — error + success toast feedback on reply send (was silently failing)
-- `sales/[id].tsx` — dark mode variants on Message Organizer and action buttons
-- `hooks/useFollows.ts` — NEW hook fetching from `GET /api/smart-follows/my`
-- `shopper/dashboard.tsx` — Favorites queryFn extracts `.favorites` array; Subscribed tab fully dynamic
-
-✅ **QA behavioral correction:** Claude was marking features ✅ based on API shape/curl alone without browser testing. Three fixes: findasale-qa SKILL.md (Chrome MCP Unavailable Protocol), conversation-defaults SKILL.md (Rule 32), feedback memory updated. Both skills packaged for Patrick to install.
-
-⚠️ **Carry-forward:** Loot Log/Loyalty/Trails/Collector Passport (zero data — browser test deferred), /profile missing buttons, message reply E2E, L-002 mobile, M2 TODO/FIXME.
 
 ---
 

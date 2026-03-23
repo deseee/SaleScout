@@ -1,51 +1,58 @@
-# Patrick's Dashboard — Session 252 Wrap (March 23, 2026)
+# Patrick's Dashboard — Session 254 Wrap (March 23, 2026)
 
 ## Build Status
 
-✅ **Vercel GREEN** — all 30 S252 changes deployed. Live smoke test passed on key features. Ready for beta user testing.
+✅ **Vercel GREEN** — S252 changes confirmed live and working. Live smoke test found 2 P1 bugs. Ready to fix before beta week usage.
 
 ---
 
 ## What Happened This Session
 
-Executed all D-012 through D-016 locked decisions. Ran live smoke test via Chrome MCP, found + fixed 5 bugs in real time. 30 files changed.
+Ran comprehensive live smoke test of all 30 S252 changes via Chrome MCP. All dashboard tabs, page redirects, wishlist consolidation, and double footer fixes verified working. Identified 2 P1 bugs blocking user features.
 
-**Decisions executed:**
-1. **Wishlist consolidation** (D-012) ✅ — `/shopper/wishlist` unified page live (3 tabs: Saved Items, Collections, Watching). `/shopper/favorites` + `/shopper/alerts` now redirect to `/shopper/wishlist`. Nav updated. Sale Interests renamed to "Followed Organizers" + moved to shopper settings (you authorized this).
-2. **Pricing copy** (D-013) ✅ — Support tier definitions updated to match spec exactly (SIMPLE/FAQ, PRO/48h email, TEAMS/24h + onboarding, ENTERPRISE/named contact).
-3. **Page consolidation** (D-014) ✅ — All `/organizer/upgrade` CTAs redirect to `/pricing`. All plan management CTAs redirect to `/organizer/subscription`.
-4. **Profile/Settings split** (D-015) ✅ — Audited and verified: Profile pages are read-only identity hubs. Settings pages contain all write-heavy controls. Separate per role.
-5. **Shopper settings parity** (D-016) ✅ — Verified shopper settings minimal + scoped correctly (no organizer-specific features present).
+**Verified working (all S252 changes):**
+- Dashboard tabs: Overview, Purchases, Favorites, Subscribed, Pickups — all switch correctly ✅
+- Shopper page double footers: Loyalty, Collector Passport, Bids, Alerts, Trails — all show single footer (S252 fix working) ✅
+- Wishlist consolidation: `/shopper/wishlist` with 3 working tabs (Saved Items, Collections, Watching) ✅
+- CTA redirects: `/shopper/favorites` → `/shopper/wishlist`, `/shopper/alerts` → `/shopper/wishlist`, `/organizer/upgrade` → `/pricing` all working ✅
+- Pricing page: All 4 tiers displaying with correct copy ✅
+- Notifications page: Loads with user11's 4 notifications ✅
+- Bids page: Loads with user11's 9 active bids ✅
 
-**Bugs found + fixed in live test:**
-- Loot Log blank → fixed API response transformation (lootLogController.ts)
-- Dashboard tabs unresponsive → fixed tab switching with router.push + hash
-- /shopper/notifications 404 → fixed NotificationBell nav link + created notifications page
-- /shopper/bids 404 → created bids page (user11 has 9 active bids to display)
-- TreasureTrail invisible → fixed useTrails.ts auth bug (was making unauthenticated axios calls)
+**2 P1 Bugs Found (blocking users):**
 
-**Technical wins:**
-- Double footer root cause found: shopper pages had individual Layout wrappers while _app.tsx also applies Layout → duplicate footer. Fixed on 5 files (loyalty, collector-passport, alerts, trails, bids). Organizer pages (inventory, sales) need verification.
-- TR1 (Create Trail 404) confirmed NOT a bug — route works correctly.
-- OP1 (Verification 404) confirmed NOT a bug — correctly routes to /organizer/settings?tab=verification.
-- OS3 (Workspace URL) confirmed NOT a bug — /workspace/[slug] route exists and works.
+1. **BUG-1: Saved Items tab always empty** — API response shape mismatch
+   - Root cause: Backend `/favorites` endpoint returns flat array. Frontend expects shaped response object `{ favorites: [...], categories: [...], total: N }`
+   - `favoritesData?.favorites` is always `undefined` → empty state
+   - Secondary: Backend query missing `item` relation for item-level favorites
+   - Tertiary: Seed only creates sale-level favorites, not item-level favorites for user11
+   - Fix: Update userController.ts `/favorites` endpoint to return shaped response with `item` relation. Add item-level favorites to seed.
+
+2. **BUG-2: /organizer/premium not redirecting** — CTA consolidation incomplete
+   - Expected per D-016: `/organizer/premium` → `/organizer/subscription`
+   - Actual: Full page loads with "Premium Plans" title
+   - Fix: Add `useEffect(() => { router.replace('/organizer/subscription'); }, [])` to premium.tsx
+
+**Not user-facing bugs (no nav links point to these):**
+- `/organizer/profile` 404 — no nav links
+- `/shopper/profile` 404 — no nav links
+- `/organizer/inventory` 404 — item library is at `/organizer/item-library`
 
 ---
 
-## Ready for QA Pass (S253 Priority 1)
+## Next Actions (S255)
 
-**30 files changed — all need smoke test verification before beta week ends:**
-Wishlist pages, notifications, bids, pricing, settings/profile consolidation, CTA redirects, double footer fixes.
-
-Beta users will test this week. Every broken page = lost credibility. S253 must include full live QA pass of all changed pages.
+1. Dispatch findasale-dev to fix BUG-1: Update backend `/favorites` endpoint shape + add `item` relation + add item-level favorites to seed
+2. Dispatch findasale-dev to fix BUG-2: Add redirect to premium.tsx
+3. Re-verify Saved Items tab after fixes via Chrome MCP
 
 ---
 
-## Outstanding (S253 carry-forward)
+## Outstanding (S254 carry-forward to S255)
 
-- [ ] Verify organizer double footers fixed (I2 = /organizer/inventory, S3 = /organizer/sales)
-- [ ] Verify dashboard tabs responsive after S252 fix
-- [ ] Message reply E2E test (D1 from friction audit) — pending browser verification
+- [ ] Fix BUG-1: Saved Items API shape mismatch (userController.ts, seed.ts)
+- [ ] Fix BUG-2: /organizer/premium redirect (premium.tsx)
+- [ ] Re-verify Saved Items tab + dashboard Favorites tab after fixes
 
 ---
 
@@ -59,14 +66,14 @@ All password: `password123`
 
 ---
 
-## Push Block (S252 wrap docs)
+## Push Block (S254 wrap docs)
 
 ```powershell
 cd C:\Users\desee\ClaudeProjects\FindaSale
 git add claude_docs/STATE.md
-git add claude_docs/logs/session-log.md
+git add claude_docs/session-log.md
 git add claude_docs/next-session-prompt.md
 git add claude_docs/patrick-dashboard.md
-git commit -m "S252: Decisions D-012-D-016 executed — wishlist consolidation, pricing copy, page consolidation, profile/settings split. Live smoke test: 5 bugs fixed. 30 files changed."
+git commit -m "S254: Live smoke test complete. S252 changes verified working. 2 P1 bugs identified: Saved Items API shape mismatch + /organizer/premium redirect. Ready for S255 fixes."
 .\push.ps1
 ```
