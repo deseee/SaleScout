@@ -1,78 +1,50 @@
-# Next Session Prompt — S249
+# Next Session Prompt — S250
 
-**Date:** 2026-03-23 (S248 wrap complete)
-**Status:** Removal gate fully implemented. 114-item walkthrough documented. Ready to start fixing.
-
----
-
-## FIRST TASK — Verify S248 push landed
-
-Confirm CLAUDE.md, DECISIONS.md, and S248-walkthrough-findings.md are on GitHub main. Check Vercel is still GREEN.
+**Date:** 2026-03-23 (S249 wrap complete)
+**Status:** 18 bugs + 8 dark mode violations fixed. Strategic session queued with carry-forwards.
 
 ---
 
-## S249 Priority 1 — Fix BUGs from Walkthrough (29 items)
+## FIRST TASK — Verify S249 push landed
 
-Work from `claude_docs/S248-walkthrough-findings.md`. Fix all items tagged BUG — these are broken functionality that needs no strategic decision:
-
-**High-impact bugs (fix first):**
-- H4: Search doesn't find items or organizer names
-- L8: Clicking organizer on leaderboard → "organizer not found"
-- C2: Contact form send button does nothing
-- SD3: Overview tries to load "sales near you" then fails
-- SD6: Dashboard buttons (purchases, watchlist, saved, points) don't click anywhere
-- SD9: Following a seller doesn't work
-- TR1: Trails completely broken
-- OP1: Start Verification 404s
-- OS2/OS3: Workspace doesn't load, links to findasale.com, 404s
-- IL1: Item library broken
-- FR1: Flip reports error
-- PI1: Print inventory tries to print whole page
-
-**Quick fixes (batch together):**
-- I2, CP3, LY11, AL5, TR2, S3: 2 footers on 6 pages
-- F1, F2, F3: Special characters displaying literally on FAQ
-- P1: Shopper showing "Free organizer tier already chosen"
-- P7: Access denied with no helpful message when shopper hits organizer/dashboard
+Confirm all 18 changed code files are on GitHub main. Check Vercel is GREEN.
 
 ---
 
-## S249 Priority 2 — Dark Mode Fixes (8 items)
+## S250 Priority 1 — Seed Data Overhaul
 
-All items tagged DARK in the walkthrough doc. Mechanical fixes — add `dark:` variants:
-- SD2, SD8, M4, AL2, TY1, PY1, ST1, H13
-
----
-
-## Carry-Forward: Seed Data Overhaul (14 DATA items)
-
-After bugs and dark mode are fixed, the next blocker is test data. Nearly every feature is untestable because seed data lacks realistic state. This needs an architect + dev session to redesign the seed script.
+14 DATA items from S248-walkthrough-findings.md — nearly every feature is untestable without realistic data:
+Purchases, badges, Stripe-enabled accounts, image URLs, wishlists, favorites, loot log, trails data, notifications, bids, referrals, bounties, leaderboard data, command center data.
+Requires architect + dev session to redesign the seed script.
 
 ---
 
-## STRATEGIC SESSION (schedule when Patrick is ready)
+## S250 Priority 2 — Strategic Session (schedule when Patrick is ready)
 
-These 17+ items require Patrick decisions — not code fixes:
-1. **Gamification spec** (L2-L7, LY1-LY2, OV1, RE3, PR4): What do points, badges, stamps, milestones, leaderboard actually mean? Tied to Hunt Pass?
-2. **Feature overlap** (AL1, FV1, PR5): Favorites vs wishlists vs alerts vs sale interests — consolidate?
-3. **Support tier reality** (P3): What does "priority email support" or "dedicated account manager" mean for solo founder?
-4. **Page consolidation** (PSU1-PSU4, S2, PF1): premium/subscription/upgrade/pricing overlap, settings vs profile overlap
-5. **Shopper/organizer parity** (OD3, OS1): Settings features comparison
-6. **Homepage redesign** (H2, H3): UX review needed
-7. **Plan a Sale visibility** (PL1): Public-facing or organizer-only?
+These all require Patrick decisions. Full list including carry-forwards from S249:
+
+1. **Gamification spec** (L2-L7, LY1-LY2, OV1, RE3, PR4) — points, badges, stamps, milestones, leaderboard, Hunt Pass
+2. **Feature overlap** (AL1, FV1, PR5) — favorites vs wishlists vs alerts vs sale interests
+3. **Support tier reality** (P3) — what does each tier's support mean for a solo founder?
+4. **Page consolidation** (PSU1-PSU4, S2, PF1) — premium/subscription/upgrade overlap, settings vs profile
+5. **Shopper/organizer parity** (OD3, OS1)
+6. **Homepage redesign** (H2, H3)
+7. **Plan a Sale visibility** (PL1)
+8. **F7: Profile edit buttons** — /profile with edit controls, or editing only in /settings?
+9. **TR1/OP1/OS3 original intent** — Trails create route, organizer verification, workspace public URL — what were these intended to be? Decide fix/redirect/remove after understanding original plan.
+10. **Double footers** (I2, CP3, LY11, AL5, TR2, S3) — browser QA to pinpoint + fix
 
 ---
 
-## Patrick Action Items (from S248)
+## Patrick Action Items (from S249)
 
-- [ ] Run push block (CLAUDE.md + DECISIONS.md + walkthrough doc)
-- [ ] Install findasale-dev.skill via Cowork UI (adds §17 Removal Gate)
-- [ ] Install findasale-qa.skill via Cowork UI (adds Decision Point Protocol)
+- [ ] Run push block (18 code files + 4 wrap docs — use `.\push.ps1`)
+- [ ] Install findasale-dev.skill via Cowork UI (carry-forward from S248)
+- [ ] Install findasale-qa.skill via Cowork UI (carry-forward from S248)
 
 ---
 
 ## Context Loading
 
-- Read `claude_docs/S248-walkthrough-findings.md` — the work queue
-- Read `claude_docs/brand/DECISIONS.md` — includes D-010 (removal gate)
-- Test accounts: Shopper `user11@example.com`, PRO Organizer `user2@example.com`, SIMPLE+ADMIN `user1@example.com`, TEAMS `user3@example.com` (all `password123`)
+- Read `claude_docs/S248-walkthrough-findings.md` — full work queue
+- Test accounts: Shopper `user11@example.com`, PRO `user2@example.com`, ADMIN+SIMPLE `user1@example.com`, TEAMS `user3@example.com` (all `password123`)

@@ -16,6 +16,23 @@ Keep only the 5 most recent sessions. Delete older entries — git history and S
 
 ## Recent Sessions
 
+### Session 249 — 2026-03-23 — Walkthrough Bug + Dark Mode Fix Batch
+**Worked on:** (1) Verified S248 push on GitHub main (CLAUDE.md §7, S248-walkthrough-findings.md). (2) Dispatched 4 parallel dev agents — Group A (quick fixes), Group B (shopper bugs), Group C (organizer bugs), Group D (dark mode). (3) Fixed 18 bugs: FAQ character rendering (F1-F3), shopper tier pricing message (P1), access denied redirect (P7), search expanded to items+organizers (H4), leaderboard organizer links (L8), contact form submit (C2), sales-near-you error state (SD3), dashboard stat buttons navigation (SD6), follow seller end-to-end (SD9), workspace domain findasale.com→finda.sale (OS2), flip report graceful empty state (FR1), item library authorization ID fix (IL1), print inventory verified working (PI1). (4) Fixed 8 dark mode violations: ActivitySummary (SD2), MyPickupAppointments (SD8), RouteBuilder/Map (M4), alerts page (AL2), typology page (TY1), payouts page (PY1), sales tab (ST1), organizer pages pass (H13). (5) Noted F7 (profile edit buttons) deferred to strategic session per Patrick.
+
+**Decisions:** F7 deferred to strategic session. Strategic session elevated to priority 3 (after seed data overhaul). 3 missing routes flagged as DECISION NEEDED for Patrick: TR1 (trails/create), OP1 (verification), OS3 (workspace/[id]). Double footer root cause BLOCKED — needs browser QA visual inspection.
+
+**Token efficiency:** High. 4 parallel agents, 18 files fixed, 0 wasted turns.
+
+**Token burn:** ~130k tokens (est.), 0 compressions.
+
+**Next up:** Verify S249 push. Patrick decides TR1/OP1/OS3. Browser QA to find double footer root cause. Then seed data overhaul.
+
+**Blockers:** Double footers (6 pages) — needs browser inspection. TR1/OP1/OS3 — needs Patrick decisions.
+
+**Files changed:** `packages/frontend/pages/faq.tsx`, `packages/frontend/pages/pricing.tsx`, `packages/frontend/pages/access-denied.tsx`, `packages/frontend/pages/contact.tsx`, `packages/frontend/components/SalesNearYou.tsx`, `packages/frontend/components/ActivitySummary.tsx`, `packages/frontend/components/FollowOrganizerButton.tsx`, `packages/frontend/pages/organizer/workspace.tsx`, `packages/frontend/pages/organizer/flip-report/[saleId].tsx`, `packages/frontend/pages/organizer/item-library.tsx`, `packages/frontend/components/MyPickupAppointments.tsx`, `packages/frontend/components/RouteBuilder.tsx`, `packages/frontend/pages/shopper/alerts.tsx`, `packages/frontend/pages/organizer/typology.tsx`, `packages/frontend/pages/organizer/payouts.tsx`, `packages/frontend/pages/organizer/sales.tsx`, `packages/backend/src/routes/search.ts`, `packages/backend/src/controllers/leaderboardController.ts` | Compressions: 0 | Subagents: 4× general-purpose dev | Push method: Patrick PS1
+
+---
+
 ### Session 246 — 2026-03-23 — Shopper QA Scan + Critical Build Hotfixes
 **Worked on:** (1) QA scan: 14 items tested across Groups A, B, C, D (findasale-qa agent via Chrome MCP). Groups A (Loot Log, Loyalty, Trails, Collector Passport), B (Favorites, Subscribed, Purchases, Pickups, Overview, 6 quick-link buttons), C (profile page missing buttons), D (message reply E2E). (2) B1 fix: Favorites tab array guard in dashboard.tsx queryFn — Array.isArray check guarantees `.favorites` array instead of full API response object. Pushed commit 8b04b15. (3) Dark mode CSS cleanup on messages/index.tsx + messages/[id].tsx conversation list items, profile.tsx refinements. Pushed commit 8b04b15. (4) HOTFIX — profile.tsx stray `>` removed: S246 dev agent introduced stray `>` between `</div>` and `</td>` in bids table, broke Vercel JSX parse. Fixed and pushed commit 8918a51. (5) HOTFIX — auth.ts `requireAdmin` function: S244 added import in verification.ts but never implemented the function in auth.ts, broke Railway TypeScript build. Fixed and pushed commit 7bf292e.
 
