@@ -7,17 +7,42 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Active Objective
 
+**Session 253 COMPLETE (2026-03-23) — S252 SMOKE TEST CONTINUATION + 3 BUG FIXES:**
+- ✅ **3 dev fixes pushed** (commit 011d18b): `/api/bids` route created (GET, auth, Prisma nested select, computed status active/winning/outbid/closed), `/organizer/upgrade` → `/pricing` redirect (D-012), `authLimiter` max raised 50→100
+- ✅ **Rate limiter fix deployed** — confirmed live (Railway/Vercel "A new version is available" banner appeared mid-session)
+- ✅ **Item 8 PASS** — /organizer/settings loads with full write controls (7 tabs, editable fields, Save Changes)
+- ✅ **Items 10a/b/c PASS** — /shopper/loyalty, /shopper/collector-passport, /shopper/bids each exactly 1 footer
+- ✅ **Item 5 re-verify PASS** — /shopper/bids now renders bid data (Tiffany Lamp $320, Ansel Adams Print $280 visible)
+- ✅ **S253-P1 /organizer/sales PASS** — 1 footer, page loads correctly
+- ✅ **S253-P2 dashboard tabs PASS** — Overview/Sales tab switching works desktop + mobile 375px
+- ❌ **Item 7 FAIL** — /organizer/profile 404s (page doesn't exist)
+- ❌ **Item 9b FAIL** — /organizer/premium renders own legacy pricing page, does NOT redirect to /organizer/subscription
+- ⚠️ **S253-P1 /organizer/inventory BLOCKED** — 404s, can't test footer
+- **5 P1 bugs found in QA:**
+  1. `/organizer/profile` — 404 (page doesn't exist)
+  2. `/organizer/premium` — no redirect to `/organizer/subscription` (legacy page still rendering)
+  3. `/shopper/bids` — item photos missing (0 img elements in DOM, alt text only)
+  4. Organizer dashboard — double onboarding modals stack simultaneously (every fresh load as user2)
+  5. Shopper onboarding modal "Skip" — navigates to `/login` instead of closing modal
+- **2 P2 bugs found in QA:**
+  6. `/organizer/premium` — feature comparison list text invisible (checkmarks visible, text blank)
+  7. `/organizer/inventory` — 404 (page doesn't exist)
+- ⚠️ **S254 PRIORITY 1:** Fix `/organizer/premium` → redirect to `/organizer/subscription` (same getServerSideProps pattern as upgrade.tsx, ~10 lines)
+- ⚠️ **S254 PRIORITY 2:** Fix bids photos (investigate `photoUrls` in seeded items + verify `/api/bids` response includes populated URLs)
+- ⚠️ **S254 PRIORITY 3:** Fix double onboarding modals on organizer dashboard
+- ⚠️ **S254 PRIORITY 4:** Fix shopper "Skip" button navigating to `/login`
+- ⚠️ **DECISION NEEDED:** `/organizer/profile` 404 — create read-only page, redirect to `/organizer/settings#profile`, or clean up any nav links pointing here?
+- ⚠️ **DECISION NEEDED:** `/organizer/inventory` 404 — create page, redirect to `/organizer/sales`, or clean up links?
+- Last Updated: 2026-03-23
+
 **Session 252 COMPLETE (2026-03-23) — LIVE SMOKE TEST + DECISIONS EXECUTED:**
 - ✅ **Smoke test COMPLETE** — Verified login, homepage, dashboard, loyalty passport, collector passport, leaderboard all passing live
 - ✅ **5 bugs fixed in live test:** Loot Log blank (API response transform), Dashboard tabs (router.push + hash), /shopper/notifications 404 (NotificationBell nav), /shopper/bids 404 (created page), TreasureTrail auth bug (useTrails hook axios call)
 - ✅ **All D-012 through D-016 decisions executed:** Pricing copy updated, CTAs consolidated, Profile/Settings split verified, Shopper settings scoped correctly
 - ✅ **Wishlist consolidation LIVE** — `/shopper/wishlist` unified page (3 tabs: Saved Items, Collections, Watching), nav updated, `/shopper/favorites` + `/shopper/alerts` now redirect to wishlist
 - ✅ **Sale Interests moved to shopper settings** (D-012 final step) — moved from organizer profile to `/shopper/settings` as "Followed Organizers" (Patrick authorized)
-- ✅ **Double footer root cause found + fixed** — shopper pages had individual Layout wrappers causing duplication with _app.tsx Layout. Fixed: loyalty, collector-passport, alerts, trails, bids (5 files). Need verification: organizer pages (I2, S3)
+- ✅ **Double footer root cause found + fixed** — shopper pages had individual Layout wrappers causing duplication with _app.tsx Layout. Fixed: loyalty, collector-passport, alerts, trails, bids (5 files).
 - ✅ **TR1/OP1/OS3 confirmed NOT bugs** — TR1 (Create Trail 404) = route works, OP1 (Verification) = correctly routes to settings?tab=verification, OS3 (Workspace URL) = /workspace/[slug] works
-- ⚠️ **S253 PRIORITY 1:** Live smoke test of all 30 changed files before beta week concludes
-- ⚠️ **S253 PRIORITY 2:** Verify organizer double footers fixed (I2 = /organizer/inventory, S3 = /organizer/sales)
-- ⚠️ **S253 PRIORITY 3:** Verify dashboard tabs still responsive after fix
 - Last Updated: 2026-03-23
 
 **Session 250 COMPLETE (2026-03-23) — SEED DATA OVERHAUL:**
@@ -46,10 +71,6 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 - ✅ **findasale-qa skill updated:** Decision Point Protocol added. Packaged as .skill for install.
 - ✅ **114-item walkthrough findings documented:** Patrick's full-site walkthrough organized into S248-walkthrough-findings.md. Categories: 29 BUG, 8 DARK, 41 UX, 14 DATA, 17 STRATEGIC, 5 DUP.
 - ⚠️ **Patrick action needed:** Install findasale-dev.skill and findasale-qa.skill via Cowork UI
-- ⚠️ **Patrick action needed:** Push block provided (CLAUDE.md + DECISIONS.md + walkthrough doc)
-- ⚠️ **S249 PRIORITY 1:** Start fixing BUG + DARK items from walkthrough (29 bugs, 8 dark mode — mechanical fixes, no decisions needed)
-- ⚠️ **S249 PRIORITY 2:** Seed data overhaul — 14 items untestable without realistic test data
-- ⚠️ **STRATEGIC SESSION NEEDED:** Gamification spec, feature overlap consolidation (favorites/wishlists/alerts/sale interests), support tier definitions, page consolidation (premium/subscription/upgrade)
 - Last Updated: 2026-03-23
 
 **Session 247 COMPLETE (2026-03-23) — ROLE-BASED NAV FIX + ORGANIZER PROFILE + DESTRUCTIVE REMOVAL PATTERN:**
