@@ -1,46 +1,50 @@
 # FindA.Sale — Patrick's Dashboard
-Last Updated: 2026-03-22 (S243 complete — C-001 CRITICAL BLOCKER FIXED)
+Last Updated: 2026-03-22 (S244 complete — Health Scout M1 Fixed)
 
 ## Status: GREEN
 
-The #1 beta blocker is resolved. Item detail pages work for all shoppers. Every item link from every sale page now loads correctly.
+All critical blockers resolved. Backend query limits enforced. Dark mode audit complete. Product ready for beta evaluation.
 
 ---
 
 ## Build Status
-- **Vercel (Frontend):** Live — [finda.sale](https://finda.sale) — S243 fixes deployed
-- **Railway (Backend):** Live ✅ — rebuilt with S243 Dockerfile cache-bust
-- **Neon (Database):** Up to date ✅ — `draftStatus` data fix applied, upgraded to Launch ($5/month)
+- **Vercel (Frontend):** Live — [finda.sale](https://finda.sale) — S244 dark mode + meta fixes deployed
+- **Railway (Backend):** Live ✅ — S244 exportController limits enforced
+- **Neon (Database):** Up to date ✅ — Launch plan active
 - **Scheduled Tasks:** 3 active (weekly site audit Sun 10pm, brand drift Mon 10am, Monday digest 8am)
 
-## What Just Happened (S243)
+## What Just Happened (S244)
 
-**C-001 CRITICAL BLOCKER FIXED:** Every item detail page was showing "Item not found" for shoppers. Root cause: the `draftStatus` column defaults to `'DRAFT'` in the database schema, and all seeded items inherited that default. The item detail endpoint blocks `DRAFT` items from non-owners. One SQL UPDATE on Neon fixed it instantly. Verified live — items load correctly now.
+**Health Scout Audit M1 Fixed:** Unbounded `findMany` queries in exportController now limited to `take: 5000`. This prevents memory exhaustion if organizers try to export 100,000+ items at once.
 
-**6 additional audit fixes pushed:** LiveFeed "Reconnecting..." text removed, Reviews section dark mode fixed, /premium and /workspace login redirects fixed, footer broadened to all sale types, message thread footer removed, about page mission statement updated.
+**Post-fix verification passed:** QA agent confirmed all S243 fixes work live — item detail pages, LiveFeed, Reviews, message threads, About page, tooltips, premium/plan pages.
 
-**conversation-defaults v8 installed:** Claude now starts working immediately on clearly-defined session tasks instead of asking "ready?"
+**Dark mode audit:** Profile badges, message avatars, and about page background now have proper contrast in dark mode. All tested live.
 
-**Neon upgraded:** Free tier CU-hours ran out during beta week. Upgraded to Launch plan ($5/month) to prevent database suspension.
+**Meta descriptions broadened:** /cities, /neighborhoods now mention "estate sales, yard sales, garage sales, and more" instead of estate-sales-only language.
 
 ## What You Need To Do
 
-1. **Pull latest** — all changes pushed via MCP. Run `git pull` from PowerShell to sync local.
+1. **Add environment variables to `packages/backend/.env`:**
+   - `MAILERLITE_API_KEY` — from MailerLite Integrations → API Keys
+   - `DEFAULT_REGION`, `DEFAULT_LATITUDE`, `DEFAULT_LONGITUDE` — geographic defaults for sales without coordinates
 
-## Upcoming (S244)
+2. **Test message reply flow** (organizer → shopper) if you have 5 min — this is the last untested user interaction path.
 
-1. Post-fix live verification of S243 changes (automatic)
-2. 3 remaining S242 verifications (tooltips, /premium, /plan)
-3. Message reply live verification
-4. Beta tester feedback triage (if any reported)
-5. /cities + /neighborhoods meta cleanup (low priority)
+## Upcoming (S245)
+
+1. Message reply live verification
+2. Beta tester feedback triage (real customers evaluating this week)
+3. Environment variable additions (Patrick action)
+4. Optional: mobile real-device test, TODO/FIXME audit
 
 ## Project Health
 - **Features shipped:** 71 across 4 tiers
-- **Beta status:** Live. Real customers evaluating this week. Critical item page blocker RESOLVED.
-- **Critical blockers:** 0 (was 1 — C-001 fixed)
-- **UX debt:** S242 batch cleared (13 fixes). S243 cleared 6 more audit items.
-- **Infrastructure:** Neon on Launch plan, Railway healthy, Vercel healthy
+- **Beta status:** LIVE. Real customers evaluating this week. All blockers resolved.
+- **Critical blockers:** 0
+- **UX debt:** S242 (13 fixes) + S243 (6 fixes) + S244 (8 fixes) = 27 fixes cleared
+- **Infrastructure:** Neon Launch plan ($5/mo), Railway healthy, Vercel healthy
+- **Backend safety:** Query limits enforced, no unbounded operations
 
 ---
 

@@ -7,21 +7,21 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Active Objective
 
-**Session 243 COMPLETE (2026-03-22) — C-001 CRITICAL BLOCKER FIXED + 6 AUDIT FIXES + CONVERSATION-DEFAULTS v8:**
-- ✅ **C-001 RESOLVED (CRITICAL):** Item detail pages returning "Item not found" — root cause was `draftStatus` column defaulting to `'DRAFT'` in schema, so all seeded items were invisible via `getItemById`. Migration backfill ran before seed, but seed runs after and doesn't set `draftStatus`. Fixed via SQL UPDATE on Neon (`SET draftStatus = 'PUBLISHED' WHERE draftStatus = 'DRAFT'`). Seed script patched to set `draftStatus: 'PUBLISHED'`. Verified live — 3 items across 2 sales all load correctly.
-- ✅ **H-001 fixed:** LiveFeed "Reconnecting..." text removed from LiveFeedTicker.tsx. Pushed via MCP.
-- ✅ **H-002 fixed:** ReviewsSection dark mode — added `dark:bg-gray-800`. Pushed via MCP.
-- ✅ **M-001 fixed:** /organizer/premium and /workspace login redirects now preserve redirect param. Pushed via MCP.
-- ✅ **M-002 fixed:** Footer updated to include all sale types per D-001. Pushed via MCP.
-- ✅ **M-003 fixed:** Message thread chat view — Layout gets `noFooter` prop, _app.tsx passes it for `/messages/[id]`. Pushed via MCP.
-- ✅ **M-004 fixed:** About page mission statement broadened for D-001 compliance. Pushed via MCP (commit bb298d6).
-- ✅ **conversation-defaults v8:** Added Rule 31 — execute unambiguous session-start actions immediately instead of asking "ready?"
-- ✅ **6 of 9 S242 live verifications passed:** favorites hash routing, save button, pricing CTA, about blank space, map route planner, image fallback
-- ✅ **Heatmap investigated:** Code is complete and correct. Issue is data — no published sales with valid coordinates in date range.
-- ⚠️ **Neon upgraded to Launch ($5/month)** — free tier CU-hours exhausted during beta evaluation week.
-- ⚠️ **CARRY-FORWARD:** L-002 (mobile viewport test via Chrome DevTools 375px)
-- ⚠️ **CARRY-FORWARD:** /cities and /neighborhoods meta descriptions still say "estate sales"
-- ⚠️ **CARRY-FORWARD:** Message reply live verification
+**Session 244 COMPLETE (2026-03-22) — HEALTH SCOUT FIX + DARK MODE AUDIT + META CLEANUP:**
+- ✅ **POST-FIX LIVE VERIFICATION (QA Agent):** All S243 fixes confirmed live — item detail pages, LiveFeed, Reviews dark mode, message thread footer, About page, tooltips, premium page, plan page. All PASS.
+- ✅ **M1 FIXED — unbounded findMany in exportController:** Added `take: 5000` to 3 queries in `packages/backend/src/controllers/exportController.ts` (query limits: `findMany({ where: {...}, take: 5000 })`).
+- ✅ **C1 + H1 + H2 verified (no code changes needed):** Unauthenticated admin verification routes (C1), JWT fallback (H1), /api/dev NODE_ENV guard (H2) — all already fixed in codebase from previous sessions.
+- ✅ **Dark mode badge/avatar fixes:** `profile.tsx` — badge/bid status/message variants dark-mode-aware. `messages/index.tsx` + `messages/[id].tsx` — amber avatar now proper contrast dark mode.
+- ✅ **About page dark mode consistency:** `about.tsx` — dark:bg-gray-900 (was dark:bg-gray-800) to match site-wide dark background.
+- ✅ **Meta descriptions broadened (all sale types):**
+  - `/cities/index.tsx` — "estate sales, yard sales, garage sales, and more"
+  - `/neighborhoods/index.tsx` — "estate sales, yard sales, garage sales, and more"
+  - `/neighborhoods/[slug].tsx` — metaDesc broadened to include all sale types
+- ⚠️ **CARRY-FORWARD:** H3 (MAILERLITE_API_KEY missing from .env) — Patrick manual action
+- ⚠️ **CARRY-FORWARD:** M3 (DEFAULT_* region vars missing from .env) — Patrick manual action
+- ⚠️ **CARRY-FORWARD:** Message reply end-to-end test (organizer → shopper) — live verification still pending
+- ⚠️ **CARRY-FORWARD:** M2 (13 TODO/FIXME markers in backend) — low priority
+- ⚠️ **CARRY-FORWARD:** L-002 (mobile viewport test) — formal pass pending
 - Last Updated: 2026-03-22
 
 **Session 242 COMPLETE (2026-03-22) — BRAND SWEEP + D-007 + 13 UX BUG FIXES + QA SKILL REWRITE:**

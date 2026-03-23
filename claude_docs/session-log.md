@@ -2,7 +2,23 @@
 
 **Note:** Older entries archived to `claude_docs/archive/session-logs/`. Keep 5 most recent sessions for quick reference.
 
-## Recent Sessions (S239–S243)
+## Recent Sessions (S240–S244)
+
+### 2026-03-22 · Session 244
+
+**HEALTH SCOUT FIX + DARK MODE AUDIT + META CLEANUP**
+
+✅ **Post-fix live verification:** All S243 fixes confirmed live (item detail pages, LiveFeed, Reviews dark mode, message thread footer, About page, tooltips, premium page, plan page).
+
+✅ **M1 fixed:** Unbounded `findMany` in exportController — added `take: 5000` limit to 3 queries.
+
+✅ **Dark mode audit:** Profile badges, message avatars, about page dark background all corrected for proper contrast.
+
+✅ **Meta descriptions broadened:** /cities, /neighborhoods, /neighborhoods/[slug] now include "estate sales, yard sales, garage sales, and more."
+
+⚠️ **Carry-forward:** H3 (MAILERLITE_API_KEY), M3 (DEFAULT_* region vars), message reply E2E test, M2 (13 TODO/FIXME), L-002 mobile.
+
+---
 
 ### 2026-03-22 · Session 243
 

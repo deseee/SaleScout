@@ -1,34 +1,32 @@
-# Next Session Prompt — S244
+# Next Session Prompt — S245
 
-**Date:** 2026-03-22 (S243 wrap complete)
-**Status:** C-001 CRITICAL BLOCKER RESOLVED. Item detail pages work. 6 audit fixes pushed. Seed script patched.
+**Date:** 2026-03-22 (S244 wrap complete)
+**Status:** M1 fixed (unbounded findMany). Dark mode badge/avatar fixes. Meta descriptions broadened.
 
 ---
 
-## S244 Priority
+## S245 Priority
 
-**1. MANDATORY — Post-fix live verification (CLAUDE.md §10):**
-Before ANY new work, open finda.sale in Chrome MCP and verify:
-- Item detail pages still load correctly (spot-check 2-3 items from different sales)
-- LiveFeed on sale detail pages — no "Reconnecting..." text visible
-- Reviews section on sale detail — dark mode background correct (not white)
-- Message thread `/messages/[id]` — no footer visible in chat view
-- About page — mission statement mentions all sale types
+**Priority 1 — POST-FIX VERIFICATION (CLAUDE.md §10):**
+Spot-check S244 fixes in Chrome MCP at finda.sale:
+- Messages dark mode: profile.tsx badges, messages/index.tsx + [id].tsx avatars render correctly dark mode
+- About page: dark background is consistent (dark:bg-gray-900)
+- Cities/neighborhoods: meta descriptions now include all sale types
 
-**2. Remaining S242 verifications (3 still pending):**
-- Organizer settings → tooltips visible on hover across all tabs
-- `/organizer/premium` → tier descriptions match `/pricing`, Enterprise CTA present
-- `/plan` → no "estate sale"-only language
+**Priority 2 — MESSAGE REPLY END-TO-END TEST:**
+Critical for organizer↔shopper communication flow. Send message as `user2@example.com` (organizer), reply as `user11@example.com` (shopper), verify both sides see reply.
 
-**3. Message reply live verification:**
-Send message as organizer, reply as shopper, confirm both sides see it.
+**Priority 3 — PATRICK MANUAL ACTIONS:**
+Obtain and add missing environment variables to `packages/backend/.env`:
+- `MAILERLITE_API_KEY` — get from MailerLite Integrations → API Keys
+- `DEFAULT_REGION`, `DEFAULT_LATITUDE`, `DEFAULT_LONGITUDE` — geographic defaults for sales without coordinates
 
-**4. Minor cleanup:**
-- /cities and /neighborhoods meta descriptions still say "estate sales" — fix title tags
-- L-002: Mobile viewport test via Chrome DevTools 375px
+**Priority 4 — BETA TESTER FEEDBACK TRIAGE:**
+Real customers evaluating this week. Respond to any reported issues before starting new feature work.
 
-**5. Beta tester feedback:**
-Beta testers evaluating this week. Prioritize reported issues over new feature work.
+**Priority 5 — OPTIONAL CLEANUP (if time):**
+- L-002: Mobile viewport real-device test (needs real iPhone or skip)
+- M2: Review 13 TODO/FIXME markers in backend (informational only)
 
 ---
 
@@ -37,15 +35,18 @@ Beta testers evaluating this week. Prioritize reported issues over new feature w
 - Read `claude_docs/brand/DECISIONS.md` at session start (mandatory)
 - Test accounts: Shopper `user11@example.com`, PRO Organizer `user2@example.com`, SIMPLE+ADMIN `user1@example.com`, TEAMS `user3@example.com` (all `password123`)
 - Auth rate limit is 50 failed attempts per 15 min
-- Neon upgraded to Launch plan ($5/month) — no more CU-hour exhaustion risk
 - QA skill v2 installed — Chrome MCP clickthrough-first methodology
+- All S243 + S244 fixes deployed to production
 
 ---
 
-## S243 Commits (for reference)
+## S244 Files Changed
 
-- 73d6676: Dockerfile cache-bust S243 (Railway rebuild)
-- MCP pushes: LiveFeedTicker.tsx, ReviewsSection.tsx, premium.tsx, workspace.tsx, Layout.tsx, _app.tsx, about.tsx
-- bb298d6: About page mission statement broadened
-- Neon SQL: `UPDATE "Item" SET "draftStatus" = 'PUBLISHED' WHERE "draftStatus" = 'DRAFT'` (data fix, no code deploy needed)
-- MCP push: seed.ts `draftStatus: 'PUBLISHED'` fix + wrap docs
+- `packages/backend/src/controllers/exportController.ts` — M1 fix (take: 5000 limits)
+- `packages/frontend/pages/profile.tsx` — dark mode badge fixes
+- `packages/frontend/pages/messages/index.tsx` — dark mode avatar fix
+- `packages/frontend/pages/messages/[id].tsx` — dark mode avatar fix
+- `packages/frontend/pages/about.tsx` — dark:bg-gray-900 consistency
+- `packages/frontend/pages/cities/index.tsx` — meta description broadened
+- `packages/frontend/pages/neighborhoods/index.tsx` — meta description broadened
+- `packages/frontend/pages/neighborhoods/[slug].tsx` — metaDesc broadened
