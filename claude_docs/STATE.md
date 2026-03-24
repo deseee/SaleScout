@@ -7,6 +7,46 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Active Objective
 
+**S268 (next session):** Post-deploy smoke test + QA browser pass. See Next Session below.
+
+**Session 267 COMPLETE (2026-03-24) — AUDIT DISPATCH ALL 3 WAVES + SEED FIX:**
+
+21 files modified (push block provided to Patrick — run .\push.ps1):
+
+Wave 1 (8 files):
+- `packages/frontend/pages/items/[id].tsx` — IP-01 isAuction fix, IP-02 buyer premium, IP-03 BIN label
+- `packages/frontend/pages/_app.tsx` — Double footer root cause fixed (Layout double-wrap) — fixes all 9+ pages
+- `packages/frontend/components/ReviewsSection.tsx` — SP-07 dark mode
+- `packages/frontend/pages/organizer/print-inventory.tsx` — PI-01/02/03 print fixes + dark mode
+- `packages/frontend/pages/organizer/payouts.tsx` — PA-01 dark mode
+- `packages/frontend/pages/admin/index.tsx` — AD-02 dark mode
+- `packages/frontend/pages/admin/users.tsx` — AD-05/AD-06 dark mode
+- `packages/frontend/pages/admin/sales.tsx` — AD-09/AD-10 dark mode
+
+Wave 2 (10 files):
+- `packages/frontend/pages/shopper/wishlist.tsx` — WL-01/WL-02 links fixed
+- `packages/frontend/pages/shopper/dashboard.tsx` — SD-13 subscribed tab links
+- `packages/frontend/pages/leaderboard.tsx` — L-04 organizer link + S266 pending changes
+- `packages/frontend/pages/index.tsx` — H-04 search expanded to organizer businessName
+- `packages/frontend/pages/organizer/dashboard.tsx` — OD-03/04/05 tier gating, OD-06 dismiss
+- `packages/frontend/pages/profile.tsx` — OP-04/05 verification link
+- `packages/frontend/pages/organizer/item-library.tsx` — IL-01 tier gate
+- `packages/frontend/components/StreakWidget.tsx` — SD-02 dark mode
+- `packages/frontend/pages/shopper/collector-passport.tsx` — dark mode toggles
+
+Wave 3 + fixes (3 files):
+- `packages/frontend/hooks/useTrails.ts` — TR-01 FIXED (double /api prefix, 6 calls corrected)
+- `packages/database/prisma/seed.ts` — FIXED (prior agent hallucinated 8 non-existent models; fixed field names, removed invalid blocks, zero TS errors confirmed)
+
+S266 pending (2 files in same push):
+- `packages/frontend/components/loyalty.tsx` — stamp label human-readable fix
+- `packages/frontend/components/RankProgressBar.tsx` — MAX state label
+
+Open (not code bugs — need follow-up):
+- SP-06: STRIPE_SECRET_KEY — Patrick confirmed already set in Railway. Verify after push.
+- OS-03/FR-01: Seed still needs workspace record + completed PRO-tier sale for testing
+- SP-01/SP-03/TR-04: Not found in static analysis — need QA browser pass to locate
+
 **Session 266 COMPLETE (2026-03-24) — STAMP LABEL FIX + SMOKE TEST + UX P2 DISPATCH:**
 
 What shipped:
