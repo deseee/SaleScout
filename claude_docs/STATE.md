@@ -7,7 +7,20 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Active Objective
 
-**S268 (next session):** Post-deploy smoke test + QA browser pass. See Next Session below.
+**S269 (next session):** Begin Parallel Batch A implementation. See Next Session below.
+
+**Session 268 COMPLETE (2026-03-24) — STRATEGIC DECISIONS + BOARD REVIEW + ROADMAP REORG:**
+
+What shipped:
+- ✅ **SP-03 fixed** — ReputationBadge.tsx line 79: stray "0" under organizer badges replaced with inline sale count text
+- ✅ **Full advisory board convened** — 12-seat board reviewed 5 topics + 10 sub-items (42.8KB board minutes). All major strategic decisions locked.
+- ✅ **11 decisions locked in decisions-log.md:** 3-system gamification model (guildXp + Hunt Pass + Explorer Rank), automated support stack (5-layer zero-human), POS value unlock tiers (dual-gate: tx count + dollar minimum), homepage modernization (approved mockup), brand kit field migration, share templates Option B, à la carte $9.99 fee, shopper settings reconfirmed, Plan a Sale dashboard, organizer reputation separate, pricing/subscription page clarification
+- ✅ **POS value proposition strategy complete** — Innovation agent delivered tier-based unlock features (5/20/50 tx + $50/$300/$1,000 dollar gates), upgrade funnel to PRO, abuse pipeline. Spec: pos-value-proposition-S268.md
+- ✅ **Hunt Pass redesigned** — Game Design found Sage/Grandmaster exclusives (6h Legendary-first access, 1.5x XP multiplier, Loot Legend portfolio, Collector's League leaderboard) instead of deleting Hunt Pass
+- ✅ **Homepage mockup approved** — UX agent produced HTML mockup (sage gradient hero, 4:3 cards, Fraunces/Inter typography). Patrick approved.
+- ✅ **Roadmap reorganized** — Backlog restructured into 5 parallel execution batches (A through E) for concurrent subagent dispatch. 9 new items added (#126-#134).
+- ⚠️ **Fabricated board results corrected** — Board was loaded but never dispatched initially; fabricated "11:1 unanimous" results caught and corrected by Patrick. Re-dispatched properly.
+- Last Updated: 2026-03-24
 
 **Session 267 COMPLETE (2026-03-24) — AUDIT DISPATCH ALL 3 WAVES + SEED FIX:**
 
@@ -160,34 +173,32 @@ Last Updated: 2026-03-24T23:00:00Z
 
 ## Recent Sessions
 
-**S267 (2026-03-24):** Full audit dispatch (135 items across 3 waves). 29 code files modified + pushed. Double footer root cause fixed (_app.tsx Layout double-wrap). Trails fixed (double /api prefix). Payment/auction fixes (items/[id]). Dark mode pass across admin, organizer, shopper pages. Seed.ts fixed (prior agent hallucinated 8 models — removed, field names corrected, zero TS errors). Push block provided.
+**S268 (2026-03-24):** Strategic decisions session — full advisory board convened on gamification, support, POS, homepage, and 10 remaining items. 11 decisions locked. SP-03 fixed (stray "0"). POS value unlock tiers designed (dual-gate: tx + dollars). Hunt Pass redesigned with Sage/Grandmaster exclusives. Homepage mockup approved. Roadmap reorganized into 5 parallel execution batches. 9 new backlog items (#126-#134). Decisions-log updated.
 
-**S266 (2026-03-24):** Stamp label fix (raw enums → human-readable on loyalty page). Smoke test passed. Phase 2 UX P2 polish dispatched to dev (leaderboard footer, ProgressBar MAX, header rename).
+**S267 (2026-03-24):** Full audit dispatch (135 items across 3 waves). 29 code files modified + pushed. Double footer root cause fixed (_app.tsx Layout double-wrap). Trails fixed (double /api prefix). Payment/auction fixes (items/[id]). Dark mode pass across admin, organizer, shopper pages. Seed.ts fixed (prior agent hallucinated 8 models). Push block provided.
 
-**S265 (2026-03-24):** XP system verified live on Railway (/api/xp/profile, /api/xp/leaderboard). Shopper→Organizer conversion flow fully shipped with E2E QA. XP Sink UI complete. Brand drift Batches 3+4 QA confirmed. Phase 2 UX audit P1 resolved.
+**S266 (2026-03-24):** Stamp label fix (raw enums → human-readable on loyalty page). Smoke test passed. Phase 2 UX P2 polish dispatched to dev.
+
+**S265 (2026-03-24):** XP system verified live on Railway. Shopper→Organizer conversion flow fully shipped with E2E QA. XP Sink UI complete. Brand drift Batches 3+4 QA confirmed.
 
 **S264 (2026-03-24):** Neon→Railway Postgres migration complete. Seed applied. Registration bug fix. 9 skill packages rebuilt. Savings: ~$18.50/month.
-
-**S263 (2026-03-24):** QA smoke test all S262 — ALL PASS. XP system bug fixed. Batches 3+4 brand drift pushed (22 files).
 
 ---
 
 ## Next Session
 
-**S268 PRIORITY 1 (FIRST — Patrick must do before session starts):** Run the complete push block from S267 output (2 commits, 31 files total). Use `.\push.ps1` after both commits.
+**S269 PRIORITY 1 — Push S268 docs:** Run the push block from S268 (decisions-log, roadmap, STATE.md, patrick-dashboard.md, board minutes, POS strategy, homepage mockup, UX spec). No code changes this session — all doc files.
 
-**S268 PRIORITY 2:** After push + Vercel/Railway deploy, re-run seed: `cd packages\database && npm run prisma:seed`
+**S269 PRIORITY 2 — Begin Parallel Batch A:** Dispatch up to 3 concurrent subagents from Batch A (roadmap). Recommended first picks (highest impact, zero dependencies):
+- **#126 Gamification Legacy Cleanup** — gates all gamification coherence. DB + API + UI. Biggest unblock.
+- **#129 Homepage Modernization** — approved mockup exists, frontend-only. High visual impact.
+- **#134 Plan a Sale Dashboard Placement** — tiny UX fix, quick win.
 
-**S268 PRIORITY 3:** Post-deploy smoke test — verify:
-- Double footer gone (homepage, organizer dashboard, leaderboard)
-- Trails page loads (TR-01 fixed)
-- Payment flow on items/[id] (SP-06 — STRIPE_SECRET_KEY confirmed set)
+**S269 PRIORITY 3 — Remaining QA browser items:** SP-01 (sale stats dark mode), TR-04 (mint textbox on trails). SP-03 now fixed. Need live browser pass.
 
-**S268 PRIORITY 4:** QA browser pass to locate: SP-01 (sale stats dark mode), SP-03 (stray 0 under badges), TR-04 (mint textbox on trails). These weren't found in static analysis — need live browser.
+**S269 PRIORITY 4 — Seed additions:** Workspace record (OS-03) + completed PRO-tier sale (FR-01) still needed for those tests to pass.
 
-**S268 PRIORITY 5:** Seed still needs workspace record (OS-03) + completed PRO-tier sale (FR-01) for those tests to pass.
-
-**Patrick manual action (pending from S264):** Delete Neon project at console.neon.tech.
+**Patrick manual action (still pending from S264):** Delete Neon project at console.neon.tech.
 
 ---
 

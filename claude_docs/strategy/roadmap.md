@@ -294,14 +294,48 @@ Production MVP launched Q1 2026.
 
 ## Backlog — Prioritized
 
-### Brand Spreading & Viral Growth [S1 BUILD NOW]
+### Parallel Batch A — Quick Wins + Cleanup (No Dependencies Between Items)
+_All items can be dispatched simultaneously to separate subagents._
 
 | # | Feature | Role | Tier | DB | API | UI | QA | Chrome | Nav | Human | Notes |
 |---|---------|------|------|----|----|----|----|--------|-----|-------|-------|
+| 126 | Gamification Legacy Cleanup | SHO | FREE | ✅ | ✅ | ✅ | — | — | — | — | Delete old points/Hunt Pass checkout flow, replace purchase-count badge triggers (25/100/250) with rank-based unlocks, rename Collector Passport → Loot Legend, archive User.points column. Gates coherent gamification. Spec: board-minutes-gamification-S268.md |
+| 129 | Homepage Modernization | PUB | FREE | — | — | — | — | — | — | — | Sage gradient hero, 4:3 landscape cards with shadows + hover lift, Fraunces/Inter typography, filter pills, map behind toggle. Approved mockup: homepage-mockup-S268.html. Replaces blocky early-2000s layout. |
+| 130 | Brand Kit Field Migration | ORG | PRO | — | — | — | — | — | — | — | Move Business Name, Phone, Bio, Website URL from Brand Kit to Settings/Profile (these are account basics, not brand). Keep social links, logo, slug, colors, fonts, banner in Brand Kit. Small cleanup. |
+| 134 | Plan a Sale Dashboard Placement | ORG | SIMPLE | — | — | — | — | — | — | — | Add Plan a Sale to organizer dashboard (currently only in nav dropdown). Small UX fix. |
+| 76 | Skeleton Loaders — Item Grids | BOTH | FREE | — | — | — | — | — | — | — | Replace spinners with ghost card layouts across all item/sale grids. No schema changes — reads existing `Item.photoUrls[]`, `Item.title`, `Item.price`. UI-only. Highest perceived-performance ROI. Spec: `claude_docs/ux-spotchecks/design-polish-vision-2026-03-19.md` |
+| 77 | Sale Published Celebration Screen | ORG | SIMPLE | — | — | — | — | — | — | — | Full-screen moment when organizer publishes a sale — sale name, cover photo, "You're live" + confetti. No schema changes — triggers on `Sale.status → PUBLISHED`. Replaces generic toast. Spec: `claude_docs/ux-spotchecks/design-polish-vision-2026-03-19.md` |
+| 79 | Earnings Counter Animation | ORG | SIMPLE | — | — | — | — | — | — | — | Dashboard earnings number rolls up to current value (Revolut-style) on open/refresh. No schema changes — reads existing `Purchase` aggregates. Frontend-only. Pairs with #77 to make dashboard feel alive. Spec: `claude_docs/ux-spotchecks/design-polish-vision-2026-03-19.md` |
+| 80 | Purchase Confirmation Redesign | SHO | FREE | — | — | — | — | — | — | — | Redesign shopper success screen after purchase — item photo hero, item title, seller name, pickup details, designed layout. No schema changes: reads `Purchase` + `Item.photoUrls[]`, `Item.title`, `Sale.title`, `Organizer.businessName`. Replaces generic confirmation text. Spec: `claude_docs/ux-spotchecks/design-polish-vision-2026-03-19.md` |
+| 81 | Empty State Audit + Copy Pass | BOTH | FREE | — | — | — | — | — | — | — | Inventory all empty states across organizer and shopper flows. Write human-voice copy for each (no dead ends — every empty state gets a CTA and a human sentence). UX/copy-only, no schema or API changes. Spec: `claude_docs/ux-spotchecks/design-polish-vision-2026-03-19.md` |
+
+### Parallel Batch B — New Features + Revenue (Dispatch After Batch A Ships)
+_Items within this batch are also parallelizable — different layers, no conflicts._
+
+| # | Feature | Role | Tier | DB | API | UI | QA | Chrome | Nav | Human | Notes |
+|---|---------|------|------|----|----|----|----|--------|-----|-------|-------|
+| 127 | POS Value Unlock Tiers | ORG | SIMPLE | — | — | — | — | — | — | — | Dual-gate unlock (tx count + dollar minimum). Tier 1 (5 tx + $50: item snapshot), Tier 2 (20 tx + $300: category ROI + repeat buyer map), Tier 3 (50 tx + $1,000: regional pricing benchmarks, PRO-only). Abuse pipeline: scoring 0-100, auto-response tiers, weekly Sunday digest. Spec: pos-value-proposition-S268.md |
+| 128 | Automated Support Stack | PLATFORM | ALL | — | — | — | — | — | — | — | 5-layer zero-human support: L1 in-app FAQ (fuse.js, $0), L2 AI chatbot PRO/TEAMS only (Claude API ~$5/mo), L3 community forum TEAMS only, L4 smart escalation (P0→Slack, P1→daily digest), L5 auto-remediation crons. No phone, no SLAs, no calendar invites. Patrick reads ~30min/week digest only. Spec: automated-support-S268.md |
+| 131 | Share & Promote Templates | ORG | SIMPLE | — | — | — | — | — | — | — | Expand share button into Share & Promote toolkit: social post templates (Instagram, Facebook, Nextdoor, TikTok), email/SMS templates, printable QR flyer, embeddable website widget. Option B approved. Promote page infrastructure exists. Near #122 social templates. |
+| 132 | À La Carte Single-Sale Fee | ORG | PAID_ADDON | — | — | — | — | — | — | — | $9.99 one-time fee per sale for SIMPLE organizers wanting extra features (watermark removal, flip report, CSV export). New Sale.purchaseModel field. Breakeven at 3 sales → PRO conversion funnel. Affects /pricing, /organizer/pricing, /organizer/subscription, onboarding wizard. |
 | 122 | Multi-Platform Social Templates Expansion | ORG | SIMPLE | — | — | — | — | — | — | — | Add TikTok, Pinterest, Nextdoor, Threads to existing social share templates. Platform-native copy + dimensions for each. Low complexity. |
 | 123 | QR Code Auto-Embedding in Exports | ORG | SIMPLE | — | ✅ | ✅ | — | — | — | — | Cloudinary overlay: embed FindA.Sale QR code in every watermarked photo export. Organizer toggle to disable per-item. Very low complexity. |
 | 124 | Nextdoor Export Template | ORG | SIMPLE | — | ✅ | ✅ | — | — | — | — | One-click export of sale to Nextdoor-formatted card (photos, location, time, event type). API if available; fallback = formatted copy-paste. Low complexity. |
-| 125 | Inventory Syndication CSV Export (eBay / Amazon / Facebook Marketplace) | ORG | PRO | — | ✅ | ✅ | — | — | — | — | Export inventory as pre-formatted listing packages (CSV first). Promise API integration in S2. Medium complexity. |
+| 78 | Inspiration Page — Item Gallery | SHO | FREE | — | — | — | — | — | — | — | Browseable masonry grid of best item photos from active/upcoming sales within radius. Shoppable — taps to item detail. No new schema: queries `Item` (photoUrls, aiConfidence, category, status=AVAILABLE, draftStatus=PUBLISHED) + `Sale` (status=PUBLISHED, startDate, endDate) + `Organizer.businessName`. MVP: no filters, 2-col mobile / 3-col desktop, entry from shopper home. V2: category filter, Save to Wishlist inline, organizer attribution. Spec: `claude_docs/ux-spotchecks/design-polish-vision-2026-03-19.md` |
+| 91 | Auto-Markdown (Smart Clearance) | ORG | PRO | — | — | — | — | — | — | — | Auto-discount engine: 50% day 2, 75% day 3, configurable floor. Removes manual repricing. Patrick promoted from deferred. |
+| 92 | City Weekend Landing Pages (Metro Explorer) | SHO | FREE | — | — | — | — | — | — | — | SEO-indexed per-metro pages (/grand-rapids-estate-sales). ISR + Schema.org markup. High SEO ROI. Patrick promoted from deferred. |
+
+### Parallel Batch C — Gamification + Shopper Monetization (Depends on #126 from Batch A)
+_#126 must ship first. Then these can run in parallel._
+
+| # | Feature | Role | Tier | DB | API | UI | QA | Chrome | Nav | Human | Notes |
+|---|---------|------|------|----|----|----|----|--------|-----|-------|-------|
+| 122 | Explorer's Guild — Phase 1 (Rebrand + Copy) | SHO | FREE | — | — | — | — | — | — | — | Rename Collector's Guild → Explorer's Guild throughout. Update rank names (Initiate→Scout→Ranger→Sage→Grandmaster), OnboardingWizard copy, collector-passport labels, leaderboard copy, badge names. No schema changes. Spec: `claude_docs/research/gamification-rpg-spec-S260.md` |
+| 133 | Hunt Pass Subscription Redesign | SHO | PAID_ADDON | ✅ | ✅ | ✅ | — | — | — | — | Redesign Hunt Pass as $4.99/mo subscription alongside rank (not instead of). Perks: 48h early access, 10 saved search alerts, weekly digest, 25% XP discount on boosts, cosmetic badge skins. Sage/Grandmaster exclusives: 6h Legendary-first access, 1.5x XP multiplier, Loot Legend public portfolio, Collector's League leaderboard. Old points checkout flow deleted by #126. |
+| 123 | Explorer's Guild — Phase 2 (XP Economy + Loot Legend) | SHO | FREE/PAID_ADDON | — | — | — | — | — | — | — | Full XP economy: rarity tiers (Common/Uncommon/Rare/Legendary), XP sinks (coupon-gen, rarity boost, Hunt Pass discount), Loot Legend item tracking, shareable moment cards, abuse prevention flags, referral loop. Requires 4–5 new schema tables + API endpoints. Spec: `claude_docs/research/gamification-rpg-spec-S260.md` |
+| 124 | Rarity Boost XP Sink | SHO | FREE/PAID_ADDON | — | ✅ | — | — | — | — | — | Frontend UI for POST /api/xp/sink/rarity-boost. Backend exists. Frontend shows 'Coming Soon' placeholder on loyalty page (shipped S265). Full implementation deferred. Tier: Explorer's Guild Phase 2 follow-up. |
+
+### Parallel Batch D — Architecture + Infrastructure (Architect ADR Required First)
 
 | # | Feature | Role | Tier | DB | API | UI | QA | Chrome | Nav | Human | Notes |
 |---|---------|------|------|----|----|----|----|--------|-----|-------|-------|
@@ -309,15 +343,13 @@ Production MVP launched Q1 2026.
 | 73 | Two-Channel Notification System | BOTH | SIMPLE | — | — | — | — | — | — | — | OPERATIONAL (organizer) + DISCOVERY (shopper) channels. `notificationChannel` as first-class field on all notification records. Extends existing push/inbox features. Architect ADR required. Depends on #72. |
 | 74 | Role-Aware Registration Consent Flow | BOTH | FREE | — | — | — | — | — | — | — | Separate opt-in checkboxes at signup: "sale management alerts" (ORG) + "nearby sale alerts" (SHO). Legal review of consent copy required before dev. Depends on #72. |
 | 75 | Tier Lapse State Logic | ORG | PRO | — | — | — | — | — | — | — | When organizer sub lapses: suspend organizer features, retain shopper features. Re-enables on billing resume. Full freeze is not the default. Extends #65. Depends on #72. |
+| 125 | Inventory Syndication CSV Export (eBay / Amazon / Facebook Marketplace) | ORG | PRO | — | ✅ | ✅ | — | — | — | — | Export inventory as pre-formatted listing packages (CSV first). Promise API integration in S2. Medium complexity. |
+
+### Parallel Batch E — Polish, Social Proof & Engagement (No Blockers)
+
+| # | Feature | Role | Tier | DB | API | UI | QA | Chrome | Nav | Human | Notes |
+|---|---------|------|------|----|----|----|----|--------|-----|-------|-------|
 | 56 | Printful Merch Store | BOTH | FREE/PAID_ADDON | — | — | — | — | — | — | — | Drop-shipped branded merch via Printful API. Zero inventory risk. 1 sprint est. |
-| 76 | Skeleton Loaders — Item Grids | BOTH | FREE | — | — | — | — | — | — | — | Replace spinners with ghost card layouts across all item/sale grids. No schema changes — reads existing `Item.photoUrls[]`, `Item.title`, `Item.price`. UI-only. Highest perceived-performance ROI. Spec: `claude_docs/ux-spotchecks/design-polish-vision-2026-03-19.md` |
-| 77 | Sale Published Celebration Screen | ORG | SIMPLE | — | — | — | — | — | — | — | Full-screen moment when organizer publishes a sale — sale name, cover photo, "You're live" + confetti. No schema changes — triggers on `Sale.status → PUBLISHED`. Replaces generic toast. Spec: `claude_docs/ux-spotchecks/design-polish-vision-2026-03-19.md` |
-| 78 | Inspiration Page — Item Gallery | SHO | FREE | — | — | — | — | — | — | — | Browseable masonry grid of best item photos from active/upcoming sales within radius. Shoppable — taps to item detail. No new schema: queries `Item` (photoUrls, aiConfidence, category, status=AVAILABLE, draftStatus=PUBLISHED) + `Sale` (status=PUBLISHED, startDate, endDate) + `Organizer.businessName`. MVP: no filters, 2-col mobile / 3-col desktop, entry from shopper home. V2: category filter, Save to Wishlist inline, organizer attribution. Spec: `claude_docs/ux-spotchecks/design-polish-vision-2026-03-19.md` |
-| 79 | Earnings Counter Animation | ORG | SIMPLE | — | — | — | — | — | — | — | Dashboard earnings number rolls up to current value (Revolut-style) on open/refresh. No schema changes — reads existing `Purchase` aggregates. Frontend-only. Pairs with #77 to make dashboard feel alive. Spec: `claude_docs/ux-spotchecks/design-polish-vision-2026-03-19.md` |
-| 80 | Purchase Confirmation Redesign | SHO | FREE | — | — | — | — | — | — | — | Redesign shopper success screen after purchase — item photo hero, item title, seller name, pickup details, designed layout. No schema changes: reads `Purchase` + `Item.photoUrls[]`, `Item.title`, `Sale.title`, `Organizer.businessName`. Replaces generic confirmation text. Spec: `claude_docs/ux-spotchecks/design-polish-vision-2026-03-19.md` |
-| 81 | Empty State Audit + Copy Pass | BOTH | FREE | — | — | — | — | — | — | — | Inventory all empty states across organizer and shopper flows. Write human-voice copy for each (no dead ends — every empty state gets a CTA and a human sentence). UX/copy-only, no schema or API changes. Spec: `claude_docs/ux-spotchecks/design-polish-vision-2026-03-19.md` |
-| 82 | Trademark — FindA.Sale | BIZ | LEGAL | — | — | — | — | — | — | 📋 | File USPTO trademark on "FindA.Sale" brand name if not already done. ~$250–400/class + attorney fees (~$1,500–2,500 total). First priority IP action. Attorney required. |
-| 83 | Trade Secret Housekeeping | BIZ | LEGAL | — | — | — | — | — | — | 📋 | Document proprietary algorithms (fraud scoring, Near-Miss Nudge logic, City Heat Index formula, Flip Report scoring, AI condition grading prompts) as trade secrets in internal docs. Ensure all contractors/contributors have signed NDAs or are covered by agreements. No filing required — zero cost. |
 | 84 | Approach Notes (Arrival Assistant) | SHO | SIMPLE | — | — | — | — | — | — | — | Push notification at 500m with parking/entrance directions. Geolocation-dependent. Trigger met: Front Door Locator + Entrance Pin shipped. |
 | 85 | Treasure Hunt QR (In-Sale Scavenger Hunt) | SHO | FREE | — | — | — | — | — | — | — | QR stickers on unique items → badge collection. Dwell time driver. Trigger met: gamification scaffold (badges/XP/streaks) shipped. |
 | 86 | Shopper Profile + Friend Network | SHO | FREE | — | — | — | — | — | — | — | Public mini-card, badges, finds, friend activity. Social proof layer. Trigger met: gamification + UGC Photo Tags shipped. |
@@ -325,11 +357,13 @@ Production MVP launched Q1 2026.
 | 88 | Haul Post Gallery (UGC Social Proof) | SHO | FREE | — | — | — | — | — | — | — | Post-purchase "show off your finds" with item linking + reactions. Trigger met: UGC Photo Tags (#47) shipped. |
 | 89 | Unified Print Kit | ORG | SIMPLE | — | — | — | — | — | — | — | Combined PDF: yard sign QR + item barcode stickers. Attribution loop. Trigger met: QR Code Signs shipped. |
 | 90 | Sale Soundtrack (Ambient Vibes) | SHO | FREE | — | — | — | — | — | — | — | AI-suggested Spotify/Apple Music playlists by sale type. External links only — zero licensing risk. Low-effort fun differentiator. |
-| 91 | Auto-Markdown (Smart Clearance) | ORG | PRO | — | — | — | — | — | — | — | Auto-discount engine: 50% day 2, 75% day 3, configurable floor. Removes manual repricing. Patrick promoted from deferred. |
-| 92 | City Weekend Landing Pages (Metro Explorer) | SHO | FREE | — | — | — | — | — | — | — | SEO-indexed per-metro pages (/grand-rapids-estate-sales). ISR + Schema.org markup. High SEO ROI. Patrick promoted from deferred. |
-| 122 | Explorer's Guild — Phase 1 (Rebrand + Copy) | SHO | FREE | — | — | — | — | — | — | — | Rename Collector's Guild → Explorer's Guild throughout. Update rank names (Initiate→Scout→Ranger→Sage→Grandmaster), OnboardingWizard copy, collector-passport labels, leaderboard copy, badge names. No schema changes. Spec: `claude_docs/research/gamification-rpg-spec-S260.md` |
-| 123 | Explorer's Guild — Phase 2 (XP Economy + Loot Legend) | SHO | FREE/PAID_ADDON | — | — | — | — | — | — | — | Full XP economy: rarity tiers (Common/Uncommon/Rare/Legendary), XP sinks (coupon-gen, rarity boost, Hunt Pass discount), Loot Legend item tracking, shareable moment cards, abuse prevention flags, referral loop. Requires 4–5 new schema tables + API endpoints. Spec: `claude_docs/research/gamification-rpg-spec-S260.md` |
-| 124 | Rarity Boost XP Sink | SHO | FREE/PAID_ADDON | — | ✅ | — | — | — | — | — | Frontend UI for POST /api/xp/sink/rarity-boost. Backend exists. Frontend shows 'Coming Soon' placeholder on loyalty page (shipped S265). Full implementation deferred. Tier: Explorer's Guild Phase 2 follow-up. |
+
+### Legal & Business (Patrick Action Items)
+
+| # | Feature | Role | Tier | DB | API | UI | QA | Chrome | Nav | Human | Notes |
+|---|---------|------|------|----|----|----|----|--------|-----|-------|-------|
+| 82 | Trademark — FindA.Sale | BIZ | LEGAL | — | — | — | — | — | — | 📋 | File USPTO trademark on "FindA.Sale" brand name if not already done. ~$250–400/class + attorney fees (~$1,500–2,500 total). First priority IP action. Attorney required. |
+| 83 | Trade Secret Housekeeping | BIZ | LEGAL | — | — | — | — | — | — | 📋 | Document proprietary algorithms (fraud scoring, Near-Miss Nudge logic, City Heat Index formula, Flip Report scoring, AI condition grading prompts) as trade secrets in internal docs. Ensure all contractors/contributors have signed NDAs or are covered by agreements. No filing required — zero cost. |
 
 ---
 

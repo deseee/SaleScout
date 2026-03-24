@@ -5,6 +5,94 @@ Only decisions that affect future sessions — not implementation details.
 
 ---
 
+## 2026-03-24 (S268) — Gamification 3-System Model (guildXp + Hunt Pass + Explorer Rank)
+
+**Status:** LOCKED
+**Made by:** Patrick
+**Rationale:** Three coexisting systems: (1) guildXp — earned currency from shopping actions, (2) Hunt Pass — $4.99/mo shopper subscription with Sage/Grandmaster exclusives (6h Legendary-first access, 1.5x XP multiplier, Loot Legend portfolio, Collector's League leaderboard), (3) Explorer Rank — progression track (Initiate→Scout→Ranger→Sage→Grandmaster). Legacy cleanup required: delete old points system ($1=1pt), purchase-count badge triggers (25/100/250), old Hunt Pass checkout flow. Collector Passport renamed to Loot Legend (single feature, single name).
+
+---
+
+## 2026-03-24 (S268) — Automated Support Stack (Zero-Human, 5-Layer)
+
+**Status:** LOCKED
+**Made by:** Patrick
+**Rationale:** No paid tools, no phone, no SLA, no calendar. 5 layers: L1 FAQ (fuse.js, $0), L2 AI chatbot PRO/TEAMS (Claude API ~$5/mo), L3 community forum TEAMS, L4 smart escalation (P0→Slack, P1→daily digest), L5 auto-remediation crons. Patrick contacted only for catastrophic failures.
+
+---
+
+## 2026-03-24 (S268) — POS Value Unlock Tiers (5/20/50 Transactions)
+
+**Status:** LOCKED
+**Made by:** Patrick
+**Rationale:** Dual-gate unlock (transactions + minimum dollar spend to prevent penny-transaction gaming). Tier 1 (5 tx + $50 revenue): Item Performance Snapshot. Tier 2 (20 tx + $300 revenue): Category Deep Dive + Repeat Buyer Map. Tier 3 (50 tx + $1,000 revenue, PRO-only): Regional Pricing Benchmarks + Predictive Demand. POS abuse pipeline: scoring 0-100 across 4 patterns, three auto-response tiers, weekly Sunday digest to Patrick, cross-account detection.
+
+---
+
+## 2026-03-24 (S268) — Homepage Modernization (Approved Mockup)
+
+**Status:** LOCKED
+**Made by:** Patrick
+**Rationale:** Sage gradient hero, 4:3 landscape card images, card footer redesign, shadows + hover lift, filter pills, Fraunces/Inter typography, map behind toggle. Mockup approved. Roadmap item #129.
+
+---
+
+## 2026-03-24 (S268) — Brand Kit Field Migration
+
+**Status:** LOCKED
+**Made by:** Patrick
+**Rationale:** Business Name, Phone, Bio, Website URL are account basics — move to Settings/Profile. Keep social links, logo, slug, colors, fonts, banner in Brand Kit. Roadmap item #130.
+
+---
+
+## 2026-03-24 (S268) — Share & Promote Templates (Option B — Expand)
+
+**Status:** LOCKED
+**Made by:** Patrick
+**Rationale:** Expand Share button to include multiple templates (social posts, flyers, email invites, etc.) rather than deleting or keeping minimal. Roadmap item #131.
+
+---
+
+## 2026-03-24 (S268) — À La Carte Single-Sale Fee ($9.99)
+
+**Status:** LOCKED
+**Made by:** Patrick
+**Rationale:** New `Sale.purchaseModel` schema field. $9.99 per-sale fee for non-subscribers. Breakeven at 3 sales drives PRO conversion. Roadmap item #132.
+
+---
+
+## 2026-03-24 (S268) — Shopper Settings (Minimal by Design)
+
+**Status:** LOCKED (reconfirmed from S251)
+**Made by:** Patrick
+**Rationale:** Shopper settings intentionally minimal. Three post-beta additions: saved payment methods, expanded notification preferences, privacy controls (profile visibility, leaderboard opt-out). No import of organizer-specific features.
+
+---
+
+## 2026-03-24 (S268) — Plan a Sale Dashboard Placement
+
+**Status:** LOCKED
+**Made by:** Patrick
+**Rationale:** "Plan a Sale" goes on organizer dashboard, not a standalone page. Currently shows "coming soon" until full feature is built. Roadmap item #134.
+
+---
+
+## 2026-03-24 (S268) — Organizer Reputation Stays Separate
+
+**Status:** LOCKED (reconfirmed)
+**Made by:** Patrick
+**Rationale:** Organizer reputation is ratings-based only. Zero cross-pollination with shopper gamification (guildXp, Explorer Rank, Hunt Pass).
+
+---
+
+## 2026-03-24 (S268) — Pricing Page = Public, Subscription Page = Organizer Management
+
+**Status:** LOCKED (clarified from S251)
+**Made by:** Patrick
+**Rationale:** `/pricing` is public-facing plan comparison. `/organizer/subscription` shows what the organizer is currently signed up for (active management only). All upgrade CTAs → `/pricing`. Downstream: audit all other pages currently showing pricing and remove/redirect.
+
+---
+
 ## 2026-03-23 (S251) — Gamification Core Loop (Points + Badges + Hunt Pass)
 
 **Status:** LOCKED

@@ -1,53 +1,40 @@
-# Patrick's Dashboard — Session 267 Complete (March 24, 2026)
+# Patrick's Dashboard — Session 268 Complete (March 24, 2026)
 
 ---
 
-## ✅ Session 267 Complete — Full Audit Dispatch (135 items, 3 waves)
+## ✅ Session 268 Complete — Strategic Decisions + Board Review + Roadmap Reorg
 
-**Delivered this session (29 code files pushed):**
-- Double footer root cause fixed (_app.tsx) — eliminates the bug on all 9+ pages at once
-- Trails page fixed (TR-01) — double /api prefix bug in useTrails.ts, all 6 API calls corrected
-- Auction/payment fixes on item page (isAuction check, buyer premium, Buy It Now label)
-- Dark mode pass: admin panel, organizer pages, shopper pages, reviews, streaks, receipts, loot-log
-- Shopper nav fixes: wishlist links, subscribed tab organizer links, search includes organizer names
-- Organizer dashboard tier gating (OD-03/04/05), dismiss banner (OD-06)
-- Profile verification link (OP-04/05), item library tier gate (IL-01)
-- seed.ts fixed — prior agent hallucinated 8 non-existent Prisma models, all removed, zero TS errors
-- Stamp label fix + RankProgressBar MAX label (S266 pending — included in same push)
+**Delivered this session:**
+- SP-03 fixed (stray "0" under organizer badges on sale pages)
+- Full 12-seat advisory board review on gamification, support, POS, homepage, and 10 remaining items
+- 11 strategic decisions locked in decisions-log.md
+- POS value unlock tiers designed (dual-gate: transactions + dollar minimums to prevent gaming)
+- Hunt Pass redesigned with Sage/Grandmaster exclusives (not deleted)
+- Homepage modernization mockup approved
+- Roadmap reorganized into 5 parallel execution batches (A-E) for concurrent work
 
 ---
 
 ## 🚨 Action Required — Patrick Must Do This Now
 
-**Step 1: Run the push block from S267 session output (2 commits, 31 files)**
-```powershell
-cd C:\Users\desee\ClaudeProjects\FindaSale
-# [see full push block in session chat]
-.\push.ps1
-```
+**Step 1: Push S268 doc changes** (see push block in session chat below)
 
-**Step 2: After Vercel + Railway deploy, re-run the seed:**
-```powershell
-cd packages\database
-npm run prisma:seed
-```
-
-**Step 3: Manual action still pending from S264:** Delete Neon project at console.neon.tech
+**Step 2 (still pending from S264):** Delete Neon project at console.neon.tech
 
 ---
 
-## 📋 S268 Priorities
+## 📋 S269 Priorities
 
-1. **Post-deploy smoke test** — double footer gone, trails loading, payment flow
-2. **QA browser pass** — SP-01 (sale stats dark mode), SP-03 (stray 0), TR-04 (mint textbox) — need live browser to find these
-3. **Seed additions** — workspace record (OS-03) + completed PRO-tier sale (FR-01)
-4. **30 STRATEGY/DUP items** — still need Patrick decisions (listed in audit doc)
+1. **Push S268 docs** — decisions-log, roadmap, STATE, dashboard, board minutes, POS strategy, mockup, UX spec
+2. **Begin Parallel Batch A** — dispatch #126 (gamification legacy cleanup), #129 (homepage modernization), #134 (Plan a Sale dashboard placement) concurrently
+3. **QA browser pass** — SP-01 (sale stats dark mode), TR-04 (mint textbox on trails)
+4. **Seed additions** — workspace record (OS-03) + completed PRO-tier sale (FR-01)
 
 ---
 
 ## Build Status
 
-Push pending (run push block above). Previous: ✅ Railway GREEN. ✅ Vercel GREEN.
+Previous: ✅ Railway GREEN. ✅ Vercel GREEN. No code changes in S268 — doc-only push.
 
 ---
 
@@ -59,8 +46,13 @@ All password: `password123`
 - `user3@example.com` — TEAMS organizer (Stripe connected)
 - `user11@example.com` — Shopper
 
-## Open Items Not Fixed (Not Code Bugs)
-- **SP-06:** STRIPE_SECRET_KEY — you confirmed it's in Railway. Should resolve after push.
-- **OS-03:** Workspace 404 — workspace record missing from DB (needs seed data)
-- **FR-01:** Flip reports error — needs completed PRO-tier sale in seed data
-- **SP-01/SP-03/TR-04:** Still need live browser QA pass to locate
+## Key S268 Decisions (Summary)
+
+- **Gamification:** 3-system model locked (guildXp + Hunt Pass $4.99/mo + Explorer Rank). Legacy points system to be deleted.
+- **POS:** Dual-gate unlock tiers (5 tx/$50, 20 tx/$300, 50 tx/$1,000). Tier 3 PRO-only. Abuse pipeline included.
+- **Support:** 5-layer zero-human stack (~$5/mo). Patrick reads weekly digest only.
+- **Homepage:** Sage gradient hero, 4:3 cards, modern typography — mockup approved.
+- **Brand Kit:** Business basics move to Settings/Profile. Brand-specific fields stay.
+- **Share:** Expand to full template toolkit (Option B).
+- **À la carte:** $9.99 single-sale fee for SIMPLE organizers.
+- **Hunt Pass:** Sage/Grandmaster exclusives added (6h Legendary access, 1.5x XP, Loot Legend, Collector's League).
