@@ -27,7 +27,7 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 **Registration Bug Fix (user11 SHOPPER → ORGANIZER):**
 - ✅ `packages/backend/src/routes/users.ts` — removed role check gate on `/api/users/setup-organizer` that blocked SHOPPER users. Now atomically adds 'ORGANIZER' to roles array + returns fresh JWT.
 
-- 📋 **Carry-forward (S265):** (1) Verify Batches 3+4 brand drift live on Vercel. (2) Brand copy deep audit (P3). (3) Phase 2 UX review. (4) user11 end-to-end XP test. (5) Update packages/database/.env locally to Railway connection string.
+- 📋 **Carry-forward (S265):** (1) Verify Batches 3+4 brand drift live on Vercel. (2) Shopper→Organizer UI flow — backend route works but NO frontend path exists for logged-in shoppers to become organizers. Needs "Host a Sale" / "Become an Organizer" CTA on pricing page, nav, and/or homepage. (3) Phase 2 UX review — RankBadge/ProgressBar visibility, XP sink clarity. (4) user11 end-to-end XP test — simulate purchase, verify XP earn + rank update. (5) Brand copy deep audit (P3).
 - Last Updated: 2026-03-24
 
 **Session 262 COMPLETE (2026-03-24) — BRAND DRIFT ALL 4 BATCHES + PHASE 2A/2B/2C FULLY DEPLOYED:**
@@ -129,13 +129,15 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 **S265 PRIORITY 1 (MANDATORY):** Verify Batches 3+4 brand drift live on Vercel — smoke test /trending, /inspiration, /search.
 
-**S265 PRIORITY 2:** Brand copy deep audit (P3) — page titles, meta descriptions, all 5 sale types represented.
+**S265 PRIORITY 2 (MANDATORY):** Shopper→Organizer UI flow — backend route works but NO frontend path exists for logged-in shoppers to become organizers. Needs "Host a Sale" / "Become an Organizer" CTA on pricing page, nav, and/or homepage. UX spec first, then dev.
 
-**S265 PRIORITY 3 (OPTIONAL):** Phase 2 UX review — RankBadge/ProgressBar visibility, leaderboard usability, XP sink clarity.
+**S265 PRIORITY 3 (MANDATORY):** Phase 2 UX review — RankBadge/ProgressBar visibility, leaderboard usability, XP sink clarity.
 
-**S265 PRIORITY 4 (OPTIONAL):** user11 end-to-end XP test — simulate purchase, verify XP earn + rank update.
+**S265 PRIORITY 4 (MANDATORY):** user11 end-to-end XP test — simulate purchase, verify XP earn + rank update.
 
-**Patrick action (before S265):** Delete Neon project at console.neon.tech to stop billing. Update local `packages/database/.env` to Railway connection string.
+**S265 PRIORITY 5:** Brand copy deep audit (P3) — page titles, meta descriptions, all 5 sale types represented.
+
+**Patrick action (before S265):** Delete Neon project at console.neon.tech to stop billing.
 
 ---
 

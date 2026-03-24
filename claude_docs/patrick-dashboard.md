@@ -40,11 +40,13 @@ Phase 2a (schema + backend), 2b (frontend UI), 2c (XP event wiring) — all depl
 
 **S265 PRIORITY 1 (MANDATORY):** Verify Batches 3+4 brand drift live on Vercel — smoke test /trending, /inspiration, /search.
 
-**S265 PRIORITY 2:** Brand copy deep audit (P3) — page titles, meta descriptions, all 5 sale types.
+**S265 PRIORITY 2 (MANDATORY):** Shopper→Organizer UI flow — logged-in shoppers have no way to become organizers. Backend route works, frontend path missing. Needs "Host a Sale" / "Become an Organizer" CTA on pricing page, nav, and/or homepage.
 
-**S265 PRIORITY 3 (OPTIONAL):** Phase 2 UX review — RankBadge/ProgressBar visibility, XP sink clarity.
+**S265 PRIORITY 3 (MANDATORY):** Phase 2 UX review — RankBadge/ProgressBar visibility, XP sink clarity.
 
-**S265 PRIORITY 4 (OPTIONAL):** user11 end-to-end XP test — simulate purchase, verify XP earn + rank update.
+**S265 PRIORITY 4 (MANDATORY):** user11 end-to-end XP test — simulate purchase, verify XP earn + rank update.
+
+**S265 PRIORITY 5:** Brand copy deep audit (P3) — page titles, meta descriptions, all 5 sale types.
 
 ---
 
