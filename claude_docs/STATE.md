@@ -7,6 +7,16 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Active Objective
 
+**Session 266 COMPLETE (2026-03-24) — STAMP LABEL FIX + SMOKE TEST + UX P2 DISPATCH:**
+
+What shipped:
+- ✅ S265 commits confirmed already on origin/main (d01bc9b + 4d14c79) — no re-push needed
+- ✅ Smoke test PASS: OnboardingWizard dark:bg-gray-800 confirmed in code. "Host a Sale" button logic correct (hides for converted organizers, shows for role=USER without ORGANIZER in roles array). XP system live on loyalty page.
+- ✅ Stamp label fix: loyalty.tsx line 275 — {stamp.type} → .replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()). Converts ATTEND_SALE→"Attend Sale", MAKE_PURCHASE→"Make Purchase"
+- ✅ Phase 2 UX P2 polish dispatched: leaderboard position footer, ProgressBar MAX state, header "Explorer's Guild Passport" rename — see S267 push block
+- ⚠️ Parallel dispatch rule violated (sequential Chrome MCP calls) — flagged and corrected mid-session
+- Last Updated: 2026-03-24
+
 **Session 265 COMPLETE (2026-03-24) — XP SYSTEM VERIFIED + SHOPPER→ORG FLOW + QA PROCESS OVERHAUL:**
 
 What shipped:
@@ -110,6 +120,8 @@ Last Updated: 2026-03-24T23:00:00Z
 
 ## Recent Sessions
 
+**S266 (2026-03-24):** Stamp label fix (raw enums → human-readable on loyalty page). Smoke test passed. Phase 2 UX P2 polish dispatched to dev (leaderboard footer, ProgressBar MAX, header rename).
+
 **S265 (2026-03-24):** XP system verified live on Railway (/api/xp/profile, /api/xp/leaderboard). Shopper→Organizer conversion flow fully shipped with E2E QA (BecomeOrganizerModal, nav "Host a Sale", pricing CTA). XP Sink UI complete (coupon + Rarity Boost placeholder). Brand drift Batches 3+4 QA confirmed. Phase 2 UX audit P1 resolved. QA delegation protocol created. 2 files in pending push (OnboardingWizard dark mode, Layout nav button).
 
 **S264 (2026-03-24):** Neon→Railway Postgres migration complete. 114 migrations + full seed applied. Smoke test PASS. Process improvements: pushblock-first strategy, wrap file consolidation (4→2 files), real dispatch token estimates, parallel dispatch up to 7 agents. Registration bug fix (SHOPPER→ORGANIZER role transition). 9 skill packages rebuilt. Savings: ~$18.50/month on database costs.
@@ -118,21 +130,17 @@ Last Updated: 2026-03-24T23:00:00Z
 
 **S262 (2026-03-24):** Brand drift D-001 fully resolved (30+ violations, 4 batches). Explorer's Guild Phase 2a/2b/2c all deployed. RPG spec locked.
 
-**S260 (2026-03-23):** RPG economy spec locked (8 decisions). Agent prompt bias fixed. Roadmap updated. Explorer's Guild Phase 1 copy complete.
-
 ---
 
 ## Next Session
 
-**S266 PRIORITY 1 (FIRST):** Run push block for 2 pending files (OnboardingWizard dark mode fix + Layout desktop nav button). Post-deploy smoke test: verify dark mode card rendering and "Host a Sale" button visible to shoppers.
+**S267 PRIORITY 1 (FIRST):** Push loyalty.tsx stamp label fix. Post-deploy smoke test on loyalty page — verify "Attend Sale" and "Make Purchase" labels render correctly.
 
-**S266 PRIORITY 2:** Stamp label display fix: loyalty page shows raw enum values (ATTEND_SALE, MAKE_PURCHASE) instead of human-readable text — P3 priority.
+**S267 PRIORITY 2:** Push Phase 2 UX P2 files from dev dispatch (leaderboard footer, ProgressBar MAX, header rename). Smoke test all three fixes.
 
-**S266 PRIORITY 3:** Phase 2 UX P2 polish items (leaderboard position footer, ProgressBar MAX state, header clarity) — can defer to v1.1 if timeline tight.
+**S267 PRIORITY 3:** Phase 2 UX P3 items if any remain.
 
-**S266 PRIORITY 4 (IF TIME):** Brand copy deep audit — page titles, meta descriptions, all 5 sale types represented consistently (P5, low priority).
-
-**Patrick manual action (pending from S264):** Delete Neon project at console.neon.tech (still pending from S264).
+**Patrick manual action (pending from S264):** Delete Neon project at console.neon.tech (still pending).
 
 ---
 
