@@ -23,7 +23,7 @@ equivalents. Custom skills have project context; generics don't.
 
 ## 1. Project Purpose
 
-FindA.Sale is a PWA for estate sale operators.
+FindA.Sale is a PWA for secondary sale organizers (estate sales, yard sales, auctions, flea markets, consignment).
 
 Primary goals:
 - Reduce manual work

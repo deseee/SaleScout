@@ -327,6 +327,8 @@ Production MVP launched Q1 2026.
 | 90 | Sale Soundtrack (Ambient Vibes) | SHO | FREE | — | — | — | — | — | — | — | AI-suggested Spotify/Apple Music playlists by sale type. External links only — zero licensing risk. Low-effort fun differentiator. |
 | 91 | Auto-Markdown (Smart Clearance) | ORG | PRO | — | — | — | — | — | — | — | Auto-discount engine: 50% day 2, 75% day 3, configurable floor. Removes manual repricing. Patrick promoted from deferred. |
 | 92 | City Weekend Landing Pages (Metro Explorer) | SHO | FREE | — | — | — | — | — | — | — | SEO-indexed per-metro pages (/grand-rapids-estate-sales). ISR + Schema.org markup. High SEO ROI. Patrick promoted from deferred. |
+| 122 | Explorer's Guild — Phase 1 (Rebrand + Copy) | SHO | FREE | — | — | — | — | — | — | — | Rename Collector's Guild → Explorer's Guild throughout. Update rank names (Initiate→Scout→Ranger→Sage→Grandmaster), OnboardingWizard copy, collector-passport labels, leaderboard copy, badge names. No schema changes. Spec: `claude_docs/research/gamification-rpg-spec-S260.md` |
+| 123 | Explorer's Guild — Phase 2 (XP Economy + Loot Legend) | SHO | FREE/PAID_ADDON | — | — | — | — | — | — | — | Full XP economy: rarity tiers (Common/Uncommon/Rare/Legendary), XP sinks (coupon-gen, rarity boost, Hunt Pass discount), Loot Legend item tracking, shareable moment cards, abuse prevention flags, referral loop. Requires 4–5 new schema tables + API endpoints. Spec: `claude_docs/research/gamification-rpg-spec-S260.md` |
 
 ---
 

@@ -2,7 +2,23 @@
 
 **Note:** Older entries archived to `claude_docs/archive/session-logs/`. Keep 5 most recent sessions for quick reference.
 
-## Recent Sessions (S255–S259)
+## Recent Sessions (S256–S260)
+
+### 2026-03-23 · Session 260
+
+**RPG SPEC LOCK + EXPLORER'S GUILD PHASE 1 COPY REBRAND**
+
+✅ **RPG economy spec locked** — all 8 open decisions resolved via deep research. `gamification-rpg-spec-S260.md` created. Key decisions: tiered one-level seasonal reset drop floors, streak-based visit XP (base 10 + streak bonus + comeback), 3 Sage payoffs (Sourcebook/48h Early Bird/Sage Coupon $3 off), wins-only auction XP (15–20 XP), honor-system social share (+10 XP, audit flags), 3 XP sinks (coupon-gen/rarity-boost/Hunt Pass discount), 4-tier rarity (Common 60% / Uncommon 25% / Rare 12% / Legendary <3%).
+
+✅ **Agent prompt bias fixed** — global + project CLAUDE.md, findasale-innovation + findasale-advisory-board SKILL.md updated from "estate sale operators" → "secondary sale organizers (estate sales, yard sales, auctions, flea markets, consignment)."
+
+✅ **Roadmap updated** — #122 (Phase 1 copy/rebrand, ~2–3h) + #123 (Phase 2 XP economy, multi-session schema build) added.
+
+✅ **Explorer's Guild Phase 1 copy shipped** — 5 files: collector-passport.tsx, loyalty.tsx, OnboardingWizard.tsx, Layout.tsx, dashboard.tsx. Collector→Explorer rebrand complete. TypeScript clean.
+
+⚠️ **Carry-forward:** Dashboard "estate sales" copy (1-line fix). findasale-dev/ux/qa bias in SKILL.md unconfirmed (zip archives). Phase 2 not started.
+
+📋 **S261 PRIORITY 1:** Dashboard copy fix (dispatch findasale-dev, 1 line). 📋 **PRIORITY 2:** Skill-creator pass on remaining SKILL.md files for bias. 📋 **PRIORITY 3:** Explorer's Guild Phase 2 planning (schema changes, Architect first).
 
 ### 2026-03-23 · Session 259
 
