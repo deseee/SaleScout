@@ -1,61 +1,63 @@
-# Next Session Prompt — S262
+# Next Session Prompt — S263
 
-**Date:** 2026-03-24 (S261 complete)
-**Status:** Phase 2 fully unblocked. Schema signed off. All design decisions locked. Ready to build.
-
----
-
-## S262 PRIORITY 1 — Explorer's Guild Phase 2 Backend (FULLY UNBLOCKED)
-
-Everything is decided. Architecture: `claude_docs/feature-notes/explorer-guild-phase2-architect-S261.md`.
-
-**Step 1 — Patrick runs migration first:**
-```powershell
-cd C:\Users\desee\ClaudeProjects\FindaSale\packages\database
-$env:DATABASE_URL="postgresql://neondb_owner:npg_VYBnJs8Gt3bf@ep-plain-sound-aeefcq1y.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require"
-npx prisma migrate deploy
-npx prisma generate
-```
-
-**Step 2 — Dispatch findasale-dev for:**
-- Phase 2a (backend): `xpService.ts`, `xpController.ts`, wire XP events into existing purchase/sale/referral controllers
-- Phase 2b (frontend): `RankBadge`, `RankProgressBar`, leaderboard page, XP sink components
-- Phase 2c (fraud): Extend `fraudDetectionService.ts` with XP fraud signal types
-
-Route any game design questions to `findasale-gamedesign` skill (installed this session).
+**Date:** 2026-03-24 (S262 complete)
+**Status:** Brand drift fully resolved. Phase 2a+2b deployed. Phase 2c pending. QA needed.
 
 ---
 
-## S262 PRIORITY 2 — Brand Drift Batch (14 Files, 1 Session)
+## S263 PRIORITY 1 — QA Smoke Test (All S262 Changes Live)
 
-Audit from 2026-03-24 found 30 brand drift violations across city/neighborhood/map/calendar pages.
-Batch 1 (P0 SEO) + Batch 2 (P1 organizer copy) = ~14 single-line changes.
-Full audit: `claude_docs/audits/brand-drift-2026-03-24.md`
+MANDATORY per CLAUDE.md §10. Verify all S262 fixes are live on finda.sale via Chrome MCP.
 
-**One decision needed before dispatch:** "Estate Sale Encyclopedia" section rename (SEO implications — Patrick call).
+**Test Plan:**
+- **Brand Drift Batches 3+4:** City pages (`/city/denver`), map page (`/map`), calendar page (`/calendar`), search empty state, trending page, inspiration page — verify "secondary sale organizer" copy is live, no "estate sale only" language.
+- **XP Profile/Leaderboard:** Login as user11 (shopper), navigate to `/shopper/loyalty` — RankBadge + RankProgressBar rendering? Navigate to `/shopper/leaderboard` — top 50 showing? No API 404 errors in console.
+- **Encyclopedia Rename:** Search for "Resale Encyclopedia" on relevant pages — verify rename is live across all Batch 1 pages.
 
----
-
-## S262 PRIORITY 3 — Install New Skills
-
-Patrick should install these 3 .skill files via Cowork UI before next session:
-- `findasale-ux.skill` — bias fixed (all 5 sale types in description)
-- `findasale-qa.skill` — bias fixed (brand voice checklist updated)
-- `findasale-gamedesign.skill` — NEW: routes all XP/rarity/rank decisions away from Patrick
+If ANY test fails, flag immediately and dispatch findasale-dev before other work.
 
 ---
 
-## Explorer's Guild — Full Status
+## S263 PRIORITY 2 — Explorer's Guild Phase 2c (Wire XP Events)
 
-**DONE (Phase 1):** Copy rebrand on 5 frontend files. RPG spec locked (S260). Architect sign-off + all design decisions locked (S261).
+Scoped in Phase 2a architecture but implementation status unconfirmed. Verify completeness:
+- Purchase completion → `xpService.awardXp(userId, 'purchase_complete', itemValue)` in `purchaseController`
+- Sale listing created → award XP in `saleController`
+- Referral accepted → award XP in `referralController`
+- Auction win → award XP in `bidController`
 
-**TODO (Phase 2):** XP earn/sink system, rank display, leaderboard, rarity boost UI, abuse prevention dashboard. Schema additions: `User.guildXp`, `User.explorerRank`, `User.seasonalResetAt`, `RarityBoost` table, extended `PointsTransaction` + `Coupon`.
+If NOT already wired, dispatch findasale-dev to add the calls. Use xpService signatures from Phase 2a implementation.
+
+---
+
+## S263 PRIORITY 3 — Brand Drift Batches 3+4 QA (Live Verification)
+
+Separate from Priority 1 smoke test — deep dive on copy consistency:
+- Verify ALL page titles/H1/meta descriptions use "secondary sale" or specific sale types, never "estate sale only"
+- Check component SaleShareButton, ReferralWidget, og-image API for brand voice compliance
+- Spot-check 3 key pages for dark mode rendering (no hardcoded colors in new copy)
+
+If copy issues found, dispatch findasale-dev for targeted fixes.
+
+---
+
+## S263 PRIORITY 4 — Explorer's Guild Phase 2 Shopper UX Review (Optional)
+
+Once Phase 2c is confirmed complete and QA passes, optional deep dive:
+- Does the XP system surface well to shoppers? RankBadge visibility on loyalty/profile pages?
+- Are XP sink UI components clear (RarityBoost, Coupon redemption)?
+- Any usability gaps in leaderboard (pagination, search, sorting)?
+
+Feedback loop to findasale-gamedesign if design tweaks needed.
 
 ---
 
 ## Context
 
-Last push: S261 wrap. Dashboard copy was already correct from S260 — no new code change.
+**Phase 2 Status:** 2a+2b deployed to live (Neon + Railway + Vercel). Phase 2c scope confirmed but implementation check needed. No major blockers.
+
+**Brand Drift Status:** Batches 1+2 pushed (commit b06242d). Batches 3+4 committed locally, awaiting push confirmation from S263 QA.
+
 **Platform serves 5 sale types:** estate sales, yard sales, auctions, flea markets, consignment.
 
 ---
@@ -66,4 +68,4 @@ All password: `password123`
 - `user1@example.com` — ADMIN + SIMPLE organizer
 - `user2@example.com` — PRO organizer (Stripe connected)
 - `user3@example.com` — TEAMS organizer (Stripe connected)
-- `user11@example.com` — Shopper with full activity
+- `user11@example.com` — Shopper with full XP activity

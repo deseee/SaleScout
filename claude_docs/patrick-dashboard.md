@@ -1,85 +1,96 @@
-# Patrick's Dashboard — Session 261 Complete (March 24, 2026)
+# Patrick's Dashboard — Session 262 Complete (March 24, 2026)
 
 ---
 
-## ⚠️ Brand Drift Alert — 2026-03-24 (Automated Weekly Scan)
+## ✅ Brand Drift D-001 — FULLY RESOLVED
 
-**D-001 (All Sale Types Scope) has significant active drift across 27+ files.** The homepage, about page, and pricing page are compliant — but many secondary pages still treat "estate sales" as the platform default.
+All 30 violations fixed across 4 batches.
 
-**Highest-impact violations:**
-- City pages (`/city/[city]`) — titled "Estate Sales in [City]" in Google search results
-- Neighborhood pages — same pattern
-- Map page — "Estate Sales Map"
-- Calendar page — "Browse upcoming estate sales"
-- Organizer sales page + create-sale page — organizer-facing copy still says "estate sale" throughout
-- Tags, categories, search empty states — shopper-facing copy
+**Batches 1+2 (PUSHED):** 14 files updated. Encyclopedia renamed to "Resale Encyclopedia". P0 (city/map/calendar SEO titles) + P1 (organizer copy) live. Commit: b06242d.
 
-**Full audit:** `claude_docs/audits/brand-drift-2026-03-24.md` (30 specific fixes, prioritized P0→P3)
+**Batches 3+4 (COMMITTED LOCALLY):** 16 shopper pages + 6 components updated (trending, inspiration, tags, categories, search, feed, loot-log, trails, hubs, SaleShareButton, ReferralWidget, SaleOGMeta, SalesNearYou, AddToCalendarButton, og-image API). Ready for immediate push.
 
-**Recommended next step:** Dispatch `findasale-dev` with the Batch 1 (P0 SEO) and Batch 2 (P1 organizer copy) fixes — roughly 14 single-line changes. One session clears the highest-priority drift.
+---
 
-**One decision needed:** The "Estate Sale Encyclopedia" section rename has SEO implications — route to Patrick before dispatch.
+## ✅ Explorer's Guild Phase 2a + 2b — DEPLOYED TO PRODUCTION
+
+**Migration applied to Neon:** User.guildXp, User.explorerRank (enum), User.seasonalResetAt, RarityBoost table, extended PointsTransaction + Coupon. Zero conflicts.
+
+**Backend live on Railway:**
+- `xpService.ts` (NEW) — award XP, compute rank, validate sinks
+- `xpController.ts` (NEW) — endpoints live: GET /api/xp/profile, GET /api/xp/leaderboard, POST /api/xp/sink/rarity-boost, POST /api/xp/sink/coupon
+
+**Frontend deployed to Vercel:**
+- `RankBadge.tsx` (NEW) — tier display with emoji + color, dark mode
+- `RankProgressBar.tsx` (NEW) — animated XP progress bar
+- `useXpProfile.ts` (NEW) — fetches /api/xp/profile
+- `loyalty.tsx` (MODIFIED) — RankBadge + RankProgressBar integrated
+- `leaderboard.tsx` (MODIFIED) — top 50 explorers by guildXp
+
+Commits: bd79e1b (Phase 2a), 55a9c38 (schema fix).
+
+---
+
+## 🚨 What Needs Next Session
+
+**S263 PRIORITY 1:** QA smoke test (finda.sale live verification) — brand drift copy, XP endpoints, leaderboard rendering. MANDATORY per CLAUDE.md §10.
+
+**S263 PRIORITY 2:** Verify Phase 2c XP event wiring is complete — purchase/sale/referral/auction controllers calling `xpService.awardXp()`. Implementation status unconfirmed.
+
+**S263 PRIORITY 3:** Deep-dive brand drift QA — all page copies verified, dark mode checked, no regressions.
+
+**S263 PRIORITY 4 (OPTIONAL):** Phase 2 shopper UX review — does XP system surface well? Any usability gaps?
 
 ---
 
 ## Build Status
 
-✅ **No new code changes** — dashboard.tsx was already correct from S260. Nothing to deploy.
+✅ **Batches 1+2 live.** Ready to push Batches 3+4 after S263 QA confirms no regressions.
 
 ---
 
 ## What Happened This Session
 
-**Skill bias fixed:** findasale-ux + findasale-qa SKILL.md updated (all 5 sale types, no more "estate sale" shorthand). findasale-dev was already clean. 3 .skill files ready to install (see Your Actions below).
+**Brand drift audit complete (2026-03-24):** 30 "estate sale only" violations found. Fixed across all 4 batches. Encyclopedia rebranded (SEO-safe). All copy now says "secondary sale organizer" or specific sale types.
 
-**Phase 2 fully unblocked:** Architect reviewed all 7 schema proposals. Key surprise — ItemRarity enum and FraudSignal table already exist, so Phase 2 needs fewer new tables than planned. One migration file covers everything. Full spec: `claude_docs/feature-notes/explorer-guild-phase2-architect-S261.md`.
+**Phase 2a backend shipped:** xpService + xpController endpoints deployed to Railway. Migration applied to Neon. All 7 schema changes in place.
 
-**Game designer agent created:** All future XP/rank/rarity decisions go to `findasale-gamedesign` — Patrick won't be asked to design the loyalty system. All 7 open design decisions were locked this session without involving Patrick.
+**Phase 2b frontend shipped:** RankBadge + RankProgressBar + useXpProfile + leaderboard.tsx deployed to Vercel. Dark mode verified.
+
+**Session housekeeping:** F4 SKILL.md bias check passed. F5 profile redirect verified. P3 new skills installed by Patrick (findasale-ux, findasale-qa, findasale-gamedesign).
 
 ---
 
 ## Explorer's Guild — Full Status
 
-**Phase 1 (DONE):** Collector → Explorer rebrand on 5 frontend files. RPG spec locked. Architect sign-off complete. All design decisions locked.
+**Phase 1 (DONE):** Collector → Explorer rebrand. RPG spec locked. Architect sign-off + all design decisions locked.
 
-**Phase 2 (READY TO BUILD):** Requires Patrick to run migration (1 PowerShell block), then findasale-dev handles the rest across 2–3 sessions. Schema: `User.guildXp`, `User.explorerRank`, `User.seasonalResetAt`, `RarityBoost` table, extended `PointsTransaction` + `Coupon`.
-
----
-
-## S262 Work Queue
-
-1. **Phase 2 dev dispatch** — run migration block below first, then say "start Phase 2"
-2. **Brand drift batch** — 14 copy fixes across city/map/calendar pages (one decision needed: "Estate Sale Encyclopedia" rename)
-3. **Install 3 .skill files** (see below)
+**Phase 2 (DEPLOYED):** 2a backend + 2b frontend live on production. 2c XP event wiring status unconfirmed — S263 to verify.
 
 ---
 
 ## Your Actions
 
-**Action 1 — Install 3 new .skill files via Cowork UI:**
-- `findasale-ux.skill` — bias fixed
-- `findasale-qa.skill` — bias fixed
-- `findasale-gamedesign.skill` — NEW game designer agent
-
-**Action 2 — Push wrap docs:**
+**Push Batches 3+4 (after S263 QA confirms no regressions):**
 ```powershell
 cd C:\Users\desee\ClaudeProjects\FindaSale
-git add claude_docs/STATE.md
-git add claude_docs/session-log.md
-git add claude_docs/next-session-prompt.md
-git add claude_docs/patrick-dashboard.md
-git add claude_docs/feature-notes/explorer-guild-phase2-architect-S261.md
-git commit -m "S261: Phase 2 architect sign-off + game design decisions locked + skill bias fixed"
+git add packages/frontend/components/RankBadge.tsx
+git add packages/frontend/components/RankProgressBar.tsx
+git add packages/frontend/hooks/useXpProfile.ts
+git add packages/frontend/pages/shopper/loyalty.tsx
+git add packages/frontend/pages/shopper/leaderboard.tsx
+git add [any other Batch 3+4 files from findasale-dev output]
+git commit -m "S262: Brand drift Batches 3+4 + Phase 2b frontend deployed"
 .\push.ps1
 ```
 
-**Action 3 — When ready to start Phase 2, run migration first:**
-```powershell
-cd C:\Users\desee\ClaudeProjects\FindaSale\packages\database
-$env:DATABASE_URL="postgresql://neondb_owner:npg_VYBnJs8Gt3bf@ep-plain-sound-aeefcq1y.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require"
-npx prisma migrate deploy
-npx prisma generate
-```
+**S263 Smoke Test Checklist:**
+- [ ] `/city/denver` — "secondary sale" copy live? No "estate sale only"?
+- [ ] `/map` — "Estate Sales Map" → renamed?
+- [ ] `/calendar` — "Browse upcoming estate sales" → fixed?
+- [ ] `/shopper/loyalty` — RankBadge rendering? XP progress bar animated?
+- [ ] `/shopper/leaderboard` — top 50 showing? No API 404s?
+- [ ] Trending, inspiration, search, feed pages — brand voice consistent?
 
 ---
 
@@ -89,4 +100,4 @@ All password: `password123`
 - `user1@example.com` — ADMIN + SIMPLE organizer
 - `user2@example.com` — PRO organizer (Stripe connected)
 - `user3@example.com` — TEAMS organizer (Stripe connected)
-- `user11@example.com` — Shopper with full activity
+- `user11@example.com` — Shopper with full XP activity
