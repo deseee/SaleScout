@@ -7,15 +7,19 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Active Objective
 
-**Session 257 COMPLETE (2026-03-23) — RATE LIMIT WHITELIST + S256 SMOKE TEST:**
-- ✅ Rate limit whitelist implemented — `RATE_LIMIT_WHITELIST_IPS` env var added to `packages/backend/src/index.ts`. All 4 rate limiters (globalLimiter, viewerLimiter, authLimiter, contactLimiter) now skip whitelisted IPs. Commit `ea77e26`.
-- ✅ S256 smoke test COMPLETE — All 12 S256 items verified live via Chrome MCP. No P0/P1/P2 issues.
-- ⚠️ 2 P3 findings: shopper/dashboard H1 still says "My Dashboard" (should be "Shopper Dashboard"), /profile H1 still says "My Profile" — cosmetic only, no user task blocked
-- ⚠️ SD7 (EmptyState nudge) not visually confirmed — user11 has activity so empty state doesn't render. Not a failure.
-- 📋 **S258 PRIORITY 1:** Tier 2+ UX batches from `claude_docs/ux-spotchecks/S256-UX-SPECS-41-items-onboarding.md`
-- 📋 **S258 PRIORITY 2:** Organizer onboarding flow implementation (spec in S256-UX-SPECS)
-- 📋 **S258 PRIORITY 3:** 17 strategic S248 items → advisory board + innovation agents
-- 📋 **S258 OPTIONAL P3:** H1 copy fixes — shopper/dashboard "My Dashboard"→"Shopper Dashboard", /profile "My Profile"→consistent label
+**Session 258 COMPLETE (2026-03-23) — UX BATCHES + ONBOARDING + STRATEGIC INITIATIVES:**
+- ✅ **Dev Batch A (shopper pages)** — 6 UX fixes shipped: AvatarDropdown "My Wishlists"→"My Wishlist", contact page copy shortened, inspiration page double footer removed, trending page wishlist/favorite button added to item cards, typology page dark mode text fix, collector-passport.tsx dark mode class added.
+- ✅ **Dev Batch B (functional fixes)** — 6 fixes shipped: TreasureHuntBanner dismiss button + localStorage persistence (`onboarding_dismissed_at`), ActivitySummary skeleton dark mode fix, contact form subject field added, `findasale.com`→`finda.sale` domain fix in 4 files (admin/invites.tsx, tags/[slug].tsx, AddToCalendarButton.tsx, contact.tsx), SD6/SD8/FR1 confirmed already correct (no changes needed).
+- ✅ **Dev Batch C (organizer onboarding)** — OnboardingWizard.tsx restructured to 5-step flow (Email Verification stub → Business Profile → Stripe → Create Sale → Success stub). Step progress indicator added ("Step X of 5"). localStorage dismissal tracking added. OrganizerOnboardingModal.tsx removed (legacy). _app.tsx OrganizerOnboardingShower removed.
+- ✅ **Q2 My Saves consolidation** — wishlist.tsx restructured: 3 tabs→2 tabs (Items + Sellers). Page renamed "My Saves". AvatarDropdown.tsx, Layout.tsx, ActivitySummary.tsx nav labels updated to "My Saves".
+- ✅ **Q3 Premium page consolidation** — /organizer/pricing.tsx created (new consolidated discovery page, all tiers, Stripe CTAs, current plan highlight). /pricing.tsx converted to redirect → /organizer/pricing. /organizer/premium.tsx and /organizer/upgrade.tsx already redirecting from prior sessions.
+- ✅ **Advisory Board reviewed 3 strategic questions:** Gamification (Patrick rejected deletion approach), Feature overlap Q2 (Approved), Premium pages Q3 (Approved).
+- ✅ **Innovation Agent produced 3 gamification narrative concepts:** Treasure Map Collector's Guild (rank: Initiate→Scout→Ranger→Sage→Grandmaster), Antiquarian's Collection Quest (prestige/expertise), Estate Sale Seasonal Challenge Circuit (seasonal resets). Recommendation: blend Concepts 1+3 with more research next session.
+- ⚠️ **Patrick feedback logged:** Agent prompts inject "estate sale" bias — platform serves estate sales, yard sales, auctions, flea markets, consignment. Next session: fix agent prompt bias toward "secondary sale organizers." Removal gate tone too quick to delete — need real justification beyond "couldn't think of narrative."
+- 📋 **S259 PRIORITY 1 (MANDATORY):** Smoke test all S258 changes live via Chrome MCP (finda.sale) — per CLAUDE.md §10
+- 📋 **S259 PRIORITY 2:** Gamification narrative session — blend Concepts 1+3, research competitive inspiration, produce unified spec before dev work
+- 📋 **S259 PRIORITY 3:** Fix agent prompt bias in CLAUDE.md or relevant skills — "secondary sale organizers" not just "estate sale operators"
+- 📋 **S259 PRIORITY 4:** Guild narrative copy/label implementation — once narrative finalized + Patrick approves
 - Last Updated: 2026-03-23
 
 **Session 256 COMPLETE (2026-03-23) — UX POLISH BATCH + SD4 FIX:**

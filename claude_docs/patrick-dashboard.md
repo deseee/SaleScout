@@ -1,41 +1,76 @@
-# Patrick's Dashboard — Session 257 Complete (March 23, 2026)
+# Patrick's Dashboard — Session 258 Complete (March 23, 2026)
 
 ## Build Status
 
-✅ **Vercel & Railway GREEN** — S257 changes deployed (commit ea77e26). Rate limit whitelist live.
+✅ **Vercel & Railway GREEN** — S258 changes deployed. All UX batches, onboarding restructure, Q2/Q3 consolidations live.
 
 ---
 
 ## What Happened This Session
 
-Fixed the rate limit issue and ran the mandatory S256 smoke test.
+Completed 3 major development batches (shopper UX fixes, functional fixes, organizer onboarding), two feature consolidations (My Saves, Premium pages), and strategic review with Advisory Board and Innovation Agent.
 
-**Rate Limit Whitelist (commit ea77e26):**
-- Added `RATE_LIMIT_WHITELIST_IPS` env var to `packages/backend/src/index.ts`
-- All 4 rate limiters (global, viewer, auth, contact) now skip IPs in the whitelist
-- Patrick added his IP to Railway — no more rate limit blocks during testing
+**Dev Batch A (Shopper Pages):**
+- "My Wishlists"→"My Wishlist" label fix
+- Contact page copy shortened
+- Inspiration page double footer removed
+- Trending page: wishlist/favorite buttons added to item cards
+- Typology page: dark mode text fix
+- collector-passport.tsx: dark mode CSS class added
 
-**S256 Smoke Test — PASS:**
-- All 12 S256 items verified live. No blockers found.
-- 2 P3 cosmetic notes: shopper dashboard H1 still says "My Dashboard" and profile H1 says "My Profile" — minor mismatch with nav labels, nothing user-task-blocking
+**Dev Batch B (Functional Fixes):**
+- TreasureHuntBanner: dismiss button + localStorage persistence (`onboarding_dismissed_at`)
+- ActivitySummary: skeleton dark mode fix
+- Contact form: subject field added, submission fixed
+- Domain fix: `findasale.com`→`finda.sale` across 4 files (admin/invites.tsx, tags/[slug].tsx, AddToCalendarButton.tsx, contact.tsx)
+- SD6/SD8/FR1: confirmed already correctly implemented — no changes needed
+
+**Dev Batch C (Organizer Onboarding Restructure):**
+- 5-step flow: Email Verification stub → Business Profile → Stripe → Create Sale → Success stub
+- Step progress indicator added ("Step X of 5")
+- localStorage dismissal tracking added
+- OrganizerOnboardingModal.tsx removed (legacy competing component)
+- _app.tsx: OrganizerOnboardingShower function removed
+
+**Q2 Feature Consolidation — My Saves:**
+- wishlist.tsx restructured: 3 tabs → 2 tabs (Items + Sellers)
+- Page renamed "My Saves" in navigation
+- Updated in AvatarDropdown.tsx, Layout.tsx, ActivitySummary.tsx
+
+**Q3 Feature Consolidation — Premium Page:**
+- /organizer/pricing.tsx created (new consolidated discovery page with all tiers, Stripe CTAs, current plan highlight)
+- /pricing.tsx converted to redirect → /organizer/pricing
+- /organizer/premium.tsx and /organizer/upgrade.tsx already redirecting from prior sessions
+
+**Strategic Review Results:**
+- **Advisory Board:** Reviewed gamification (Patrick rejected deletion—keep mechanics, find narrative), feature overlap Q2 (Approved), premium consolidation Q3 (Approved)
+- **Innovation Agent:** 3 gamification narrative concepts produced: (1) Treasure Map Collector's Guild, (2) Antiquarian's Collection Quest, (3) Estate Sale Seasonal Challenge Circuit. Recommendation: blend Concepts 1+3 with research before spec.
 
 ---
 
-## Your Only Action for S258
+## Important Feedback — Action Needed for S259
 
-None required before session starts — just begin S258.
+**1. Agent Prompt Bias:** Patrick flagged that Claude agent prompts keep injecting "estate sale" as the only sale type. Platform actually serves **5 secondary sale types:** estate sales, yard sales, auctions, flea markets, consignment. **S259 Action:** Update CLAUDE.md and all agent SKILL.md files to say "secondary sale organizers" instead of "estate sale operators."
+
+**2. Removal Gate Tone:** Feedback that agents are too quick to recommend deletion of features. Deletions need real justification beyond "we couldn't think of a narrative." **Note:** This is working as designed (via Removal Gate in CLAUDE.md §7), but agents should not suggest removal lightly.
 
 ---
 
-## S258 Work Queue
+## Your Action for S259 (Required)
 
-**OPTIONAL QUICK WIN (P3):** H1 copy fixes — "My Dashboard"→"Shopper Dashboard" on shopper/dashboard, "My Profile"→consistent label on /profile. Single file edits, <5 min.
+None blocking — session can proceed. But note the agent prompt bias finding above.
 
-**PRIORITY 1:** Tier 2+ UX batches from `claude_docs/ux-spotchecks/S256-UX-SPECS-41-items-onboarding.md` (Tier 1 done in S256, remaining batches queued)
+---
 
-**PRIORITY 2:** Organizer onboarding flow implementation (spec in S256-UX-SPECS)
+## S259 Work Queue
 
-**PRIORITY 3:** 17 strategic S248 items → advisory board + innovation agents
+**MANDATORY FIRST:** Live smoke test of ALL S258 changes via Chrome MCP on finda.sale (per CLAUDE.md §10). Test all pages that changed, verify no 404s, dark mode rendering, domain strings, localStorage persistence, new buttons/fields. If any failures, flag immediately.
+
+**PRIORITY 1:** Gamification narrative research — blend Concepts 1 (Guild rank progression) + 3 (Seasonal challenges) with competitive research (eBay, Depop, Vinted, Etsy, Catawiki, auction houses). Find narrative that works across ALL 5 sale types. Dispatch to findasale-innovation. Produce spec. Get your sign-off before dev work.
+
+**PRIORITY 2:** Agent prompt bias fix — audit CLAUDE.md and agent SKILL.md files. Replace "estate sale operators" with "secondary sale organizers." Ensure all prompts understand platform serves 5 sale types.
+
+**PRIORITY 3:** Guild narrative copy implementation — once gamification spec locked and you approve, dispatch findasale-dev to update OnboardingWizard, collector-passport, Hunt Pass copy to match new narrative.
 
 ---
 
@@ -49,7 +84,7 @@ All password: `password123`
 
 ---
 
-## Push Block (S257 wrap docs)
+## Push Block (S258 wrap docs)
 
 ```powershell
 cd C:\Users\desee\ClaudeProjects\FindaSale
@@ -57,6 +92,6 @@ git add claude_docs/STATE.md
 git add claude_docs/session-log.md
 git add claude_docs/next-session-prompt.md
 git add claude_docs/patrick-dashboard.md
-git commit -m "S257 wrap: rate limit whitelist shipped, S256 smoke test PASS, S258 queued"
+git commit -m "S258 wrap: UX batches + onboarding restructure + Q2/Q3 consolidations + strategic review, S259 priorities queued"
 .\push.ps1
 ```

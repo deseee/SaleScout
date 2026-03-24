@@ -2,7 +2,29 @@
 
 **Note:** Older entries archived to `claude_docs/archive/session-logs/`. Keep 5 most recent sessions for quick reference.
 
-## Recent Sessions (S253–S257)
+## Recent Sessions (S254–S258)
+
+### 2026-03-23 · Session 258
+
+**UX BATCHES + ORGANIZER ONBOARDING + STRATEGIC INITIATIVES**
+
+✅ **Dev Batch A shipped:** 6 shopper page UX fixes (AvatarDropdown "My Wishlists"→"My Wishlist", contact page copy, inspiration page footer, trending wishlist buttons, typology dark mode, collector-passport dark mode).
+
+✅ **Dev Batch B shipped:** 6 functional fixes (TreasureHuntBanner dismiss + localStorage, ActivitySummary skeleton dark mode, contact form subject field, domain `findasale.com`→`finda.sale` in 4 files, SD6/SD8/FR1 confirmed correct).
+
+✅ **Organizer onboarding restructured:** 5-step flow (Email Verification stub → Business Profile → Stripe → Create Sale → Success stub). Step progress indicator added. localStorage dismissal tracking. OrganizerOnboardingModal.tsx + OrganizerOnboardingShower removed (legacy cleanup).
+
+✅ **Q2 My Saves consolidation:** wishlist.tsx restructured to 2 tabs (Items + Sellers), renamed "My Saves" in nav (AvatarDropdown, Layout, ActivitySummary).
+
+✅ **Q3 Premium consolidation:** /organizer/pricing.tsx created (all tiers, Stripe CTAs, current plan highlight). /pricing.tsx → redirect to /organizer/pricing.
+
+✅ **Advisory Board decisions:** Gamification (Patrick rejected deletion — keep mechanics, find narrative), Feature overlap Q2 (Approved), Premium pages Q3 (Approved).
+
+✅ **Innovation Agent:** 3 gamification narrative concepts produced. Recommendation: blend Concepts 1 (Guild) + 3 (Seasonal) with research next session.
+
+⚠️ **Patrick feedback:** (1) Agent prompts biased toward "estate sales" — platform serves 5 sale types. Fix: "secondary sale organizers" in prompts. (2) Removal gate tone too quick — need real justification beyond "couldn't think of narrative."
+
+📋 **S259 PRIORITY 1:** MANDATORY smoke test all S258 changes live (finda.sale). 📋 **PRIORITY 2:** Gamification narrative research+blend. 📋 **PRIORITY 3:** Agent prompt bias fix. 📋 **PRIORITY 4:** Guild copy implementation (post-narrative approval).
 
 ### 2026-03-23 · Session 257
 
