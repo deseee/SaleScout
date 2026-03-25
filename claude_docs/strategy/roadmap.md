@@ -268,7 +268,7 @@ Production MVP launched Q1 2026. Full auction lifecycle (bidding + close flow + 
 | 152 | Organizer Digest Emails | ORG | SIMPLE | ✅ | ✅ | ✅ | ✅ | 📋 | N/A | 📋 | Weekly activity summaries — Needs Chrome QA |
 | 153 | Basic Organizer Profile | ORG | SIMPLE | ✅ | ✅ | ✅ | ✅ | 📋 | 📋 | 📋 | businessName, phone, bio, website — Needs Chrome QA |
 | 154 | Organizer Public Profile Page | ORG | SIMPLE | ✅ | ✅ | ✅ | ✅ | 📋 | ✅ | 📋 | `/organizers/[slug]` — Needs Chrome QA |
-| 155 | Password Reset Flow | ORG | SIMPLE | ✅ | ✅ | ✅ | ✅ | 📋 | 📋 | 📋 | Email-based password recovery — Needs Chrome QA |
+| 155 | Password Reset Flow | ORG | SIMPLE | ✅ | ✅ | ✅ | ✅ | ✅ | 📋 | 📋 | Email-based password recovery — Chrome PASS S285 |
 | 156 | Refund Policy Configuration | ORG | SIMPLE | ✅ | ✅ | ✅ | ✅ | 📋 | ✅ | 📋 | Per-organizer configurable refund window — Needs Chrome QA |
 | 157 | Pickup Scheduling | BOTH | SIMPLE | ✅ | ✅ | ✅ | ✅ | 📋 | 📋 | 📋 | Organizer slots + shopper booking — Needs Chrome QA |
 | 158 | Sale Waitlist | BOTH | SIMPLE | ✅ | ✅ | ✅ | ✅ | 📋 | N/A | 📋 | Shopper join + organizer broadcast — Needs Chrome QA |
@@ -280,7 +280,7 @@ Production MVP launched Q1 2026. Full auction lifecycle (bidding + close flow + 
 | 164 | Tiers Backend Infrastructure | ORG | SIMPLE | ✅ | ✅ | ✅ | ✅ | 📋 | N/A | N/A | `/api/tiers` — getMyTier, syncTier — Needs Chrome QA |
 | 65 | Organizer Mode Tiers (Simple/Pro/Teams) | ORG | PRO | ✅ | ✅ | ✅ | ⚠️ | ⚠️ | ✅ | 📋 | Full infrastructure: SubscriptionTier enum, tierGate.ts, requireTier, Stripe billing, Progressive Disclosure UI — Needs Chrome QA |
 | 165 | A/B Testing Infrastructure | ORG | SIMPLE | ✅ | ✅ | ✅ | ✅ | 📋 | 📋 | N/A | Internal optimization tool — Needs Chrome QA |
-| 166 | Invites | ORG | SIMPLE | ✅ | ✅ | ✅ | ✅ | 📋 | 📋 | 📋 | Invite-to-sale / invite-to-platform — Needs Chrome QA |
+| 166 | Invites | ORG | SIMPLE | ✅ | ✅ | ✅ | ✅ | ✅ | 📋 | 📋 | Invite-to-sale / invite-to-platform — Chrome PASS S285 (admin invite flow works; no dedicated DB model, route-based) |
 | 72 | Dual-Role Account Schema | BOTH | SIMPLE | ✅ | ✅ | ✅ | ✅ | 📋 | N/A | 📋 | JWT roles[] array, auth middleware updated. Enables organizer + shopper in same account — Needs Chrome QA |
 | 73 | Two-Channel Notification System | BOTH | SIMPLE | ✅ | ✅ | ✅ | ✅ | 📋 | ✅ | 📋 | OPERATIONAL (organizer) + DISCOVERY (shopper) channels. Inbox tabs. Migration applied — Needs Chrome QA |
 | 74 | Role-Aware Registration Consent | BOTH | FREE | ✅ | ✅ | ✅ | ✅ | 📋 | 📋 | 📋 | Opt-in checkboxes at signup. Attorney review of consent copy required before launch — Needs Chrome QA |
@@ -301,10 +301,10 @@ Production MVP launched Q1 2026. Full auction lifecycle (bidding + close flow + 
 | 27 | CSV / JSON / Text Listing Exports | ORG | PRO | ✅ | ✅ | ✅ | ✅ | 📋 | ✅ | 📋 | Multi-format output (Listing Factory) — Needs Chrome QA |
 | 66 | Open Data Export (ZIP) | ORG | PRO | ✅ | ✅ | ✅ | ✅ | 📋 | ✅ | 📋 | Items/sales/purchases CSV — Needs Chrome QA |
 | 171 | Payout PDF Export | ORG | PRO | ✅ | ✅ | ✅ | ✅ | 📋 | 📋 | 📋 | Financial reporting for tax/accounting — Needs Chrome QA |
-| 172 | Stripe Connect Setup | ORG | SIMPLE | ✅ | ✅ | ✅ | ✅ | 📋 | N/A | 📋 | Payout bank account linking + verification — Needs Chrome QA |
+| 172 | Stripe Connect Setup | ORG | SIMPLE | ✅ | ✅ | ✅ | ✅ | ⚠️ | N/A | 📋 | Payout bank account linking + verification — S285 FAIL: seed had fake stripeConnectId; real test IDs patched (Patrick SQL action pending). Re-test after Railway DB update. |
 | 18 | Post Performance Analytics | ORG | PRO | ✅ | ✅ | ✅ | ✅ | 📋 | ✅ | 📋 | UTM tracking on social template downloads — Needs Chrome QA |
 | 13 | TEAMS Workspace | ORG | TEAMS | ✅ | ✅ | ✅ | ✅ | ⚠️ | ✅ | 📋 | Multi-user workspace, role management — Needs Chrome QA |
-| 68 | Command Center Dashboard | ORG | PRO | ✅ | ✅ | ✅ | ✅ | ⚠️ | ✅ | 📋 | Per-sale widget dashboard — Needs Chrome QA |
+| 68 | Command Center Dashboard | ORG | PRO | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 📋 | Per-sale widget dashboard — Chrome PASS S285 |
 | 125 | Inventory Syndication CSV Export | ORG | PRO | ✅ | ✅ | ✅ | ✅ | 📋 | ✅ | 📋 | exportService.ts + csvExportController.ts. PRO/TEAMS gate. eBay/Amazon/Facebook pre-formatted — Needs Chrome QA |
 | 136 | QR Code Auto-Embedding in Exports | ORG | SIMPLE | ✅ | ✅ | ✅ | ✅ | 📋 | N/A | 📋 | qrEmbedEnabled field, Cloudinary QR overlay via cloudinaryWatermark.ts, exportController wired, organizer toggle in edit-item. — Needs Chrome QA |
 | 46 | Treasure Typology Classifier | ORG | PRO | ✅ | ✅ | ✅ | ✅ | ⚠️ | ✅ | 📋 | AI item classification; useTypology.ts, TypologyBadge.tsx — Needs Chrome QA |
@@ -323,7 +323,7 @@ Production MVP launched Q1 2026. Full auction lifecycle (bidding + close flow + 
 | 16 | Verified Organizer Badge | ORG | PRO | ✅ | ✅ | ✅ | ✅ | 📋 | N/A | 📋 | VerifiedBadge on sales detail + SaleCard — Needs Chrome QA |
 | 175 | Coupons (PERCENT/FIXED) | ORG | SIMPLE | ✅ | ✅ | ✅ | ✅ | 📋 | N/A | 📋 | Post-purchase coupon issuance + validation. Rate-limited — Needs Chrome QA |
 | 91 | Auto-Markdown (Smart Clearance) | ORG | PRO | ✅ | ✅ | ✅ | ✅ | 📋 | N/A | 📋 | markdownEnabled/markdownFloor on Sale, markdownApplied/priceBeforeMarkdown on Item, markdownCron (every 5min), saleController config endpoints, edit-sale UI toggle + floor input. — Needs Chrome QA |
-| 178 | Item Detail Page | SHO | FREE | ✅ | ✅ | ✅ | ✅ | 📋 | 📋 | 📋 | `/items/[id]` — Needs Chrome QA |
+| 178 | Item Detail Page | SHO | FREE | ✅ | ✅ | ✅ | ✅ | ✅ | 📋 | 📋 | `/items/[id]` — Chrome PASS S285 |
 | 180 | Category Browsing | SHO | FREE | ✅ | ✅ | ✅ | ✅ | 📋 | ✅ | 📋 | `/categories` index + `/categories/[slug]` — Needs Chrome QA |
 | 181 | Tag Browsing | SHO | FREE | ✅ | ✅ | ✅ | ✅ | 📋 | ✅ | 📋 | `/tags/[slug]` ISR pages — Needs Chrome QA |
 | 183 | Sale Calendar (Upcoming) | SHO | FREE | ✅ | ✅ | ✅ | ✅ | 📋 | 📋 | 📋 | `/calendar` — Needs Chrome QA |
@@ -337,15 +337,15 @@ Production MVP launched Q1 2026. Full auction lifecycle (bidding + close flow + 
 | 192 | Price History Tracking | SHO | FREE | ✅ | ✅ | ✅ | ✅ | 📋 | N/A | 📋 | `/api/price-history` price trends — Needs Chrome QA |
 | 52 | Estate Sale Encyclopedia | SHO | FREE | ✅ | ✅ | ✅ | ✅ | ⚠️ | ✅ | 📋 | Wiki-style knowledge base; EncyclopediaCard.tsx — Needs Chrome QA |
 | 70 | Live Sale Feed | SHO | SIMPLE | ✅ | ✅ | ✅ | ✅ | 📋 | N/A | 📋 | Real-time sale activity feed. Redis adapter + JWT socket auth + LiveFeedTicker on sale detail page. — Needs Chrome QA |
-| 193 | Wishlists | SHO | FREE | ✅ | ✅ | ✅ | ✅ | ⚠️ | 📋 | 📋 | Full CRUD, distinct from favorites — Needs Chrome QA |
+| 193 | Wishlists | SHO | FREE | ✅ | ✅ | ✅ | ✅ | ✅ | 📋 | 📋 | Full CRUD, distinct from favorites — Chrome PASS S285 |
 | 194 | Saved Searches with notifyOnNew | SHO | FREE | ✅ | ✅ | ✅ | ✅ | 📋 | 📋 | 📋 | Auto-notify on new matches — Needs Chrome QA |
-| 195 | Shopper ↔ Organizer Messaging | BOTH | FREE | ✅ | ✅ | ✅ | ✅ | ⚠️ | 📋 | 📋 | Threaded conversations — Needs Chrome QA |
+| 195 | Shopper ↔ Organizer Messaging | BOTH | FREE | ✅ | ✅ | ✅ | ✅ | ✅ | 📋 | 📋 | Threaded conversations — Chrome PASS S285 (P0-A blank thread reclassified as poll lag; polling reduced 15s→5s, RESOLVED) |
 | 196 | Buying Pools | SHO | FREE | ✅ | ✅ | ✅ | ✅ | 📋 | N/A | 📋 | Group buying on items — Needs Chrome QA |
 | 197 | Bounties (Item Requests) | SHO | FREE | ✅ | ✅ | ✅ | ✅ | 📋 | ✅ | 📋 | Shopper want-ads — Needs Chrome QA |
 | 198 | Reviews (Submit Sale / Organizer) | SHO | FREE | ✅ | ✅ | ✅ | ✅ | 📋 | N/A | 📋 | Via `/api/reviews` — Needs Chrome QA |
 | 199 | User Profile Page | SHO | FREE | ✅ | ✅ | ✅ | ✅ | 📋 | 📋 | 📋 | `/profile` — Needs Chrome QA |
 | 200 | Shopper Public Profiles | SHO | FREE | ✅ | ✅ | ✅ | ✅ | 📋 | 📋 | 📋 | `/shoppers/[slug]` collection showcase — Needs Chrome QA |
-| 201 | Favorites | SHO | FREE | ✅ | ✅ | ✅ | ✅ | 📋 | 📋 | 📋 | Save items for later — Needs Chrome QA |
+| 201 | Favorites | SHO | FREE | ✅ | ✅ | ✅ | ✅ | ⚠️ | 📋 | 📋 | Save items for later — S285 PARTIAL: item-level favorites PASS; seller-follow tab (Follow model #86) deferred post-beta, UX review needed for tab labeling |
 | 202 | Notification Center | SHO | FREE | ✅ | ✅ | ✅ | ✅ | 📋 | 📋 | 📋 | `/notifications` page — Needs Chrome QA |
 | 203 | Email + SMS Validation (Twilio) | BOTH | SIMPLE | ✅ | ✅ | ✅ | ✅ | 📋 | N/A | 📋 | Phone number verification via SMS — Needs Chrome QA |
 | 204 | Unsubscribe / Preferences | SHO | FREE | ✅ | ✅ | ✅ | ✅ | 📋 | 📋 | 📋 | `/unsubscribe` + `/api/unsubscribe` — Needs Chrome QA |
