@@ -7,7 +7,9 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Active Objective
 
-**S274 (current session, in progress):** #87 Brand Tracking + #88 Haul Posts shipped (Railway green). QA: #88 PASS, #87 tab wiring bug found (Brands tab exists but content not rendering). #125 CSV export still blocked by login form React error. Login form React error #300 found. Dispatching dev fix. Schema pre-wires (Estate Planning, Affiliate, Persistent Inventory) queued for next migration batch.
+**S275 (next session):** QA retest Brands tab live confirm. Schema pre-wire batch (Estate Planning, Affiliate, Persistent Inventory). Platform Safety P1-P2 dispatch. #56 Printful (Architect sign-off pending).
+
+**S274 COMPLETE (2026-03-24):** QA smoke S273 ✅. Architect: #86 DEFERRED post-beta, #87/#88 schemas LOCKED. #87 Brand Tracking shipped (BrandFollow model + routes + UI, 7 files). #88 Haul Posts shipped (UGCPhoto extended + UGCPhotoReaction + hauls page, 8 files). Homepage header fixed (index.tsx missing Layout wrapper). #87 auth fix (useBrandFollows missing Bearer token). QA final: homepage ✅, #88 hauls ✅, #125 CSV export ✅, Brands tab ✅ (post auth-fix). 3 pushes. Railway + Vercel green. Last Updated: 2026-03-24T23:59:00Z
 
 **Session 272 COMPLETE (2026-03-24) — BATCH C + D SHIPPED:**
 
@@ -225,7 +227,7 @@ Last Updated: 2026-03-24T23:00:00Z
 
 ## Recent Sessions
 
-**S274 (2026-03-24, in progress):** QA smoke test S273 ✅ (3/5 pass, stubs expected). Architect: #86 DEFERRED post-beta, #87/#88 schemas LOCKED. #87 Brand Tracking shipped (7 files, BrandFollow model). #88 Haul Posts shipped (8 files, UGCPhoto extended + UGCPhotoReaction). Railway green. QA: #88 PASS, #87 tab wiring bug (Brands tab click broken), login form React error #300 found (blocking organizer auth QA). Both dispatched to dev for fix.
+**S274 (2026-03-24):** #86 DEFERRED post-beta. #87 Brand Tracking + #88 Haul Posts shipped (15 files total). Homepage Layout wrapper fixed. #87 auth header fix. QA: all green — homepage ✅ hauls ✅ CSV ✅ brands ✅. 3 pushes. Railway + Vercel green.
 
 **S273 (2026-03-24):** ✅ Migration #73 deployed to Railway (Patrick action). ✅ Seed re-run (twice — second time fixed orgTiers bug). ✅ Build fixes: subscriptionLapsed type, void expression fix, seed.ts orgTiers. ✅ #73 notification tabs shipped (All/Operational/Discovery tabs live). ✅ QA Batch B+C+D PASS (#128 support, #131 share templates, #122 rebrand, #73 tabs, #125 CSV export). ✅ Batch E partial: #85 QR Hunt (7 files), #86 shopper profile (1 file), #88 haul CTA (2 files), #90 Vibe Check (1 file) — all pushed, Railway green. ⏳ Batch E remaining: #84 (use entranceNote, dev pending), #86/#87/#88 schema (Architect reviewing), #89 Print Kit (dev dispatched), #87 brand tracking (schema pending). 24 files pushed.
 
@@ -243,24 +245,20 @@ Last Updated: 2026-03-24T23:00:00Z
 
 ## Next Session
 
-**S275 PRIORITY 1 — QA retest #87 Brands tab + #125 CSV export (after login fix):**
-- Verify Brands tab navigation wired correctly in shopper/dashboard.tsx
-- Verify login form React error #300 resolved
-- Retest #125 CSV export (was blocked by login form bug both QA attempts)
-
-**S275 PRIORITY 2 — Schema pre-wire batch (quick migration):**
+**S275 PRIORITY 1 — Schema pre-wire batch:**
 - Estate Planning: add `executorUserId` String? to Organizer model
 - Affiliate: add `AffiliateCode` table stub (userId, code, createdAt)
 - Persistent Inventory: add `isPersistent` Boolean @default(false) to Item model
 - Migration: `20260325_schema_prewires`
+- Then: `npx prisma migrate deploy` + `npx prisma generate` (Railway DATABASE_URL)
 
-**S275 PRIORITY 3 — Platform Safety batches P1-P2:**
+**S275 PRIORITY 2 — Platform Safety P1-P2:**
 - P1 Bidding Integrity + P2 Buyer Transparency (see roadmap)
 
-**S275 PRIORITY 4 — #56 Printful (Architect review still pending)**
+**S275 PRIORITY 3 — #56 Printful (Architect sign-off pending)**
 
 **Patrick manual actions:**
-- None pending (migrations deployed, push complete)
+- None pending
 
 ---
 
