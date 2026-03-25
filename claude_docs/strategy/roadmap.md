@@ -1,6 +1,6 @@
 # ROADMAP – FindA.Sale
 
-**Last Updated:** 2026-03-20 (v67 — #70 Live Sale Feed fully complete: LiveFeedTicker placed on sale detail page. Chrome re-verify: 13/15 pass on S212/S213 fixes. #19 Passkey deployed.)
+**Last Updated:** 2026-03-24 (v68 — S269/S270: Batch A (#126 gamification legacy cleanup, #129 homepage modernization, #134 plan-a-sale card) + Batch B (#127 POS tiers, #128 support stack, #131 share templates, #132 à la carte fee) shipped. XP economy (#123 Phase 2) live. Explorer Rank UI live. Homepage sage redesign live.)
 
 **Status:** Production MVP live at finda.sale. Beta: GO. Full build history: `claude_docs/strategy/COMPLETED_PHASES.md`.
 
@@ -299,10 +299,10 @@ _All items can be dispatched simultaneously to separate subagents._
 
 | # | Feature | Role | Tier | DB | API | UI | QA | Chrome | Nav | Human | Notes |
 |---|---------|------|------|----|----|----|----|--------|-----|-------|-------|
-| 126 | Gamification Legacy Cleanup | SHO | FREE | ✅ | ✅ | ✅ | — | — | — | — | Delete old points/Hunt Pass checkout flow, replace purchase-count badge triggers (25/100/250) with rank-based unlocks, rename Collector Passport → Loot Legend, archive User.points column. Gates coherent gamification. Spec: board-minutes-gamification-S268.md |
-| 129 | Homepage Modernization | PUB | FREE | — | — | — | — | — | — | — | Sage gradient hero, 4:3 landscape cards with shadows + hover lift, Fraunces/Inter typography, filter pills, map behind toggle. Approved mockup: homepage-mockup-S268.html. Replaces blocky early-2000s layout. |
+| 126 | Gamification Legacy Cleanup | SHO | FREE | ✅ | ✅ | ✅ | ✅ | — | — | — | User.points deleted, migration applied, BottomTabNav cleaned, all points refs removed from 9 backend files. QA confirmed no pts refs live. |
+| 129 | Homepage Modernization | PUB | FREE | — | — | ✅ | ✅ | — | — | — | Sage gradient hero, 4:3 cards, filter pills, Fraunces/Inter typography live. QA confirmed. |
 | 130 | Brand Kit Field Migration | ORG | PRO | — | — | — | — | — | — | — | Move Business Name, Phone, Bio, Website URL from Brand Kit to Settings/Profile (these are account basics, not brand). Keep social links, logo, slug, colors, fonts, banner in Brand Kit. Small cleanup. |
-| 134 | Plan a Sale Dashboard Placement | ORG | SIMPLE | — | — | — | — | — | — | — | Add Plan a Sale to organizer dashboard (currently only in nav dropdown). Small UX fix. |
+| 134 | Plan a Sale Dashboard Placement | ORG | SIMPLE | — | — | ✅ | — | — | — | — | "Coming Soon" card added to organizer dashboard overview tab. |
 | 76 | Skeleton Loaders — Item Grids | BOTH | FREE | — | — | — | — | — | — | — | Replace spinners with ghost card layouts across all item/sale grids. No schema changes — reads existing `Item.photoUrls[]`, `Item.title`, `Item.price`. UI-only. Highest perceived-performance ROI. Spec: `claude_docs/ux-spotchecks/design-polish-vision-2026-03-19.md` |
 | 77 | Sale Published Celebration Screen | ORG | SIMPLE | — | — | — | — | — | — | — | Full-screen moment when organizer publishes a sale — sale name, cover photo, "You're live" + confetti. No schema changes — triggers on `Sale.status → PUBLISHED`. Replaces generic toast. Spec: `claude_docs/ux-spotchecks/design-polish-vision-2026-03-19.md` |
 | 79 | Earnings Counter Animation | ORG | SIMPLE | — | — | — | — | — | — | — | Dashboard earnings number rolls up to current value (Revolut-style) on open/refresh. No schema changes — reads existing `Purchase` aggregates. Frontend-only. Pairs with #77 to make dashboard feel alive. Spec: `claude_docs/ux-spotchecks/design-polish-vision-2026-03-19.md` |
@@ -314,10 +314,10 @@ _Items within this batch are also parallelizable — different layers, no confli
 
 | # | Feature | Role | Tier | DB | API | UI | QA | Chrome | Nav | Human | Notes |
 |---|---------|------|------|----|----|----|----|--------|-----|-------|-------|
-| 127 | POS Value Unlock Tiers | ORG | SIMPLE | — | — | — | — | — | — | — | Dual-gate unlock (tx count + dollar minimum). Tier 1 (5 tx + $50: item snapshot), Tier 2 (20 tx + $300: category ROI + repeat buyer map), Tier 3 (50 tx + $1,000: regional pricing benchmarks, PRO-only). Abuse pipeline: scoring 0-100, auto-response tiers, weekly Sunday digest. Spec: pos-value-proposition-S268.md |
-| 128 | Automated Support Stack | PLATFORM | ALL | — | — | — | — | — | — | — | 5-layer zero-human support: L1 in-app FAQ (fuse.js, $0), L2 AI chatbot PRO/TEAMS only (Claude API ~$5/mo), L3 community forum TEAMS only, L4 smart escalation (P0→Slack, P1→daily digest), L5 auto-remediation crons. No phone, no SLAs, no calendar invites. Patrick reads ~30min/week digest only. Spec: automated-support-S268.md |
-| 131 | Share & Promote Templates | ORG | SIMPLE | — | — | — | — | — | — | — | Expand share button into Share & Promote toolkit: social post templates (Instagram, Facebook, Nextdoor, TikTok), email/SMS templates, printable QR flyer, embeddable website widget. Option B approved. Promote page infrastructure exists. Near #122 social templates. |
-| 132 | À La Carte Single-Sale Fee | ORG | PAID_ADDON | — | — | — | — | — | — | — | $9.99 one-time fee per sale for SIMPLE organizers wanting extra features (watermark removal, flip report, CSV export). New Sale.purchaseModel field. Breakeven at 3 sales → PRO conversion funnel. Affects /pricing, /organizer/pricing, /organizer/subscription, onboarding wizard. |
+| 127 | POS Value Unlock Tiers | ORG | SIMPLE | — | ✅ | ✅ | — | — | — | — | Dual-gate (tx+revenue). 3 tiers. /api/organizer/pos-tiers + PosTierGates.tsx shipped. |
+| 128 | Automated Support Stack | PLATFORM | ALL | — | ✅ | ✅ | — | — | — | — | /support page, fuse.js FAQ, AI chat (PRO/TEAMS), community link (TEAMS). @anthropic-ai/sdk + fuse.js added. |
+| 131 | Share & Promote Templates | ORG | SIMPLE | — | — | ✅ | — | — | — | — | SharePromoteModal: 4 templates (social, flyer, email, neighborhood). Integrated on promote page. |
+| 132 | À La Carte Single-Sale Fee | ORG | PAID_ADDON | ✅ | ✅ | ✅ | — | — | — | — | Sale.purchaseModel + alaCarte + alaCarteFeePaid. Migration applied. Stripe checkout. AlaCartePublishModal on edit-sale for SIMPLE tier. |
 | 122 | Multi-Platform Social Templates Expansion | ORG | SIMPLE | — | — | — | — | — | — | — | Add TikTok, Pinterest, Nextdoor, Threads to existing social share templates. Platform-native copy + dimensions for each. Low complexity. |
 | 123 | QR Code Auto-Embedding in Exports | ORG | SIMPLE | — | ✅ | ✅ | — | — | — | — | Cloudinary overlay: embed FindA.Sale QR code in every watermarked photo export. Organizer toggle to disable per-item. Very low complexity. |
 | 124 | Nextdoor Export Template | ORG | SIMPLE | — | ✅ | ✅ | — | — | — | — | One-click export of sale to Nextdoor-formatted card (photos, location, time, event type). API if available; fallback = formatted copy-paste. Low complexity. |
