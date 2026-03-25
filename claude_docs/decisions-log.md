@@ -5,6 +5,30 @@ Only decisions that affect future sessions — not implementation details.
 
 ---
 
+## 2026-03-24 (S274) — #86 Follow Network DEFERRED Post-Beta
+
+**Status:** DEFERRED
+**Made by:** Patrick (approved Architect recommendation)
+**Rationale:** Social graph infra (follows, friend lists, activity feeds) entangles with notifications (#72 phase 2), tier logic (#75), and abuse/privacy guardrails. Deferred until after beta feedback on #87/#88 social features. Returns to roadmap as S2 post-beta item. Haul Posts (#88) shipped first as planned foundation.
+
+---
+
+## 2026-03-24 (S274) — #87 Brand Tracking Schema (BrandFollow)
+
+**Status:** LOCKED
+**Made by:** Architect
+**Rationale:** New BrandFollow table: userId + brandName + notifyEmail/notifyPush + @@unique([userId, brandName]). Separate from organizer Follow model (different notification semantics — brand follow triggers on Item.tags match, not organizer publish). Migration: 20260324_add_brand_follow. 4 endpoints: GET/POST/DELETE brand-follows + notification trigger on item publish.
+
+---
+
+## 2026-03-24 (S274) — #88 Haul Posts Schema (UGCPhoto extension + UGCPhotoReaction)
+
+**Status:** LOCKED
+**Made by:** Architect
+**Rationale:** Extends existing UGCPhoto model (isHaulPost Boolean, linkedItemIds String[], likeCount Int). New UGCPhotoReaction model (userId, photoId, type=LIKE, @@unique). Separate from existing UGCPhotoLike (different reaction semantic — likes on haul posts vs. existing photo likes). Migration: 20260324_add_haul_posts_and_reactions. MVP: likes only, no comments.
+
+---
+
 ## 2026-03-24 (S268) — Gamification 3-System Model (guildXp + Hunt Pass + Explorer Rank)
 
 **Status:** LOCKED

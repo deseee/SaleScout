@@ -7,7 +7,7 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Active Objective
 
-**S274 (next session):** Deploy schema migrations for #86/#87/#88 (once Architect decision returns), dispatch parallel dev for #86 follow network + #87 brand tracking + #88 haul posts. Monitor #56 Printful review. Dispatch Platform Safety batches P1–P5. See Next Session below.
+**S274 (current session, in progress):** #87 Brand Tracking + #88 Haul Posts shipped (Railway green). QA: #88 PASS, #87 tab wiring bug found (Brands tab exists but content not rendering). #125 CSV export still blocked by login form React error. Login form React error #300 found. Dispatching dev fix. Schema pre-wires (Estate Planning, Affiliate, Persistent Inventory) queued for next migration batch.
 
 **Session 272 COMPLETE (2026-03-24) — BATCH C + D SHIPPED:**
 
@@ -225,6 +225,8 @@ Last Updated: 2026-03-24T23:00:00Z
 
 ## Recent Sessions
 
+**S274 (2026-03-24, in progress):** QA smoke test S273 ✅ (3/5 pass, stubs expected). Architect: #86 DEFERRED post-beta, #87/#88 schemas LOCKED. #87 Brand Tracking shipped (7 files, BrandFollow model). #88 Haul Posts shipped (8 files, UGCPhoto extended + UGCPhotoReaction). Railway green. QA: #88 PASS, #87 tab wiring bug (Brands tab click broken), login form React error #300 found (blocking organizer auth QA). Both dispatched to dev for fix.
+
 **S273 (2026-03-24):** ✅ Migration #73 deployed to Railway (Patrick action). ✅ Seed re-run (twice — second time fixed orgTiers bug). ✅ Build fixes: subscriptionLapsed type, void expression fix, seed.ts orgTiers. ✅ #73 notification tabs shipped (All/Operational/Discovery tabs live). ✅ QA Batch B+C+D PASS (#128 support, #131 share templates, #122 rebrand, #73 tabs, #125 CSV export). ✅ Batch E partial: #85 QR Hunt (7 files), #86 shopper profile (1 file), #88 haul CTA (2 files), #90 Vibe Check (1 file) — all pushed, Railway green. ⏳ Batch E remaining: #84 (use entranceNote, dev pending), #86/#87/#88 schema (Architect reviewing), #89 Print Kit (dev dispatched), #87 brand tracking (schema pending). 24 files pushed.
 
 **S272 (2026-03-24):** Batch C + D complete. Shipped: #125 CSV export (PRO/TEAMS), #122 Explorer's Guild rebrand (copy fix), #72 dual-role JWT schema (roles[] array), #74 role-aware registration consent (checkboxes), #75 tier lapse state (7d warning, SIMPLE fallback), #73 two-channel notifications (OPERATIONAL/DISCOVERY tabs). 18 files modified. Pending: #73 migration deploy, attorney D3 consent review, Neon deletion. Consolidated QA (Batch B+C+D) deferred to S273.
@@ -241,37 +243,24 @@ Last Updated: 2026-03-24T23:00:00Z
 
 ## Next Session
 
-**S274 PRIORITY 1 — Deploy schema migrations for #86/#87/#88 (once Architect review returns):**
-Once Architect confirms decision on #86 follow network, #87 brand tracking, #88 haul CTA schema changes:
-```powershell
-cd C:\Users\desee\ClaudeProjects\FindaSale\packages\database
-$env:DATABASE_URL="postgresql://postgres:QvnUGsnsjujFVoeVyORLTusAovQkirAq@maglev.proxy.rlwy.net:13949/railway"
-npx prisma migrate deploy
-npx prisma generate
-```
+**S275 PRIORITY 1 — QA retest #87 Brands tab + #125 CSV export (after login fix):**
+- Verify Brands tab navigation wired correctly in shopper/dashboard.tsx
+- Verify login form React error #300 resolved
+- Retest #125 CSV export (was blocked by login form bug both QA attempts)
 
-**S274 PRIORITY 2 — Batch E remaining dispatch (parallel agents):**
-- **#86 follow network** — Shopper profile following system (dev) — after schema deployed
-- **#87 brand tracking** — Shopper brand tracking + saved brands list (dev) — after schema deployed
-- **#88 haul posts** — Shopper haul post UI + sharing (dev) — after schema deployed
-- **#84 entrance note reuse** — Small frontend task: use existing `entranceNote` field, no schema change needed (Patrick can dispatch as small dev task or do UI directly)
-- **#89 Print Kit** — Printable organizer materials (dev already dispatched)
+**S275 PRIORITY 2 — Schema pre-wire batch (quick migration):**
+- Estate Planning: add `executorUserId` String? to Organizer model
+- Affiliate: add `AffiliateCode` table stub (userId, code, createdAt)
+- Persistent Inventory: add `isPersistent` Boolean @default(false) to Item model
+- Migration: `20260325_schema_prewires`
 
-**S274 PRIORITY 3 — Platform Safety & Cost Control batches (see reorganized roadmap):**
-- Review reorganized Platform batches P1–P5 in `roadmap.md`
-- Dispatch first 2 batches (P1 Bidding Integrity + P2 Buyer Transparency) to dev after Batch E core features land
+**S275 PRIORITY 3 — Platform Safety batches P1-P2:**
+- P1 Bidding Integrity + P2 Buyer Transparency (see roadmap)
 
-**S274 PRIORITY 4 — #56 Printful Merch Store (Architect review first):**
-- Await Architect decision on external API integration safety + cost model
-- Once approved: dispatch full dev phase
-
-**S274 PRIORITY 5 — Monitor:**
-- QA smoke test all S273 changes on live before moving to new work (CLAUDE.md §10 proactive QA ownership)
-- Check Railway deploy for any subscription webhook issues post-#73 migration
+**S275 PRIORITY 4 — #56 Printful (Architect review still pending)**
 
 **Patrick manual actions:**
-- #84 UI implementation (optional — can defer to small dev dispatch if Patrick prefers)
-- Review + approve Platform Safety batch priorities after roadmap reorganization
+- None pending (migrations deployed, push complete)
 
 ---
 
