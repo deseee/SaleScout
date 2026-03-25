@@ -4,13 +4,6 @@
 
 **Status:** Production MVP live at finda.sale. Beta: GO. Full build history: `claude_docs/strategy/COMPLETED_PHASES.md`.
 
-**S217+ BATCH DISPATCH PLANNING (Top 5 Unshipped by Beta-Blocking Severity):**
-1. **#72 Phase 2 (Dual-Role JWT + Auth Middleware)** — Gates #73/#74/#75. Phase 1 schema committed. Phase 2: JWT payload roles array + auth checks. PRIORITY: HIGH (unlocks notification channel + consent flow + tier lapse).
-2. **#51 Sale Ripples (Neon Migration Pending)** — Social proof activity tracking fully wired (RippleIndicator, ripples.tsx). Neon migration + prisma generate outstanding (Patrick action).
-3. **#100-#121 Platform Safety Batch** — Pre-beta hardening. S217 completed #100-#103. Next: #104-#107 (CSRF, SQL injection, account enumeration, DDoS). All schema-free.
-4. **#42 Voice-to-Tag (UI Complete)** — Web Speech API integration done. API complete. VoiceTagButton.tsx ready. Dispatch to verify deployment end-to-end.
-5. **P2: Sale Card Clicks + LiveFeedTicker Verify** — Shopper carousel cards non-responsive. LiveFeedTicker rendering not visually confirmed. Chrome audit follow-up.
-
 ---
 
 ## Product Summary
