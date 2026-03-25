@@ -100,10 +100,10 @@ view link 404's to shared/null, items work though?
 can't buy from card, should it be like the other item cards?
 
 shopper/trails:
-same map graphic as explorer on button
-light text on mint textbox
-failed to create trail
-+2 footers
++same map graphic as explorer on button
++light text on mint textbox
+can't edit trails or add stops
+
 
 loot-log:
 +blank
@@ -272,3 +272,4 @@ performance button shows in community but errors because not a pro user
 neighborhoods in this org tier too
 upgrade cta can't be closed during a session?  
 
+Auction won, paid through stripe: auction Purchase succesful at stripe led to 404 page on finda.sale, picture available
