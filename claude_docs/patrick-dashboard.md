@@ -1,55 +1,63 @@
-# Patrick's Dashboard — Session 271 Complete (March 24, 2026)
+# Patrick's Dashboard — Session 272 Complete (March 24, 2026)
 
 ---
 
-## ✅ Session 271 Complete — Seed Error Diagnosed
+## ✅ Session 272 Complete — Batch C + D Shipped
 
-**What happened:** Seed was failing with `The column 'points' does not exist`. seed.ts itself is already clean — the root cause is a stale local Prisma client. The client was generated before S269 removed `User.points`, so it still auto-inserts a default value for that column. Fix is one command.
+**What shipped:** 7 features complete. CSV export (PRO/TEAMS), Explorer's Guild rebrand, dual-role JWT schema, role-aware consent flow, tier lapse logic, two-channel notifications. 18 files modified. 0 build errors. All code ready for production.
 
 ---
 
-## 🚨 Action Required — Run This Now
+## 🚨 Action Required — Deploy #73 Migration
 
 ```powershell
 cd C:\Users\desee\ClaudeProjects\FindaSale\packages\database
-npx prisma generate
 $env:DATABASE_URL="postgresql://postgres:QvnUGsnsjujFVoeVyORLTusAovQkirAq@maglev.proxy.rlwy.net:13949/railway"
-npx ts-node prisma/seed.ts
+npx prisma migrate deploy
+npx prisma generate
 ```
 
-After seed completes, verify user2 can log into the organizer dashboard.
+This applies the `20260324_two_channel_notifications` migration to Railway. After deploy, QA can verify notification channel filtering works.
 
 ---
 
-## 📋 S272 Priorities
+## 📋 S273 Priorities
 
-1. **Confirm seed worked** — user2@example.com should reach organizer dashboard (PRO tier)
-2. **QA Batch B live** — /support page, POS tier gates, Share & Promote modal, à la carte publish modal
-3. **Dispatch Batch C** — #122 Explorer's Guild rebrand copy + #130 brand kit migration (parallel agents)
-4. **Dispatch Batch D** — #72 Dual-Role Schema (Architect ADR first), #125 CSV Export (independent)
+1. **Deploy #73 migration** (above command) — enables two-channel notifications
+2. **QA Batch B + C + D live** — consolidated pass on /support, POS tiers, CSV export, consent flow, tier lapse warnings, notifications
+3. **Dispatch Batch E** — #56, #84–#90 (parallel agents, all independent)
+4. **Monitor:** stripeController.ts modified by #73 + #75 in parallel — watch for subscription webhook issues
 
 ---
 
 ## Build Status
 
-- **Railway:** ✅ Green (all points refs removed S270)
+- **Railway:** ✅ Green (Batch B + C + D code merged)
 - **Vercel:** ✅ Green
-- **DB:** Railway Postgres — migrations applied (remove_legacy_points + add_ala_carte_sale_fee)
-- **Seed:** ⚠️ Needs `prisma generate` + re-run (see action above)
+- **DB:** Railway Postgres — migrations applied (remove_legacy_points, add_ala_carte_sale_fee, dual_role_phase2 applied). #73 migration ready for deploy.
+- **Seed:** ✅ Fixed (S271 `prisma generate` resolved `points` column error)
 
 ---
 
-## Test Accounts (post-seed)
+## Test Accounts (post-seed, post-deploy)
 
 All password: `password123`
 - `user1@example.com` — ADMIN + ORGANIZER (SIMPLE tier)
-- `user2@example.com` — ORGANIZER (PRO tier)
-- `user3@example.com` — ORGANIZER (TEAMS tier)
-- `user11@example.com` — Shopper (Hunt Pass active, 6+ purchases)
+- `user2@example.com` — ORGANIZER (PRO tier) → test consent flow + tier lapse
+- `user3@example.com` — ORGANIZER (TEAMS tier) → test CSV export + tier lapse
+- `user11@example.com` — Shopper → test notifications + Hunt Pass
+
+---
+
+## Known Issues (Low Priority)
+
+- **Orphaned column:** `notificationChannel` TEXT in Notifications table (from #72) — can clean up in future migration
+- **Attorney review pending:** Consent copy in register.tsx (LEGAL_COPY_PLACEHOLDER_ORGANIZER / LEGAL_COPY_PLACEHOLDER_SHOPPER) — do NOT swap until reviewed
 
 ---
 
 ## Pending Patrick Actions
 
-- Run `prisma generate` + seed (above)
-- Delete Neon project at console.neon.tech (pending since S264)
+- Deploy #73 migration (above)
+- Delete Neon project at console.neon.tech (outstanding since S264)
+- Attorney review: D3 consent copy (register.tsx)

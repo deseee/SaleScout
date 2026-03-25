@@ -7,7 +7,23 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Active Objective
 
-**S272 (next session):** Re-run seed after `prisma generate`, QA Batch B live, dispatch Batch C + D. See Next Session below.
+**S273 (next session):** Run #73 migration, execute consolidated QA pass (Batch B + C + D), dispatch Batch E (parallel agents). See Next Session below.
+
+**Session 272 COMPLETE (2026-03-24) — BATCH C + D SHIPPED:**
+
+What shipped:
+- ✅ **#125 Inventory Syndication CSV Export** — exportService.ts (NEW), csvExportController.ts (NEW), organizers.ts route, print-inventory.tsx UI. PRO/TEAMS gate. 0 TS errors.
+- ✅ **#122 Explorer's Guild Phase 1 rebrand** — confirmed complete (95% done S271), minor import cleanup on collector-passport.tsx.
+- ✅ **#130 Brand Kit field migration** — confirmed already done, no changes needed.
+- ✅ **#72 Dual-Role Account Schema Phase 2** — JWT roles[] array, auth middleware updated, notificationChannel TEXT column (migration applied to Railway).
+- ✅ **#74 Role-Aware Registration Consent** — register.tsx opt-in checkboxes (LEGAL_COPY_PLACEHOLDER text). Backend ready.
+- ✅ **#75 Tier Lapse State Logic** — stripeController webhooks, auth.ts checkTierLapse middleware (SIMPLE fallback), tierLapseJob.ts cron (8am warnings + 11pm lapse), organizers.ts lapsed flag, dashboard.tsx banner.
+- ✅ **#73 Two-Channel Notification System** — schema.prisma channel field, migration applied, notificationService tagged (OPERATIONAL/DISCOVERY), notificationInboxController filter tabs.
+- ⚠️ **Migration #73 pending deploy** — Patrick action required (Railway DATABASE_URL override + prisma migrate deploy).
+- ⚠️ **Orphaned column:** `notificationChannel` from #72 (harmless, can clean later).
+- ⚠️ **Attorney review needed:** D3 consent copy (LEGAL_COPY_PLACEHOLDER text in register.tsx).
+- ✅ **QA consolidated:** Batch B + C + D QA deferred to S273 (per Patrick direction).
+- Last Updated: 2026-03-24T23:30:00Z
 
 **Session 271 COMPLETE (2026-03-24) — SEED ERROR DIAGNOSED:**
 
@@ -209,6 +225,8 @@ Last Updated: 2026-03-24T23:00:00Z
 
 ## Recent Sessions
 
+**S272 (2026-03-24):** Batch C + D complete. Shipped: #125 CSV export (PRO/TEAMS), #122 Explorer's Guild rebrand (copy fix), #72 dual-role JWT schema (roles[] array), #74 role-aware registration consent (checkboxes), #75 tier lapse state (7d warning, SIMPLE fallback), #73 two-channel notifications (OPERATIONAL/DISCOVERY tabs). 18 files modified. Pending: #73 migration deploy, attorney D3 consent review, Neon deletion. Consolidated QA (Batch B+C+D) deferred to S273.
+
 **S271 (2026-03-24):** Diagnosed seed `points` error — stale local Prisma client (not a seed.ts bug). Fix: `npx prisma generate` + re-run seed. No code files modified.
 
 **S270 (2026-03-24):** Build fixes (Railway green — 9 files with remaining points refs), migration block corrected to Railway URL, Batch B shipped (#127 POS tiers, #128 support stack, #131 share templates, #132 à la carte $9.99), S269 QA confirmed live, loyalty link fixed. Seed data bug found: roles[] wrong for all test accounts.
@@ -217,38 +235,35 @@ Last Updated: 2026-03-24T23:00:00Z
 
 **S268 (2026-03-24):** Strategic decisions session — full advisory board convened. 11 decisions locked. SP-03 fixed. Hunt Pass redesigned with Sage/Grandmaster exclusives. Homepage mockup approved. Roadmap reorganized into 5 parallel batches. 9 new items (#126-#134).
 
-**S267 (2026-03-24):** Full audit dispatch (135 items across 3 waves). 29 code files modified + pushed. Double footer fixed. Trails double /api prefix fixed. Dark mode pass. Seed.ts fixed.
-
-**S266 (2026-03-24):** Stamp label fix (raw enums → human-readable on loyalty page). Smoke test passed. Phase 2 UX P2 polish dispatched.
-
-**S268 (2026-03-24):** Strategic decisions session — full advisory board convened. 11 decisions locked. SP-03 fixed. Hunt Pass redesigned with Sage/Grandmaster exclusives. Homepage mockup approved. Roadmap reorganized into 5 parallel batches. 9 new items (#126-#134).
-
-**S267 (2026-03-24):** Full audit dispatch (135 items across 3 waves). 29 code files modified + pushed. Double footer fixed. Trails double /api prefix fixed. Dark mode pass. Seed.ts fixed.
-
-**S266 (2026-03-24):** Stamp label fix (raw enums → human-readable on loyalty page). Smoke test passed. Phase 2 UX P2 polish dispatched.
-
-**S265 (2026-03-24):** XP system verified live on Railway. Shopper→Organizer conversion flow. XP Sink UI. Brand drift Batches 3+4 QA confirmed.
-
 ---
 
 ## Next Session
 
-**S272 PRIORITY 1 — Confirm seed fixed:** Patrick should have run `npx prisma generate` + re-run seed. Verify user2 can access organizer dashboard (roles now `["USER","ORGANIZER"]`). If seed still fails, diagnose live.
+**S273 PRIORITY 1 — Deploy #73 migration (Patrick action):**
+```powershell
+cd C:\Users\desee\ClaudeProjects\FindaSale\packages\database
+$env:DATABASE_URL="postgresql://postgres:QvnUGsnsjujFVoeVyORLTusAovQkirAq@maglev.proxy.rlwy.net:13949/railway"
+npx prisma migrate deploy
+npx prisma generate
+```
 
-**S272 PRIORITY 2 — QA Batch B live:** Chrome MCP smoke test on deployed S270 features: /support page FAQ search + AI chat widget (PRO/TEAMS gate), POS tier gates on organizer dashboard, Share & Promote modal on a sale page, à la carte modal on SIMPLE-tier publish flow.
+**S273 PRIORITY 2 — Consolidated QA pass (Chrome MCP, S265 §10c methodology):**
+- Batch B features (S270): /support page FAQ + AI chat (PRO/TEAMS), POS tier gates, Share & Promote modal, à la carte modal
+- Batch C features (S272): CSV export (PRO/TEAMS only), Explorer's Guild copy/labels
+- Batch D features (S272): Dual-role JWT + consent flow, tier lapse warnings + SIMPLE fallback, two-channel notifications (OPERATIONAL/DISCOVERY tabs)
+- Test all role×tier×operation combinations. Report exact API responses + exact UI values.
 
-**S272 PRIORITY 3 — Batch C dispatch (parallel):**
-- #122 Explorer's Guild Phase 1 rebrand (copy/label updates, no schema — Collector→Explorer language in remaining files unblocked by #126)
-- #130 Brand kit field migration
+**S273 PRIORITY 3 — Batch E dispatch (parallel, no blockers):**
+- #56, #84, #85, #86, #87, #88, #89, #90 (full batch list in ROADMAP.md)
 
-**S272 PRIORITY 4 — Batch D dispatch:**
-- #72 Dual-Role Account Schema — Architect ADR first (schema change required), then dev
-- #73/#74/#75 depend on #72 — queue after Architect clears it
-- #125 Inventory Syndication CSV Export — can run independently
+**S273 PRIORITY 4 — Monitor:**
+- stripeController.ts modified by BOTH #73 + #75 in parallel — watch Railway deploy for subscription webhook issues
+- `notificationChannel` column in DB is orphaned (harmless) — can clean up in future migration
 
 **Patrick manual actions:**
-- `npx prisma generate` + re-run seed (command in S271 output above)
+- Deploy #73 migration (above command)
 - Delete Neon project at console.neon.tech (pending since S264)
+- Attorney review: D3 consent copy in register.tsx (LEGAL_COPY_PLACEHOLDER_ORGANIZER / LEGAL_COPY_PLACEHOLDER_SHOPPER)
 
 ---
 
