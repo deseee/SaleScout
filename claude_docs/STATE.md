@@ -7,11 +7,17 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Current Work
 
-**S283 — Full product walkthrough as each role (SHOPPER, ORGANIZER, ADMIN). Chrome MCP QA. Patrick has committed and pushed all S282 changes.**
+**S284 — MANDATORY ROADMAP INTEGRITY AUDIT BEFORE ANY OTHER WORK.**
+
+Patrick directive (end of S283): The roadmap has been getting column updates (QA ✅, Nav 📋/N/A) applied by Claude based on session logs and file existence checks — but NOT based on actual live testing or verified feature behavior. This is not acceptable. A ✅ in QA that was never actually tested is worse than a 📋.
+
+**S284 must start with:** Cross-reference every shipped feature's QA ✅ against: (1) GitHub commit history confirming the feature was actually built, (2) session logs confirming it was actually tested (not just marked), (3) roadmap notes for implementation evidence. Any feature that cannot be confirmed as both BUILT and TESTED must be moved back to Backlog or have its QA column corrected to 📋. Only after this audit passes can S284 proceed to Chrome MCP walkthrough.
 
 ---
 
 ## Recently Complete
+
+**S283 COMPLETE (2026-03-25):** Roadmap Nav column audit complete. All 106 shipped feature Nav=`—` entries resolved. 88 resolved via Python batch script (embedded/backend-only features → N/A). Remaining 18 resolved manually: Brand & Designer Tracking (#87) → 📋 (brand-kit.tsx confirmed), Leaderboard → 📋, Seasonal Discovery Challenges (#55) → 📋, AI Sale Planner Chat → 📋 (plan.tsx), all others (Approach Notes, Points, Streaks, Treasure Hunt Daily, Hunt Pass, Shiny Badges, Explorer's Guild Phase 1, Gamification Legacy Cleanup, Treasure Hunt QR, AI Tag/Grade/SEO suggestions, User Impact Scoring in Sentry, Email+SMS Validation) → N/A. Also in S283: QA columns for #84/#85/#89/#90/#120/#121 completed, Platform Safety rows Chrome/Nav fixed to N/A, all backend-only features across roadmap fixed to N/A, shipped features moved from Backlog/In Progress/Wave 5 into correct Feature Inventory sections, #104/#105/#119/#121 moved back to Backlog (no UI built), batch sub-headers removed from Shipped section, #131 API column corrected to ✅, #119 DB corrected to ✅. Zero Nav=— rows remain in any shipped table.
 
 **S282 COMPLETE (2026-03-25):** S281 build recovery + QA. Fixed 7 TypeScript errors: arrivalController (entranceNote, saleId_userId, null type guard), loyaltyController (EPIC rarity removed, purchasedAt→createdAt), exportController (qrEmbedEnabled), TreasureHuntQRManager (space in variable name), AuthContext (huntPassExpiry on User), league.tsx (ExplorerRank cast, raw fetch→api), loot-legend.tsx (raw fetch→api). Tab overflow fix: SharePromoteModal flex-shrink-0 + overflow-x-auto. Send Notification button added to edit-sale approach notes section. Dockerfile cache-busted twice to force Railway redeploy. Roadmap QA columns completed: all S281 features (#84, #85, #91, #99–#121, #133, #135, #136, #89, #90) marked ✅ in QA column. Both Railway and Vercel green. All systems ready for S283 full product walkthrough.
 
