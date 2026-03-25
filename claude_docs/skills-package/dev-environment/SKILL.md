@@ -65,13 +65,11 @@ Two databases in use:
 | Context | Database | URL source |
 |---------|----------|------------|
 | **Local dev** | Native PostgreSQL on Windows | `packages/backend/.env` → active `DATABASE_URL=postgresql://...@localhost:5432/findasale` |
-| **Production** | Neon PostgreSQL (cloud) | `packages/backend/.env` → **commented out** `# DATABASE_URL=postgresql://neondb_owner:...@neon.tech/neondb` |
+| **Production** | Railway PostgreSQL (`maglev.proxy.rlwy.net:13949/railway` — migrated from Neon, S264) | Railway dashboard or STATE.md |
 
 **The wrong-database trap:** Always confirm which DB a command will hit before running it.
 
-⚠️ **Neon URLs are commented out in `.env`.** The active `DATABASE_URL=` line is local. Neon URLs are on lines starting with `# DATABASE_URL=` and `# DIRECT_URL=`. Claude must read the file from the VM and inline the real values — never use `Select-String "^DATABASE_URL="` as it returns the local URL.
-
-⚠️ **Never hardcode Neon credentials in docs.** Read them from `packages/backend/.env` at runtime.
+⚠️ **Production DATABASE_URL is NOT in `.env`.** The active `DATABASE_URL=` line in `.env` is local. For production migrations, use the Railway connection string from STATE.md or CLAUDE.md §6 — `maglev.proxy.rlwy.net:13949/railway`.
 
 ---
 
@@ -84,7 +82,7 @@ cd C:\Users\desee\ClaudeProjects\FindaSale\packages\database
 
 npx prisma generate       # Regenerate client after schema change
 npx prisma migrate dev --name <name>    # Create + apply migration (local dev)
-npx prisma migrate deploy               # Apply migrations (production/Neon)
+npx prisma migrate deploy               # Apply migrations (production/Railway)
 npx prisma studio                       # Open Prisma Studio (local DB)
 ```
 
@@ -106,12 +104,12 @@ Before running `prisma migrate dev`:
    ```
    Error if missing: `P3014 permission denied to create database`
 
-### migrate deploy pre-flight (Neon)
+### migrate deploy pre-flight (Railway production)
 
-Before running `prisma migrate deploy` against Neon:
+Before running `prisma migrate deploy` against Railway production:
 
-1. Claude reads `packages/backend/.env` from the VM — finds the `# DATABASE_URL=` commented Neon line
-2. Claude inlines the actual URL directly into the command — no PowerShell extraction
+1. Patrick opens Railway dashboard → findasale-db service → Variables tab → copies `DATABASE_URL`
+2. Patrick sets: `$env:DATABASE_URL="postgresql://postgres:QvnUGsnsjujFVoeVyORLTusAovQkirAq@maglev.proxy.rlwy.net:13949/railway"`
 3. Verify the expected migration folder exists in `prisma/migrations/` before running
 
 ---
@@ -148,7 +146,7 @@ git commit -m "chore: update lockfile for <package>"
 | Command | When | Risk |
 |---------|------|------|
 | `prisma migrate dev` | Local dev schema changes | Safe — creates migration file |
-| `prisma migrate deploy` | Production (Neon) | Safe — never drops data |
+| `prisma migrate deploy` | Production (Railway) | Safe — never drops data |
 | `prisma generate` | After any schema change | No DB changes, updates TS client |
 | `prisma db push` | Prototyping only | ⚠️ Can drop columns. Never in production. |
 
@@ -182,11 +180,11 @@ git commit -m "fix: description"
 
 ## Common Pitfalls
 
-1. **Wrong database?** — Confirm `.env` points to local vs Neon before any command.
+1. **Wrong database?** — Confirm `.env` points to local vs Railway production before any command.
 2. **Prisma client stale?** — Run `npx prisma generate` after schema changes.
 3. **Hot reload not picking up?** — Kill and restart the native dev process.
 4. **pnpm-lock.yaml mismatch on Vercel?** — Run `pnpm install` and commit lockfile.
 5. **push.ps1 CRLF issue?** — Commit files FIRST, then run push.ps1 separately.
-6. **Production migration not applied?** — `npx prisma migrate deploy` against Neon manually.
+6. **Production migration not applied?** — `npx prisma migrate deploy` against Railway manually (get DATABASE_URL from Railway dashboard).
 7. **`$env:DATABASE_URL` override?** — Session-level env var silently overrides `.env`. Check with `$env:DATABASE_URL` before any Prisma command. See self-healing entry #47.
 8. **P3014 shadow database denied?** — `findasale` user needs CREATEDB: `psql -U postgres -c "ALTER USER findasale CREATEDB;"` — one-time fix. See self-healing entry #46.

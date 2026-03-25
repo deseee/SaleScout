@@ -143,12 +143,14 @@ Any session that modifies `schema.prisma` or adds a migration SQL file **MUST** 
 
 ```powershell
 cd C:\Users\desee\ClaudeProjects\FindaSale\packages\database
-$env:DATABASE_URL="postgresql://neondb_owner:npg_VYBnJs8Gt3bf@ep-plain-sound-aeefcq1y.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require"
-npx prisma migrate deploy   # applies SQL to Neon, records in _prisma_migrations
+$env:DATABASE_URL="postgresql://postgres:QvnUGsnsjujFVoeVyORLTusAovQkirAq@maglev.proxy.rlwy.net:13949/railway"
+npx prisma migrate deploy   # applies SQL to Railway DB, records in _prisma_migrations
 npx prisma generate         # regenerates TypeScript client with new fields
 ```
 
-**CRITICAL:** `packages/database/.env` points to localhost — always override `DATABASE_URL` with the Neon direct (non-pooled) connection string as shown above. Omitting the override silently runs the migration against localhost and leaves Neon out of sync. Use the non-pooled hostname (no `-pooler` suffix) — Prisma requires a direct connection for migrations.
+**CRITICAL:** `packages/database/.env` points to localhost — always override `DATABASE_URL` with the Railway connection string as shown above. Omitting the override silently runs the migration against localhost and leaves the production DB out of sync.
+
+**Database is Railway PostgreSQL** (`maglev.proxy.rlwy.net:13949/railway` — migrated from Neon, S264). Never use the old `ep-plain-sound-aeefcq1y.c-2.us-east-2.aws.neon.tech` Neon URL — that service is decommissioned.
 
 `migrate deploy` runs first — without it the live DB is out of sync. `prisma generate` follows — without it new fields throw TypeScript errors at runtime. Railway deploys code automatically but does **not** run migrations.
 

@@ -65,7 +65,7 @@ No silent library substitutions.
 - Version Control: GitHub
 - Frontend Deployment: Vercel (finda.sale)
 - Backend Deployment: Railway (backend-production-153c9.up.railway.app)
-- Database: Neon PostgreSQL (production)
+- Database: Railway PostgreSQL (production — migrated from Neon, S264)
 
 ---
 
@@ -95,7 +95,7 @@ Risk level for changes in each code area. Used by findasale-deploy to gate pre-d
 
 | Code Area | Risk Level | Why | Pre-Deploy Required |
 |-----------|-----------|-----|---------------------|
-| `packages/database/prisma/schema.prisma` | 🔴 HIGH | Schema changes can corrupt data or lock tables | Architect review + migrate deploy (never db push) + Neon backup |
+| `packages/database/prisma/schema.prisma` | 🔴 HIGH | Schema changes can corrupt data or lock tables | Architect review + migrate deploy (never db push) + Railway DB backup |
 | `packages/backend/src/controllers/authController.ts` | 🔴 HIGH | Auth bugs = account takeover or lockout | Security review + staging smoke test + OAuth flow test |
 | `packages/backend/src/controllers/stripeController.ts` | 🔴 HIGH | Payment logic errors = money loss or failed transactions | Full checkout flow test + webhook test + Stripe test mode pass |
 | `packages/backend/src/routes/items.ts` (bulk endpoints) | 🟠 MEDIUM-HIGH | Bulk ops on wrong items = data loss for organizers | Dry-run mode test + ownership validation check |
