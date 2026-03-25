@@ -7,7 +7,21 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Active Objective
 
-**S270 (next session):** Continue Parallel Batch B + run migration on Railway + QA S269 changes live. See Next Session below.
+**S271 (next session):** Fix seed data bug (roles array), QA Batch B features live, dispatch Batch C (#122 Explorer's Guild Phase 1 rebrand). See Next Session below.
+
+**Session 270 COMPLETE (2026-03-24) — BUILD FIXES + BATCH B + QA:**
+
+What shipped:
+- ✅ **Railway build fixed** — 9 backend/frontend files had remaining `points` references after S269 cleanup. Fixed: authController (2 instances), nudgeController, nudgeService (UserState interface + TIER_PROGRESS block), passkeyController, reviewController, userController, organizers.ts, users.ts, referralService.ts, BottomTabNav.tsx. Railway ✅ green.
+- ✅ **Migration block corrected** — S269 output had Neon URL (wrong). Correct Railway URL confirmed from `packages/database/.env`. Migration `20260324_remove_legacy_points` run successfully against Railway. Migration `20260324_add_ala_carte_sale_fee` also applied this session.
+- ✅ **profile.tsx loyalty link fixed** — `/loyalty` → `/shopper/loyalty` (page was at wrong path).
+- ✅ **#127 POS Value Unlock Tiers** — `/api/organizer/pos-tiers` endpoint + `PosTierGates.tsx` component + POS page tier UI. Dual-gate (tx count + revenue). 3 tiers. 0 TS errors.
+- ✅ **#128 Automated Support Stack** — `/support` page with fuse.js FAQ search. AI chat widget (PRO/TEAMS, Claude API). TEAMS community forum link. `@anthropic-ai/sdk` + `fuse.js` added to deps. 0 TS errors.
+- ✅ **#131 Share & Promote Templates** — `SharePromoteModal.tsx` with 4 templates (social post, flyer, email invite, neighborhood post). Integrated into promote page. 0 TS errors.
+- ✅ **#132 À La Carte Sale Fee ($9.99)** — Schema: `purchaseModel`, `alaCarte`, `alaCarteFeePaid` on Sale. Migration created + applied. Stripe checkout endpoint. Webhook handler. `AlaCartePublishModal.tsx` on edit-sale page for SIMPLE tier organizers. 0 TS errors.
+- ✅ **S269 QA confirmed live** — Homepage sage hero ✅, filter pills ✅, Explorer Rank card on shopper profile ✅, Plan a Sale card in dashboard code ✅, no pts references ✅.
+- ⚠️ **Seed data bug found** — user1/user2/user3 all have `roles: ["USER"]` in Railway DB. Organizer dashboard requires `roles.includes("ORGANIZER")`. Test accounts can't access organizer dashboard. Real user registrations unaffected. Fix: seed update next session.
+- Last Updated: 2026-03-24
 
 **Session 269 COMPLETE (2026-03-24) — PARALLEL BATCH A + GAMIFICATION LEGACY CLEANUP:**
 
@@ -187,6 +201,8 @@ Last Updated: 2026-03-24T23:00:00Z
 
 ## Recent Sessions
 
+**S270 (2026-03-24):** Build fixes (Railway green — 9 files with remaining points refs), migration block corrected to Railway URL, Batch B shipped (#127 POS tiers, #128 support stack, #131 share templates, #132 à la carte $9.99), S269 QA confirmed live, loyalty link fixed. Seed data bug found: roles[] wrong for all test accounts.
+
 **S269 (2026-03-24):** Parallel Batch A — #126 gamification legacy cleanup (points system deleted, 12 files, schema migration), #129 homepage modernization (sage gradient hero, 4:3 cards, filter pills), #134 plan-a-sale dashboard card. QA: SP-01 PASS, TR-04 NOT FOUND. Seed: OS-03 workspace + FR-01 completed sale added. Build error fixed (sales/[id].tsx reviewCount null check). 15 files modified + 3 deleted. Push block below.
 
 **S268 (2026-03-24):** Strategic decisions session — full advisory board convened. 11 decisions locked. SP-03 fixed. Hunt Pass redesigned with Sage/Grandmaster exclusives. Homepage mockup approved. Roadmap reorganized into 5 parallel batches. 9 new items (#126-#134).
@@ -201,18 +217,17 @@ Last Updated: 2026-03-24T23:00:00Z
 
 ## Next Session
 
-**S270 PRIORITY 1 — Migration + push:** Run both pushblocks from S269 (S268 docs + code changes). Then run migration on Railway Postgres (see migration block below).
+**S271 PRIORITY 1 — Seed data fix:** Update seed.ts so user1/user2/user3 have correct `roles` arrays (`["USER","ORGANIZER"]` for organizers, `["USER","ADMIN"]` for admin). Re-run seed on Railway. Then verify organizer dashboard accessible.
 
-**S270 PRIORITY 2 — Live QA on S269 changes:** Chrome MCP smoke test: homepage new design, sale card 4:3, organizer dashboard "Plan a Sale" card, profile Explorer Rank card, confirm no points references anywhere visible.
+**S271 PRIORITY 2 — QA Batch B live:** After S270 push deploys, Chrome MCP smoke test: /support page FAQ + chat widget, POS tier gates on organizer dashboard, Share & Promote modal on a sale, à la carte modal on SIMPLE tier organizer publish flow.
 
-**S270 PRIORITY 3 — Parallel Batch B:** Begin dispatching Batch B items (#127 POS value unlock tiers, #128 automated support stack, #131 share templates, #132 à la carte fee) — 4 agents concurrently.
+**S271 PRIORITY 3 — Batch C dispatch:** #122 Explorer's Guild Phase 1 (Collector→Explorer rebrand copy, unblocked by #126). #130 Brand kit field migration. Can run in parallel.
 
-**S270 PRIORITY 4 — Roadmap #122 Explorer's Guild Phase 1** — Collector→Explorer rebrand copy is in Batch C but depends on #126 (now shipped). Can now be dispatched.
+**S271 PRIORITY 4 — roles array systemic fix:** Consider whether to fix the organizer dashboard access check to also honor legacy `role` field as fallback, so seed data issues don't block testing.
 
 **Patrick manual actions:**
-- Run BOTH pushblocks (S268 docs + S269 code — see below)
-- Run migration on Railway Postgres (migration block in handoff)
 - Delete Neon project at console.neon.tech (pending since S264)
+- Run seed on Railway after seed.ts fix (S271 will provide command)
 
 ---
 
