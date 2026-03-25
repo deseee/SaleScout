@@ -7,13 +7,13 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Current Work
 
-**S282 IN PROGRESS — Chrome QA**: S281 & S282 build recovery complete. Both Railway and Vercel green. All features shipped and tested. No pending Patrick actions. Next: Full product walkthrough as each role (S283).
+**S283 — Full product walkthrough as each role (SHOPPER, ORGANIZER, ADMIN). Chrome MCP QA. Patrick has committed and pushed all S282 changes.**
 
 ---
 
 ## Recently Complete
 
-**S282 COMPLETE (2026-03-25):** S281 build recovery + QA. Fixed 7 TypeScript errors across controllers and pages. All S281 features re-tested post-redeploy: Treasure Hunt QR, Approach Notes, Auto-Markdown, Hunt Pass Redesign, QR Auto-Embed, Platform P3-P5C all confirmed working. Social templates tab overflow fixed. Send Notification button restored. All systems green for S283 QA.
+**S282 COMPLETE (2026-03-25):** S281 build recovery + QA. Fixed 7 TypeScript errors: arrivalController (entranceNote, saleId_userId, null type guard), loyaltyController (EPIC rarity removed, purchasedAt→createdAt), exportController (qrEmbedEnabled), TreasureHuntQRManager (space in variable name), AuthContext (huntPassExpiry on User), league.tsx (ExplorerRank cast, raw fetch→api), loot-legend.tsx (raw fetch→api). Tab overflow fix: SharePromoteModal flex-shrink-0 + overflow-x-auto. Send Notification button added to edit-sale approach notes section. Dockerfile cache-busted twice to force Railway redeploy. Roadmap QA columns completed: all S281 features (#84, #85, #91, #99–#121, #133, #135, #136, #89, #90) marked ✅ in QA column. Both Railway and Vercel green. All systems ready for S283 full product walkthrough.
 
 **S279 COMPLETE (2026-03-25):** Roadmap audit done. roadmap.md updated to v69 — 42 shipped items from S266–S278 now correctly reflected. 95+ feature count. Backlog Batch C/D/E marked SHIPPED. In Progress duplicates removed. ~30 stale untracked docs swept (commit block provided — git lock from VS Code prevented VM commit; Patrick must run block). Auction close E2E verification scenario documented for Patrick to run in Stripe test mode.
 

@@ -82,9 +82,8 @@ Production MVP launched Q1 2026. Full auction lifecycle (bidding + close flow + 
 
 | # | Feature | Role | Tier | DB | API | UI | QA | Chrome | Nav | Human | Notes |
 |---|---------|------|------|----|----|----|----|--------|-----|-------|-------|
-| 82 | Trademark — FindA.Sale | BIZ | LEGAL | — | — | — | — | — | — | 📋 | File USPTO trademark on "FindA.Sale" brand name if not already done. ~$250–400/class + attorney fees (~$1,500–2,500 total). First priority IP action. Attorney required. |
-| 83 | Trade Secret Housekeeping | BIZ | LEGAL | — | — | — | — | — | — | 📋 | Document proprietary algorithms (fraud scoring, Near-Miss Nudge logic, City Heat Index formula, Flip Report scoring, AI condition grading prompts) as trade secrets in internal docs. Ensure all contractors/contributors have signed NDAs or are covered by agreements. No filing required — zero cost. |
-
+| 82 | Trademark — FindA.Sale | BIZ | LEGAL | — | — | — | — | N/A | N/A | 📋 | File USPTO trademark on "FindA.Sale" brand name if not already done. ~$250–400/class + attorney fees (~$1,500–2,500 total). First priority IP action. Attorney required. |
+| 83 | Trade Secret Housekeeping | BIZ | LEGAL | — | — | — | — | N/A | N/A | 📋 | Document proprietary algorithms (fraud scoring, Near-Miss Nudge logic, City Heat Index formula, Flip Report scoring, AI condition grading prompts) as trade secrets in internal docs. Ensure all contractors/contributors have signed NDAs or are covered by agreements. No filing required — zero cost. |
 
 ---
 
@@ -139,8 +138,8 @@ Production MVP launched Q1 2026. Full auction lifecycle (bidding + close flow + 
 | 75 | Tier Lapse State Logic | ORG | PRO | ✅ | ✅ | ✅ | ✅ | 📋 | — | 📋 | 8am warning + 11pm lapse cron. Dashboard banner. Suspends ORG features, retains SHO features |
 | 127 | POS Value Unlock Tiers | ORG | SIMPLE | ✅ | ✅ | ✅ | ✅ | 📋 | — | 📋 | Dual-gate (tx+revenue). 3 tiers at 5/20/50 tx. /api/organizer/pos-tiers + PosTierGates.tsx |
 | 131 | Share & Promote Templates | ORG | SIMPLE | — | — | ✅ | ✅ | 📋 | — | 📋 | SharePromoteModal: 4 templates (social post, flyer, email invite, neighborhood post) |
-| 135 | Social Templates Expansion | ORG | SIMPLE | — | — | ✅ | ✅ | 📋 | — | 📋 | SharePromoteModal + TikTok, Pinterest, Threads, Nextdoor. Shipped S280. |
-| 89 | Unified Print Kit | ORG | SIMPLE | — | ✅ | ✅ | ✅ | 📋 | — | 📋 | `/organizer/print-kit/[saleId]` — yard sign + item price tags (6/page). Print CSS. Shipped S280. |
+| 135 | Social Templates Expansion | ORG | SIMPLE | — | — | ✅ | ✅ | ✅ | — | 📋 | SharePromoteModal + TikTok, Pinterest, Threads, Nextdoor. Shipped S280. |
+| 89 | Unified Print Kit | ORG | SIMPLE | — | ✅ | ✅ | ✅ | ✅ | — | 📋 | `/organizer/print-kit/[saleId]` — yard sign + item price tags (6/page). Print CSS. Shipped S280. |
 | 76 | Skeleton Loaders | BOTH | FREE | — | — | ✅ | ✅ | 📋 | — | N/A | Ghost card layouts on item/sale grids. SkeletonCards component. Shipped S280. |
 | 77 | Sale Published Celebration | ORG | SIMPLE | — | — | ✅ | ✅ | 📋 | — | 📋 | Full-screen confetti overlay on publish. Confetti.tsx + PublishCelebration.tsx. Shipped S280. |
 | 79 | Earnings Counter Animation | ORG | SIMPLE | — | — | ✅ | ✅ | 📋 | — | N/A | AnimatedCounter.tsx — rolls up to value on dashboard load. Shipped S280. |
@@ -148,6 +147,8 @@ Production MVP launched Q1 2026. Full auction lifecycle (bidding + close flow + 
 | 81 | Empty State Audit + Copy Pass | BOTH | FREE | — | — | ✅ | ✅ | 📋 | — | N/A | EmptyState component + human copy across 8 pages (index, feed, hauls, messages, item-library, holds ×2, wishlists). Shipped S280. |
 | 132 | À La Carte Single-Sale Fee ($9.99) | ORG | PAID_ADDON | ✅ | ✅ | ✅ | ✅ | 📋 | — | 📋 | Sale.purchaseModel + alaCarte + alaCarteFeePaid. Stripe checkout. AlaCartePublishModal for SIMPLE tier |
 | 134 | Plan a Sale Dashboard Card | ORG | SIMPLE | — | — | ✅ | ✅ | 📋 | ✅ | 📋 | "Coming Soon" card on organizer dashboard overview tab |
+| 60 | Premium Tier Bundle | ORG | PRO | ✅ | ✅ | ✅ | ✅ | ⚠️ | ✅ | 📋 | Tier landing page + comparison matrix + upgrade CTA. |
+| 69 | Local-First Offline Mode | BOTH | PRO | — | ✅ | ✅ | ✅ | ✅ | ✅ | 📋 | Service worker sync queue; offline catalog. |
 
 ### Organizer — Analytics & Intelligence [PRO]
 
@@ -169,6 +170,8 @@ Production MVP launched Q1 2026. Full auction lifecycle (bidding + close flow + 
 | 13 | TEAMS Workspace | ORG | TEAMS | ✅ | ✅ | ✅ | ✅ | ⚠️ | ✅ | 📋 | Multi-user workspace, role management |
 | 68 | Command Center Dashboard | ORG | PRO | ✅ | ✅ | ✅ | ✅ | ⚠️ | ✅ | 📋 | Per-sale widget dashboard |
 | 125 | Inventory Syndication CSV Export | ORG | PRO | ✅ | ✅ | ✅ | ✅ | 📋 | ✅ | 📋 | exportService.ts + csvExportController.ts. PRO/TEAMS gate. eBay/Amazon/Facebook pre-formatted |
+| 136 | QR Code Auto-Embedding in Exports | ORG | SIMPLE | ✅ | ✅ | ✅ | ✅ | 📋 | — | 📋 | qrEmbedEnabled field, Cloudinary QR overlay via cloudinaryWatermark.ts, exportController wired, organizer toggle in edit-item. |
+| 46 | Treasure Typology Classifier | ORG | PRO | ✅ | ✅ | ✅ | ✅ | ⚠️ | ✅ | 📋 | AI item classification; useTypology.ts, TypologyBadge.tsx |
 
 ### Organizer — Marketing & Brand Amplification [SIMPLE/PRO mixed]
 
@@ -199,6 +202,7 @@ Production MVP launched Q1 2026. Full auction lifecycle (bidding + close flow + 
 | 40 | Sale Hubs | ORG | PRO | ✅ | ✅ | ✅ | ✅ | 📋 | ✅ | 📋 | Hub pages + membership UI |
 | 16 | Verified Organizer Badge | ORG | PRO | ✅ | ✅ | ✅ | ✅ | 📋 | — | 📋 | VerifiedBadge on sales detail + SaleCard |
 | — | Coupons (PERCENT/FIXED) | ORG | SIMPLE | ✅ | ✅ | ✅ | ✅ | 📋 | — | 📋 | Post-purchase coupon issuance + validation. Rate-limited |
+| 91 | Auto-Markdown (Smart Clearance) | ORG | PRO | ✅ | ✅ | ✅ | ✅ | 📋 | — | 📋 | markdownEnabled/markdownFloor on Sale, markdownApplied/priceBeforeMarkdown on Item, markdownCron (every 5min), saleController config endpoints, edit-sale UI toggle + floor input. |
 
 ### Shopper — Discovery & Search [FREE]
 
@@ -219,12 +223,14 @@ Production MVP launched Q1 2026. Full auction lifecycle (bidding + close flow + 
 | — | Neighborhood Pages | SHO | FREE | ✅ | ✅ | ✅ | ✅ | ✅ | — | 📋 | `/neighborhoods/[slug]` local discovery |
 | 92 | City Weekend Landing Pages (Metro Explorer) | SHO | FREE | — | ✅ | ✅ | ✅ | 📋 | — | 📋 | `/city/[city].tsx` ISR pages with Schema.org JSON-LD. Grand Rapids pre-generated. Confirmed live in code (S280). |
 | 78 | Inspiration Page — Item Gallery | SHO | FREE | — | ✅ | ✅ | ✅ | 📋 | — | 📋 | `/inspiration` masonry grid of items from active/upcoming sales. Confirmed live in code (S280). |
-| 90 | Sale Soundtrack (Ambient Vibes) | SHO | FREE | — | — | ✅ | ✅ | 📋 | — | 📋 | Spotify + Apple Music playlist suggestions per sale type on sale detail page. External links only. Shipped S280. |
+| 90 | Sale Soundtrack (Ambient Vibes) | SHO | FREE | — | — | ✅ | ✅ | ✅ | — | 📋 | Spotify + Apple Music playlist suggestions per sale type on sale detail page. External links only. Shipped S280. |
 | — | Trending Items / Sales | SHO | FREE | ✅ | ✅ | ✅ | ✅ | ✅S194 | — | 📋 | `/trending` page + API |
 | — | Activity Feed | SHO | FREE | ✅ | ✅ | ✅ | ✅ | ✅S194 | — | 📋 | `/feed` page + API |
 | — | Route Planning (Multi-Sale) | SHO | FREE | ✅ | ✅ | ✅ | ✅ | 📋 | — | 📋 | `/api/routes` OSRM-based |
 | — | Price History Tracking | SHO | FREE | ✅ | ✅ | ✅ | ✅ | 📋 | — | 📋 | `/api/price-history` price trends |
 | 49 | City Heat Index | SHO | FREE | ⚠️ | ✅ | ⚠️ | ✅ | ✅S194 | ✅ | 📋 | Weekly "hottest metro" ranking; aggregated sale data |
+| 52 | Estate Sale Encyclopedia | SHO | FREE | ✅ | ✅ | ✅ | ✅ | ⚠️ | ✅ | 📋 | Wiki-style knowledge base; EncyclopediaCard.tsx |
+| 70 | Live Sale Feed | SHO | SIMPLE | ✅ | ✅ | ✅ | ✅ | 📋 | — | 📋 | Real-time sale activity feed. Redis adapter + JWT socket auth + LiveFeedTicker on sale detail page. |
 
 ### Shopper — Engagement & Community [FREE]
 
@@ -254,6 +260,11 @@ Production MVP launched Q1 2026. Full auction lifecycle (bidding + close flow + 
 | 50 | Loot Log | SHO | FREE | ✅ | ✅ | ✅ | ✅ | ✅S202 | ✅ | 📋 | Personal purchase history with photos + prices |
 | 87 | Brand & Designer Tracking | SHO | FREE | ✅ | ✅ | ✅ | ✅ | ✅ | — | 📋 | BrandFollow table. Follow brands → alerts on matching items. 4 endpoints + notification trigger on item publish |
 | 88 | Haul Post Gallery (UGC Social Proof) | SHO | FREE | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 📋 | UGCPhoto extended (isHaulPost, linkedItemIds, likeCount) + UGCPhotoReaction model. /hauls page live |
+| 84 | Approach Notes (Arrival Assistant) | SHO | SIMPLE | ✅ | ✅ | ✅ | ✅ | 📋 | — | 📋 | PushNotificationLog model, arrivalController (get/update notes + send-approach-notification with 24h dedup), useArrivalAssistant hook, sale detail page section, edit-sale textarea + notify button. |
+| 51 | Sale Ripples | SHO | FREE | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 📋 | Social proof activity tracking. RippleIndicator auto-records. ripples.tsx analytics. |
+| 54 | Crowdsourced Appraisal (Base) | BOTH | FREE | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 📋 | Request/submit/vote appraisals; AI Sprint 3 deferred. |
+| 47 | UGC Photo Tags | SHO | FREE | ✅ | ✅ | ✅ | ✅ | 📋 | ✅ | 📋 | Shopper-submitted item photos + moderation |
+| 7 | Shopper Referral Rewards | SHO | FREE | ✅ | ✅ | ✅ | ✅ | 📋 | ✅ | 📋 | Referral tracking + rewards distribution |
 
 ### Shopper — Gamification [FREE + HUNT_PASS]
 
@@ -274,20 +285,8 @@ Production MVP launched Q1 2026. Full auction lifecycle (bidding + close flow + 
 | 122 | Explorer's Guild Phase 1 (Rebrand + Copy) | SHO | FREE | — | — | ✅ | ✅ | 📋 | — | 📋 | Collector→Explorer labels, collect→explore language throughout. Rank names updated. No schema changes |
 | 123 | Explorer's Guild Phase 2 (XP Economy + Loot Legend) | SHO | FREE/PAID_ADDON | ✅ | ✅ | ✅ | ✅ | 📋 | ✅ | 📋 | User.guildXp + User.explorerRank + RarityBoost table. XP sinks (coupon-gen, rarity boost, Hunt Pass discount). Loot Legend portfolio. Full schema + endpoints |
 | 126 | Gamification Legacy Cleanup | SHO | FREE | ✅ | ✅ | ✅ | ✅ | ✅ | — | N/A | User.points removed, pointsService deleted, points routes deleted. All awardPoints() calls removed. QA confirmed no pts refs live |
-
-### Wave 5 — Advanced Intelligence Features [PRO/FREE/PAID_ADDON]
-
-| # | Feature | Role | Tier | DB | API | UI | QA | Chrome | Nav | Human | Notes |
-|---|---------|------|------|----|----|----|----|--------|-----|-------|-------|
-| 46 | Treasure Typology Classifier | ORG | PRO | ✅ | ✅ | ✅ | ✅ | ⚠️ | ✅ | 📋 | AI item classification; useTypology.ts, TypologyBadge.tsx |
-| 51 | Sale Ripples | SHO | FREE | ✅ | ✅ | ✅ | ✅ | ✅S202 | ✅ | 📋 | Social proof activity tracking. RippleIndicator auto-records. ripples.tsx analytics. **Neon migration pending.** |
-| 52 | Estate Sale Encyclopedia | SHO | FREE | ✅ | ✅ | ✅ | ✅ | ⚠️ | ✅ | 📋 | Wiki-style knowledge base; EncyclopediaCard.tsx |
-| 54 | Crowdsourced Appraisal (Base) | BOTH | FREE | ✅ | ✅ | ✅ | ✅ | ✅S202 | ✅ | 📋 | Request/submit/vote appraisals; AI Sprint 3 deferred |
-| 60 | Premium Tier Bundle | ORG | PRO | ✅ | ✅ | ✅ | ✅ | ⚠️ | ✅ | 📋 | Tier landing page + comparison matrix + upgrade CTA. Sprint 2 frontend complete. |
-| 69 | Local-First Offline Mode | BOTH | PRO | — | ✅ | ✅ | ✅ | ✅S202 | ✅ | 📋 | Service worker sync queue; offline catalog |
-| 70 | Live Sale Feed | SHO | SIMPLE | ✅ | ✅ | ✅ | ✅ | 📋 | — | 📋 | Real-time sale activity feed. Redis adapter + JWT socket auth + LiveFeedTicker on sale detail page. Redis live on Railway. Chrome verify pending (sale detail page). |
-| 47 | UGC Photo Tags | SHO | FREE | ✅ | ✅ | ✅ | ✅ | 📋 | ✅ | 📋 | Shopper-submitted item photos + moderation |
-| 7 | Shopper Referral Rewards | SHO | FREE | ✅ | ✅ | ✅ | ✅ | 📋 | ✅ | 📋 | Referral tracking + rewards distribution |
+| 85 | Treasure Hunt QR (In-Sale Scavenger Hunt) | SHO | FREE | ✅ | ✅ | ✅ | ✅ | 📋 | — | 📋 | TreasureHuntQRClue + TreasureHuntQRScan schema models, treasureHuntQRController (6 CRUD endpoints), TreasureHuntQRManager.tsx (organizer clue management + QR download), shopper clue detail page (/sales/[id]/treasure-hunt-qr/[clueId]). |
+| 133 | Hunt Pass Subscription Redesign | SHO | PAID_ADDON | ✅ | ✅ | ✅ | ✅ | 📋 | 📋 | 📋 | LEGENDARY 6h early access gate in itemController, 1.5x XP multiplier (applyHuntPassMultiplier in xpService), getLootLegend() + getCollectorLeague() endpoints + routes, loot-legend.tsx + league.tsx pages, loyalty.tsx updated. |
 
 ### Platform & AI [FREE/SIMPLE]
 
@@ -302,49 +301,19 @@ Production MVP launched Q1 2026. Full auction lifecycle (bidding + close flow + 
 
 ---
 
-## In Progress
-
-| # | Feature | Role | Tier | DB | API | UI | QA | Chrome | Nav | Human | Notes |
-|---|---------|------|------|----|----|----|----|--------|-----|-------|-------|
-| 54 | Crowdsourced Appraisal AI | BOTH | PAID_ADDON | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 📋 | Sprint 2 frontend built. Sprint 3 (Stripe billing + Claude Haiku vision) deferred |
-| 60 | Premium Tier Bundle | ORG | PRO | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 📋 | Tier landing page + comparison matrix + upgrade CTA. Sprint 2 complete |
-
----
-
 ## Blocked
 
 | # | Feature | Role | Tier | DB | API | UI | QA | Chrome | Nav | Human | Notes |
 |---|---------|------|------|----|----|----|----|--------|-----|-------|-------|
-| 53 | Cross-Platform Aggregator | ORG | TEAMS | — | — | — | — | — | — | — | Legal review required — ToS risk with EstateSales.NET/Facebook scraping. ADR written |
+| 53 | Cross-Platform Aggregator | ORG | TEAMS | — | — | — | — | N/A | N/A | — | Legal review required — ToS risk with EstateSales.NET/Facebook scraping. ADR written |
 
 ---
 
 ## Backlog — Prioritized
 
-### Parallel Batch B — New Features + Revenue
-_Batch A shipped S280. These are next._
-
 | # | Feature | Role | Tier | DB | API | UI | QA | Chrome | Nav | Human | Notes |
 |---|---------|------|------|----|----|----|----|--------|-----|-------|-------|
-| 136 | QR Code Auto-Embedding in Exports | ORG | SIMPLE | ✅ | ✅ | ✅ | 📋 | — | — | — | qrEmbedEnabled field, Cloudinary QR overlay via cloudinaryWatermark.ts, exportController wired, organizer toggle in edit-item. |
-| 91 | Auto-Markdown (Smart Clearance) | ORG | PRO | ✅ | ✅ | ✅ | 📋 | — | — | — | markdownEnabled/markdownFloor on Sale, markdownApplied/priceBeforeMarkdown on Item, markdownCron (every 5min), saleController config endpoints, edit-sale UI toggle + floor input. |
-
-### Parallel Batch C — Gamification + Shopper Monetization
-_#126 shipped (S269). These can now run in parallel._
-
-| # | Feature | Role | Tier | DB | API | UI | QA | Chrome | Nav | Human | Notes |
-|---|---------|------|------|----|----|----|----|--------|-----|-------|-------|
-| 133 | Hunt Pass Subscription Redesign | SHO | PAID_ADDON | ✅ | ✅ | ✅ | 📋 | — | — | — | LEGENDARY 6h early access gate in itemController, 1.5x XP multiplier (applyHuntPassMultiplier in xpService), getLootLegend() + getCollectorLeague() endpoints + routes, loot-legend.tsx + league.tsx pages, loyalty.tsx updated. |
-| 124 | Rarity Boost XP Sink | SHO | FREE/PAID_ADDON | — | ✅ | — | — | — | — | — | Frontend UI for POST /api/xp/sink/rarity-boost. Backend endpoint confirmed live. Frontend shows 'Coming Soon' placeholder only — full UI not built. |
-
-
-### Parallel Batch E — Polish, Social Proof & Engagement (No Blockers)
-
-| # | Feature | Role | Tier | DB | API | UI | QA | Chrome | Nav | Human | Notes |
-|---|---------|------|------|----|----|----|----|--------|-----|-------|-------|
-| 84 | Approach Notes (Arrival Assistant) | SHO | SIMPLE | ✅ | ✅ | ✅ | 📋 | — | — | — | PushNotificationLog model, arrivalController (get/update notes + send-approach-notification with 24h dedup), useArrivalAssistant hook, sale detail page section, edit-sale textarea. |
-| 85 | Treasure Hunt QR (In-Sale Scavenger Hunt) | SHO | FREE | ✅ | ✅ | ✅ | 📋 | — | — | — | TreasureHuntQRClue + TreasureHuntQRScan schema models, treasureHuntQRController (6 CRUD endpoints), TreasureHuntQRManager.tsx (organizer clue management + QR download), shopper clue detail page (/sales/[id]/treasure-hunt-qr/[clueId]). |
-
+| 124 | Rarity Boost XP Sink | SHO | FREE/PAID_ADDON | — | ✅ | — | — | N/A | N/A | — | Frontend UI for POST /api/xp/sink/rarity-boost. Backend endpoint confirmed live. Frontend shows 'Coming Soon' placeholder only — full UI not built. |
 
 ---
 
@@ -356,34 +325,34 @@ _#126 shipped (S269). These can now run in parallel._
 
 | # | Feature | Role | Tier | DB | API | UI | QA | Chrome | Nav | Human | Notes |
 |---|---------|------|------|----|----|----|----|--------|-----|-------|-------|
-| 93 | Bidder Account Age Gate (7-day) | PLATFORM | ALL | — | ✅ | — | ✅ | — | — | N/A | accountAgeGate.ts confirmed in code. 7-day minimum, ADMIN bypass. Wired to POST /:id/bids. (S280 verified) |
-| 94 | Same-IP Bidder Detection | PLATFORM | ALL | ✅ | ✅ | ✅ | ✅ | — | — | N/A | BidIpRecord model + IP tracking in itemController. Admin bid-review page built. (S280 verified) |
-| 95 | Bidding Velocity Limits | PLATFORM | ALL | — | ✅ | — | ✅ | — | — | N/A | bidRateLimiter.ts confirmed — 10 bids/60s via Redis, graceful degradation. (S280 verified) |
+| 93 | Bidder Account Age Gate (7-day) | PLATFORM | ALL | — | ✅ | — | ✅ | N/A | N/A | N/A | accountAgeGate.ts confirmed in code. 7-day minimum, ADMIN bypass. Wired to POST /:id/bids. (S280 verified) |
+| 94 | Same-IP Bidder Detection | PLATFORM | ALL | ✅ | ✅ | ✅ | ✅ | N/A | N/A | N/A | BidIpRecord model + IP tracking in itemController. Admin bid-review page built. (S280 verified) |
+| 95 | Bidding Velocity Limits | PLATFORM | ALL | — | ✅ | — | ✅ | N/A | N/A | N/A | bidRateLimiter.ts confirmed — 10 bids/60s via Redis, graceful degradation. (S280 verified) |
 
 #### Platform Batch P2 — Buyer Transparency
 
 | # | Feature | Role | Tier | DB | API | UI | QA | Chrome | Nav | Human | Notes |
 |---|---------|------|------|----|----|----|----|--------|-----|-------|-------|
-| 96 | Buyer Premium Disclosure (4-Point Visibility) | PLATFORM | ALL | — | ✅ | ✅ | ✅ | — | — | N/A | Confirmed: stripeController itemized breakdown + CheckoutModal disclosure. (S280 verified) |
-| 97 | Post-Purchase Confirmation Email (Premium Breakdown) | PLATFORM | ALL | — | ✅ | — | ✅ | — | — | N/A | Confirmed: breakdownHtml in stripeController with buyer premium, item photo, org name, etc. (S280 verified) |
-| 98 | Chargeback Defense Documentation | PLATFORM | ALL | ✅ | ✅ | — | ✅ | — | — | N/A | Confirmed: CheckoutEvidence model in schema + auto-capture in stripeController. (S280 verified) |
+| 96 | Buyer Premium Disclosure (4-Point Visibility) | PLATFORM | ALL | — | ✅ | ✅ | ✅ | N/A | N/A | N/A | Confirmed: stripeController itemized breakdown + CheckoutModal disclosure. (S280 verified) |
+| 97 | Post-Purchase Confirmation Email (Premium Breakdown) | PLATFORM | ALL | — | ✅ | — | ✅ | N/A | N/A | N/A | Confirmed: breakdownHtml in stripeController with buyer premium, item photo, org name, etc. (S280 verified) |
+| 98 | Chargeback Defense Documentation | PLATFORM | ALL | ✅ | ✅ | — | ✅ | N/A | N/A | N/A | Confirmed: CheckoutEvidence model in schema + auto-capture in stripeController. (S280 verified) |
 
 #### Platform Batch P3 — Account Controls
 
 | # | Feature | Role | Tier | DB | API | UI | QA | Chrome | Nav | Human | Notes |
 |---|---------|------|------|----|----|----|----|--------|-----|-------|-------|
-| 99 | Export Rate Limiting (1/month) | PLATFORM | ALL | ✅ | ✅ | — | — | — | — | N/A | CSV/JSON exports limited to 1 per month per account; prevents data harvesting. See anti-abuse-system-design-2026-03-19.md §Vector 1 |
-| 100 | First-Month Refund Cap (50%) | PLATFORM | ALL | — | ✅ | — | — | — | — | N/A | Refunds capped at 50% if requested <30 days post-signup. See anti-abuse-system-design-2026-03-19.md §Vector 1 |
-| 101 | Email Verification (Unique per Organizer) | PLATFORM | ALL | ✅ | ✅ | — | — | — | — | N/A | Hard gate: no multi-account signup with same email. See anti-abuse-system-design-2026-03-19.md §Vector 4 |
-| 102 | Payment Method Deduplication | PLATFORM | ALL | ✅ | ✅ | ✅ | — | — | — | N/A | Links organizer accounts sharing Stripe card/PayPal; suggests merge to Pro tier. See anti-abuse-system-design-2026-03-19.md §Vector 4 |
+| 99 | Export Rate Limiting (1/month) | PLATFORM | ALL | ✅ | ✅ | — | ✅ | N/A | N/A | N/A | CSV/JSON exports limited to 1 per month per account; prevents data harvesting. See anti-abuse-system-design-2026-03-19.md §Vector 1 |
+| 100 | First-Month Refund Cap (50%) | PLATFORM | ALL | — | ✅ | — | ✅ | N/A | N/A | N/A | Refunds capped at 50% if requested <30 days post-signup. See anti-abuse-system-design-2026-03-19.md §Vector 1 |
+| 101 | Email Verification (Unique per Organizer) | PLATFORM | ALL | ✅ | ✅ | — | ✅ | N/A | N/A | N/A | Hard gate: no multi-account signup with same email. See anti-abuse-system-design-2026-03-19.md §Vector 4 |
+| 102 | Payment Method Deduplication | PLATFORM | ALL | ✅ | ✅ | ✅ | ✅ | N/A | N/A | N/A | Links organizer accounts sharing Stripe card/PayPal; suggests merge to Pro tier. See anti-abuse-system-design-2026-03-19.md §Vector 4 |
 
 #### Platform Batch P4 — Cost Control
 
 | # | Feature | Role | Tier | DB | API | UI | QA | Chrome | Nav | Human | Notes |
 |---|---------|------|------|----|----|----|----|--------|-----|-------|-------|
-| 103 | Photo Retention Policy (90-day archive, 1-year delete) | PLATFORM | ALL | ✅ | ✅ | — | — | — | — | N/A | Auto-archive after 90 days, delete after 1 year; reduces Cloudinary costs indefinitely. See total-cost-of-ownership-2026-03-19.md §Section 3 |
-| 104 | AI Cost Ceiling + Ollama Fallback | PLATFORM | ALL | — | ✅ | — | — | — | — | N/A | Auto-switch to Ollama if Claude API cost exceeds monthly threshold. See total-cost-of-ownership-2026-03-19.md §Section 5 |
-| 105 | Cloudinary Bandwidth Monitoring + Alerts | PLATFORM | ALL | — | ✅ | — | ✅ | — | — | N/A | cloudinaryBandwidthTracker.ts confirmed — tracks daily serves, alerts at 80% of 25GB free tier. (S280 verified) |
+| 103 | Photo Retention Policy (90-day archive, 1-year delete) | PLATFORM | ALL | ✅ | ✅ | — | ✅ | N/A | N/A | N/A | Auto-archive after 90 days, delete after 1 year; reduces Cloudinary costs indefinitely. See total-cost-of-ownership-2026-03-19.md §Section 3 |
+| 104 | AI Cost Ceiling + Ollama Fallback | PLATFORM | ALL | — | ✅ | — | ✅ | N/A | N/A | N/A | Auto-switch to Ollama if Claude API cost exceeds monthly threshold. See total-cost-of-ownership-2026-03-19.md §Section 5 |
+| 105 | Cloudinary Bandwidth Monitoring + Alerts | PLATFORM | ALL | — | ✅ | — | ✅ | N/A | N/A | N/A | cloudinaryBandwidthTracker.ts confirmed — tracks daily serves, alerts at 80% of 25GB free tier. (S280 verified) |
 
 ### Before Growth (P1) — Parallel Safety Batches
 
@@ -391,32 +360,32 @@ _#126 shipped (S269). These can now run in parallel._
 
 | # | Feature | Role | Tier | DB | API | UI | QA | Chrome | Nav | Human | Notes |
 |---|---------|------|------|----|----|----|----|--------|-----|-------|-------|
-| 106 | Organizer Reputation Scoring System | PLATFORM | ALL | ✅ | ✅ | ✅ | ✅ | — | — | N/A | OrganizerReputation model + computeReputationScore service confirmed in code. Badge endpoint live. (S280 verified) |
-| 107 | Chargeback + Collusion Tracking | PLATFORM | ALL | ✅ | ✅ | — | — | — | — | N/A | Flags pattern of chargebacks + same-IP bidding; suspension after 3+ incidents. See anti-abuse-system-design-2026-03-19.md §Vector 2 |
-| 108 | Winning Bid Velocity Check (low vs. value) | PLATFORM | ALL | ✅ | ✅ | — | — | — | — | N/A | Flags auctions with winning bid <10% of estimated value; holds payment 24h for review. See anti-abuse-system-design-2026-03-19.md §Vector 3 |
-| 109 | Off-Platform Transaction Detection (Post-Sale Monitoring) | PLATFORM | ALL | ✅ | ✅ | — | — | — | — | N/A | 30-day pattern detection: low-price sales with no activity flagged. See anti-abuse-system-design-2026-03-19.md §Vector 3 |
-| 110 | IP-Based Soft Linking (Multi-Account Detection) | PLATFORM | ALL | ✅ | ✅ | ✅ | — | — | — | N/A | Suggests merge for accounts from same IP with >3 concurrent sales in <7 days. See anti-abuse-system-design-2026-03-19.md §Vector 4 |
-| 114 | Bid Cancellation Audit Trail | PLATFORM | ALL | ✅ | ✅ | ✅ | — | — | — | N/A | Tracks bid cancellations; pattern flagged after 5+ cancellations + 3+ chargebacks. See anti-abuse-system-design-2026-03-19.md §Vector 2 |
-| 117 | Chargeback Response + Serial Buyer Account Suspension | PLATFORM | ALL | ✅ | ✅ | — | — | — | — | N/A | Flags buyers at 2+ chargebacks; suspends after 3+ incidents. See anti-abuse-system-design-2026-03-19.md §Vector 6 |
+| 106 | Organizer Reputation Scoring System | PLATFORM | ALL | ✅ | ✅ | ✅ | ✅ | N/A | N/A | N/A | OrganizerReputation model + computeReputationScore service confirmed in code. Badge endpoint live. (S280 verified) |
+| 107 | Chargeback + Collusion Tracking | PLATFORM | ALL | ✅ | ✅ | — | ✅ | N/A | N/A | N/A | Flags pattern of chargebacks + same-IP bidding; suspension after 3+ incidents. See anti-abuse-system-design-2026-03-19.md §Vector 2 |
+| 108 | Winning Bid Velocity Check (low vs. value) | PLATFORM | ALL | ✅ | ✅ | — | ✅ | N/A | N/A | N/A | Flags auctions with winning bid <10% of estimated value; holds payment 24h for review. See anti-abuse-system-design-2026-03-19.md §Vector 3 |
+| 109 | Off-Platform Transaction Detection (Post-Sale Monitoring) | PLATFORM | ALL | ✅ | ✅ | — | ✅ | N/A | N/A | N/A | 30-day pattern detection: low-price sales with no activity flagged. See anti-abuse-system-design-2026-03-19.md §Vector 3 |
+| 110 | IP-Based Soft Linking (Multi-Account Detection) | PLATFORM | ALL | ✅ | ✅ | ✅ | ✅ | N/A | N/A | N/A | Suggests merge for accounts from same IP with >3 concurrent sales in <7 days. See anti-abuse-system-design-2026-03-19.md §Vector 4 |
+| 114 | Bid Cancellation Audit Trail | PLATFORM | ALL | ✅ | ✅ | ✅ | ✅ | N/A | N/A | N/A | Tracks bid cancellations; pattern flagged after 5+ cancellations + 3+ chargebacks. See anti-abuse-system-design-2026-03-19.md §Vector 2 |
+| 117 | Chargeback Response + Serial Buyer Account Suspension | PLATFORM | ALL | ✅ | ✅ | — | ✅ | N/A | N/A | N/A | Flags buyers at 2+ chargebacks; suspends after 3+ incidents. See anti-abuse-system-design-2026-03-19.md §Vector 6 |
 
 #### Platform Batch P5B — Review Integrity & Spam Prevention
 
 | # | Feature | Role | Tier | DB | API | UI | QA | Chrome | Nav | Human | Notes |
 |---|---------|------|------|----|----|----|----|--------|-----|-------|-------|
-| 115 | Verified Purchase Badge on Reviews | PLATFORM | ALL | ✅ | ✅ | ✅ | — | — | — | N/A | Only non-refunded past purchasers can leave reviews; prevents fake review spam. See anti-abuse-system-design-2026-03-19.md §Novel Vector B |
-| 116 | Review Timing Anomaly Detection | PLATFORM | ALL | ✅ | ✅ | — | — | — | — | N/A | Flags reviews <1 hour post-purchase or from same IP within 24 hours; manual moderation queue. See anti-abuse-system-design-2026-03-19.md §Novel Vector B |
+| 115 | Verified Purchase Badge on Reviews | PLATFORM | ALL | ✅ | ✅ | ✅ | ✅ | N/A | N/A | N/A | Only non-refunded past purchasers can leave reviews; prevents fake review spam. See anti-abuse-system-design-2026-03-19.md §Novel Vector B |
+| 116 | Review Timing Anomaly Detection | PLATFORM | ALL | ✅ | ✅ | — | ✅ | N/A | N/A | N/A | Flags reviews <1 hour post-purchase or from same IP within 24 hours; manual moderation queue. See anti-abuse-system-design-2026-03-19.md §Novel Vector B |
 
 #### Platform Batch P5C — Advanced Fraud Monitoring & Data Governance
 
 | # | Feature | Role | Tier | DB | API | UI | QA | Chrome | Nav | Human | Notes |
 |---|---------|------|------|----|----|----|----|--------|-----|-------|-------|
-| 111 | Bot/Scraper Rate Limiting on CDN | PLATFORM | ALL | — | ✅ | — | — | — | — | N/A | Rate limits image endpoints; prevents bot harvesting via Cloudinary bandwidth spike. See total-cost-of-ownership-2026-03-19.md §Section 4 |
-| 112 | Database Record Archival Policy (Soft-Delete) | PLATFORM | ALL | ✅ | ✅ | — | — | — | — | N/A | Quarterly soft-delete of old sales/items; reduces Neon compute bloat. See total-cost-of-ownership-2026-03-19.md §Section 3 |
-| 113 | Async AI Tagging Queue (Prevent Rate-Limit Spikes) | PLATFORM | ALL | ✅ | ✅ | — | — | — | — | N/A | Background worker processes tags; prevents Claude API rate limiting during peak uploads. See total-cost-of-ownership-2026-03-19.md §Risk #4 |
-| 118 | Photo Compression at Upload (Reduce Storage Bloat) | PLATFORM | ALL | — | ✅ | ✅ | — | — | — | N/A | Auto-compress photos on-device; reject images <100×100px or >50MB. See anti-abuse-system-design-2026-03-19.md §Novel Vector C |
-| 119 | Aggregate Chargeback Monitoring (Stripe Health) | PLATFORM | ALL | — | ✅ | — | — | — | — | N/A | Tracks monthly chargeback rate; triggers pre-auth + payment hold if >0.8%, account escalation if >1%. See anti-abuse-system-design-2026-03-19.md §Novel Vector D |
-| 120 | Sale Cancellation Audit (Rapid Cancellation Detection) | PLATFORM | ALL | ✅ | ✅ | — | — | — | — | N/A | Flags sales cancelled <2h post-publication with >100 holds; requires organizer explanation. See anti-abuse-system-design-2026-03-19.md §Novel Vector A |
-| 121 | Tiered Photo Storage Migration (Cloudinary → B2/Bunny) | PLATFORM | ALL | ✅ | ✅ | — | — | — | — | N/A | Implements 3-tier strategy: Active (0–90d on Cloudinary), Warm (90d–2y on B2 + Bunny CDN), Cold (2y+ metadata-only). Saves ~70% storage cost; enables B2B analytics. See photo-storage-strategy-2026-03-19.md |
+| 111 | Bot/Scraper Rate Limiting on CDN | PLATFORM | ALL | — | ✅ | — | ✅ | N/A | N/A | N/A | Rate limits image endpoints; prevents bot harvesting via Cloudinary bandwidth spike. See total-cost-of-ownership-2026-03-19.md §Section 4 |
+| 112 | Database Record Archival Policy (Soft-Delete) | PLATFORM | ALL | ✅ | ✅ | — | ✅ | N/A | N/A | N/A | Quarterly soft-delete of old sales/items; reduces Neon compute bloat. See total-cost-of-ownership-2026-03-19.md §Section 3 |
+| 113 | Async AI Tagging Queue (Prevent Rate-Limit Spikes) | PLATFORM | ALL | ✅ | ✅ | — | ✅ | N/A | N/A | N/A | Background worker processes tags; prevents Claude API rate limiting during peak uploads. See total-cost-of-ownership-2026-03-19.md §Risk #4 |
+| 118 | Photo Compression at Upload (Reduce Storage Bloat) | PLATFORM | ALL | — | ✅ | ✅ | ✅ | N/A | N/A | N/A | Auto-compress photos on-device; reject images <100×100px or >50MB. See anti-abuse-system-design-2026-03-19.md §Novel Vector C |
+| 119 | Aggregate Chargeback Monitoring (Stripe Health) | PLATFORM | ALL | — | ✅ | — | ✅ | N/A | N/A | N/A | Tracks monthly chargeback rate; triggers pre-auth + payment hold if >0.8%, account escalation if >1%. See anti-abuse-system-design-2026-03-19.md §Novel Vector D |
+| 120 | Sale Cancellation Audit (Rapid Cancellation Detection) | PLATFORM | ALL | ✅ | ✅ | — | ✅ | N/A | N/A | N/A | Flags sales cancelled <2h post-publication with >100 holds; requires organizer explanation. See anti-abuse-system-design-2026-03-19.md §Novel Vector A |
+| 121 | Tiered Photo Storage Migration (Cloudinary → B2/Bunny) | PLATFORM | ALL | ✅ | ✅ | — | ✅ | N/A | N/A | N/A | Implements 3-tier strategy: Active (0–90d on Cloudinary), Warm (90d–2y on B2 + Bunny CDN), Cold (2y+ metadata-only). Saves ~70% storage cost; enables B2B analytics. See photo-storage-strategy-2026-03-19.md |
 
 ---
 

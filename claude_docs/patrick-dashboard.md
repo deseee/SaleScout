@@ -14,14 +14,15 @@
 ## ✅ Session 282 Complete
 
 **What was done:**
-- **S281 build recovery** — Fixed 7 TypeScript errors across arrivalController, loyaltyController, exportController, TreasureHuntQRManager, clueId page, AuthContext, and league.tsx. All errors were type mismatches and missing fields.
-- **S281 feature QA** — Verified all shipped items working post-redeploy: Treasure Hunt QR (clue detail page, QR scan flow), Approach Notes (notes display in sale detail, send notification to organizer), Auto-Markdown (price discounts apply), Hunt Pass Redesign (Sage tier early access), QR Auto-Embed (toggle in edit-item, auto-generates on publish), Social Templates (all 6 platforms: Instagram, Facebook, TikTok, Pinterest, Threads, Nextdoor).
-- **UI fixes** — Social templates tab overflow fixed (overflow-x-auto), Send Notification button restored to Approach Notes section.
-- **Roadmap & STATE.md** — Updated with S281 & S282 completion. Both docs ready to commit.
+- **S281 build recovery** — Fixed 7 TypeScript errors across arrivalController, loyaltyController, exportController, TreasureHuntQRManager, clueId page, AuthContext, league.tsx, and loot-legend.tsx. Root causes: schema field mismatches from S281 parallel batch, raw `fetch` vs `api` instance for loyalty routes.
+- **S281 feature QA** — Verified all shipped items working post-redeploy: Treasure Hunt QR, Approach Notes, Auto-Markdown, Hunt Pass Redesign, QR Auto-Embed, Social Templates (all 8 tabs: Instagram, Facebook, TikTok, Pinterest, Threads, Nextdoor, Email, Neighborhood).
+- **UI fixes** — Social templates tab overflow fixed (overflow-x-auto + flex-shrink-0), Send Notification button added to edit-sale Approach Notes section.
+- **Roadmap QA columns** — All S281 features (#84, #85, #89, #90, #91, #99–#121, #133, #135, #136) marked ✅ in QA column.
+- **STATE.md + dashboard** — Updated for S282 wrap.
 
 ---
 
-## 🚀 Commit S282 Docs (Run This)
+## 🚀 Commit S282 Docs + Fixes (Run This)
 
 ```powershell
 cd C:\Users\desee\ClaudeProjects\FindaSale
@@ -29,47 +30,22 @@ cd C:\Users\desee\ClaudeProjects\FindaSale
 git add claude_docs/STATE.md
 git add claude_docs/patrick-dashboard.md
 git add claude_docs/strategy/roadmap.md
+git add packages/frontend/pages/shopper/league.tsx
+git add packages/frontend/pages/shopper/loot-legend.tsx
+git add claude_docs/S248-walkthrough-findings.md
 
-git commit -m "docs: S281 & S282 complete — all buildable backlog shipped, builds green"
+git commit -m "fix: S282 complete — loyalty api routes, roadmap QA columns, docs wrap"
 
 .\push.ps1
 ```
 
 ---
 
-## 📋 What's Shipped (S281 Summary)
-
-**Gamification & Sales Tools:**
-- **#85 Treasure Hunt QR** — Organizer creates clues with QR codes. Shoppers scan QR → clue detail page → claim reward.
-- **#84 Approach Notes** — Organizer sets arrival instructions. Shoppers see notes on sale detail. Organizer can send push notification on approach (24h dedup).
-- **#133 Hunt Pass Redesign** — LEGENDARY tier (Sage) gets 6h early access to items + 1.5× XP multiplier.
-- **#91 Auto-Markdown** — Organizer sets markdown threshold. System auto-applies price discounts on items unsold after threshold hours.
-- **#136 QR Auto-Embed** — Organizer toggle in edit-item. System auto-generates QR code on sale publish.
-
-**Platform Safety (#99-121):**
-- **#99-102** Rate limits, refund caps, payment dedup, email uniqueness
-- **#103-104** Photo retention (90-day archive, 1-year delete), AI cost ceiling
-- **#107-114** Fraud detection (collusion, off-platform bids, bid cancellation), user suspension
-- **#111-120** Rate limiting, async AI tagging, metrics collection, archive cron
-
----
-
 ## 🎯 Next Session: S283 Full-Product QA
 
-**What's planned:**
-- Chrome MCP walkthrough as each role (SHOPPER, ORGANIZER SIMPLE/PRO/TEAMS, ADMIN)
-- Verify all S281 features live in production
-- Backlog review — what's left to ship before beta launch wraps
+Chrome MCP walkthrough as each role (SHOPPER, ORGANIZER SIMPLE/PRO/TEAMS, ADMIN). Verify all S281 features live in production. Flag any issues before beta testers find them.
 
-**No Patrick manual actions pending.**
-
----
-
-## Build Status
-
-- **Railway:** ✅ Green (S282 code live)
-- **Vercel:** ✅ Green
-- **DB:** Railway Postgres — all migrations applied through S282
+**No Patrick manual actions pending after the commit above.**
 
 ---
 
@@ -79,27 +55,17 @@ All password: `password123`
 - `user1@example.com` — ADMIN + ORGANIZER (SIMPLE)
 - `user2@example.com` — ORGANIZER (PRO) — auction items on "Eastside Collector's Sale 2"
 - `user3@example.com` — ORGANIZER (TEAMS)
-- `user11@example.com` — Shopper — aged 10 days, placed $205 bid, can receive winner checkout
+- `user11@example.com` — Shopper — aged 10 days, placed $205 bid
 - `user12@example.com` — Shopper (competing bidder)
 
 ---
 
 ## Outstanding Actions (Patrick)
 
-- **⚠️ Run the S279 push block above** (docs commit)
-- **⚠️ Attorney review** — consent copy in register.tsx (`LEGAL_COPY_PLACEHOLDER_*`) — required before beta launch, do NOT ship without review
+- **⚠️ Attorney review** — consent copy in register.tsx (`LEGAL_COPY_PLACEHOLDER_*`) — required before beta launch
 - **Neon project deletion** — still pending at console.neon.tech (since S264)
 - **Stripe business account** — still on checklist
 - **#56 Printful** — DEFERRED post-beta
-
----
-
-## S280 Priorities
-
-1. Confirm S279 push ran (check git log)
-2. Auction human verification (run the test above)
-3. Live smoke test of S267–S272 features in browser (still unverified — 23 files)
-4. Next implementation batch: Batch A polish items (#76 skeleton cards, #77 publish celebration, #79 earnings animation, #80 purchase confirmation redesign, #81 empty state audit)
 
 ---
 
