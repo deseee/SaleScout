@@ -1,6 +1,6 @@
 # ROADMAP – FindA.Sale
 
-**Last Updated:** 2026-03-24 (v68 — S269/S270: Batch A (#126 gamification legacy cleanup, #129 homepage modernization, #134 plan-a-sale card) + Batch B (#127 POS tiers, #128 support stack, #131 share templates, #132 à la carte fee) shipped. XP economy (#123 Phase 2) live. Explorer Rank UI live. Homepage sage redesign live.)
+**Last Updated:** 2026-03-25 (v69 — S271–S278: #72 dual-role schema, #73 two-channel notifications, #74 consent flow, #75 tier lapse, #87 brand tracking, #88 haul posts, #122 Explorer's Guild rebrand, #123 XP economy, #125 CSV export, #127 POS tiers, #128 support stack, #131 share templates, #132 à la carte fee, #134 plan-a-sale card, auction close flow, platform safety P1–P2 (#93–#98) all shipped. 42 items total confirmed deployed since S266. Roadmap reflects true shipped state as of S279 audit.)
 
 **Status:** Production MVP live at finda.sale. Beta: GO. Full build history: `claude_docs/strategy/COMPLETED_PHASES.md`.
 
@@ -8,11 +8,11 @@
 
 ## Product Summary
 
-FindA.Sale is a PWA for sale organizers and shoppers, reducing manual work and improving inventory visibility across the sale lifecycle. 
-The platform currently ships **71 features across 4 tiers** (FREE, SIMPLE, PRO, TEAMS) and 
-supports organizer-side operations, analytics, marketing, and 
-shopper-side discovery, engagement, and gamification. 
-Production MVP launched Q1 2026.
+FindA.Sale is a PWA for sale organizers and shoppers, reducing manual work and improving inventory visibility across the sale lifecycle.
+The platform currently ships **95+ features across 4 tiers** (FREE, SIMPLE, PRO, TEAMS) and
+supports organizer-side operations, analytics, marketing, and
+shopper-side discovery, engagement, and gamification.
+Production MVP launched Q1 2026. Full auction lifecycle (bidding + close flow + Stripe winner checkout) live.
 
 ---
 
@@ -122,6 +122,14 @@ Production MVP launched Q1 2026.
 | — | A/B Testing Infrastructure | ORG | SIMPLE | ✅ | ✅ | ✅ | ✅ | 📋 | — | N/A | Internal optimization tool |
 | — | Invites | ORG | SIMPLE | ✅ | ✅ | ✅ | ✅ | 📋 | — | 📋 | Invite-to-sale / invite-to-platform |
 | — | Disputes Management | BOTH | SIMPLE | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 📋 | Trust & safety |
+| 72 | Dual-Role Account Schema | BOTH | SIMPLE | ✅ | ✅ | ✅ | ✅ | 📋 | — | 📋 | JWT roles[] array, auth middleware updated. Enables organizer + shopper in same account |
+| 73 | Two-Channel Notification System | BOTH | SIMPLE | ✅ | ✅ | ✅ | ✅ | 📋 | ✅ | 📋 | OPERATIONAL (organizer) + DISCOVERY (shopper) channels. Inbox tabs. Migration applied |
+| 74 | Role-Aware Registration Consent | BOTH | FREE | ✅ | ✅ | ✅ | ✅ | 📋 | — | 📋 | Opt-in checkboxes at signup. Attorney review of consent copy required before launch |
+| 75 | Tier Lapse State Logic | ORG | PRO | ✅ | ✅ | ✅ | ✅ | 📋 | — | 📋 | 8am warning + 11pm lapse cron. Dashboard banner. Suspends ORG features, retains SHO features |
+| 127 | POS Value Unlock Tiers | ORG | SIMPLE | ✅ | ✅ | ✅ | ✅ | 📋 | — | 📋 | Dual-gate (tx+revenue). 3 tiers at 5/20/50 tx. /api/organizer/pos-tiers + PosTierGates.tsx |
+| 131 | Share & Promote Templates | ORG | SIMPLE | — | — | ✅ | ✅ | 📋 | — | 📋 | SharePromoteModal: 4 templates (social post, flyer, email invite, neighborhood post) |
+| 132 | À La Carte Single-Sale Fee ($9.99) | ORG | PAID_ADDON | ✅ | ✅ | ✅ | ✅ | 📋 | — | 📋 | Sale.purchaseModel + alaCarte + alaCarteFeePaid. Stripe checkout. AlaCartePublishModal for SIMPLE tier |
+| 134 | Plan a Sale Dashboard Card | ORG | SIMPLE | — | — | ✅ | ✅ | 📋 | ✅ | 📋 | "Coming Soon" card on organizer dashboard overview tab |
 
 ### Organizer — Analytics & Intelligence [PRO]
 
@@ -142,6 +150,7 @@ Production MVP launched Q1 2026.
 | 17 | Bid Bot Detector + Fraud Score | ORG | PRO | ✅ | ✅ | ✅ | ✅ | ✅S202 | ✅ | 📋 | FraudBadge on holds page, fraud-signals.tsx |
 | 13 | TEAMS Workspace | ORG | TEAMS | ✅ | ✅ | ✅ | ✅ | ⚠️ | ✅ | 📋 | Multi-user workspace, role management |
 | 68 | Command Center Dashboard | ORG | PRO | ✅ | ✅ | ✅ | ✅ | ⚠️ | ✅ | 📋 | Per-sale widget dashboard |
+| 125 | Inventory Syndication CSV Export | ORG | PRO | ✅ | ✅ | ✅ | ✅ | 📋 | ✅ | 📋 | exportService.ts + csvExportController.ts. PRO/TEAMS gate. eBay/Amazon/Facebook pre-formatted |
 
 ### Organizer — Marketing & Brand Amplification [SIMPLE/PRO mixed]
 
@@ -162,7 +171,7 @@ Production MVP launched Q1 2026.
 | # | Feature | Role | Tier | DB | API | UI | QA | Chrome | Nav | Human | Notes |
 |---|---------|------|------|----|----|----|----|--------|-----|-------|-------|
 | 6 | Virtual Queue / Line Management | ORG | SIMPLE | ✅ | ✅ | ✅ | ✅ | 📋 | — | 📋 | Start/call next/join line + SMS; free for all |
-| — | Auction Mechanics | ORG | SIMPLE | ✅ | ✅ | ✅ | ✅ | 📋 | — | 📋 | Countdown timer, bid modal, auto-bid, cron closing |
+| — | Auction Mechanics + Close Flow | ORG | SIMPLE | ✅ | ✅ | ✅ | ✅ | ✅ | — | 📋 | Countdown timer, bid modal, auto-bid, cron closing, manual end-auction button, auctionEndTime field, winner Stripe checkout link, organizer close notification, admin bid-review queue |
 | 37 | Sale Reminders (Calendar + Remind Me) | SHO | SIMPLE | ✅ | ✅ | ✅ | ✅ | 📋 | — | 📋 | Sale alerts for shoppers |
 | 28 | Neighborhood Heatmap | BOTH | SIMPLE | ✅ | ✅ | ✅ | ✅ | 📋 | ✅ | 📋 | Density-based Leaflet overlay |
 | 14 | Real-Time Status Updates | BOTH | PRO | ✅ | ✅ | ✅ | ✅ | ✅S202 | — | 📋 | Organizer widget, SMS/email alerts, SaleStatusWidget |
@@ -222,6 +231,8 @@ Production MVP launched Q1 2026.
 | 62 | Digital Receipt + Returns | SHO | FREE | ✅ | ✅ | ✅ | ✅ | ✅S202 | ✅ | 📋 | Auto-generated receipt post-POS, return window |
 | 45 | Collector Passport | SHO | FREE | ✅ | ✅ | ✅ | ✅ | ✅S202 | ✅ | 📋 | Specialty collection tracking + achievement path |
 | 50 | Loot Log | SHO | FREE | ✅ | ✅ | ✅ | ✅ | ✅S202 | ✅ | 📋 | Personal purchase history with photos + prices |
+| 87 | Brand & Designer Tracking | SHO | FREE | ✅ | ✅ | ✅ | ✅ | ✅ | — | 📋 | BrandFollow table. Follow brands → alerts on matching items. 4 endpoints + notification trigger on item publish |
+| 88 | Haul Post Gallery (UGC Social Proof) | SHO | FREE | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 📋 | UGCPhoto extended (isHaulPost, linkedItemIds, likeCount) + UGCPhotoReaction model. /hauls page live |
 
 ### Shopper — Gamification [FREE + HUNT_PASS]
 
@@ -239,6 +250,9 @@ Production MVP launched Q1 2026.
 | 57 | Shiny / Rare Item Badges | SHO | FREE | ✅ | ✅ | ✅ | ✅ | 📋 | — | 📋 | RarityBadge wired to item cards |
 | 48 | Treasure Trail Route Builder | SHO | FREE | ✅ | ✅ | ✅ | ✅ | 📋 | ✅ | 📋 | Trail pages + share token, multi-sale routing |
 | 55 | Seasonal Discovery Challenges | SHO | FREE | ✅ | ✅ | ✅ | ✅ | 📋 | — | 📋 | Rotating challenges by season/category |
+| 122 | Explorer's Guild Phase 1 (Rebrand + Copy) | SHO | FREE | — | — | ✅ | ✅ | 📋 | — | 📋 | Collector→Explorer labels, collect→explore language throughout. Rank names updated. No schema changes |
+| 123 | Explorer's Guild Phase 2 (XP Economy + Loot Legend) | SHO | FREE/PAID_ADDON | ✅ | ✅ | ✅ | ✅ | 📋 | ✅ | 📋 | User.guildXp + User.explorerRank + RarityBoost table. XP sinks (coupon-gen, rarity boost, Hunt Pass discount). Loot Legend portfolio. Full schema + endpoints |
+| 126 | Gamification Legacy Cleanup | SHO | FREE | ✅ | ✅ | ✅ | ✅ | ✅ | — | N/A | User.points removed, pointsService deleted, points routes deleted. All awardPoints() calls removed. QA confirmed no pts refs live |
 
 ### Wave 5 — Advanced Intelligence Features [PRO/FREE/PAID_ADDON]
 
@@ -263,6 +277,7 @@ Production MVP launched Q1 2026.
 | — | AI Condition Grade Suggestions | ORG | SIMPLE | ✅ | ✅ | ✅ | ✅ | 📋 | — | 📋 | S/A/B/C/D from photo |
 | — | AI SEO Description Optimization | ORG | SIMPLE | ✅ | ✅ | ✅ | ✅ | 📋 | — | 📋 | High-intent search term bias |
 | 21 | User Impact Scoring in Sentry | BOTH | FREE | — | ✅ | ✅ | ✅ | 📋 | — | N/A | Error prioritization by tier/points/hunt-pass status |
+| 128 | Automated Support Stack (5-Layer) | PLATFORM | ALL | — | ✅ | ✅ | ✅ | 📋 | ✅ | 📋 | /support page, fuse.js FAQ (L1), Claude API chat PRO/TEAMS (L2), community forum TEAMS (L3), smart escalation (L4). Zero human support for L1-L3 |
 
 ---
 
@@ -270,8 +285,6 @@ Production MVP launched Q1 2026.
 
 | # | Feature | Role | Tier | DB | API | UI | QA | Chrome | Nav | Human | Notes |
 |---|---------|------|------|----|----|----|----|--------|-----|-------|-------|
-| 19 | Passkey / WebAuthn Support | ORG | SIMPLE | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 📋 | QA confirmed, clear to deploy |
-| 51 | Sale Ripples | SHO | FREE | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 📋 | Schema + API + frontend complete. Neon migration applied |
 | 54 | Crowdsourced Appraisal AI | BOTH | PAID_ADDON | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 📋 | Sprint 2 frontend built. Sprint 3 (Stripe billing + Claude Haiku vision) deferred |
 | 60 | Premium Tier Bundle | ORG | PRO | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 📋 | Tier landing page + comparison matrix + upgrade CTA. Sprint 2 complete |
 
@@ -294,7 +307,7 @@ _All items can be dispatched simultaneously to separate subagents._
 |---|---------|------|------|----|----|----|----|--------|-----|-------|-------|
 | 126 | Gamification Legacy Cleanup | SHO | FREE | ✅ | ✅ | ✅ | ✅ | — | — | — | User.points deleted, migration applied, BottomTabNav cleaned, all points refs removed from 9 backend files. QA confirmed no pts refs live. |
 | 129 | Homepage Modernization | PUB | FREE | — | — | ✅ | ✅ | — | — | — | Sage gradient hero, 4:3 cards, filter pills, Fraunces/Inter typography live. QA confirmed. |
-| 130 | Brand Kit Field Migration | ORG | PRO | — | — | — | — | — | — | — | Move Business Name, Phone, Bio, Website URL from Brand Kit to Settings/Profile (these are account basics, not brand). Keep social links, logo, slug, colors, fonts, banner in Brand Kit. Small cleanup. |
+| 130 | Brand Kit Field Migration | ORG | PRO | ✅ | ✅ | ✅ | ✅ | 📋 | — | 📋 | **SHIPPED.** Business Name/Phone/Bio/Website moved to Settings/Profile. Brand Kit retains social links, logo, slug, colors, fonts, banner |
 | 134 | Plan a Sale Dashboard Placement | ORG | SIMPLE | — | — | ✅ | — | — | — | — | "Coming Soon" card added to organizer dashboard overview tab. |
 | 76 | Skeleton Loaders — Item Grids | BOTH | FREE | — | — | — | — | — | — | — | Replace spinners with ghost card layouts across all item/sale grids. No schema changes — reads existing `Item.photoUrls[]`, `Item.title`, `Item.price`. UI-only. Highest perceived-performance ROI. Spec: `claude_docs/ux-spotchecks/design-polish-vision-2026-03-19.md` |
 | 77 | Sale Published Celebration Screen | ORG | SIMPLE | — | — | — | — | — | — | — | Full-screen moment when organizer publishes a sale — sale name, cover photo, "You're live" + confetti. No schema changes — triggers on `Sale.status → PUBLISHED`. Replaces generic toast. Spec: `claude_docs/ux-spotchecks/design-polish-vision-2026-03-19.md` |
@@ -307,10 +320,10 @@ _Items within this batch are also parallelizable — different layers, no confli
 
 | # | Feature | Role | Tier | DB | API | UI | QA | Chrome | Nav | Human | Notes |
 |---|---------|------|------|----|----|----|----|--------|-----|-------|-------|
-| 127 | POS Value Unlock Tiers | ORG | SIMPLE | — | ✅ | ✅ | — | — | — | — | Dual-gate (tx+revenue). 3 tiers. /api/organizer/pos-tiers + PosTierGates.tsx shipped. |
-| 128 | Automated Support Stack | PLATFORM | ALL | — | ✅ | ✅ | — | — | — | — | /support page, fuse.js FAQ, AI chat (PRO/TEAMS), community link (TEAMS). @anthropic-ai/sdk + fuse.js added. |
-| 131 | Share & Promote Templates | ORG | SIMPLE | — | — | ✅ | — | — | — | — | SharePromoteModal: 4 templates (social, flyer, email, neighborhood). Integrated on promote page. |
-| 132 | À La Carte Single-Sale Fee | ORG | PAID_ADDON | ✅ | ✅ | ✅ | — | — | — | — | Sale.purchaseModel + alaCarte + alaCarteFeePaid. Migration applied. Stripe checkout. AlaCartePublishModal on edit-sale for SIMPLE tier. |
+| 127 | POS Value Unlock Tiers | ORG | SIMPLE | — | ✅ | ✅ | ✅ | 📋 | — | 📋 | **SHIPPED** → see Feature Inventory (Organizer Core). Dual-gate (tx+revenue). 3 tiers live |
+| 128 | Automated Support Stack | PLATFORM | ALL | — | ✅ | ✅ | ✅ | 📋 | ✅ | 📋 | **SHIPPED** → see Feature Inventory (Platform & AI). /support page live |
+| 131 | Share & Promote Templates | ORG | SIMPLE | — | — | ✅ | ✅ | 📋 | — | 📋 | **SHIPPED** → see Feature Inventory (Organizer Core). SharePromoteModal live |
+| 132 | À La Carte Single-Sale Fee | ORG | PAID_ADDON | ✅ | ✅ | ✅ | ✅ | 📋 | — | 📋 | **SHIPPED** → see Feature Inventory (Organizer Core). Stripe checkout + AlaCartePublishModal live |
 | 122 | Multi-Platform Social Templates Expansion | ORG | SIMPLE | — | — | — | — | — | — | — | Add TikTok, Pinterest, Nextdoor, Threads to existing social share templates. Platform-native copy + dimensions for each. Low complexity. |
 | 123 | QR Code Auto-Embedding in Exports | ORG | SIMPLE | — | ✅ | ✅ | — | — | — | — | Cloudinary overlay: embed FindA.Sale QR code in every watermarked photo export. Organizer toggle to disable per-item. Very low complexity. |
 | 124 | Nextdoor Export Template | ORG | SIMPLE | — | ✅ | ✅ | — | — | — | — | One-click export of sale to Nextdoor-formatted card (photos, location, time, event type). API if available; fallback = formatted copy-paste. Low complexity. |
@@ -323,20 +336,20 @@ _#126 must ship first. Then these can run in parallel._
 
 | # | Feature | Role | Tier | DB | API | UI | QA | Chrome | Nav | Human | Notes |
 |---|---------|------|------|----|----|----|----|--------|-----|-------|-------|
-| 122 | Explorer's Guild — Phase 1 (Rebrand + Copy) | SHO | FREE | — | — | — | — | — | — | — | Rename Collector's Guild → Explorer's Guild throughout. Update rank names (Initiate→Scout→Ranger→Sage→Grandmaster), OnboardingWizard copy, collector-passport labels, leaderboard copy, badge names. No schema changes. Spec: `claude_docs/research/gamification-rpg-spec-S260.md` |
-| 133 | Hunt Pass Subscription Redesign | SHO | PAID_ADDON | ✅ | ✅ | ✅ | — | — | — | — | Redesign Hunt Pass as $4.99/mo subscription alongside rank (not instead of). Perks: 48h early access, 10 saved search alerts, weekly digest, 25% XP discount on boosts, cosmetic badge skins. Sage/Grandmaster exclusives: 6h Legendary-first access, 1.5x XP multiplier, Loot Legend public portfolio, Collector's League leaderboard. Old points checkout flow deleted by #126. |
-| 123 | Explorer's Guild — Phase 2 (XP Economy + Loot Legend) | SHO | FREE/PAID_ADDON | — | — | — | — | — | — | — | Full XP economy: rarity tiers (Common/Uncommon/Rare/Legendary), XP sinks (coupon-gen, rarity boost, Hunt Pass discount), Loot Legend item tracking, shareable moment cards, abuse prevention flags, referral loop. Requires 4–5 new schema tables + API endpoints. Spec: `claude_docs/research/gamification-rpg-spec-S260.md` |
+| 122 | Explorer's Guild — Phase 1 (Rebrand + Copy) | SHO | FREE | — | — | ✅ | ✅ | 📋 | — | 📋 | **SHIPPED** → see Feature Inventory (Gamification). Collector→Explorer labels live |
+| 133 | Hunt Pass Subscription Redesign | SHO | PAID_ADDON | ✅ | ✅ | ✅ | ✅ | 📋 | — | 📋 | Sage/Grandmaster exclusives: 6h Legendary-first access, 1.5x XP multiplier, Loot Legend portfolio, Collector's League leaderboard. Old points checkout flow deleted by #126 |
+| 123 | Explorer's Guild — Phase 2 (XP Economy + Loot Legend) | SHO | FREE/PAID_ADDON | ✅ | ✅ | ✅ | ✅ | 📋 | ✅ | 📋 | **SHIPPED** → see Feature Inventory (Gamification). User.guildXp + User.explorerRank + RarityBoost live |
 | 124 | Rarity Boost XP Sink | SHO | FREE/PAID_ADDON | — | ✅ | — | — | — | — | — | Frontend UI for POST /api/xp/sink/rarity-boost. Backend exists. Frontend shows 'Coming Soon' placeholder on loyalty page (shipped S265). Full implementation deferred. Tier: Explorer's Guild Phase 2 follow-up. |
 
 ### Parallel Batch D — Architecture + Infrastructure (Architect ADR Required First)
 
 | # | Feature | Role | Tier | DB | API | UI | QA | Chrome | Nav | Human | Notes |
 |---|---------|------|------|----|----|----|----|--------|-----|-------|-------|
-| 72 | Dual-Role Account Schema | BOTH | SIMPLE | — | — | — | — | — | — | — | `roles[]` array + `subscriptions[]` table. Replaces any single `role` enum. Architect ADR required before dev. Gate for #73, #74, #75. |
-| 73 | Two-Channel Notification System | BOTH | SIMPLE | — | — | — | — | — | — | — | OPERATIONAL (organizer) + DISCOVERY (shopper) channels. `notificationChannel` as first-class field on all notification records. Extends existing push/inbox features. Architect ADR required. Depends on #72. |
-| 74 | Role-Aware Registration Consent Flow | BOTH | FREE | — | — | — | — | — | — | — | Separate opt-in checkboxes at signup: "sale management alerts" (ORG) + "nearby sale alerts" (SHO). Legal review of consent copy required before dev. Depends on #72. |
-| 75 | Tier Lapse State Logic | ORG | PRO | — | — | — | — | — | — | — | When organizer sub lapses: suspend organizer features, retain shopper features. Re-enables on billing resume. Full freeze is not the default. Extends #65. Depends on #72. |
-| 125 | Inventory Syndication CSV Export (eBay / Amazon / Facebook Marketplace) | ORG | PRO | — | ✅ | ✅ | — | — | — | — | Export inventory as pre-formatted listing packages (CSV first). Promise API integration in S2. Medium complexity. |
+| 72 | Dual-Role Account Schema | BOTH | SIMPLE | ✅ | ✅ | ✅ | ✅ | 📋 | — | 📋 | **SHIPPED** → see Feature Inventory (Organizer Core). JWT roles[] array live |
+| 73 | Two-Channel Notification System | BOTH | SIMPLE | ✅ | ✅ | ✅ | ✅ | 📋 | ✅ | 📋 | **SHIPPED** → see Feature Inventory (Organizer Core). OPERATIONAL + DISCOVERY channels live |
+| 74 | Role-Aware Registration Consent Flow | BOTH | FREE | ✅ | ✅ | ✅ | ✅ | 📋 | — | 📋 | **SHIPPED** → see Feature Inventory (Organizer Core). ⚠️ Attorney review of LEGAL_COPY_PLACEHOLDER required before launch |
+| 75 | Tier Lapse State Logic | ORG | PRO | ✅ | ✅ | ✅ | ✅ | 📋 | — | 📋 | **SHIPPED** → see Feature Inventory (Organizer Core). Cron + dashboard banner live |
+| 125 | Inventory Syndication CSV Export (eBay / Amazon / Facebook Marketplace) | ORG | PRO | ✅ | ✅ | ✅ | ✅ | 📋 | ✅ | 📋 | **SHIPPED** → see Feature Inventory (Analytics). exportService.ts + csvExportController.ts live |
 
 ### Parallel Batch E — Polish, Social Proof & Engagement (No Blockers)
 
@@ -346,8 +359,8 @@ _#126 must ship first. Then these can run in parallel._
 | 84 | Approach Notes (Arrival Assistant) | SHO | SIMPLE | — | — | — | — | — | — | — | Push notification at 500m with parking/entrance directions. Geolocation-dependent. Trigger met: Front Door Locator + Entrance Pin shipped. |
 | 85 | Treasure Hunt QR (In-Sale Scavenger Hunt) | SHO | FREE | — | — | — | — | — | — | — | QR stickers on unique items → badge collection. Dwell time driver. Trigger met: gamification scaffold (badges/XP/streaks) shipped. |
 | 86 | Shopper Profile + Friend Network | SHO | FREE | — | — | — | — | — | — | — | Public mini-card, badges, finds, friend activity. Social proof layer. Trigger met: gamification + UGC Photo Tags shipped. |
-| 87 | Brand & Designer Tracking | SHO | FREE | — | — | — | — | — | — | — | Follow specific brands/designers → alerts on matching items. Trigger met: tag system + Wishlist Alerts (#32) shipped. |
-| 88 | Haul Post Gallery (UGC Social Proof) | SHO | FREE | — | — | — | — | — | — | — | Post-purchase "show off your finds" with item linking + reactions. Trigger met: UGC Photo Tags (#47) shipped. |
+| 87 | Brand & Designer Tracking | SHO | FREE | ✅ | ✅ | ✅ | ✅ | ✅ | — | 📋 | **SHIPPED** → see Feature Inventory (Shopper Engagement). BrandFollow table + 4 endpoints live |
+| 88 | Haul Post Gallery (UGC Social Proof) | SHO | FREE | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 📋 | **SHIPPED** → see Feature Inventory (Shopper Engagement). UGCPhoto extension + UGCPhotoReaction + /hauls page live |
 | 89 | Unified Print Kit | ORG | SIMPLE | — | — | — | — | — | — | — | Combined PDF: yard sign QR + item barcode stickers. Attribution loop. Trigger met: QR Code Signs shipped. |
 | 90 | Sale Soundtrack (Ambient Vibes) | SHO | FREE | — | — | — | — | — | — | — | AI-suggested Spotify/Apple Music playlists by sale type. External links only — zero licensing risk. Low-effort fun differentiator. |
 
@@ -368,17 +381,17 @@ _#126 must ship first. Then these can run in parallel._
 
 | # | Feature | Role | Tier | DB | API | UI | QA | Chrome | Nav | Human | Notes |
 |---|---------|------|------|----|----|----|----|--------|-----|-------|-------|
-| 93 | Bidder Account Age Gate (7-day) | PLATFORM | ALL | — | ✅ | — | — | — | — | N/A | Prevents throwaway shill accounts; blocks bids <7 days post-signup. See anti-abuse-system-design-2026-03-19.md §Vector 2 |
-| 94 | Same-IP Bidder Detection | PLATFORM | ALL | ✅ | ✅ | — | — | — | — | N/A | Flags bids from accounts sharing organizer IP/device fingerprint; manual review queue. See anti-abuse-system-design-2026-03-19.md §Vector 2 |
-| 95 | Bidding Velocity Limits | PLATFORM | ALL | — | ✅ | — | — | — | — | N/A | Rate-limits 10+ bids in <1 minute per account. See anti-abuse-system-design-2026-03-19.md §Vector 2 |
+| 93 | Bidder Account Age Gate (7-day) | PLATFORM | ALL | — | ✅ | — | ✅ | — | — | N/A | Prevents throwaway shill accounts; blocks bids <7 days post-signup. Admin bypass added |
+| 94 | Same-IP Bidder Detection | PLATFORM | ALL | ✅ | ✅ | ✅ | ✅ | — | — | N/A | BidIpRecord model + IP tracking in itemController. Admin bid-review page built |
+| 95 | Bidding Velocity Limits | PLATFORM | ALL | — | ✅ | — | ✅ | — | — | N/A | Rate-limits 10+ bids in <1 minute per account |
 
 #### Platform Batch P2 — Buyer Transparency
 
 | # | Feature | Role | Tier | DB | API | UI | QA | Chrome | Nav | Human | Notes |
 |---|---------|------|------|----|----|----|----|--------|-----|-------|-------|
-| 96 | Buyer Premium Disclosure (4-Point Visibility) | PLATFORM | ALL | — | ✅ | ✅ | — | — | — | N/A | Checkout UI shows premium as separate line item; checkbox confirmation required before payment. See anti-abuse-system-design-2026-03-19.md §Vector 6 |
-| 97 | Post-Purchase Confirmation Email (Premium Breakdown) | PLATFORM | ALL | — | ✅ | — | — | — | — | N/A | Itemized email sent within 1 hour of auction win; evidence record for chargebacks. See anti-abuse-system-design-2026-03-19.md §Vector 6 |
-| 98 | Chargeback Defense Documentation | PLATFORM | ALL | ✅ | ✅ | — | — | — | — | N/A | Auto-capture checkout evidence, email delivery, acknowledgment; submit to Stripe on dispute. See anti-abuse-system-design-2026-03-19.md §Vector 6 |
+| 96 | Buyer Premium Disclosure (4-Point Visibility) | PLATFORM | ALL | — | ✅ | ✅ | ✅ | — | — | N/A | Checkout UI shows premium as line item; itemized response + checkbox confirmation. CheckoutModal.tsx updated |
+| 97 | Post-Purchase Confirmation Email (Premium Breakdown) | PLATFORM | ALL | — | ✅ | — | ✅ | — | — | N/A | Itemized email: item photo, organizer name, sale dates, transaction ID, buyer premium breakdown, chargeback disclaimer |
+| 98 | Chargeback Defense Documentation | PLATFORM | ALL | ✅ | ✅ | — | ✅ | — | — | N/A | CheckoutEvidence model. Auto-capture checkout evidence, email delivery, acknowledgment; submit to Stripe on dispute |
 
 #### Platform Batch P3 — Account Controls
 
@@ -607,3 +620,4 @@ FindaSale\claude_docs\feature-notes.md - design decisions based on emotion and a
 ## Maintenance
 
 This document is the source of truth for product roadmap. Updated at every session wrap when a feature ships, beta status changes, or a deferred item is revisited. Full build history: `claude_docs/strategy/COMPLETED_PHASES.md`.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 

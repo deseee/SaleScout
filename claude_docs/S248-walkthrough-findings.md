@@ -70,16 +70,19 @@ Good!
 
 Shopper Dashboard:
 +while the buttons look great the Explorer, loyalty etc.. should display like the overview, purhcases, etc.. and stay within the same page
-huntpass crown in streak bar does what exactly?
-overview tries to load sales near you says Unable to load nearby sales. Please try again later.
-No upgrade button? the previous seems to link to huntpass checkout correctly but nothing to say why they should upgrade
-+buttons for purchases don't show enough data and when you click through the items are not marked as sold and still say add to cart
-favorites shows watchlist and not saved items is this intended?, points don't click anywhere just display numbers
-pickups cant be tested as I can't purchase items e2e, 
-subscribed doesn't link to the organizer pages
++huntpass crown in streak bar does what exactly? shows for people that don't have it?
++overview tab tries to load sales near you says Unable to load nearby sales. Please try again later.
+overview tab your wishlists doesn't go to the individual wishlist, doesn't have plain saves/likes?
++No upgrade button or purchase hunt pass? the previous seems to link to huntpass checkout correctly but nothing to say why they should upgrade
++purchases tab buttons for purchases don't show enough data and when you click through the items are not marked as sold and still say add to cart, tooltips, etc
+favorites tab shows watchlist can't buy from card, should it be like the other item cards?
+pickups cant be tested as I can't purchase items e2e, hold items, request pickups etc..
+subscribed tab is broken now, says no organizers followed yet on account that is following some.  previously didn't link to the organizer pages
+Followed Brands tab JSON.parse: unexpected character at line 1 column 1 of the JSON data
 
-shopper/collector-passport: Explorer passport needs name seo change?
-no matches yet in my matches
+shopper/collector-passport:
++Explorer passport needs name seo change?
++no matches yet in my matches
 
 shopper/loyalty why do we call these passports?
 what is the user instructions, tooltips, etc.. in relation to leaderboard points and huntpass etc..? 
