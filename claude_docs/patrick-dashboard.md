@@ -1,54 +1,73 @@
-# Patrick's Dashboard — Session 294 Wrapped (March 26, 2026)
+# Patrick's Dashboard — Session 295 Wrapped (March 26, 2026)
 
 ---
 
-## Action Required
+## Action Required — Push S295 Changeset
 
-**Push these doc updates:**
 ```powershell
 cd C:\Users\desee\ClaudeProjects\FindaSale
-git add claude_docs/STATE.md claude_docs/patrick-dashboard.md
-git commit -m "S294 wrap: STATE.md + dashboard update"
+git add packages/frontend/components/CheckoutModal.tsx
+git add packages/frontend/pages/shopper/hunt-pass.tsx
+git add packages/backend/src/controllers/workspaceController.ts
+git add packages/frontend/pages/workspace/[slug].tsx
+git add claude_docs/strategy/roadmap.md
+git add claude_docs/STATE.md
+git add claude_docs/patrick-dashboard.md
+git add CLAUDE.md
+git commit -m "S295: Fee fix, workspace page, hunt-pass, roadmap v75, QA honesty rule"
 .\push.ps1
 ```
 
-**Also next session — delete two files:**
-- `packages/frontend/pages/organizer/pro-features.tsx` (redundant with /pricing — you confirmed)
-- `packages/frontend/pages/creator/connect-stripe.tsx` (gutted to no-op, needs git rm)
+**Already pushed earlier in S295 (no need to re-add):**
+- `packages/frontend/components/TierGate.tsx`
+- `packages/frontend/pages/creator/dashboard.tsx`
+- `packages/frontend/pages/organizer/pro-features.tsx` (deleted)
+- `packages/frontend/pages/creator/connect-stripe.tsx` (deleted)
+
+---
+
+## After Push — Mandatory Smoke Test
+
+Open Chrome and verify these 3 things before starting S296 work:
+
+1. **Checkout fee**: Add any regular (non-auction) item to cart → Buy It Now → confirm total = item price only, no 10% fee added
+2. **Workspace public page**: Go to any public workspace URL (e.g. `/workspace/[slug]`) → confirm published sales list renders, "Message [owner]" button present, NO boilerplate "collaboration hub" copy
+3. **Hunt Pass page**: Navigate to `/shopper/hunt-pass` → confirm page loads (was 404)
 
 ---
 
 ## Build Status
 
-- **Railway:** Green (no backend changes this session — expected no redeploy)
-- **Vercel:** Green (S294 frontend changes deployed)
-- **DB:** Railway Postgres — no schema changes
-- **Git:** S294 code pushed earlier this session (register.tsx, Layout.tsx, admin/index.tsx, connect-stripe.tsx, frontend-pages-inventory-S294.html)
+- **Railway:** Green (backend changes in this pushblock — expect redeploy)
+- **Vercel:** Green (frontend changes — expect redeploy)
+- **DB:** No schema changes this session
+- **Git:** S295 code changes pushed; doc files above pending your push
 
 ---
 
-## Session 294 Summary
+## Session 295 Summary
 
-**Frontend pages inventory:** Mapped all 153 pages, identified orphans and duplicates, created interactive audit at `claude_docs/audits/frontend-pages-inventory-S294.html`.
+**Roadmap v75:** Applied all 26 Chrome 📋 downgrades (features that were claimed ✅ in Chrome without real browser verification), 9 nav corrections, 14 S289-S292 verified upgrades, 2 new items (#218 Shopper Trades, #219 Shopper Achievements).
 
-**Consent copy fixed:** register.tsx — replaced 4 LEGAL_COPY_PLACEHOLDER with real email opt-in copy (organizer + shopper variants, eBay/Amazon style).
+**Deletions done:** `pro-features.tsx` (git rm — redundant with /pricing) and `connect-stripe.tsx` (git rm — was a no-op stub).
 
-**Pages wired into nav:** Sale Ripples + Item Library added to Layout.tsx (PRO-gated). Creator Program card added to admin dashboard.
+**P0 checkout fee bug fixed:** Buyers were being charged item price × 1.2 (10% added on backend via application_fee, then displayed again in UI). Fixed CheckoutModal.tsx to remove the buyer-facing fee line for regular items. Buyer now pays listed price only. Auction items still correctly show 5% buyer's premium.
 
-**Roadmap audit prepped:** `claude_docs/audits/roadmap-audit-S294.md` — comprehensive correction manifest ready for S295 application (26 Chrome downgrades, 9 Nav fixes, 14 updates, ~4 new items).
+**Hunt Pass page:** `/shopper/hunt-pass` was a 404 — linked from shopper dashboard but never built. New marketing page created with $4.99/month pricing, benefits, FAQ, and HuntPassModal CTA.
 
-**S290 QA retro-audit committed to memory** — 6 root causes of QA inflation now in persistent memory.
+**Workspace public page built out:** Was loading but showing hardcoded boilerplate. Now shows: published sales for that workspace (title, date range, city — each card links to the sale), "Message [ownerName]" button wired to `/messages?to={ownerUserId}`, no generic copy.
+
+**QA Honesty Gate:** Formalized as hard rule in `CLAUDE.md §9` and persistent memory. Page loads ≠ verified. Full user task completion with real data = ✅. Converting broken features into "Patrick decisions" is prohibited. This survives compression.
 
 ---
 
-## Next Session: S295
+## Known Open Items
 
-**Primary: Roadmap rewrite** — Apply all corrections from `roadmap-audit-S294.md` to `claude_docs/strategy/roadmap.md` via subagent dispatch. This is a 569-line file needing systematic updates.
-
-**Secondary:**
-1. Delete pro-features.tsx + git rm connect-stripe.tsx
-2. Chrome verify S292 fixes (checkout fee, workspace invite, public workspace URL)
-3. D6 Chrome QA: #85 Treasure Hunt QR
+- **#85 Treasure Hunt QR — clue save untested:** Add Clue UI exists but couldn't test save because test user (Alice) doesn't own the sale. S296: log in as user2@example.com and test end-to-end clue add → save → verify persist.
+- **#201 Favorites UX** — Item saves PASS. Seller-follow tab = Follow model #86, deferred post-beta
+- **customStorefrontSlug** — All NULL in DB. Organizer profile URLs work by numeric ID only
+- **#37 Sale Reminders** — iCal confirmed but push "Remind Me" button not built (feature gap)
+- **#59 Streak Rewards** — StreakWidget on dashboard, not on loyalty page (P2)
 
 ---
 
@@ -56,19 +75,8 @@ git commit -m "S294 wrap: STATE.md + dashboard update"
 
 All password: `password123`
 - `user1@example.com` — ADMIN + ORGANIZER (SIMPLE)
-- `user2@example.com` — ORGANIZER (PRO) — use for PRO feature tests
+- `user2@example.com` — ORGANIZER (PRO) — use for PRO feature tests + clue save test
 - `user3@example.com` — ORGANIZER (TEAMS)
 - `user4@example.com` — ORGANIZER (SIMPLE) — use for SIMPLE tier gating tests
 - `user11@example.com` — Shopper (Karen Anderson, SIMPLE, aged 10+ days)
 - `user12@example.com` — Shopper only (Leo Thomas, roles: USER)
-
----
-
-## Known Flags
-
-- **#201 Favorites UX** — Item saves PASS. Seller-follow tab = Follow model #86, deferred post-beta
-- **customStorefrontSlug** — All NULL in DB. Organizer profile URLs work by numeric ID only
-- **#37 Sale Reminders** — iCal confirmed but push "Remind Me" button not built (feature gap)
-- **#59 Streak Rewards** — StreakWidget on dashboard, not on loyalty page (P2)
-- **#27/#66/#125 Exports** — confirmed S290: sales.csv, items.csv, purchases.csv all working
-- **S290 QA inflation** — Only ~22 of ~120 claimed features actually verified. Roadmap Chrome column corrections queued for S295.

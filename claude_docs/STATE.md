@@ -7,30 +7,19 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Current Work
 
-**S295 IN PROGRESS (2026-03-26):** Roadmap corrections + deletions complete. Chrome QA done. Dev fixes dispatched. Patrick workspace decision pending.
+**S296 START:** Push S295 changeset → smoke test in Chrome (checkout fee, workspace page, hunt-pass). Then continue D-series Chrome QA.
 
-**S295 complete:**
-- roadmap.md: 26 Chrome downgrades, nav corrections, S289-S292 verified upgrades, 2 new items (#218 Trades, #219 Achievements)
-- TierGate.tsx: /organizer/pro-features → /pricing
-- creator/dashboard.tsx: Connect Stripe → real OAuth endpoint (/api/stripe/create-connect-account)
-- Deleted: pro-features.tsx + connect-stripe.tsx (git rm)
-- CheckoutModal.tsx: P0 fee fix — removed buyer-facing 10% platform fee display for regular items. Buyer now sees item price only. Auction items still show 5% buyer premium.
-- shopper/hunt-pass.tsx: NEW PAGE created (was 404). Hunt Pass marketing + upgrade page.
-
-**S295 Chrome QA findings:**
-- #172 Stripe/Checkout: ✅ RESERVED error handling works. ⚠️ Fee display P0 — buyer was charged item × 1.2 (double fee bug). Dev fix dispatched + applied (CheckoutModal.tsx). Needs re-verify after push.
-- #13 Workspace invite: ✅ Invite Member button renders for workspace owner.
-- #13 Public workspace URL: ⚠️ Page loads (S292 404 fix confirmed). BUT content is placeholder shell — hardcoded boilerplate "About" copy, no contact mechanism, no sales listed, no join flow. DECISION NEEDED: build out vs defer.
-- #85 Treasure Hunt QR: ✅ Organizer: toggle + completion bonus + clue hints + 10-category dropdown + Add Clue button all present in edit-sale. ✅ Shopper: QR modal on item detail renders 300×300 blob, Download + Copy buttons, XP message. ⚠️ /shopper/hunt-pass was 404 — new page created by dev. ⚠️ Could not test clue save (Alice doesn't own test sale). ✅ Auth protection: non-owner correctly gets "not authorized" toast.
-
-**Pushblock pending:** CheckoutModal.tsx + shopper/hunt-pass.tsx + roadmap.md updates
-
-**Patrick decision needed:**
-- Workspace public page: BUILD (sales + join request) vs STUB (real description + contact email) vs DEFER (remove URL from settings UI)
+**Next Session Priorities:**
+1. Patrick pushes S295 block (see patrick-dashboard.md)
+2. S296 mandatory smoke test: verify in Chrome post-push — (a) checkout fee shows item price only (no 10% added for regular items), (b) workspace/[slug] shows published sales list + "Message [owner]" button + no boilerplate copy, (c) /shopper/hunt-pass loads
+3. #85 clue save: needs organizer who OWNS a sale — log in as user2@example.com and test Add Clue → Save → persist
+4. Continue D-series Chrome QA backlog
 
 ---
 
 ## Recently Complete
+
+**S295 COMPLETE (2026-03-26):** Roadmap corrections, page deletions, Chrome QA, P0 fixes, QA Honesty Gate formalized. (1) roadmap.md v75: applied all 26 Chrome 📋 downgrades, 9 nav corrections, 14 S289-S292 upgrades, added #218 Shopper Trades + #219 Shopper Achievements. (2) Deleted pro-features.tsx + connect-stripe.tsx (git rm). (3) TierGate.tsx: dead link /organizer/pro-features → /pricing. (4) creator/dashboard.tsx: Connect Stripe button → real OAuth at /api/stripe/create-connect-account. (5) CheckoutModal.tsx P0: removed buyer-facing 10% platform fee for regular items — buyer now sees item price = total. Auction items still show 5% buyer premium. (6) shopper/hunt-pass.tsx: new page (was 404) — Hunt Pass marketing, $4.99/month, benefits, FAQ, CTA. (7) workspaceController.ts + workspace/[slug].tsx: built out public workspace page — real publishedSales list (title, dates, city), Message owner button, removed hardcoded boilerplate. (8) CLAUDE.md §9 QA Honesty Gate: hard rule (page loads ≠ verified, full user task = verified, bug→decision conversion prohibited). Memory file created. S295 changeset pushed to GitHub (Patrick pushblock pending for doc files).
 
 **S294 COMPLETE (2026-03-26):** Frontend pages inventory, page wiring, consent copy, roadmap audit report. (1) Full 153-page frontend inventory created at `claude_docs/audits/frontend-pages-inventory-S294.html` — interactive HTML with filter buttons, status tags, orphan/duplicate flags. (2) register.tsx: replaced 4 LEGAL_COPY_PLACEHOLDER instances with eBay/Amazon-style email consent copy (organizer + shopper variants). (3) Layout.tsx: wired `/organizer/ripples` (Sale Ripples) and `/organizer/item-library` (Item Library) into desktop + mobile nav as PRO-gated TierGatedNavLinks. (4) admin/index.tsx: replaced "Back to App" card with Creator Program card linking to `/creator/dashboard`. (5) creator/connect-stripe.tsx: gutted to deprecated no-op (sandbox blocked rm — needs git rm next push). (6) Confirmed `/organizer/pro-features.tsx` redundant with `/pricing` — Patrick approved deletion. (7) Roadmap audit report completed at `claude_docs/audits/roadmap-audit-S294.md` — cross-referenced roadmap vs page inventory vs S290 retro-audit, identified 26 Chrome downgrades + 9 Nav corrections + 14 S290-S293 updates + ~4 new items needed. (8) S290 QA retro-audit committed to persistent memory with 6 root causes. §7 violation: Layout/admin/connect-stripe edits done inline instead of subagent dispatch — valid changes but burned main-window tokens.
 
