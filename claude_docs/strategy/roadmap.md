@@ -93,8 +93,8 @@ Production MVP launched Q1 2026. Full auction lifecycle (bidding + close flow + 
 
 | # | Feature | Role | Tier | DB | API | UI | QA | Chrome | Nav | Human | Notes |
 |---|---------|------|------|----|----|----|----|--------|-----|-------|-------|
-| 137 | Create / Edit / Publish / Archive Sales | ORG | SIMPLE | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 📋 | Core workflow |
-| 139 | Sale Map with Geocoding | ORG | SIMPLE | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 📋 | `/api/geocode` |
+| 137 | Create / Edit / Publish / Archive Sales | ORG | SIMPLE | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ S300 | Core workflow — Chrome ✅ S300: edit-sale page loads real data, LIVE badge + Unpublish button visible |
+| 139 | Sale Map with Geocoding | ORG | SIMPLE | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ S300 | Chrome ✅ S300: Leaflet map on /sales/[id] with geocoded address "4866 Leonard St, Grand Rapids" |
 | 140 | Sale Calendar View | BOTH | SIMPLE | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 📋 | Organizer + shopper views |
 | 141 | Item Add / Edit / Delete / Status | ORG | SIMPLE | ✅ | ✅ | ✅ | ✅ | ✅S125 | ✅ | 📋 | Core CRUD |
 | 144 | AI Tag Suggestions + Health Score | ORG | SIMPLE | ✅ | ✅ | ✅ | ✅ | ✅S124 | ✅ | 📋 | Haiku-powered, part of intake |
@@ -156,12 +156,12 @@ Production MVP launched Q1 2026. Full auction lifecycle (bidding + close flow + 
 
 | # | Feature | Role | Tier | DB | API | UI | QA | Chrome | Nav | Human | Notes |
 |---|---------|------|------|----|----|----|----|--------|-----|-------|-------|
-| 29 | Shopper Loyalty Passport | SHO | FREE | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 📋 | Stamps, badges, early-access perks |
+| 29 | Shopper Loyalty Passport | SHO | FREE | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ S300 | Chrome ✅ S300: /shopper/loyalty loads real data (0 XP, Bronze tier, Generate Coupon correctly gated at 20 XP min) |
 | 32 | Shopper Wishlist Alerts + Smart Follow | SHO | FREE | ✅ | ✅ | ✅ | ✅ | ✅S202 | ✅ | 📋 | Category/tag/organizer alerts on new items |
 | 62 | Digital Receipt + Returns | SHO | FREE | ✅ | ✅ | ✅ | ✅ | ✅S202 | ✅ | 📋 | Auto-generated receipt post-POS, return window |
 | 45 | Collector Passport | SHO | FREE | ✅ | ✅ | ✅ | ✅ | 📋 | ✅ | 📋 | Specialty collection tracking + achievement path |
 | 50 | Loot Log | SHO | FREE | ✅ | ✅ | ✅ | ✅ | 📋 | ✅ | 📋 | Personal purchase history with photos + prices |
-| 87 | Brand & Designer Tracking | SHO | FREE | ✅ | ✅ | ✅ | ✅ | ✅ | 📋 | 📋 | BrandFollow table. Follow brands → alerts on matching items. 4 endpoints + notification trigger on item publish |
+| 87 | Brand & Designer Tracking | SHO | FREE | ✅ | ✅ | ✅ | ✅ | ✅ | 📋 | 📋 | S300: GET ✅ (Brands tab renders). POST ❌ FIXED — useBrandFollows.ts used raw fetch('/api/users/...') hitting Vercel 404 instead of Railway; also wrong localStorage key ('authToken' vs 'token'). Fixed to use api instance. Pushed cdc2723. Retest pending. |
 | 88 | Haul Post Gallery (UGC Social Proof) | SHO | FREE | ✅ | ✅ | ✅ | ✅ | 📋 | ✅ | 📋 | UGCPhoto extended (isHaulPost, linkedItemIds, likeCount) + UGCPhotoReaction model. /hauls page live |
 | 51 | Sale Ripples | SHO | FREE | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 📋 | Social proof activity tracking. RippleIndicator auto-records. ripples.tsx analytics. |
 | 54 | Crowdsourced Appraisal (Base) | BOTH | FREE | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 📋 | Request/submit/vote appraisals; AI Sprint 3 deferred. |

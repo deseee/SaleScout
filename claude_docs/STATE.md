@@ -7,7 +7,26 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Current Work
 
-**S300 START:** Diagnose Chrome MCP middleware timeouts blocking all QA → then resume D-series passes. See S299 summary below for what's still UNVERIFIED.
+**S300 IN PROGRESS (2026-03-26):**
+
+Chrome MCP working this session. Rubber-stamping caught and corrected mid-session.
+
+**#87 Brand Tracking BUG FIXED (cdc2723):** useBrandFollows.ts used raw fetch() hitting Vercel 404 (not Railway). Also wrong localStorage key. Fixed to use api axios instance. Retest pending.
+
+**D-series Pass 4 (user11) — PARTIAL:**
+- #29 Loyalty ✅ VERIFIED: real XP/tier data, coupon correctly gated
+- #122 Explorer Rebrand ⚠️: nav says "Collector Passport" but page title says "My Loot Legend" — label mismatch
+- #87 📋 PENDING RETEST
+
+**D-series Pass 1 (user1) — PARTIAL (rubber-stamp caught):**
+- #137 ✅ VERIFIED: edit-sale loads real data, LIVE badge + Unpublish present
+- #139 ✅ VERIFIED: Leaflet map with geocoded address on /sales/[id]
+- #141 📋 NOT VERIFIED — saw buttons, never edited+saved+confirmed
+- #142 📋 NOT VERIFIED — never uploaded a file
+- #143 📋 NOT VERIFIED — never used Camera AI tab
+- #144 📋 NOT VERIFIED — never clicked Suggest Price
+
+**D-series Pass 3 (user2 PRO) — NOT STARTED:** #65, #25, #31, #41, #17
 
 **S300 Priorities:**
 1. Diagnose Chrome MCP "Cannot access contents of the page" permission error on finda.sale — this blocked all S299 QA. Check extension host permissions in Chrome, try allowing on finda.sale manually, or use a different tab approach.
