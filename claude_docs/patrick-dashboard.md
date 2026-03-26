@@ -1,84 +1,87 @@
-# Patrick's Dashboard — Session 285 Fully Wrapped (March 25, 2026)
+# Patrick's Dashboard — Sessions 286+287 Wrapped (March 25, 2026)
 
 ---
 
 ## ✅ Build Status
 
 - **Railway:** ✅ Green
-- **Vercel:** ✅ Green (messages polling fix deployed)
+- **Vercel:** ✅ Green
 - **DB:** Railway Postgres — all migrations confirmed + Stripe IDs patched S285
-- **Beta:** Active (2026-03-22 through 2026-03-29, real customers testing freely)
+- **Git:** ✅ Clean — S286 dev fixes pushed, 75-file deletion unstaged
 
 ---
 
-## ✅ Session 285 Complete — Chrome QA Phase 1 (P0s + Phase 2 Batch 1)
+## ✅ Sessions 286 + 287 Complete — Chrome QA B2–C4 + Dev Fixes Pushed
 
 **What was done:**
 
-- **P0-A: Messages blank thread** — Root cause: 15s polling. Reduced to 5s (thread) + 10s (inbox). RESOLVED + pushed. ✅
-- **P0-B: Stripe Checkout** — Root cause: fake `acct_test_user2` in seed. Fixed: seed.ts updated with real test IDs (user1: `acct_1T6f2DLlmra0eowv`, user2: `acct_1TF0UsLTUdLTeyio`). Railway DB directly patched via SQL UPDATE. CONFIRMED. ✅ Re-test Stripe checkout before calling resolved.
-- **Auth rate limit bypass** — @example.com accounts skip rate limiting. Pushed. ✅
-- **Admin Invites** — PASS ✅
-- **DB Model Mysteries Resolved:** ItemReservation ✅, MissingListingBounty ✅, ChallengeProgress+ChallengeBadge (partial) ✅, Invites (route exists, no DB model) ⚠️, Leaderboard (computed from guildXp, correct) ✅
-- **Phase 2 QA Batch 1:**
-  - A1: Homepage ✅ | A2: Item Detail (#178) ✅ | A3: Wishlists (#193) ✅
-  - A4: Favorites (#201) ⚠️ — item saves work, seller-follow tab = Follow model #86 (deferred post-beta)
-  - A5: Password Reset (#155) ✅ | B1: Command Center (#68) ✅
-- **Roadmap updated:** 8 Chrome columns updated (#155, #166, #172, #68, #178, #193, #195, #201)
-- **NOT TESTED (Pending S286):** B2–B5, C1–C2, gamification, organizer tools, platform safety, messaging
+- **Chrome QA B2–C4** — 41 features confirmed ✅ in roadmap Chrome column. Organizer tools, sales management, shopper discovery/engagement, gamification (XP/Explorer's Guild/loot legend), messaging, public pages all tested live.
+- **User tier verified in Railway DB:** user1=ADMIN+SIMPLE, user2=PRO, user3=TEAMS, user4=SIMPLE, user11=SIMPLE shopper (password123 for all)
+- **#138 Sale Types** — 4 missing types added (Consignment, Charity, Business, Corporate Sale) ✅
+- **#161 Contact Form** — Toast feedback on submit (was silently dropping) ✅
+- **#153 Settings Tab Nav** — Tab click was navigating away; fixed ✅
+- **#154 Organizer Profile 404** — `/organizers/[slug]` now tries ID fallback (all customStorefrontSlug values are NULL in DB) ✅
+- **#27/#66/#125 Export Download** — Export endpoint 404 fixed; now authenticated fetch+blob ✅
+- **#184 iCal Export Button** — "Add to Calendar" button added to sale detail page ✅
+- **Git crisis resolved** — 75+ files staged for deletion by prior dev agent; unstaged via `git restore --staged .` ✅
 
 ---
 
-## 🚀 Commit S285 (Run This Now)
+## 🚀 Commit S287 — Already Pushed ✅
 
-```powershell
-cd C:\Users\desee\ClaudeProjects\FindaSale
-
-git add packages/database/prisma/seed.ts
-git add packages/backend/src/index.ts
-git add packages/frontend/pages/messages/index.tsx
-git add packages/frontend/pages/messages/[id].tsx
-git add claude_docs/strategy/roadmap.md
-git add claude_docs/STATE.md
-git add claude_docs/patrick-dashboard.md
-git commit -m "S285: Chrome QA P1 done — poll lag fixed, Stripe test IDs patched, rate limit bypass, roadmap Chrome cols updated"
-.\push.ps1
-```
+Patrick ran `git restore --staged .` + staged/committed/pushed the S286 fixes. No action needed.
 
 ---
 
-## ⚡ Next Session: S286 — Continue Phase 2 Chrome QA
+## ⚡ Next Session: S288 — Continue Chrome QA (~80 features remaining)
 
-First: re-verify Stripe checkout (user2 → buy item → Stripe should work now with real `acct_1TF0UsLTUdLTeyio`).
+**Priority tests:**
+- Re-test #27/#66/#125 export (dev fix is now live)
+- Verify #184 iCal button on live site
+- #131 Share & Promote Templates (needs a published sale)
+- #132 À La Carte modal (test with user4 SIMPLE)
+- #172 Stripe Connect — re-test with real Stripe test IDs now in DB
+- #65 Tier gating — re-test with user4 (SIMPLE) vs. user2 (PRO)
 
-Then continue QA batches B2–B5, C1–C2, gamification, organizer tools, platform safety, messaging (~120 features remaining).
+**Features confirmed missing (need dev or Patrick decision before beta ends):**
+- #149 Email Reminders — UI button not found
+- #152 Digest Emails — likely backend-only cron; no organizer toggle
+- #148 Sale Checklist — "Coming Soon" placeholder only
+- #158 Waitlist — not found
+- #159 Flash Deals — not found
+- #160 Reviews submission — UI missing
+- #37 Sale Reminders — not tested yet
+- #6 Virtual Queue — not tested yet
 
 ---
 
 ## Test Accounts
 
 All password: `password123`
-- `user1@example.com` — ADMIN + ORGANIZER (SIMPLE) — real Stripe ID: `acct_1T6f2DLlmra0eowv`
-- `user2@example.com` — ORGANIZER (PRO) — real Stripe ID: `acct_1TF0UsLTUdLTeyio`
+- `user1@example.com` — ADMIN + ORGANIZER (SIMPLE) — Stripe: `acct_1T6f2DLlmra0eowv`
+- `user2@example.com` — ORGANIZER (PRO) — Stripe: `acct_1TF0UsLTUdLTeyio`
 - `user3@example.com` — ORGANIZER (TEAMS)
-- `user11@example.com` — Shopper — aged 10 days, placed $205 bid
-- `user12@example.com` — Shopper (competing bidder)
+- `user4@example.com` — ORGANIZER (SIMPLE) — use for SIMPLE tier gating tests
+- `user11@example.com` — Shopper (SIMPLE) — aged 10 days, placed $205 bid
 
 ---
 
 ## Outstanding Actions (Patrick)
 
 - **⚠️ Attorney review** — consent copy in register.tsx (`LEGAL_COPY_PLACEHOLDER_*`) — required before beta launch
+- **⚠️ Stripe business account** — still on checklist
+- **⚠️ Set `MAILERLITE_SHOPPERS_GROUP_ID=182012431062533831` on Railway**
+- **⚠️ Verify `RESEND_API_KEY` and `RESEND_FROM_EMAIL` on Railway**
 - **Neon project deletion** — still pending at console.neon.tech (since S264)
-- **Stripe business account** — still on checklist
-- **#56 Printful** — DEFERRED post-beta
 - **Re-test Stripe checkout** — user2 buy flow with real Stripe test ID now in DB (S285 fix)
+- **Auction E2E** — End Auction button → Stripe checkout link → confirm winner notification
 
 ---
 
 ## Known Flags
 
 - **#74 consent copy** — `LEGAL_COPY_PLACEHOLDER_*` in register.tsx — attorney review REQUIRED before launch
-- **#98 Stripe Disputes** — evidence captured; Stripe API submission is a stub (manual via dashboard)
-- **#201 Favorites UX** — Item saves PASS. Seller-follow tab = Follow model #86, deferred post-beta. Decide labeling before beta ends.
-- **Invites DB model** — Route exists (`/api/invites`) but NO `Invite` schema model. Roadmap DB=✅ may be misleading. Clarify if model is needed.
+- **#201 Favorites UX** — Item saves PASS. Seller-follow tab = Follow model #86, deferred post-beta. Tab labeling decision needed before beta ends.
+- **customStorefrontSlug** — All NULL in DB. Organizer profile URLs work by numeric ID only. Slug generation not built.
+- **#65 tier gating** — Marked ⚠️; re-test with user4 (SIMPLE) confirmed needed next session.
+- **#172 Stripe Connect** — Marked ⚠️; re-test with patched real test IDs next session.
