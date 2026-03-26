@@ -7,27 +7,22 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Current Work
 
-**S289 — Continue Chrome QA (remaining 📋 features) + verify S288 fixes live.**
+**S290 — Continue Chrome QA D6 batch + seed rarity re-run + remaining features.**
 
-Push block below must be run first. After push, verify live:
-- Share popover (was: native OS dialog — now custom with X button)
-- Brand Kit shows upgrade wall for SIMPLE tier
-- Rarity badges visible on item detail pages
+S289 push block below must be run first.
 
-Re-test needed (wrong URLs in S288):
-- #197 Bounties → `/organizer/bounties`
-- #6 Virtual Queue → `/organizer/line-queue/[saleId]`
+Seed rarity patch ready — re-run seed against Railway to get rarity values on items for visual badge verification (#57).
 
 Still at 📋 Chrome (priority order):
-- #131 Share & Promote Templates (SharePromoteModal 4-template verification)
-- #84 Approach Notes (notification button needs published-sale state)
-- #59 Streak Rewards (section not visible on loyalty page — may need active streak data)
-- #37 Sale Reminders (Remind Me button TBD)
-- D6 batch: #13 TEAMS Workspace, #18 Post Performance Analytics, #27/#66/#125 Exports, #85 Treasure Hunt QR, many more
+- D6 batch: #13 TEAMS Workspace, #18 Post Performance Analytics, #27/#66/#125 Exports, #85 Treasure Hunt QR, and more
+- #37 Sale Reminders — iCal ✅ but push "Remind Me" button not built (feature gap, not bug)
+- #59 Streak Rewards — widget works on /shopper/dashboard but NOT on /shopper/loyalty (P2 placement gap)
 
 ---
 
 ## Recently Complete
+
+**S289 COMPLETE (2026-03-25):** Chrome QA continuation — orchestrator-verified (main session in Chrome, not subagent). S288 fixes verified live: Share popover ✅ (custom popover with X close button works), Brand Kit tier gate ✅ (SIMPLE user sees upgrade wall), Bounties ✅ (/organizer/bounties loads, create bounty works), Virtual Queue ✅ (/organizer/line-queue/[saleId] loads). Rarity Badges ⚠️ (code correct but ALL items in DB have rarity=null — seed patch applied this session, needs re-run). New features Chrome-verified: #131 Share & Promote Templates ✅ (modal opens with 8 template tabs: Social Post, Flyer Copy, Email Invite, Neighborhood Post, TikTok, Pinterest, Threads, Nextdoor — all render real sale data, Copy to Clipboard + Close buttons work), #84 Approach Notes ✅ (Day-of Approach Notes section visible on edit-sale for LIVE sale, "Notify Shoppers" button present, textarea with placeholder), #59 Streak Rewards PASS WITH NOTES (StreakWidget renders on /shopper/dashboard showing streak count + points + Hunt Pass status, but NOT imported into /shopper/loyalty — P2 placement gap), #37 Sale Reminders UNVERIFIED (iCal "Add to Calendar" button present ✅, push "Remind Me" button not built — feature gap). Root cause QA accountability fix: new memory `feedback_qa_orchestrator_accountability.md` — main session must personally verify in Chrome, stop delegating to fabricating subagents. Seed patch: seed.ts updated with rarity values on 5 items (COMMON/UNCOMMON/RARE/ULTRA_RARE/LEGENDARY). Files changed: packages/database/prisma/seed.ts, claude_docs/STATE.md, claude_docs/patrick-dashboard.md.
 
 **S288 COMPLETE (2026-03-25):** Chrome QA Rounds 1–4. P0 bugs fixed: filter pills `type="button"` (index.tsx + map.tsx — was routing to /api/auth/logout), organizer dashboard hydration redirect (create-sale.tsx + dashboard.tsx — `isClient` guard). P1 bugs fixed: Rarity Badges not visible (itemController.ts + items/[id].tsx — rarity field missing from API select + missing import), Share button native OS dialog (SaleShareButton.tsx — replaced `navigator.share()` with custom popover + X close button per Patrick), Brand Kit tier gating broken (brand-kit.tsx — TierGate wrapping added). /cities fix (saleController.ts getCities — PUBLISHED status added). Chrome ✅ confirmed: #212, #213, #206, #48, #214, #172, #184, #132, #57 ⚠️, #65 ⚠️, #177, #182, #189. QA audits: claude_docs/audits/qa-round[1-4]-S288-20260325.md. Roadmap v72 pushed.
 
