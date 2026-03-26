@@ -81,9 +81,15 @@ Do not ask "shall I continue?" mid-batch.
 
 **Compression logging:** When context is compressed, log:
 `[COMPRESS] Session N turn M: kept [what], lost [what], ~Xk→Yk tokens`
-Include this in session-log.md at wrap.
+Include this in STATE.md at wrap.
 
-**Post-compression mandatory re-read:** Immediately after any compression event, re-read this file §5 (Push Rules) before resuming work. Push rules are the first lost after compression. No exceptions.
+**Post-compression mandatory re-read:** Immediately after any compression event:
+1. Re-read this file §5 (Push Rules) — push rules are the first lost after compression.
+2. Re-read this file §9 (QA Honesty Gate) — QA rigor is the second thing lost.
+3. Re-read this file §10c (QA Management) — micro-dispatch and evidence rules.
+4. Do NOT accept any ✅ marks from pre-compression context without re-verification.
+5. Note in your next action: "Post-compression QA stack reloaded."
+No exceptions.
 
 ---
 
@@ -306,11 +312,47 @@ The VM cannot run `git push` (no HTTPS auth), but the MCP bypasses this for smal
 
 ## 10. Operational Rules
 
-**Post-fix live verification (mandatory):** After ANY session that pushes bug fixes or feature code to production, the NEXT session must include a live-site smoke test (Chrome MCP at finda.sale) of all changed pages BEFORE starting new work. This is not optional and not something Patrick should have to request. Check the previous session's fix list in STATE.md, load each affected page, verify it works. If pages are broken, flag immediately and dispatch findasale-dev before any other work proceeds. Claude owns QA continuity — Patrick should never discover a broken page that Claude could have caught.
+**Post-fix live verification (mandatory — FIRST action of every session):** After ANY
+session that pushes bug fixes or feature code to production, the NEXT session must
+include a live-site smoke test (Chrome MCP at finda.sale) of all changed pages BEFORE
+starting new work. This is not optional and not something Patrick should have to request.
+1. Read STATE.md "## Recent Sessions" for the previous session's fix list.
+2. Open Chrome MCP. Navigate to each affected page.
+3. Perform ONE interaction per page (click a button, verify data loads, check dark mode).
+4. If ANY page is broken → flag immediately and dispatch findasale-dev before other work.
+5. Report smoke test results to Patrick before proceeding.
+Claude owns QA continuity — Patrick should never discover a broken page that Claude
+could have caught. This rule exists because previous sessions fabricated ✅ marks that
+were never actually verified (documented S285–S296). The smoke test catches fabrication.
 
 **Context checkpoints (no-pause rule):** Agent handoff "Context Checkpoint: yes/no" is internal bookkeeping. Never pause work to discuss a checkpoint.
 
-**QA Management (§10c):** Before dispatching dev, write the post-deploy QA scenario list. After dev returns, provide the push block, then immediately write the QA dispatch — do not wait for Patrick to ask. Main session never accepts PARTIAL QA results — re-dispatch with corrected setup. QA results must report exact API values and exact UI values, not descriptions. Surface-level rendering checks are not sufficient — verify data integrity via API calls.
+**QA Management (§10c) — Structural Anti-Fabrication Rules:**
+
+**Micro-dispatch rule (HARD):** Never dispatch "QA these N features" as a single task.
+Dispatch ONE feature or ONE flow per QA subagent call. Example: "QA the favorites
+feature for shopper (user11). Return evidence per PRE-VERIFICATION GATE." Focused
+dispatches prevent subagents from skimming 10 things and marking all ✅.
+
+**Evidence-required acceptance (HARD):** When a QA subagent returns findings, check
+every ✅ mark for the required evidence sentence:
+`Navigated to [URL] as [user]. Clicked [element]. Saw [outcome]. Refreshed — [persisted/not].`
+If ANY ✅ lacks this specific evidence → reject that finding. Re-dispatch with:
+"Feature [X] missing verification evidence. Re-test in Chrome and provide exact
+interaction details." Do NOT accept vague reports like "works fine" or "page loads."
+
+**UNVERIFIED acceptance (REQUIRED):** Accept UNVERIFIED results as valid honest output.
+Do NOT re-dispatch UNVERIFIED items in the same session unless Chrome becomes available.
+Queue them in STATE.md "## Blocked/Unverified Queue" for the next session.
+
+**Main session verification (HARD):** The orchestrator does NOT inherit ✅ from subagents.
+The orchestrator's role is evidence review: "did this report include Chrome interaction
+evidence with specifics?" That is the only judgment call. If evidence exists and is
+specific, relay the ✅. If evidence is vague or missing, reject it.
+
+**Pre-dispatch scenario list:** Before dispatching dev, write the post-deploy QA scenario
+list. After dev returns, provide the push block, then immediately write QA dispatches
+(one per feature) — do not wait for Patrick to ask.
 
 **Escalation channel:** Any subagent may include a `## Patrick Direct` section when it believes the main session is ignoring a P0/P1 finding, dispatching work that contradicts a locked decision, operating on stale context, or burning tokens on a wrong path. Evidence required. One per agent per session. Main session surfaces verbatim — no filtering.
 
@@ -349,6 +391,9 @@ Before ending any session:
 
 **New STATE.md structure:**
 - Sessions start with "## Current Work" tracking in-flight tasks
+- "## Blocked/Unverified Queue" section tracks features that could not be browser-tested.
+  Each entry: `| Feature | Reason | What's Needed | Session Added |`
+  Items stay in the queue until Chrome-verified with evidence. Never silently drop items.
 - "## Recent Sessions" section contains the 5 most recent session summaries (same format as prior session-log.md)
 - "## Next Session" section contains pending Patrick actions and what comes next (same format as prior next-session-prompt.md)
 
@@ -374,6 +419,7 @@ Before ending any session:
 | Session safeguards | `operations/session-safeguards.md` |
 | Patrick's shorthand | `operations/patrick-language-map.md` |
 | Model routing | `operations/model-routing.md` |
+| QA accountability | `operations/orchestrator-qa-accountability.md` |
 | Wrap protocol | `WRAP_PROTOCOL_QUICK_REFERENCE.md` |
 | Tech stack | `STACK.md` |
 | Security | `SECURITY.md` |
