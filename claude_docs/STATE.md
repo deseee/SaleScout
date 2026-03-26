@@ -7,22 +7,25 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Current Work
 
-**S298 START:** Push #173 fix (1 file) → D-series QA re-run Pass 1 (SIMPLE CORE) → D-series QA Pass 3 re-run (PRO features, user2) → D-series QA Pass 4 re-run (#29, #122, #87, user11).
+**S299 START:** Push #87 fix (1 backend file) → D-series QA re-run Pass 1 (SIMPLE CORE, user1) → Pass 3 remaining PRO (#65, #25, #31, #41, #17) → Pass 4 Shopper (#29, #122, #87 retest after fix) → Investigate test clue cleanup.
 
-**Files pending push (S297):**
-- `packages/frontend/pages/organizer/message-templates.tsx` (#173 auth guard fix: stale `user.role !== 'ORGANIZER'` → `!(user.roles?.includes('ORGANIZER') || user.role === 'ORGANIZER')`)
+**Files pending push (S298):**
+- `packages/backend/src/routes/users.ts` (#87 Brand Tracking P0 fix: arrow function wrappers removed from brand-follows routes — were causing unhandled async errors → HTML 500 instead of JSON)
 
-**S298 Priorities:**
-1. Patrick pushes S297 fix (1 file — see patrick-dashboard.md)
-2. D-series QA re-run — Pass 1 SIMPLE CORE (#137, #141, #142, #143, #144, #139): User user1, navigate via edit-sale links from dashboard Sales tab
-3. D-series QA re-run — Pass 3 PRO features (#65, #169, #25, #31, #41, #17): Log in as user2@example.com (PRO tier confirmed). Check feature pages are accessible.
-4. D-series QA re-run — Pass 4 Shopper auth features (#29 Loyalty Passport, #122 Explorer's Guild rebrand, #87 Brand Tracking): Log in as user11@example.com
-5. Clean up test clues on Alice's sale cmn7epuiu004pxdmfub457vb1 (2 test clues added during S297 Treasure Hunt testing)
-6. Update roadmap Chrome QA columns for confirmed ✅ features: #85, #89, #140, #151, #177, #179, #180, #189, #190, #173
+**S299 Priorities:**
+1. Patrick pushes S298 fix (1 file — see patrick-dashboard.md)
+2. D-series QA Pass 1 SIMPLE CORE (#137, #141, #142, #143, #144, #139): user1@example.com — all UNVERIFIED from S298 (browser instability). Navigate via dashboard → Sales tab.
+3. D-series QA Pass 3 remaining PRO (#65, #25, #31, #41, #17): user2@example.com — UNVERIFIED from S298.
+4. D-series QA Pass 4 Shopper (#29 Loyalty, #122 Explorer rebrand, #87 Brand Tracking retest): user11@example.com. Do NOT clear cookies mid-session — use existing session or log in fresh and stay.
+5. Investigate test clue cleanup: sale cmn7epuiu004pxdmfub457vb1 not found in Railway DB. Check correct sale ID and account for Alice (user1 is Bob Smith in DB, not Alice).
+
+**KNOWN BUG — Session instability:** After Cookie/localStorage clear in Chrome MCP, fresh login for shopper accounts (user11, user12) silently fails. Do NOT clear cookies — use signout route only, then log in.
 
 ---
 
 ## Recently Complete
+
+**S298 COMPLETE (2026-03-26):** S297 push confirmed by Patrick (#173 auth guard fix). D-series QA Pass 1 (SIMPLE CORE): UNVERIFIED — browser session instability (access-denied redirects). Pass 3 PRO: #169 Insights ✅ PERSONALLY VERIFIED (real data, refresh confirmed); #25 Item Library NOT a P0 (page loads correctly for PRO user — S297 agent 403 was session artifact, empty state only); #65/#31/#41/#17 UNVERIFIED (session instability). Pass 4 Shopper: #87 Brand Tracking P0 FIXED (arrow fn wrappers on routes/users.ts caused async errors → HTML 500); #29/#122 UNVERIFIED (couldn't log in fresh as user11 after cookie clear — session instability bug documented). Test clue cleanup BLOCKED (sale cmn7epuiu004pxdmfub457vb1 not in Railway DB — needs investigation). Roadmap Chrome columns: no update needed (all S297 features already Chrome ✅). 1 backend file changed.
 
 **S297 COMPLETE (2026-03-26):** S296 push done. Auth bug fixed in 3 controllers (typologyController/arrivalController/photoOpController — req.user.id → req.user.organizerProfile?.id, same fix as S296 treasureHuntQRController). #85 Treasure Hunt confirmed working via API (POST 201, clue persists). #173 Message Templates auth guard fixed (stale user.role check → roles array). D-series QA Passes 1–4 run: 10 features confirmed ✅ (#85 #89 #140 #151 #177 #179 #180 #189 #190 #173-fix). PRO + shopper auth features untested (agent login issues — accounts work, carry to S298). 1 file pending push (message-templates.tsx).
 

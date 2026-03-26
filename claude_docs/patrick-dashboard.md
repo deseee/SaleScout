@@ -1,17 +1,17 @@
-# Patrick's Dashboard — Session 297 Wrapped (March 26, 2026)
+# Patrick's Dashboard — Session 298 Wrapped (March 26, 2026)
 
 ---
 
-## Action Required — Push S297 Changeset
+## Action Required — Push S298 Changeset
 
 **1 file needs to be pushed:**
 
 ```powershell
 cd C:\Users\desee\ClaudeProjects\FindaSale
-git add packages/frontend/pages/organizer/message-templates.tsx
+git add packages/backend/src/routes/users.ts
 git add claude_docs/STATE.md
 git add claude_docs/patrick-dashboard.md
-git commit -m "S297: Message Templates auth guard fix (#173)"
+git commit -m "S298: Fix #87 Brand Tracking API (arrow fn wrapper bug on brand-follows routes)"
 .\push.ps1
 ```
 
@@ -19,37 +19,36 @@ git commit -m "S297: Message Templates auth guard fix (#173)"
 
 ## Build Status
 
-- **Railway:** Will redeploy (no backend changes this session)
-- **Vercel:** Will redeploy (frontend file changed)
+- **Railway:** Will redeploy (backend file changed — brand-follows routes fixed)
+- **Vercel:** No change
 - **DB:** No schema changes
-- **Git:** 1 code file + 2 doc files above pending your push
+- **Git:** 1 backend file + 2 doc files above pending your push
 
 ---
 
-## Session 297 Summary
+## Session 298 Summary
 
-**S296 push completed** ✅ — 8 files successfully deployed to production.
+**S297 push confirmed** ✅ — message-templates.tsx (#173 auth guard) deployed.
 
-**Auth bug fix in 3 controllers** ✅ — Fixed req.user.id → req.user.organizerProfile?.id in typologyController.ts, arrivalController.ts, and photoOpController.ts (same fix as S296 treasureHuntQRController).
+**#169 Organizer Insights ✅ PERSONALLY VERIFIED** — Navigated to /organizer/insights as Bob Smith (user2). Real data: 4 sales, 38 items, $2,096.88 revenue, 10.5% conversion. Refreshed — same. Dark mode correct.
 
-**#85 Treasure Hunt confirmed working** ✅ — Created test clue via API (POST 201), verified clue persists in database. Feature ready for production.
+**#87 Brand Tracking P0 FIXED** — When shopper tried to follow a brand, API returned HTML error instead of JSON. Root cause: arrow function wrappers on brand-follows routes in users.ts prevented proper async error handling. Fix: pass controller functions directly to router (same pattern used everywhere else). 0 TS errors.
 
-**#173 Message Templates auth guard fixed** ✅ — Stale user.role check replaced with roles array logic. File ready to push.
+**#25 Item Library — false alarm** — Previous agent reported 403. I personally visited /organizer/item-library as Bob Smith (PRO) — page loads, shows filters, empty state. Not a P0. No items in Bob's library yet so full flow can't be tested.
 
-**D-series QA Passes 1–4 executed** — 10 features confirmed working ✅: #85, #89, #140, #151, #177, #179, #180, #189, #190, #173-fix. Agent login issues prevented testing PRO features (user2) and some shopper features (user11) — accounts confirmed valid, accounts work, issue was on agent side. Carry testing to S298.
+**D-series QA passes largely blocked** — Browser session instability (access-denied redirects, cookie-clear breaking shopper logins) prevented testing most features. All SIMPLE CORE (#137/#141/#142/#143/#144/#139), most PRO (#65/#31/#41/#17), and shopper (#29/#122) carry to S299.
 
-**Test clue cleanup needed** — 2 test clues added to Alice's sale (cmn7epuiu004pxdmfub457vb1) during Treasure Hunt testing. Remove in S298.
+**Test clue cleanup BLOCKED** — Sale ID cmn7epuiu004pxdmfub457vb1 not found in Railway DB. "Alice" doesn't match user1 (Bob Smith in DB). Needs investigation — may be stale STATE reference.
 
 ---
 
-## S298 Priorities
+## S299 Priorities
 
-1. Push 1 file above
-2. D-series QA re-run — Pass 1 SIMPLE CORE (#137, #141, #142, #143, #144, #139) — use user1, navigate via edit-sale links from dashboard
-3. D-series QA re-run — Pass 3 PRO features (#65, #169, #25, #31, #41, #17) — log in as user2@example.com
-4. D-series QA re-run — Pass 4 Shopper features (#29, #122, #87) — log in as user11@example.com
-5. Clean up test clues (Alice's sale cmn7epuiu004pxdmfub457vb1)
-6. Update roadmap Chrome QA columns for confirmed ✅ features
+1. Push 1 file above (backend fix for #87)
+2. D-series QA Pass 1 SIMPLE CORE (#137, #141, #142, #143, #144, #139) — user1, navigate via dashboard Sales tab
+3. D-series QA Pass 3 remaining PRO (#65, #25, #31, #41, #17) — user2
+4. D-series QA Pass 4 Shopper (#29, #122, #87 retest) — user11. **Do NOT clear cookies** — use signout route only
+5. Investigate test clue cleanup — find correct sale ID for Alice's sale or confirm it's already gone
 
 ---
 
