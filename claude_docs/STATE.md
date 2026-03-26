@@ -7,17 +7,29 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Current Work
 
-**S296 START:** Push S295 changeset → smoke test in Chrome (checkout fee, workspace page, hunt-pass). Then continue D-series Chrome QA.
+**S297 START:** Push S296 block (8 files) → fix systemic auth bug in 3 controllers → re-test #85 Treasure Hunt → D-series QA Passes 1–4.
 
-**Next Session Priorities:**
-1. Patrick pushes S295 block (see patrick-dashboard.md)
-2. S296 mandatory smoke test: verify in Chrome post-push — (a) checkout fee shows item price only (no 10% added for regular items), (b) workspace/[slug] shows published sales list + "Message [owner]" button + no boilerplate copy, (c) /shopper/hunt-pass loads
-3. #85 clue save: needs organizer who OWNS a sale — log in as user2@example.com and test Add Clue → Save → persist
-4. Continue D-series Chrome QA backlog
+**⚠️ P1 SYSTEMIC BUG (NOT FIXED — fix in S297):**
+`sale.organizerId !== req.user.id` is wrong in 3 controllers — should be `req.user.organizerProfile?.id`:
+- `typologyController.ts` lines 91, 142, 187 (Typology Classifier broken for ALL organizers)
+- `arrivalController.ts` lines 95, 162 (Arrival tracking broken for ALL organizers)
+- `photoOpController.ts` lines 58, 144, 193 (Photo Op feature broken for ALL organizers)
+Dispatch findasale-dev with exact line numbers above. 2-line fix per instance.
+
+**S297 Priorities:**
+1. Patrick pushes S296 block (8 files — see patrick-dashboard.md)
+2. Dispatch findasale-dev to fix systemic auth bug in typologyController + arrivalController + photoOpController
+3. #85 Treasure Hunt clue: re-test after auth fix deployed (Bob's sale cmn7eptmd0047xdmfryhj2m5d — Add Clue → verify clue count increases + persists)
+4. D-series QA Pass 1 — ORG SIMPLE CORE (#137, #141, #142, #143, #144, #139)
+5. D-series QA Pass 2 — ORG SIMPLE TOOLS (#162, #71, #19, #174, #154, #131, #135, #89)
+6. D-series QA Pass 3 — ORG PRO + BOTH (#65, #169, #25, #31, #173, #41, #17, #140, #151)
+7. D-series QA Pass 4 — SHOPPER (#177, #179, #180, #29, #122, #190, #189, #87)
 
 ---
 
 ## Recently Complete
+
+**S296 COMPLETE (2026-03-26):** S295 smoke tests + P0/P1 bug fixes + systemic auth bug discovered. (1) Checkout double-fee confirmed fixed: stripeController.ts was adding platformFeeAmount to buyer finalPriceCents for non-auction items (buyer charged 20% over price). Already fixed from S295. (2) HuntPassModal.tsx: overflow scroll fix + success toast on activation. (3) shopper/dashboard.tsx: upsell condition fixed (was showing after Hunt Pass active) + Hunt Pass Active badge added. (4) StreakWidget.tsx: copy fix. (5) workspace/[slug].tsx: description templated, message link uses ownerId. (6) workspaceController.ts: ownerId added to public workspace API response. (7) messages/index.tsx: redirect param changed from ?to= to ?organizerId= (messages/new.tsx expects organizerId). (8) treasureHuntQRController.ts P0 AUTH BUG: req.user.id !== sale.organizerId was comparing User ID vs Organizer ID — always 403. Fixed to req.user.organizerProfile?.id (2 instances: createClue + deleteClue). SAME BUG found in typologyController, arrivalController, photoOpController — NOT YET FIXED, dispatch to S297. D-series QA Passes 1–4 NOT completed — carry to S297. 8 files changed, push block in patrick-dashboard.md.
 
 **S295 COMPLETE (2026-03-26):** Roadmap corrections, page deletions, Chrome QA, P0 fixes, QA Honesty Gate formalized. (1) roadmap.md v75: applied all 26 Chrome 📋 downgrades, 9 nav corrections, 14 S289-S292 upgrades, added #218 Shopper Trades + #219 Shopper Achievements. (2) Deleted pro-features.tsx + connect-stripe.tsx (git rm). (3) TierGate.tsx: dead link /organizer/pro-features → /pricing. (4) creator/dashboard.tsx: Connect Stripe button → real OAuth at /api/stripe/create-connect-account. (5) CheckoutModal.tsx P0: removed buyer-facing 10% platform fee for regular items — buyer now sees item price = total. Auction items still show 5% buyer premium. (6) shopper/hunt-pass.tsx: new page (was 404) — Hunt Pass marketing, $4.99/month, benefits, FAQ, CTA. (7) workspaceController.ts + workspace/[slug].tsx: built out public workspace page — real publishedSales list (title, dates, city), Message owner button, removed hardcoded boilerplate. (8) CLAUDE.md §9 QA Honesty Gate: hard rule (page loads ≠ verified, full user task = verified, bug→decision conversion prohibited). Memory file created. S295 changeset pushed to GitHub (Patrick pushblock pending for doc files).
 
