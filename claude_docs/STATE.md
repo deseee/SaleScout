@@ -7,16 +7,21 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Current Work
 
-**S293 IN PROGRESS (2026-03-26):** Railway green ✅ (4093c15). Build fix complete.
+**S294 COMPLETE (2026-03-26):** Frontend inventory audit + page wiring + consent copy + roadmap audit prep.
 
-**S293 priorities (remaining):**
-1. Chrome verify S292 fixes live: (a) regular item checkout shows no fee line, (b) workspace Invite Member button renders, (c) public workspace URL `/workspace/[slug]` loads
-2. D6 Chrome QA: #85 Treasure Hunt QR (QR clue creation + scan flow as user2)
-3. Continue D-series Chrome QA queue
+**S295 priorities:**
+1. Apply roadmap corrections from `claude_docs/audits/roadmap-audit-S294.md` (subagent dispatch — 26 Chrome downgrades, 9 Nav corrections, 14 S290-S293 updates, ~4 new items, stale Coming Soon cleanup)
+2. Delete `/organizer/pro-features.tsx` (Patrick confirmed redundant) + git rm `/creator/connect-stripe.tsx` (gutted S294, needs actual removal)
+3. Chrome verify S292 fixes live (carried from S293): checkout fee, workspace invite, public workspace URL
+4. D6 Chrome QA: #85 Treasure Hunt QR
 
 ---
 
 ## Recently Complete
+
+**S294 COMPLETE (2026-03-26):** Frontend pages inventory, page wiring, consent copy, roadmap audit report. (1) Full 153-page frontend inventory created at `claude_docs/audits/frontend-pages-inventory-S294.html` — interactive HTML with filter buttons, status tags, orphan/duplicate flags. (2) register.tsx: replaced 4 LEGAL_COPY_PLACEHOLDER instances with eBay/Amazon-style email consent copy (organizer + shopper variants). (3) Layout.tsx: wired `/organizer/ripples` (Sale Ripples) and `/organizer/item-library` (Item Library) into desktop + mobile nav as PRO-gated TierGatedNavLinks. (4) admin/index.tsx: replaced "Back to App" card with Creator Program card linking to `/creator/dashboard`. (5) creator/connect-stripe.tsx: gutted to deprecated no-op (sandbox blocked rm — needs git rm next push). (6) Confirmed `/organizer/pro-features.tsx` redundant with `/pricing` — Patrick approved deletion. (7) Roadmap audit report completed at `claude_docs/audits/roadmap-audit-S294.md` — cross-referenced roadmap vs page inventory vs S290 retro-audit, identified 26 Chrome downgrades + 9 Nav corrections + 14 S290-S293 updates + ~4 new items needed. (8) S290 QA retro-audit committed to persistent memory with 6 root causes. §7 violation: Layout/admin/connect-stripe edits done inline instead of subagent dispatch — valid changes but burned main-window tokens.
+
+**S293 (2026-03-26):** Ended prematurely — no wrap. Railway green confirmed. No code changes. Session spent on context loading before hitting usage limit.
 
 **S292 COMPLETE (2026-03-26):** Stripe checkout verified E2E + fee model fix + TEAMS Workspace bugs fixed + workspaceController.ts truncation fix. Stripe P0: checkout works — payment intent creates, Stripe Elements renders (4 card iframes), RESERVED item error handled correctly. Fee model bug fixed: buyer was being charged 10% platform fee on top of item price. Correct behavior: regular items = organizer-paid (application_fee_amount deducted from payout, buyer pays listed price only); auction items = 5% buyer's premium added to buyer charge. Fixed stripeController.ts (lines 354–399) + CheckoutModal.tsx fee display. TEAMS Workspace #13: (1) Invite Member button never rendered — root cause: `workspace.ownerId` = Organizer.id vs `user.id` = User.id (always false). Fixed: backend now returns `ownerUserId` (User.id); frontend compares `workspace.ownerUserId === user.id`. (2) Public workspace URL always 404 — root cause: `workspace/[slug].tsx` used raw axios hitting Vercel relative URL `/api/workspace/public/[slug]` (no route there). Fixed to use `api` instance hitting Railway backend at `/workspace/public/[slug]`. Mid-session: dev agent truncated workspaceController.ts at line 481 (missing `return res.status(500)...` + closing braces). Caused Railway TS error. Restored via Edit tool + MCP push (a03f7c0b). Cache-bust pushed (f5ace69a) to force Railway rebuild. All files pushed to GitHub via MCP — no Patrick push required. Pending: Railway green confirm + Chrome verification of all 3 fixes.
 
