@@ -254,7 +254,29 @@ Zero errors required before returning output to main session.
 
 ---
 
-## 9. MCP Tool Awareness
+## 9. QA Honesty Gate (HARD RULE — survives compression)
+
+A feature is ✅ only when a real user can complete the intended task end-to-end with correct real data. No exceptions.
+
+**These are NOT ✅:**
+- Page loads → NOT verified
+- Text renders on screen → NOT verified
+- Modal opens → NOT verified
+- Button is present → NOT verified
+- API returns 200 → NOT verified
+- "Looks right" → NOT verified
+
+**These ARE ✅:**
+- User clicked the button AND the expected outcome happened AND the data is real AND no error state appeared
+- The full user task (open → interact → result) completed successfully with real data
+
+**Bug vs Decision:** If something doesn't work for a real user, it is a **bug**. It is not a "Patrick decision." It is not "worth noting." It gets a ❌ or ⚠️ and a dev dispatch. The only decisions that go to Patrick are product direction (build this feature or not). Broken implementations of already-decided features are bugs — fix them.
+
+**Converting bugs to decisions is prohibited.** If Claude writes "DECISION NEEDED" for something that is already a committed feature and simply doesn't work correctly, that is a rule violation.
+
+---
+
+## 10. MCP Tool Awareness
 
 At session start, check which MCP tools are active. They are injected at session start and not visible in any file.
 
