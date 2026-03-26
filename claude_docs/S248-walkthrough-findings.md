@@ -5,11 +5,11 @@ Unlogged in users can't view Items individual pages? should be able to view but 
 Register page:
 [LEGAL_COPY_PLACEHOLDER_SHOPPER]
 
-signed in as user11@example.com
+signed in as user12@example.com
 Homepage:
 ++Sales near you card: awkward placing between search and Featured sales. Pretty basic looking, should it have more things in the card? collapsible? maybe not as wide on desktop and next to the Discover Amazing Deals text? doesn't even click through to map page?
 +search doesn't find sales by tags, or item names or descriptions (mid century, eames, rolex, etc..)
-Sale type filters can't test no data
+Sale type filters can't test no data or if there is data it isn't dispplaying.
 
 Sale page:
 +views shares saves dark grey hard to see in dark mode

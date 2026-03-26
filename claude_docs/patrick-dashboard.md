@@ -76,17 +76,11 @@ All password: `password123`
 
 ## Outstanding Actions (Patrick)
 
-- **⚠️ Attorney review** — consent copy in register.tsx (`LEGAL_COPY_PLACEHOLDER_*`) — required before beta launch
-- **⚠️ Set `MAILERLITE_SHOPPERS_GROUP_ID=182012431062533831` on Railway**
-- **⚠️ Verify `RESEND_API_KEY` and `RESEND_FROM_EMAIL` on Railway**
-- **Neon project deletion** — still pending at console.neon.tech (since S264)
-- **Auction E2E** — End Auction button → Stripe checkout link → confirm winner notification (Stripe test mode)
 
 ---
 
 ## Known Flags
 
-- **#74 consent copy** — `LEGAL_COPY_PLACEHOLDER_*` in register.tsx — attorney review REQUIRED before launch
 - **#201 Favorites UX** — Item saves PASS. Seller-follow tab = Follow model #86, deferred post-beta
 - **customStorefrontSlug** — All NULL in DB. Organizer profile URLs work by numeric ID only
 - **#37 Sale Reminders** — iCal ✅ but push "Remind Me" button not built (feature gap)
