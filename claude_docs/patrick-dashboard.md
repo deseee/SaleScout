@@ -1,82 +1,64 @@
-# Patrick's Dashboard — Session 291 Wrapped (March 26, 2026)
+# Patrick's Dashboard — Session 292 Wrapped (March 26, 2026)
 
 ---
 
 ## 🚨 Action Required
 
-**🔑 Push stripeController.ts fix** — checkout is still broken until this lands on Railway:
-
-```powershell
-cd C:\Users\desee\ClaudeProjects\FindaSale
-git add packages/backend/src/controllers/stripeController.ts
-git add claude_docs/STATE.md
-git add claude_docs/patrick-dashboard.md
-git commit -m "fix(s291): Stripe Connect guard + session wrap
-
-- stripeController.ts: skip on_behalf_of/transfer_data when stripeConnectId
-  is null or acct_test_* (seeded fake IDs). Fixes Stripe P0 checkout error.
-- STATE.md + patrick-dashboard.md: S291 wrap"
-.\push.ps1
-```
-
-⚠️ Do NOT re-add Dockerfile.production, api.ts, or useWorkspace.ts — those were already pushed to GitHub this session via MCP.
+**Nothing to push** — all S292 fixes are already on GitHub via MCP.
 
 ---
 
 ## ✅ Build Status
 
-- **Railway:** 🔄 Rebuilding (S291b cache bust + Dockerfile restored — CMD was missing on GitHub)
-- **Vercel:** ✅ Green (ngrok header fix deployed)
+- **Railway:** 🔄 Rebuilding (cache bust f5ace69a — should go green shortly)
+- **Vercel:** ✅ Green
 - **DB:** Railway Postgres — all migrations confirmed
-- **Git:** Push block above — run now
+- **Git:** All S292 files pushed via MCP (no manual push needed)
 
 ---
 
-## ✅ Session 291 Complete — Build Recovery + Stripe P0 Root Cause
+## ✅ Session 292 Summary
 
-**Bugs Fixed & Deployed (already on GitHub):**
-- **workspaceController.ts** — 6 TS errors blocking Railway: `email` not on `OrganizerSelect`, must route through `user: { select: { email: true } }`. All 5 selects fixed.
-- **useWorkspace.ts** — Vercel TS error at workspace.tsx:302: type shape was `organizer.email`, fixed to `organizer.user.email`.
-- **api.ts** — Removed `ngrok-skip-browser-warning` from axios defaults. This dev-only header was triggering CORS preflights in production unnecessarily.
-- **Dockerfile.production** — Had merge conflict markers locally + was missing EXPOSE/HEALTHCHECK/CMD on GitHub. Restored full file, new cache bust (S291b).
+**Stripe Checkout — VERIFIED WORKING:**
+- Payment intent creates successfully
+- Stripe Elements renders (4 card iframes + "Secure payment input frame")
+- RESERVED item returns correct error + "Try Again" button ✅
 
-**Stripe P0 — Root Cause Found + Fix Written (awaiting push):**
+**Fee Model — FIXED:**
+- Bug: buyer was being charged 10% platform fee on top of item price
+- Fix: regular items = organizer-paid (no buyer fee line); auction items = 5% buyer's premium
+- Files: `stripeController.ts` + `CheckoutModal.tsx`
 
-The issue was NOT the button wiring. "Continue to Pay" correctly calls `setStarted(true)` → `useEffect` → `api.post('/stripe/create-payment-intent', ...)`. The request fires to Railway.
+**TEAMS Workspace #13 — TWO BUGS FIXED:**
+1. **Invite Member button never rendered** — Organizer.id vs User.id mismatch. Backend now returns `ownerUserId` (User.id). Frontend compares correctly.
+2. **Public workspace URL `/workspace/[slug]` always 404** — Was hitting Vercel relative URL instead of Railway backend. Fixed to use correct api instance.
 
-Railway receives it, calls Stripe, and Stripe rejects with:
-```
-StripeInvalidRequestError: No such destination: 'acct_test_1294c04e-20cd-4f'
-```
-
-The seeded organizer's `stripeConnectId` is a fake placeholder ID. Stripe doesn't accept it for `transfer_data[destination]`. Backend throws 500, CORS headers drop in error path, browser sees XHR status 0 → "Could not start checkout."
-
-**Fix:** `stripeController.ts` now guards `on_behalf_of` / `transfer_data` / `application_fee_amount` behind a validity check:
-- `null` → skip Connect routing (platform captures full amount)
-- starts with `acct_test_` → skip Connect routing
-- real `acct_*` ID → use Connect routing as normal
-
-This fix is safe for production: real organizers with real connected accounts still get proper routing. Seeded/test organizers without valid IDs now complete checkout to the platform account instead of failing.
+**Mid-session truncation fix:**
+- Dev agent truncated `workspaceController.ts` at line 481 → TS error → Railway build failure
+- Restored + pushed via MCP (a03f7c0b)
+- Cache-bust pushed (f5ace69a) to force Railway to pick up the fix
 
 ---
 
-## 🔁 Next Session: S292
+## 🔁 Next Session: S293
 
-**Priority 1 — Verify Stripe checkout works:**
-After Patrick pushes stripeController.ts + Railway rebuilds (~2 min), Chrome-test the full checkout flow:
-1. Navigate to a sale as user11 (shopper)
-2. Click Buy Now → Continue to Pay
-3. Confirm payment form loads (Stripe Elements)
-4. Complete with test card `4242 4242 4242 4242`
+**Step 1 — Railway green confirm:**
+Check Railway build status. If green, proceed. If red, check logs and paste error here.
 
-**Priority 2 — Rarity badges visual confirm:**
-Navigate to any item detail page at finda.sale — confirm colored rarity badge renders (seeded S290: 5 items have COMMON/UNCOMMON/RARE/ULTRA_RARE/LEGENDARY).
+**Step 2 — Chrome verify S292 fixes:**
+1. Regular item checkout → confirm NO platform fee line item shown
+2. Workspace page as user3 → confirm "Invite Member" button renders
+3. Navigate to `/workspace/[your-slug]` → confirm public workspace page loads (not 404)
 
-**Priority 3 — D6 Chrome QA:**
-- #13 TEAMS Workspace (`/organizer/workspace` as user3)
-- #85 Treasure Hunt QR (QR clue creation + scan flow)
+**Step 3 — D6 Chrome QA: #85 Treasure Hunt QR**
+As user2 (PRO/TEAMS organizer):
+- Edit a sale → find Treasure Hunt QR section
+- Create a clue (add location hint + QR code)
+- Download QR
+- As shopper (user11), scan/visit the clue URL → confirm clue detail page loads
+- Confirm XP awarded on scan
 
-**Priority 4 — Continue D-series Chrome QA queue**
+**Step 4 — Continue D-series Chrome QA queue**
 
 ---
 
@@ -109,5 +91,4 @@ All password: `password123`
 - **customStorefrontSlug** — All NULL in DB. Organizer profile URLs work by numeric ID only
 - **#37 Sale Reminders** — iCal ✅ but push "Remind Me" button not built (feature gap)
 - **#59 Streak Rewards** — StreakWidget on dashboard, not on loyalty page (P2)
-- **Stripe Checkout** — Fix written (stripeController.ts), push pending. Root cause: fake seeded stripeConnectId.
-- **#27/#66/#125 Exports ✅** — confirmed S290: sales.csv (3 sales), items.csv (36 items), purchases.csv (empty — no Stripe purchases yet, expected).
+- **#27/#66/#125 Exports ✅** — confirmed S290: sales.csv (3 sales), items.csv (36 items), purchases.csv (empty — no Stripe purchases yet, expected)

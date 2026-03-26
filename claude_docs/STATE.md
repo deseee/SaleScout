@@ -7,28 +7,19 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Current Work
 
-**S291 COMPLETE (2026-03-26):** Railway/Vercel build recovery + Stripe P0 root cause + partial fix deployed.
+**S292 COMPLETE (2026-03-26):** Stripe checkout verified + fee model fix + TEAMS Workspace bugs fixed. Railway build still recovering (truncation fix pushed a03f7c0b + cache bust f5ace69a — wait for green).
 
-**Pending Patrick action — REQUIRED before S292:**
-- 🚨 Push stripeController.ts fix (see push block in patrick-dashboard.md):
-  ```
-  git add packages/backend/src/controllers/stripeController.ts
-  git add claude_docs/STATE.md
-  git add claude_docs/patrick-dashboard.md
-  git commit -m "fix(s291): Stripe Connect guard + session wrap docs"
-  .\push.ps1
-  ```
-- Note: Dockerfile.production, api.ts, useWorkspace.ts already on GitHub via MCP — do NOT re-add them
-
-**S292 priorities (in order):**
-1. 🚨 Verify Stripe checkout works end-to-end (Railway rebuild with stripeController fix)
-2. Chrome verify rarity badges (seeded S290, visual confirm still needed)
-3. D6 Chrome QA: #13 TEAMS Workspace, #85 Treasure Hunt QR
+**S293 priorities (in order):**
+1. 🚨 Verify Railway green after S292 cache bust (f5ace69a). If still red, check build logs.
+2. Chrome verify S292 fixes live: (a) regular item checkout shows no fee line, (b) workspace Invite Member button renders, (c) public workspace URL `/workspace/[slug]` loads
+3. D6 Chrome QA: #85 Treasure Hunt QR (QR clue creation + scan flow as user2)
 4. Continue D-series Chrome QA queue
 
 ---
 
 ## Recently Complete
+
+**S292 COMPLETE (2026-03-26):** Stripe checkout verified E2E + fee model fix + TEAMS Workspace bugs fixed + workspaceController.ts truncation fix. Stripe P0: checkout works — payment intent creates, Stripe Elements renders (4 card iframes), RESERVED item error handled correctly. Fee model bug fixed: buyer was being charged 10% platform fee on top of item price. Correct behavior: regular items = organizer-paid (application_fee_amount deducted from payout, buyer pays listed price only); auction items = 5% buyer's premium added to buyer charge. Fixed stripeController.ts (lines 354–399) + CheckoutModal.tsx fee display. TEAMS Workspace #13: (1) Invite Member button never rendered — root cause: `workspace.ownerId` = Organizer.id vs `user.id` = User.id (always false). Fixed: backend now returns `ownerUserId` (User.id); frontend compares `workspace.ownerUserId === user.id`. (2) Public workspace URL always 404 — root cause: `workspace/[slug].tsx` used raw axios hitting Vercel relative URL `/api/workspace/public/[slug]` (no route there). Fixed to use `api` instance hitting Railway backend at `/workspace/public/[slug]`. Mid-session: dev agent truncated workspaceController.ts at line 481 (missing `return res.status(500)...` + closing braces). Caused Railway TS error. Restored via Edit tool + MCP push (a03f7c0b). Cache-bust pushed (f5ace69a) to force Railway rebuild. All files pushed to GitHub via MCP — no Patrick push required. Pending: Railway green confirm + Chrome verification of all 3 fixes.
 
 **S291 COMPLETE (2026-03-26):** Build recovery + Stripe P0 root cause diagnosed + partial fix deployed. Railway build: 6 TS errors in workspaceController.ts — `email` doesn't exist on `OrganizerSelect` (lives on `User` via relation). Fixed all 5 organizer selects to route through `user: { select: { email: true } }` (MCP push). Vercel build: workspace.tsx line 302 used wrong shape. Fixed `WorkspaceMember` interface in useWorkspace.ts (`organizer.user.email` shape) — MCP push. Both Railway and Vercel green. Stripe P0 investigation: "Continue to Pay" was wired correctly (onClick → setStarted(true) → useEffect → api.post). XHR fired to correct Railway URL but got status 0. Root cause: organizer's `stripeConnectId` in DB is `acct_test_1294c04e-20cd-4f` (fake seeded ID). Stripe rejects with `StripeInvalidRequestError: No such destination`. Backend sends 500 but CORS headers drop in error path → browser sees status 0. Fix 1: removed `ngrok-skip-browser-warning` from axios defaults in api.ts (dev-only header was causing unnecessary CORS preflights — deployed to Vercel). Fix 2: guarded `on_behalf_of`/`transfer_data`/`application_fee_amount` behind valid stripeConnectId check in stripeController.ts — skip Connect routing for null or `acct_test_*` IDs. stripeController.ts fix awaiting Patrick push (file too large for MCP, 1334 lines). Dockerfile.production had merge conflict markers locally AND was missing EXPOSE/HEALTHCHECK/CMD on GitHub — fixed and MCP pushed (S291b cache bust). Files changed: workspaceController.ts (MCP), useWorkspace.ts (MCP), Dockerfile.production (MCP), api.ts (MCP), stripeController.ts (Patrick push pending).
 
