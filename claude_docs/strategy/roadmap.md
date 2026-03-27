@@ -1,6 +1,6 @@
 # ROADMAP – FindA.Sale
 
-**Last Updated:** 2026-03-26 (v75 — S295: roadmap audit corrections applied, #85 QR verified, #13 workspace ⚠️, fee display fix noted)
+**Last Updated:** 2026-03-26 (v76 — S303: rows 137, 141, 125, 153, 122 Chrome-verified; P2/P0 bugs cleared)
 
 **Status:** Production MVP live at finda.sale. Beta: GO. Full build history: `claude_docs/strategy/COMPLETED_PHASES.md`.
 
@@ -93,10 +93,10 @@ Production MVP launched Q1 2026. Full auction lifecycle (bidding + close flow + 
 
 | # | Feature | Role | Tier | DB | API | UI | QA | Chrome | Nav | Human | Notes |
 |---|---------|------|------|----|----|----|----|--------|-----|-------|-------|
-| 137 | Create / Edit / Publish / Archive Sales | ORG | SIMPLE | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 📋 | Edit ✅ S300. CREATE ❌ S301: wrong URL + lat/lng required + date format mismatch + saleType enum too narrow. All 4 fixed S301 — PENDING PUSH. Retest S302. |
+| 137 | Create / Edit / Publish / Archive Sales | ORG | SIMPLE | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Edit + Create ✅. 4 create-sale fixes applied (URL, lat/lng validation, date format, saleType enum). Geocode auto-saves coords on edit when lat/lng absent — no error banner. Chrome QA confirmed. |
 | 139 | Sale Map with Geocoding | ORG | SIMPLE | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ S300 | Chrome ✅ S300: Leaflet map on /sales/[id] with geocoded address "4866 Leonard St, Grand Rapids" |
 | 140 | Sale Calendar View | BOTH | SIMPLE | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 📋 | Organizer + shopper views |
-| 141 | Item Add / Edit / Delete / Status | ORG | SIMPLE | ✅ | ✅ | ✅ | ✅ | ✅S125 | ✅ | ✅ S301 | Core CRUD. ✅ S301: title edit persisted on reload (ss_2485qquq4→ss_7964gr7a4). ⚠️ P2: category doesn't pre-populate on edit (shows "Select a category" vs saved value). ⚠️ P2: sort order glitch — item invisible in add-items list after rename. |
+| 141 | Item Add / Edit / Delete / Status | ORG | SIMPLE | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Core CRUD ✅. Title edit persists on reload. Category pre-populates on edit form. Renamed items stay visible in add-items list. Chrome QA confirmed. |
 | 144 | AI Tag Suggestions + Health Score | ORG | SIMPLE | ✅ | ✅ | ✅ | ✅ | ✅S124 | ✅ | ✅ S301 | Haiku-powered, part of intake. ✅ S301: Suggest Price returned "$15–$45, suggested $28" with explanation + "Use $28.00" CTA. (ss_825360xz7) |
 | 151 | Notification Inbox | BOTH | SIMPLE | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 📋 | In-app notification center |
 | 162 | Stripe Terminal POS (v2) | ORG | SIMPLE | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 📋 | Multi-item + cash, 10% fee parity |
@@ -120,7 +120,7 @@ Production MVP launched Q1 2026. Full auction lifecycle (bidding + close flow + 
 | 17 | Bid Bot Detector + Fraud Score | ORG | PRO | ✅ | ✅ | ✅ | ✅ | ✅S202 | ✅ | 📋 | FraudBadge on holds page, fraud-signals.tsx |
 | 27 | CSV / JSON / Text Listing Exports | ORG | PRO | ✅ | ✅ | ✅ | ✅ | 📋 | ✅ | 📋 | items.csv + sales.csv + purchases.csv download confirmed. PRO gate working. Chrome verified S290. |
 | 66 | Open Data Export (ZIP) | ORG | PRO | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 📋 | items.csv (36 rows), sales.csv (3 rows), purchases.csv (header only — no Stripe purchases yet). Chrome verified S290. |
-| 125 | Inventory Syndication CSV Export | ORG | PRO | ✅ | ✅ | ✅ | ✅ | 📋 | ✅ | 📋 | exportService.ts + csvExportController.ts. PRO/TEAMS gate. Chrome S290 prev confirmed. ❌ S301: persistent 429 (rate limit window spans entire session), zero UI feedback on either Export or Clipboard button. P1 — dispatch dev to add 429 error UI + review rate limit window. |
+| 125 | Inventory Syndication CSV Export | ORG | PRO | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 📋 | exportService.ts + csvExportController.ts. PRO/TEAMS gate. 429 rate-limit message confirmed in UI — shows next available export date (1 export/month window). Chrome QA confirmed. |
 
 ### Organizer — Marketing & Brand Amplification [SIMPLE/PRO mixed]
 
@@ -270,7 +270,7 @@ Production MVP launched Q1 2026. Full auction lifecycle (bidding + close flow + 
 | 149 | Email Reminders to Shoppers | ORG | SIMPLE | ✅ | ✅ | ✅ | ✅ | 📋 | N/A | 📋 | `/api/reminders` — Needs Chrome QA |
 | 150 | Push Notification Subscriptions | BOTH | SIMPLE | ✅ | ✅ | ✅ | ✅ | ✅ | N/A | 📋 | `/api/push` VAPID — Chrome ✅ S286 |
 | 152 | Organizer Digest Emails | ORG | SIMPLE | ✅ | ✅ | ✅ | ✅ | 📋 | N/A | 📋 | Weekly activity summaries — Needs Chrome QA |
-| 153 | Basic Organizer Profile | ORG | SIMPLE | ✅ | ✅ | ✅ | ✅ | 📋 | 📋 | 📋 | businessName, phone, bio, website. ❌ S301: missing Phone shows no validation error; save fires success toast but data does NOT persist on reload. P0 — dispatch dev. |
+| 153 | Basic Organizer Profile | ORG | SIMPLE | ✅ | ✅ | ✅ | ✅ | ✅ | 📋 | ✅ | businessName, phone, bio, website. Save persists on reload — all fields including phone/bio/website confirmed. Chrome QA confirmed. |
 | 154 | Organizer Public Profile Page | ORG | SIMPLE | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 📋 | `/organizers/[slug]` — Chrome ✅ S286 (slug 404 fixed by dev, push pending) |
 | 155 | Password Reset Flow | ORG | SIMPLE | ✅ | ✅ | ✅ | ✅ | 📋 | 📋 | 📋 | Email-based password recovery — Chrome PASS S285 |
 | 156 | Refund Policy Configuration | ORG | SIMPLE | ✅ | ✅ | ✅ | ✅ | 📋 | ✅ | 📋 | Per-organizer configurable refund window — Needs Chrome QA |
@@ -369,7 +369,7 @@ Production MVP launched Q1 2026. Full auction lifecycle (bidding + close flow + 
 | 57 | Shiny / Rare Item Badges | SHO | FREE | ✅ | ✅ | ✅ | ✅ | 📋 | N/A | 📋 | RarityBadge wired to item cards. Seed re-run S290 (rarity was null on Railway). Needs Chrome re-verification. |
 | 48 | Treasure Trail Route Builder | SHO | FREE | ✅ | ✅ | ✅ | ✅ | 📋 | ✅ | 📋 | Trail pages + share token, multi-sale routing — Chrome ✅ S288 |
 | 55 | Seasonal Discovery Challenges | SHO | FREE | ✅ | ✅ | ✅ | ✅ | 📋 | 📋 | 📋 | Rotating challenges by season/category — Needs Chrome QA |
-| 122 | Explorer's Guild Phase 1 (Rebrand + Copy) | SHO | FREE | N/A | N/A | ✅ | ✅ | ✅ | 📋 | 📋 | Collector→Explorer labels, collect→explore language throughout. Rank names updated. No schema changes — Chrome ✅ S286 |
+| 122 | Explorer's Guild Phase 1 (Rebrand + Copy) | SHO | FREE | N/A | N/A | ✅ | ✅ | ✅ | 📋 | ✅ | Collector→Explorer labels, collect→explore language throughout. Rank names updated. "My Loot Legend" heading confirmed on /shopper/explorer-passport. Chrome QA confirmed. |
 | 123 | Explorer's Guild Phase 2 (XP Economy + Loot Legend) | SHO | FREE/PAID_ADDON | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 📋 | User.guildXp + User.explorerRank + RarityBoost table. XP sinks (coupon-gen, rarity boost, Hunt Pass discount). Loot Legend portfolio. Full schema + endpoints — Chrome ✅ S286 |
 | 85 | Treasure Hunt QR (In-Sale Scavenger Hunt) | SHO | FREE | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Organizer: toggle + clues + XP bonus in edit-sale ✅. Shopper: QR modal renders 300×300, Download/Copy/XP message ✅. /shopper/hunt-pass page created S295. |
 | 133 | Hunt Pass Subscription Redesign | SHO | PAID_ADDON | ✅ | ✅ | ✅ | ✅ | 📋 | 📋 | 📋 | LEGENDARY 6h early access gate in itemController, 1.5x XP multiplier (applyHuntPassMultiplier in xpService), getLootLegend() + getCollectorLeague() endpoints + routes, loot-legend.tsx + league.tsx pages, loyalty.tsx updated. — Chrome ✅ S286 |
