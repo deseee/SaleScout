@@ -7,45 +7,7 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Current Work
 
-S308 COMPLETE — #143 camera pipeline. Root cause of thumbnail break confirmed with live network evidence. Push block below covers all S308 fixes.
-
-**Files changed S308 (local only — push block below):**
-- `packages/frontend/components/RapidCapture.tsx` — thumbnail onError → 📷 fallback (no more broken image)
-- `packages/frontend/components/camera/PreviewModal.tsx` — fetches fresh item data from API when modal opens (ensures AI fields populate)
-- `packages/backend/src/controllers/itemController.ts` — `description` field added to draft list endpoint SELECT
-- `packages/frontend/pages/organizer/add-items/[saleId].tsx` — guard: "Done Reviewing" blocked if item ID still temp- (prevents 404)
-- `packages/frontend/pages/organizer/add-items/[saleId]/review.tsx` — category normalization (case-insensitive match to CATEGORIES array so AI value pre-populates dropdown)
-
-**ROOT CAUSE CONFIRMED S308 (thumbnail break after AI):**
-After AI processing completes, the polling endpoint (`GET /items/:id/draft-status`) returns `thumbnailUrl: photoUrls[0]` = the Cloudinary URL. The Cloudinary URL returns **503** (image not fully processed on Cloudinary side yet). The poll update in `[saleId].tsx` line 886 does `{ ...i, ...data }` which overwrites the working blob URL with the 503 Cloudinary URL. No `onError` on the carousel `<img>` to fall back. Result: broken thumbnail.
-
-**S309 FIXES NEEDED (2 targeted edits, ~10 lines total):**
-
-Fix 1 — `[saleId].tsx` line 885-887: preserve blob URL through poll update:
-```
-CURRENT:  prev.map((i) => (i.id === item.id ? { ...i, ...data } : i))
-REPLACE:  prev.map((i) =>
-            i.id !== item.id ? i :
-            { ...i, ...data, thumbnailUrl: i.thumbnailUrl || data.thumbnailUrl }
-          )
-```
-
-Fix 2 — `RapidCapture.tsx` lines 532-537: add onError to carousel img:
-```tsx
-<img
-  src={item.thumbnailUrl}
-  alt={item.title || 'Item'}
-  className="w-full h-full object-cover"
-  onError={(e) => {
-    const img = e.currentTarget;
-    img.style.display = 'none';
-    const icon = document.createElement('span');
-    icon.textContent = '📷';
-    icon.className = 'text-xl';
-    img.parentElement?.appendChild(icon);
-  }}
-/>
-```
+S309 COMPLETE — #143 camera pipeline. All S309 fixes pushed. Vercel + Railway green. Full mobile Chrome E2E verify is the only remaining gate before #143 is ✅.
 
 ---
 
@@ -53,43 +15,42 @@ Fix 2 — `RapidCapture.tsx` lines 532-537: add onError to carousel img:
 
 | Feature | Reason | What's Needed | Session Added |
 |---------|--------|---------------|---------------|
-| #143 Quick Review modal — Done Reviewing | Fixed S308 (tempId guard). Needs device verify after push. | Capture item, tap → Pub, tap Done Reviewing — should save or show "still uploading" toast. | S308 |
-| #143 Category pre-population | Fixed S308 (case normalization). Needs device verify after push. | Capture item, let AI run, open full edit form on Review & Publish — Category should pre-fill. | S308 |
-| #143 Quick Review modal — Category/Condition/Description blank | May be timing (AI hasn't populated yet when modal opens). Needs verify post-push. | Capture, wait 5s, tap → Pub — check if Category/Condition/Description appear. | S308 |
+| #143 Thumbnail tap | Wired in code. Needs mobile verify. | Tap carousel thumbnail → PreviewModal should open for that item. | S309 |
+| #143 → Pub opens PreviewModal | Fixed S309 (button wiring). Needs mobile verify. | Tap → Pub in carousel — PreviewModal opens (not page navigate). | S309 |
+| #143 Quick Review modal — Category/Condition/Description | Fixed S308 (case normalization, description field). Needs mobile verify. | Capture, wait 5s for AI, tap → Pub — Category/Condition/Description should appear in modal. | S308 |
+| #143 Done Reviewing | Fixed S308 (tempId guard). Needs mobile verify. | Tap → Pub → Done Reviewing — should save or show "still uploading" toast if upload pending. | S308 |
+| #143 Review & Publish page — draft list | Fixed S309 (403 role check for dual-role users). Needs mobile verify as Alice John. | Log in as Alice John, capture items, tap Review(N) — page should list drafts (not 403). | S309 |
 
 **KNOWN BUG — Session instability:** After Cookie/localStorage clear in Chrome MCP, fresh login for shopper accounts (user11, user12) silently fails. Do NOT clear cookies — use signout route only, then log in.
 
 ---
 
-## Next Session (S309)
+## Next Session (S310)
 
-**Context:** Camera pipeline close to done. Core flow works: capture → AI tags → carousel → Review & Publish page. One confirmed remaining bug: carousel thumbnails break after AI spinner stops (Cloudinary 503 race condition). Exact fix documented in "Current Work" above — 2 targeted edits, ~10 lines.
+**Context:** S309 complete and fully pushed. Camera pipeline fixes are live. Core flow works end-to-end in desktop Chrome (confirmed). All remaining items in Blocked/Unverified Queue need **mobile viewport verification** — the camera UX is mobile-first and layout issues only appear in mobile mode.
+
+**CRITICAL: Use Chrome in mobile emulation mode** (DevTools → device toolbar → iPhone 12 Pro or similar). Layout bugs that are invisible on desktop are visible in mobile mode. All camera interactions — thumbnail tap, → Pub, Done Reviewing — must be tested at 390px width with touch simulation enabled.
 
 **Start with:**
-1. **Push S308 block** (below) — 4 files + STATE.md + dashboard
-2. **Fix thumbnail bug (inline — <20 lines across 2 files):**
-   - `[saleId].tsx` line 886: preserve blob URL through poll update (see fix above)
-   - `RapidCapture.tsx` lines 532-537: add onError to carousel img (see fix above)
-3. **Push S309 thumbnail fix** (tiny 2-file patch — MCP push ok)
-4. **Chrome verify** — capture 1 photo, watch carousel: thumbnail should stay visible after spinner stops
-5. **Then verify** → Pub quick review modal (Category/Condition/Description) + Done Reviewing flow
+1. Open Chrome MCP → navigate to finda.sale → log in as Alice John (admin+organizer dual-role)
+2. Switch to mobile viewport (390px / iPhone 12 Pro)
+3. Go to Add Items → Camera tab
+4. Capture 1 photo in Rapidfire mode
+5. Verify in sequence: thumbnail stays visible after AI spinner → tap thumbnail → PreviewModal opens → close → tap → Pub → PreviewModal opens (NOT navigate) → Done Reviewing fires correct action
+6. Navigate to Review(N) → Review & Publish page loads with items (not 403)
+7. Open full edit form → Category/Condition/Description pre-filled from AI
 
-**Patrick push block (S308):**
-```powershell
-cd C:\Users\desee\ClaudeProjects\FindaSale
-git add packages/frontend/components/RapidCapture.tsx
-git add "packages/frontend/pages/organizer/add-items/[saleId].tsx"
-git add "packages/frontend/pages/organizer/add-items/[saleId]/review.tsx"
-git add packages/backend/src/controllers/itemController.ts
-git add claude_docs/STATE.md
-git add claude_docs/patrick-dashboard.md
-git commit -m "fix: camera pipeline — thumbnail fallback, Done Reviewing 404 guard, category normalization, draft list description field"
-.\push.ps1
-```
+**After mobile verify:** If all 5 queue items pass, #143 Rapidfire Camera Mode is ✅ — update roadmap Chrome column.
+
+**Patrick test accounts:**
+- Alice John = admin+organizer dual-role test account (tests role check fixes)
+- user2 (Bob Smith) = PRO organizer (regular organizer test account)
 
 ---
 
 ## Recently Complete
+
+**S309 COMPLETE (2026-03-27):** #143 camera pipeline — 6 fixes shipped, all pushed, Vercel + Railway green. (1) Thumbnail race condition: `[saleId].tsx` poll update now preserves blob URL (`i.thumbnailUrl || data.thumbnailUrl`) — Cloudinary 503 no longer wipes visible thumbnail. Chrome-confirmed: thumbnail stayed after AI spinner. (2) → Pub button: `RapidCapture.tsx` handler changed from page navigation to `onThumbnailTap(lastItem.id)` — opens PreviewModal. (3) Railway TS build error: `quantity` field removed from draft SELECT in `itemController.ts` (not in schema). (4) getDraftItemsBySaleId 403: singular `req.user.role !== 'ORGANIZER'` check failed for admin+organizer dual-role users — fixed with `roles.includes()` pattern. (5) Role check audit: found + fixed 3 more camera pipeline endpoints with same bug (`addItemPhoto`, `removeItemPhoto`, `reorderItemPhotos`). (6) `onError` fallback on carousel img: 📷 emoji fallback on Cloudinary 503. OUTSTANDING: full mobile Chrome E2E verify (all 5 Blocked/Unverified items). 3 files pushed across 2 commits.
 
 **S308 COMPLETE (2026-03-27):** #143 camera pipeline — 4 bugs fixed + thumbnail root cause confirmed via Chrome MCP network inspection. (1) Thumbnail onError fallback added to some locations. (2) "Done Reviewing" 404 guard: tempId check blocks PATCH to /items/temp-xxx ([saleId].tsx). (3) Category normalization in getEditState: case-insensitive match against CATEGORIES array (review.tsx). (4) Draft list endpoint: `description: true` added to SELECT (itemController.ts). ROOT CAUSE CONFIRMED: carousel thumbnail breaks after AI spinner stops because poll response replaces blob URL with Cloudinary URL returning 503 (race condition — Cloudinary not ready when poll fires). Fix documented in STATE.md Current Work. 4 files changed, push block provided. OUTSTANDING: S309 applies 2-line thumbnail preserve fix + onError on carousel img, then verifies full flow in Chrome.
 

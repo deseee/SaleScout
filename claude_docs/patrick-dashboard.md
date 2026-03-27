@@ -1,72 +1,71 @@
-# Patrick's Dashboard — Session 308 Wrap (March 27, 2026)
+# Patrick's Dashboard — Session 309 Wrap (March 27, 2026)
 
 ---
 
-## 🔴 Push Required — Run this block now (S308)
+## ✅ All Clear — No Push Required
 
-```powershell
-cd C:\Users\desee\ClaudeProjects\FindaSale
-git add packages/frontend/components/RapidCapture.tsx
-git add "packages/frontend/pages/organizer/add-items/[saleId].tsx"
-git add "packages/frontend/pages/organizer/add-items/[saleId]/review.tsx"
-git add packages/backend/src/controllers/itemController.ts
-git add claude_docs/STATE.md
-git add claude_docs/patrick-dashboard.md
-git commit -m "fix: camera pipeline — thumbnail fallback, Done Reviewing 404 guard, category normalization, draft list description field"
-.\push.ps1
-```
+S309 fully pushed. Vercel green. Railway green. Nothing pending.
 
 ---
 
 ## Build Status
 
-- **Railway:** 🔄 Will redeploy after push (backend changes)
-- **Vercel:** 🔄 Will redeploy after push (frontend changes)
+- **Railway:** ✅ Green (backend role checks + TS build error fixed)
+- **Vercel:** ✅ Green (RapidCapture → Pub fix deployed)
 - **DB:** ✅ No new migrations
-- **Hook:** PostStop QA evidence hook active locally
 
 ---
 
-## Session 308 Summary
+## Session 309 Summary
 
-**#143 Camera Pipeline — Root cause found + 4 fixes**
-
-S307 push got items onto the Review & Publish page. S308 tackled the remaining carousel issues.
+**#143 Camera Pipeline — 6 fixes shipped**
 
 **What was fixed:**
-- "Done Reviewing" button no longer 404s while item is still uploading (shows toast instead)
-- Category dropdown now pre-populates from AI value (was failing silently due to case mismatch)
-- Description field now appears on Review & Publish page (was missing from backend SELECT)
-- Some thumbnail onError fallbacks added in earlier pass
+- Thumbnail no longer goes blank after AI spinner stops (blob URL preserved through poll update)
+- → Pub button now opens PreviewModal instead of navigating to Review & Publish page
+- Railway TS build error resolved (`quantity` field removed from draft SELECT — wasn't in schema)
+- Review & Publish page 403 fixed for Alice John (admin+organizer dual-role) — singular `role` check → `roles.includes()` pattern
+- Same role check bug found and fixed in 3 more camera endpoints: `addItemPhoto`, `removeItemPhoto`, `reorderItemPhotos`
+- 📷 fallback emoji on carousel img if Cloudinary returns 503
 
-**Root cause confirmed for the main remaining bug:**
-After AI finishes (spinner stops), the carousel thumbnail goes blank. Traced via live network requests in Chrome — the Cloudinary URL returns **503** at that moment. The poll update then overwrites the working blob URL with the broken Cloudinary URL. Two-line fix ready for S309.
+**Root cause of the role check bug:**
+Admin+organizer dual-role users (like Alice John) have `role: 'ADMIN'` as their primary role, so `req.user.role !== 'ORGANIZER'` always returned true → 403. Fixed by checking both `roles[]` array and `role` field. 4 itemController endpoints patched.
 
 ---
 
-## S309 Start
+## S310 Start
 
-1. **Run push block above** (S308 fixes)
-2. **Apply 2-line thumbnail fix** — S309 starts with this inline (see STATE.md Current Work for exact code)
-3. **Chrome verify** — capture 1 photo, confirm thumbnail stays visible after spinner stops
-4. **Then continue** → Pub quick review modal + Done Reviewing flow
+**One job: mobile Chrome E2E verify of #143**
+
+Use Chrome DevTools in mobile emulation mode (iPhone 12 Pro, 390px) — the camera UX is mobile-first. Desktop looks fine; issues only appear at mobile width.
+
+**Test sequence (log in as user1@example.com — Alice John):**
+1. Go to a sale → Add Items → Camera tab
+2. Capture 1 photo in Rapidfire mode
+3. Confirm thumbnail stays visible after AI spinner stops
+4. Tap the thumbnail → PreviewModal should open
+5. Close modal → tap → Pub → PreviewModal opens (NOT navigate to review page)
+6. Tap Done Reviewing → item saves or shows "still uploading" toast
+7. Tap Review(1) → Review & Publish page loads with item listed (not 403)
+8. Open full edit form → Category/Condition/Description pre-filled from AI
+
+If all 8 steps pass → #143 Rapidfire Camera Mode is ✅. Update roadmap.
 
 ---
 
 ## Known Open Items
 
-- **#143 thumbnail 503 fix** — exact code in STATE.md, ready for S309 inline edit
-- **#143 → Pub modal** — Category/Condition/Description population (unverified post-fix)
+- **#143 mobile verify** — all fixes shipped, needs mobile Chrome walkthrough (see S310 Start above)
 - #37 Sale Reminders — iCal confirmed, push "Remind Me" not built (feature gap)
-- #59 Streak Rewards — StreakWidget on dashboard, not on loyalty page (P2)
+- #59 Streak Rewards — StreakWidget on dashboard, not on /shopper/loyalty page (P2 placement)
 - customStorefrontSlug — All NULL in DB, organizer profile URLs by numeric ID only
 
 ---
 
 ## Test Accounts (password: password123)
 
-- user1@example.com — ADMIN + ORGANIZER (SIMPLE)
-- user2@example.com — ORGANIZER (PRO) — use for PRO feature tests
+- user1@example.com — ADMIN + ORGANIZER (Alice John, SIMPLE) — use for dual-role tests
+- user2@example.com — ORGANIZER (Bob Smith, PRO) — use for PRO feature tests
 - user3@example.com — ORGANIZER (TEAMS)
 - user4@example.com — ORGANIZER (SIMPLE) — use for SIMPLE tier gating tests
 - user11@example.com — Shopper (Karen Anderson, SIMPLE, aged 10+ days)
