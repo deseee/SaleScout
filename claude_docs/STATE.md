@@ -7,7 +7,7 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Current Work
 
-Nothing in flight. S300 wrapped cleanly.
+Nothing in flight. S301 wrapped.
 
 ---
 
@@ -20,31 +20,57 @@ Nothing in flight. S300 wrapped cleanly.
 | #143 Rapidfire Camera Mode | Same | Chrome login + Camera AI tab + real image + result screenshot | S300 |
 | #144 AI Tag Suggestions (Suggest Price) | Same | Chrome login + click Suggest Price + verify AI response screenshot | S300 |
 | #87 Brand Tracking retest | Fix pushed (bde8211) — retest not done | Chrome as user11 + follow brand + verify list screenshot | S300 |
-| D-series Pass 3 PRO (#65,#25,#31,#41,#17) | Not started | Chrome as user2@example.com | S299+ |
+| #17 Create Sale | Fixes applied, NOT pushed yet | Push 9 files + run migration + retest in Chrome | S301 |
+| #31 Organizer Profile broken save | Data doesn't persist despite success toast | Dispatch dev to fix profile save controller | S301 |
+| #65 CSV Export 429 silent fail | Both Export & Clipboard hit same rate-limited endpoint, zero UI feedback | Dispatch dev to add 429 error feedback + review rate limit window | S301 |
 | #122 Nav label fix | "Collector Passport" label ≠ page title "My Loot Legend" | Dev dispatch → nav label correction | S300 |
 
 **KNOWN BUG — Session instability:** After Cookie/localStorage clear in Chrome MCP, fresh login for shopper accounts (user11, user12) silently fails. Do NOT clear cookies — use signout route only, then log in.
 
 ---
 
-## Next Session (S301)
+## Next Session (S302)
 
 **Start with:**
-1. Dispatch `findasale-dev` to fix nav label: "Collector Passport" → "Loot Legend" in Layout.tsx (P2 — quick fix)
-2. Chrome QA #141 (item edit) — use user1, go to /organizer/add-items/[saleId], edit a field, save, reload, screenshot the persisted value
-3. Chrome QA #142 (photo upload) — same sale, use `mcp__Claude_in_Chrome__file_upload` with an image from /sessions/.../mnt/uploads
-4. Chrome QA #143 (Camera AI) — same sale, Camera AI tab, upload image, screenshot result
-5. Chrome QA #144 (Suggest Price) — click Suggest Price button, screenshot AI response
-6. Chrome QA #87 retest — login as user11, Brands tab, follow a brand, screenshot brand in list
-7. D-series Pass 3 PRO — user2@example.com: #65, #25, #31, #41, #17
+1. Patrick MUST push S301 files and run migration FIRST (see push block below)
+2. After deploy confirmed: Chrome retest #17 Create Sale as user2 — fill form, submit, verify DRAFT sale created, redirect to add-items
+3. Dispatch dev to fix #31 Organizer Profile save persistence bug
+4. Dispatch dev to fix #65 CSV Export 429 UI feedback
+5. Clean up test data: delete "QA Test Sale - Delete Me" if it got created in DB during QA
+6. Continue blocked queue: #141 (item edit), #142 (photo upload), #143 (Camera AI), #144 (Suggest Price), #87 (brand tracking retest)
+7. Nav label fix: "Collector Passport" → "Loot Legend" in Layout.tsx (P2)
 
-**New in S301:** PostStop hook is active. Every ✅ requires 3 screenshot IDs (before/after/reload). Fabricated ✅ = session blocked at end. UNVERIFIED is always fine.
+**PostStop hook active.** Every ✅ requires 3 screenshot IDs. UNVERIFIED is always fine.
 
-**Patrick actions pending:** None — all pushes complete.
+**Patrick actions pending (REQUIRED before S302 QA):**
+```powershell
+cd C:\Users\desee\ClaudeProjects\FindaSale
+git add packages/backend/src/services/collectorPassportService.ts
+git add packages/frontend/components/ItemPhotoManager.tsx
+git add packages/frontend/components/camera/RapidCarousel.tsx
+git add packages/frontend/pages/organizer/add-items/[saleId].tsx
+git add packages/frontend/pages/organizer/edit-item/[id].tsx
+git add packages/frontend/pages/organizer/create-sale.tsx
+git add packages/backend/src/controllers/saleController.ts
+git add packages/database/prisma/schema.prisma
+git add packages/database/prisma/migrations/20260326_make_sale_lat_lng_optional/migration.sql
+git commit -m "fix(create-sale): fix wrong API URL, make lat/lng optional, fix date format, expand saleType enum; fix(photos): referrerPolicy no-referrer on Cloudinary imgs; fix(passport): upsert to prevent P2002 race condition"
+.\push.ps1
+```
+
+Then run migration:
+```powershell
+cd C:\Users\desee\ClaudeProjects\FindaSale\packages\database
+$env:DATABASE_URL="postgresql://postgres:QvnUGsnsjujFVoeVyORLTusAovQkirAq@maglev.proxy.rlwy.net:13949/railway"
+npx prisma migrate deploy
+npx prisma generate
+```
 
 ---
 
 ## Recently Complete
+
+**S301 COMPLETE (2026-03-26):** D-series Pass 3 PRO QA (user2/Bob Smith) + Create Sale P0 root cause found and fixed. QA findings: (1) #65 CSV Export ❌ P1 — both "Export & Download" and "Copy to Clipboard" call same endpoint, both hit persistent 429 with zero UI feedback shown to user. (2) #25 Analytics UNVERIFIED (pre-compression testing — outcome not captured in handoff). (3) #31 Organizer Profile ❌ P0 — missing Phone field shows no validation error; save shows success toast but data does NOT persist on reload. (4) #41 Item Library ⚠️ P3 — consignment-only feature, Bob has no consignment items; empty state copy misleading ("Start adding items to your consignment rack" with no CTA). (5) #17 Create Sale ❌ P0 — diagnosed 4 compounding bugs: wrong API URL (`/organizer/create-sale` → `/sales`), lat/lng required in schema but not collected in form, date format mismatch (frontend YYYY-MM-DD vs backend ISO datetime requirement), saleType enum only had 4 values while frontend dropdown has 7. ALL 4 FIXED in local files — not yet pushed. Migration needed. Collateral fixes from pre-compression also included: collectorPassportService.ts P2002 upsert fix, referrerPolicy no-referrer on Cloudinary imgs (ItemPhotoManager + add-items), edit-item category normalization, RapidCarousel pb-3 bar fix. 9 files changed total. Push block + migration instructions in Next Session. Screenshots: ss_7013aghvd (Create Sale before), ss_3607rwefd (Create Sale after code fix, pre-deploy).
 
 **S300 COMPLETE (2026-03-26):** Rubber-stamping caught mid-session and corrected (Patrick intervention). Root cause explained: self-enforced rules fail under execution pressure — structural fix implemented. (1) #87 Brand Tracking P0 BUG FIXED: useBrandFollows.ts was using raw `fetch('/api/users/...')` hitting Vercel 404 instead of Railway, plus wrong localStorage key `'authToken'` vs `'token'` — fixed to use `api` axios instance (commit bde8211, Vercel redeployed). (2) QA Evidence Enforcement System built: PostStop hook `qa-evidence-verifier.sh` blocks sessions (exit 2) that have ✅ marks with zero screenshot evidence. `.claude/settings.json` registers hook. `claude_docs/operations/qa-evidence-schema.md` defines valid vs invalid evidence. (3) `findasale-qa` skill updated: 7-step screenshot-first protocol, post-action outcome state definition, Patrick spot-check guide. (4) D-series verified: #137 ✅, #139 ✅, #29 ✅ — all with real interaction evidence. #141/#142/#143/#144/#87 carry to S301. (5) #122 nav label bug found (P2): "Collector Passport" in nav ≠ "My Loot Legend" page title. 4 files pushed to GitHub; hook/settings.json local-only (gitignored, functional).
 

@@ -1,14 +1,31 @@
-# Patrick's Dashboard — Session 300 Wrapped (March 26, 2026)
+# Patrick's Dashboard — Session 301 Wrapped (March 26, 2026)
 
 ---
 
-## Action Required — Push S300 Docs
+## ⚠️ Action Required — Push S301 Code Fixes (9 files + migration)
 
 ```powershell
 cd C:\Users\desee\ClaudeProjects\FindaSale
+git add packages/backend/src/services/collectorPassportService.ts
+git add packages/frontend/components/ItemPhotoManager.tsx
+git add packages/frontend/components/camera/RapidCarousel.tsx
+git add packages/frontend/pages/organizer/add-items/[saleId].tsx
+git add packages/frontend/pages/organizer/edit-item/[id].tsx
+git add packages/frontend/pages/organizer/create-sale.tsx
+git add packages/backend/src/controllers/saleController.ts
+git add packages/database/prisma/schema.prisma
+git add packages/database/prisma/migrations/20260326_make_sale_lat_lng_optional/migration.sql
 git add claude_docs/STATE.md claude_docs/patrick-dashboard.md
-git commit -m "S300: Wrap — rubber-stamp fix, QA evidence enforcement shipped"
+git commit -m "fix(create-sale): fix URL, lat/lng optional, date format, saleType enum; fix(photos): referrerPolicy; fix(passport): upsert P2002; S301 wrap"
 .\push.ps1
+```
+
+Then run the DB migration:
+```powershell
+cd C:\Users\desee\ClaudeProjects\FindaSale\packages\database
+$env:DATABASE_URL="postgresql://postgres:QvnUGsnsjujFVoeVyORLTusAovQkirAq@maglev.proxy.rlwy.net:13949/railway"
+npx prisma migrate deploy
+npx prisma generate
 ```
 
 ---
