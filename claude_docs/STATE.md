@@ -7,7 +7,11 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Current Work
 
-S309 COMPLETE — #143 camera pipeline. All S309 fixes pushed. Vercel + Railway green. Full mobile Chrome E2E verify is the only remaining gate before #143 is ✅.
+S310 IN PROGRESS — #143 camera pipeline mobile QA. Mobile E2E ran 8 checks: 6 passed, 1 UNVERIFIED (Check 4 thumbnail tap), 1 FAILED (Check 6 Done Reviewing → 404). Two fixes shipped by dev this session. **Pending: Patrick push, then re-verify Check 4 + Check 6 on mobile. If both pass → desktop E2E.**
+
+**S310 dev fixes (not yet pushed):**
+1. `packages/frontend/pages/organizer/add-items/[saleId].tsx` line 1736 — `api.patch()` → `api.put()` (HTTP method mismatch was causing Done Reviewing 404)
+2. `packages/frontend/pages/organizer/add-items/[saleId]/review.tsx` lines 93 + 264–268 — Condition normalization (same case-insensitive fix as Category, S308)
 
 ---
 
@@ -15,40 +19,51 @@ S309 COMPLETE — #143 camera pipeline. All S309 fixes pushed. Vercel + Railway 
 
 | Feature | Reason | What's Needed | Session Added |
 |---------|--------|---------------|---------------|
-| #143 Thumbnail tap | Wired in code. Needs mobile verify. | Tap carousel thumbnail → PreviewModal should open for that item. | S309 |
-| #143 → Pub opens PreviewModal | Fixed S309 (button wiring). Needs mobile verify. | Tap → Pub in carousel — PreviewModal opens (not page navigate). | S309 |
-| #143 Quick Review modal — Category/Condition/Description | Fixed S308 (case normalization, description field). Needs mobile verify. | Capture, wait 5s for AI, tap → Pub — Category/Condition/Description should appear in modal. | S308 |
-| #143 Done Reviewing | Fixed S308 (tempId guard). Needs mobile verify. | Tap → Pub → Done Reviewing — should save or show "still uploading" toast if upload pending. | S308 |
-| #143 Review & Publish page — draft list | Fixed S309 (403 role check for dual-role users). Needs mobile verify as Alice John. | Log in as Alice John, capture items, tap Review(N) — page should list drafts (not 403). | S309 |
+| #143 Thumbnail tap | UNVERIFIED in S310 (Check 4 skipped). | Mobile: tap carousel thumbnail directly → PreviewModal should open for that item (not page navigate). | S309 |
+| #143 Done Reviewing | Fixed S310 (api.patch→api.put). Needs re-verify after Patrick push. | Mobile: capture → tap → Pub → Done Reviewing → item saves, no 404. | S310 |
+| #143 Condition pre-select | Fixed S310 (normalization in review.tsx). Needs re-verify after Patrick push. | Mobile: open edit form → Condition dropdown should show AI value (not blank placeholder). | S310 |
+
+**S310 mobile QA results (for reference):**
+- Check 1 ✅ Camera opens at 390px, correct layout
+- Check 2 ✅ Thumbnail appears in carousel immediately after capture
+- Check 3 ✅ Thumbnail persists after AI spinner (race condition fix confirmed)
+- Check 4 ⚠️ UNVERIFIED — thumbnail click behavior not confirmed
+- Check 5 ✅ → Pub opens PreviewModal (no page navigation)
+- Check 6 ❌ Done Reviewing → 404 (FIXED in S310, pending push)
+- Check 7 ✅ Review & Publish page loads, no 403, Alice John has access
+- Check 8 ✅ AI pre-fills Title/Description/Category in edit form
 
 **KNOWN BUG — Session instability:** After Cookie/localStorage clear in Chrome MCP, fresh login for shopper accounts (user11, user12) silently fails. Do NOT clear cookies — use signout route only, then log in.
 
 ---
 
-## Next Session (S310)
+## Next Session (S311)
 
-**Context:** S309 complete and fully pushed. Camera pipeline fixes are live. Core flow works end-to-end in desktop Chrome (confirmed). All remaining items in Blocked/Unverified Queue need **mobile viewport verification** — the camera UX is mobile-first and layout issues only appear in mobile mode.
+**Context:** S310 fixes (Done Reviewing + Condition) must be pushed by Patrick first. After push + Vercel green:
 
-**CRITICAL: Use Chrome in mobile emulation mode** (DevTools → device toolbar → iPhone 12 Pro or similar). Layout bugs that are invisible on desktop are visible in mobile mode. All camera interactions — thumbnail tap, → Pub, Done Reviewing — must be tested at 390px width with touch simulation enabled.
+**CRITICAL: Use Chrome in mobile emulation mode** (DevTools → device toolbar → iPhone 12 Pro, 390px width, touch simulation ON). Camera UX is mobile-first — layout bugs invisible on desktop.
 
 **Start with:**
-1. Open Chrome MCP → navigate to finda.sale → log in as Alice John (admin+organizer dual-role)
-2. Switch to mobile viewport (390px / iPhone 12 Pro)
-3. Go to Add Items → Camera tab
-4. Capture 1 photo in Rapidfire mode
-5. Verify in sequence: thumbnail stays visible after AI spinner → tap thumbnail → PreviewModal opens → close → tap → Pub → PreviewModal opens (NOT navigate) → Done Reviewing fires correct action
-6. Navigate to Review(N) → Review & Publish page loads with items (not 403)
-7. Open full edit form → Category/Condition/Description pre-filled from AI
+1. Confirm Patrick push from S310 went green (Vercel + Railway)
+2. Log in as Alice John (user1@example.com / password123) — admin+organizer dual-role
+3. Switch to mobile viewport (390px / iPhone 12 Pro)
+4. Go to Add Items → Camera tab → capture 1 photo in Rapidfire mode
+5. **Re-verify Check 4:** Tap carousel thumbnail directly → PreviewModal must open (not page navigate)
+6. **Re-verify Check 6:** Tap → Pub → Done Reviewing → item must save (no 404 error)
+7. **Re-verify Condition:** Open edit form → Condition dropdown must show AI value (not placeholder)
+8. If all 3 pass → run full desktop E2E of entire camera pipeline (capture → AI → review → publish)
 
-**After mobile verify:** If all 5 queue items pass, #143 Rapidfire Camera Mode is ✅ — update roadmap Chrome column.
+**After all 3 pass + desktop E2E:** #143 Rapidfire Camera Mode is ✅ — update roadmap Chrome column.
 
 **Patrick test accounts:**
-- Alice John = admin+organizer dual-role test account (tests role check fixes)
-- user2 (Bob Smith) = PRO organizer (regular organizer test account)
+- Alice John (user1@example.com) = admin+organizer dual-role (tests role check fixes)
+- user2 (Bob Smith, user2@example.com) = PRO organizer (regular organizer test account)
 
 ---
 
 ## Recently Complete
+
+**S310 IN PROGRESS (2026-03-27):** #143 camera pipeline — mobile QA + 2 bug fixes. Mobile Chrome (390px / iPhone 12 Pro) ran all 8 checks: 6 passed, 1 UNVERIFIED (thumbnail tap), 1 failed (Done Reviewing 404). Root cause of 404: PreviewModal called `api.patch()` but backend registers `router.put()` — HTTP method mismatch. Fix: `[saleId].tsx` line 1736 `api.patch` → `api.put`. Also fixed Condition dropdown pre-select: same case-insensitive normalization as Category applied in `review.tsx`. 2 files changed, pending Patrick push. Re-verify Check 4 + Check 6 + Condition after push, then desktop E2E.
 
 **S309 COMPLETE (2026-03-27):** #143 camera pipeline — 6 fixes shipped, all pushed, Vercel + Railway green. (1) Thumbnail race condition: `[saleId].tsx` poll update now preserves blob URL (`i.thumbnailUrl || data.thumbnailUrl`) — Cloudinary 503 no longer wipes visible thumbnail. Chrome-confirmed: thumbnail stayed after AI spinner. (2) → Pub button: `RapidCapture.tsx` handler changed from page navigation to `onThumbnailTap(lastItem.id)` — opens PreviewModal. (3) Railway TS build error: `quantity` field removed from draft SELECT in `itemController.ts` (not in schema). (4) getDraftItemsBySaleId 403: singular `req.user.role !== 'ORGANIZER'` check failed for admin+organizer dual-role users — fixed with `roles.includes()` pattern. (5) Role check audit: found + fixed 3 more camera pipeline endpoints with same bug (`addItemPhoto`, `removeItemPhoto`, `reorderItemPhotos`). (6) `onError` fallback on carousel img: 📷 emoji fallback on Cloudinary 503. OUTSTANDING: full mobile Chrome E2E verify (all 5 Blocked/Unverified items). 3 files pushed across 2 commits.
 
