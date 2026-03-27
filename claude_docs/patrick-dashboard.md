@@ -1,15 +1,29 @@
-# Patrick's Dashboard — Session 306 Wrapped (March 27, 2026)
+# Patrick's Dashboard — Session 307 Active (March 27, 2026)
 
 ---
 
-## ✅ No Push Required — All S306 code already pushed
+## 🔴 Push Required — Run this block now
+
+```powershell
+cd C:\Users\desee\ClaudeProjects\FindaSale
+git add packages/frontend/components/RapidCapture.tsx
+git add "packages/frontend/pages/organizer/add-items/[saleId].tsx"
+git add "packages/frontend/pages/organizer/add-items/[saleId]/review.tsx"
+git add "packages/frontend/pages/organizer/edit-sale/[id].tsx"
+git add packages/backend/src/jobs/processRapidDraft.ts
+git add packages/backend/src/services/cloudAIService.ts
+git add packages/backend/src/controllers/uploadController.ts
+git add packages/backend/src/controllers/itemController.ts
+git commit -m "fix: rapidfire pipeline — background upload, spinner, review 404s, condition labels, edit sale, multi-photo AI, 4.5s debounce"
+.\push.ps1
+```
 
 ---
 
 ## Build Status
 
-- **Railway:** ✅ Green (no backend changes)
-- **Vercel:** ⏳ Redeploys after S306 pushes
+- **Railway:** 🔄 Will redeploy after push (backend changes)
+- **Vercel:** 🔄 Will redeploy after push (frontend changes)
 - **DB:** ✅ No new migrations
 - **Hook:** PostStop QA evidence hook active locally
 

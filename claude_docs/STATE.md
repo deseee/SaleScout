@@ -7,7 +7,17 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Current Work
 
-S306 complete — #143 camera QA + 3 bug fixes pushed.
+S307 active — #143 camera pipeline repairs. Push block pending Patrick action.
+
+**Files changed this session (NOT yet pushed — waiting on Patrick):**
+- `packages/frontend/components/RapidCapture.tsx` — spinner fix (temp-only), review button size, carousel padding, amber group glow
+- `packages/frontend/pages/organizer/add-items/[saleId].tsx` — per-photo background upload, camera button clip, keep-camera-open on edit, AI spinner indicator, Enhance All stub
+- `packages/frontend/pages/organizer/add-items/[saleId]/review.tsx` — PATCH→PUT save fix, condition label map
+- `packages/frontend/pages/organizer/edit-sale/[id].tsx` — PATCH→PUT date fix
+- `packages/backend/src/jobs/processRapidDraft.ts` — multi-photo AI (all angles), conditionGrade mapping
+- `packages/backend/src/services/cloudAIService.ts` — `analyzeItemImages()` multi-image variant
+- `packages/backend/src/controllers/uploadController.ts` — 4.5s debounce before AI trigger
+- `packages/backend/src/controllers/itemController.ts` — reset debounce on photo append
 
 ---
 
@@ -15,19 +25,33 @@ S306 complete — #143 camera QA + 3 bug fixes pushed.
 
 | Feature | Reason | What's Needed | Session Added |
 |---------|--------|---------------|---------------|
-| #143 Carousel + add-mode | Fixes pushed (S306). Carousel needs Patrick to test on device — VM can't trigger shutter click. | On phone: open camera in Rapidfire → tap shutter → thumbnail should appear in carousel immediately. Tap + on thumbnail → add-mode banner shows. | S306 |
+| #143 Full pipeline E2E | Push block not yet run by Patrick. 8 files. | Run the S307 push block, wait for Railway+Vercel deploy, then test: capture → AI (wait 4.5s) → review → save → publish. | S307 |
+| #143 Review page "no items" | Timing issue likely resolved by 4.5s debounce — review can now be opened after photos upload but before AI completes. Items should appear in DRAFT state. | After push: take 1 photo, wait 2s, tap Review — should see 1 item. | S307 |
+| #143 AI field coverage | AI returns title correctly but category/condition/description output from `analyzeItemImage` not fully verified against real items. | After push: check a newly tagged item — does it have category + condition + description populated? | S307 |
 
 **KNOWN BUG — Session instability:** After Cookie/localStorage clear in Chrome MCP, fresh login for shopper accounts (user11, user12) silently fails. Do NOT clear cookies — use signout route only, then log in.
 
 ---
 
-## Next Session (S307)
+## Next Session (S308)
 
 **Start with:**
-1. **#143 device verify** — Patrick confirms carousel works on phone after S306 fixes (30-second check).
-2. **Pick next roadmap items** — consult roadmap.md for features in "Pending Chrome QA" state.
+1. **Run Patrick's push block** (if not done this session) — 5 files
+2. **#143 E2E verify on device** — full flow: capture → AI → review → save → publish
+3. **AI multi-photo call audit** — check processRapidDraft handles appended photos (multi-angle for condition grading + brand detection)
+4. **Review page "no items" verify** — confirm timing fix works post-push
 
-**No Patrick push needed** — all S306 code already pushed.
+**Patrick push block (copy-paste):**
+```powershell
+cd C:\Users\desee\ClaudeProjects\FindaSale
+git add packages/frontend/components/RapidCapture.tsx
+git add packages/frontend/pages/organizer/add-items/[saleId].tsx
+git add packages/frontend/pages/organizer/add-items/[saleId]/review.tsx
+git add packages/frontend/pages/organizer/edit-sale/[id].tsx
+git add packages/backend/src/jobs/processRapidDraft.ts
+git commit -m "fix: rapidfire pipeline — background upload, spinner logic, review 404s, condition labels, edit sale dates, carousel clipping"
+.\push.ps1
+```
 
 ---
 
