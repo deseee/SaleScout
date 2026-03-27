@@ -289,6 +289,16 @@ A feature is ✅ only when a real user can complete the intended task end-to-end
 
 **Converting bugs to decisions is prohibited.** If Claude writes "DECISION NEEDED" for something that is already a committed feature and simply doesn't work correctly, that is a rule violation.
 
+**Image upload flows — upload_image is available (HARD RULE — survives compression):**
+`mcp__Claude_in_Chrome__upload_image` IS available in the VM and WAS successfully used in S312 and S313. Before marking any camera/upload/photo flow as UNVERIFIED, Claude MUST attempt this tool. The following are NOT valid reasons to skip:
+- "File upload is blocked" — `file_upload` and `upload_image` are DIFFERENT tools
+- "VM filesystem restriction" — upload_image bypasses this
+- "I couldn't attach the file" — wrong tool; use upload_image
+UNVERIFIED is only valid after a genuine upload_image attempt that failed. Skipping the attempt and marking UNVERIFIED is rubber-stamping.
+
+**Code confirmation ≠ browser verification (HARD RULE — survives compression):**
+Reading a file on GitHub or in the filesystem and confirming a fix is present is NOT a ✅. "Fix confirmed deployed to Railway" without Chrome interaction is UNVERIFIED. For any fix that involves user-visible behavior (AI confidence label, photo display, form save, toast, redirect), the only valid ✅ requires: navigated to the page in Chrome, performed the interaction, saw the expected outcome, reloaded, confirmed persistence — with screenshot IDs. Code-on-GitHub ≠ works-in-browser.
+
 ---
 
 ## 10. MCP Tool Awareness
