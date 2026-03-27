@@ -7,19 +7,13 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Current Work
 
-S307 WRAPPING — #143 camera pipeline. Railway TS fix pushed via MCP. Frontend + remaining backend files need Patrick push block below.
+S308 WRAPPING — #143 camera pipeline. 4 bugs fixed this session. All need Patrick push.
 
-**Files still needing Patrick push (local only):**
-- `packages/frontend/components/RapidCapture.tsx`
-- `packages/frontend/pages/organizer/add-items/[saleId].tsx`
-- `packages/frontend/pages/organizer/add-items/[saleId]/review.tsx`
-- `packages/frontend/pages/organizer/edit-sale/[id].tsx`
-- `packages/backend/src/services/cloudAIService.ts`
-- `packages/backend/src/controllers/uploadController.ts`
-- `packages/backend/src/controllers/itemController.ts`
-
-**Already pushed to GitHub via MCP:**
-- `packages/backend/src/jobs/processRapidDraft.ts` — TS fix (suggestedConditionGrade), multi-photo AI
+**Files changed S308 (local only — push block below):**
+- `packages/frontend/components/RapidCapture.tsx` — thumbnail onError → 📷 fallback (no more broken image)
+- `packages/backend/src/controllers/itemController.ts` — `description` field added to draft list endpoint SELECT
+- `packages/frontend/pages/organizer/add-items/[saleId].tsx` — guard: "Done Reviewing" blocked if item ID still temp- (prevents 404)
+- `packages/frontend/pages/organizer/add-items/[saleId]/review.tsx` — category normalization (case-insensitive match to CATEGORIES array so AI value pre-populates dropdown)
 
 ---
 
@@ -27,43 +21,43 @@ S307 WRAPPING — #143 camera pipeline. Railway TS fix pushed via MCP. Frontend 
 
 | Feature | Reason | What's Needed | Session Added |
 |---------|--------|---------------|---------------|
-| #143 Full pipeline E2E | Frontend + 3 backend files not yet pushed. Railway rebuilding from MCP hotfix. | Run S308 push block after Railway is green, then test full flow on device. | S307 |
-| #143 Review page items | Items show in DRAFT while AI runs (4.5s debounce). Timing should be fixed post-push. | Take 1 photo, wait 2s, tap Review — should see item. If empty, needs backend debug. | S307 |
-| #143 AI field coverage | category/condition/description fields from AI unverified on real new items post-push. | After push: capture item, let AI run, open review — check all 4 AI fields populated. | S307 |
+| #143 Quick Review modal — Done Reviewing | Fixed S308 (tempId guard). Needs device verify after push. | Capture item, tap → Pub, tap Done Reviewing — should save or show "still uploading" toast. | S308 |
+| #143 Category pre-population | Fixed S308 (case normalization). Needs device verify after push. | Capture item, let AI run, open full edit form on Review & Publish — Category should pre-fill. | S308 |
+| #143 Quick Review modal — Category/Condition/Description blank | May be timing (AI hasn't populated yet when modal opens). Needs verify post-push. | Capture, wait 5s, tap → Pub — check if Category/Condition/Description appear. | S308 |
 
 **KNOWN BUG — Session instability:** After Cookie/localStorage clear in Chrome MCP, fresh login for shopper accounts (user11, user12) silently fails. Do NOT clear cookies — use signout route only, then log in.
 
 ---
 
-## Next Session (S308)
+## Next Session (S309)
 
-**Context:** Photo-centric workflow is the #1 priority for the entire PWA. Both Rapidfire and Regular camera modes use the same AI pipeline. Multi-photo grouping (+ button) gives AI multiple angles for better condition grading and brand detection. 4.5s debounce holds AI trigger until organizer stops adding photos.
+**Context:** Camera pipeline is close. Core flow works: capture → AI tags → carousel → Review & Publish page. Remaining issues are in the quick review modal (→ Pub button flow). Push S308 block, verify device.
 
 **Start with:**
-1. **Wait for Railway green** — MCP hotfix deployed, check Railway build status
-2. **Run push block** — 7 frontend/backend files (see below)
-3. **Device verify** — full flow: capture → carousel appears → wait 4.5s → spinner clears → tap Review → item shows with AI tags → save → publish
-4. **Deal with "builder"** — Patrick mentioned this at session end (context unclear, ask Patrick at S308 start)
+1. **Run push block** — 4 files changed S308
+2. **Device verify** — capture item → tap → Pub in carousel → check Category/Condition/Description populate → tap Done Reviewing → should save cleanly (or show "still uploading" if timing)
+3. **Check category pre-pop** — on Review & Publish full edit form, Category should now pre-fill from AI
 
-**Patrick push block:**
+**Patrick push block (S308):**
 ```powershell
 cd C:\Users\desee\ClaudeProjects\FindaSale
 git add packages/frontend/components/RapidCapture.tsx
 git add "packages/frontend/pages/organizer/add-items/[saleId].tsx"
 git add "packages/frontend/pages/organizer/add-items/[saleId]/review.tsx"
-git add "packages/frontend/pages/organizer/edit-sale/[id].tsx"
-git add packages/backend/src/services/cloudAIService.ts
-git add packages/backend/src/controllers/uploadController.ts
 git add packages/backend/src/controllers/itemController.ts
 git add claude_docs/STATE.md
 git add claude_docs/patrick-dashboard.md
-git commit -m "fix: rapidfire pipeline — background upload, spinner, review 404s, condition labels, edit sale, multi-photo AI, 4.5s debounce"
+git commit -m "fix: camera pipeline — thumbnail fallback, Done Reviewing 404 guard, category normalization, draft list description field"
 .\push.ps1
 ```
 
 ---
 
 ## Recently Complete
+
+**S308 COMPLETE (2026-03-27):** #143 camera pipeline — 4 bugs fixed based on Patrick device photos. (1) Thumbnail onError fallback: broken image → 📷 emoji (RapidCapture.tsx). (2) "Done Reviewing" 404 guard: if item ID still starts with `temp-`, shows toast "Item is still uploading" instead of 404 ([saleId].tsx lines 1725–1731). (3) Category normalization: `getEditState` now case-insensitively matches AI category against CATEGORIES array so dropdown pre-populates (review.tsx lines 254–280). (4) Draft list endpoint: `description: true` added to getDraftItemsBySaleId SELECT (itemController.ts). 4 files changed locally, push block provided. Verified from Patrick's photos: carousel shows items in camera ✅, AI title populates ✅, Review & Publish page shows items with price+category ✅, tags populate ✅, photos upload ✅. Remaining UNVERIFIED: Done Reviewing flow post-fix, category pre-pop in edit form post-fix.
+
+**S307 COMPLETE (2026-03-27):** #143 camera pipeline fixes. Background upload, spinner, review page 404 fixes, condition labels, edit-sale null-byte, multi-photo AI, 4.5s debounce. Key result: items now correctly appear on Review & Publish page (Patrick confirmed). processRapidDraft.ts MCP-pushed for TS fix. 7 frontend/backend files in Patrick push block (confirmed pushed by Patrick).
 
 **S306 COMPLETE (2026-03-27):** #143 camera QA + 3 bug fixes. (1) Chrome QA confirmed: mode toggle inside camera top bar ✅, amber ⚡ shutter in Rapidfire ✅, white shutter in Regular ✅, camera feed active (readyState=4, 1920×1440) ✅. (2) Root cause found: carousel inside camera always empty — `rapidItems` (parent prop) only populated after camera closes; carousel renders off internal `photos` state with no bridge. (3) Fixed P1 — `onPhotoCapture` callback added to `RapidCaptureProps`; parent now optimistically pushes tempId entry to `rapidItems` on each capture, making carousel live in real-time. (4) Fixed Regular mode: gallery thumbnail wrapped in button (tappable → opens preview overlay); Review button now opens filmstrip preview in Regular mode instead of navigating to empty rapidItems review page. (5) Fixed `edit-sale/[id].tsx` null-byte corruption (trailing `\x00` block causing 20+ TS errors). 3 files changed, all pushed. Carousel + add-mode still need Patrick device verify (VM shutter click blocked by DPR coordinate mismatch).
 
