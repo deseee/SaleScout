@@ -1,6 +1,6 @@
 # ROADMAP – FindA.Sale
 
-**Last Updated:** 2026-03-27 (v78 — S312 wrap: #143 test item confirmed deleted, PreviewModal onError bug queued for S313)
+**Last Updated:** 2026-03-27 (v79 — S313: SW Cloudinary cache fix verified, PreviewModal onError pushed sha:ffa4a83, AI confidence fix dispatched)
 
 **Status:** Production MVP live at finda.sale. Beta: GO. Full build history: `claude_docs/strategy/COMPLETED_PHASES.md`.
 
@@ -261,7 +261,7 @@ Production MVP launched Q1 2026. Full auction lifecycle (bidding + close flow + 
 | 5 | Listing Type Schema Validation | ORG | SIMPLE | ✅ | ✅ | ✅ | ✅ | 📋 | N/A | 📋 | Backend validation for FIXED/AUCTION/REVERSE_AUCTION/LIVE_DROP/POS — Needs Chrome QA |
 | 35 | Entrance Pin / Front Door Locator | BOTH | SIMPLE | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 📋 | Shopper convenience, parking + entrance detail — Chrome ✅ S286 |
 | 142 | Photo Upload (Single + Multi) | ORG | SIMPLE | ✅ | ✅ | ✅ | ✅ | ✅ | N/A | 📋 | `/api/upload` with Cloudinary — Chrome ✅ S286 |
-| 143 | Rapidfire Camera Mode | ORG | SIMPLE | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 📋 | S305 UX refactor. S306–S309: thumbnail race fix, → Pub opens PreviewModal, 403 role check fixed (4 endpoints), onError 📷 fallback. S310: api.patch→api.put (Done Reviewing), Condition normalization. S311: mobile QA 6/8 ✅; photoUrl→thumbnailUrl fix, blob→Cloudinary URL in rapidItems state, toast 4500ms. S312: SW Cloudinary cache bug fixed (sha: 29ba630) — Workbox entry intercepted requests with empty cache → naturalWidth:0; removed. QA skill thumbnail zoom rule added. Test item deleted (count: 21 ✅). PreviewModal prop fix confirmed correct in code; new bug: no onError fallback → Cloudinary 503 race shows broken image — S313 dev fix queued. Pending: onError fix + desktop E2E. |
+| 143 | Rapidfire Camera Mode | ORG | SIMPLE | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 📋 | S305 UX refactor. S306–S309: thumbnail race fix, → Pub opens PreviewModal, 403 role check fixed (4 endpoints), onError 📷 fallback. S310: api.patch→api.put (Done Reviewing), Condition normalization. S311: mobile QA 6/8 ✅; photoUrl→thumbnailUrl fix, blob→Cloudinary URL in rapidItems state, toast 4500ms. S312: SW Cloudinary cache bug fixed (sha: 29ba630) — Workbox entry intercepted requests with empty cache → naturalWidth:0; removed. QA skill thumbnail zoom rule added. Test item deleted (count: 21 ✅). PreviewModal onError fix pushed (sha: ffa4a83). S313: Vercel green both fixes. Review thumbnails ✅ after hard refresh. Desktop E2E Checks 1–4 + 8 passing. Checks 5–7 UNVERIFIED (desktop constraints). New bug: AI confidence defaulting to Low (50%) — prompt missing confidence field. Dev fix dispatched. Pending: confidence fix push + Chrome verify values vary. |
 | 145 | Condition Grading (S/A/B/C/D) | ORG | SIMPLE | ✅ | ✅ | ✅ | ✅ | 📋 | N/A | 📋 | AI + manual override — Needs Chrome QA |
 | 146 | Item Holds / Reservations | BOTH | SIMPLE | ✅ | ✅ | ✅ | ✅ | ✅ | N/A | 📋 | `/api/reservations` with expiry — Chrome ✅ S286 |
 | 147 | Hold Duration Configuration | ORG | SIMPLE | ✅ | ✅ | ✅ | ✅ | 📋 | ✅ | 📋 | Per-sale configurable — Needs Chrome QA |
