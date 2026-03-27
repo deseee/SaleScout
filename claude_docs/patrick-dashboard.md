@@ -1,55 +1,66 @@
-# Patrick's Dashboard — Session 303 Wrapped (March 26, 2026)
+# Patrick's Dashboard — Session 305 Wrapped (March 27, 2026)
 
 ---
 
-## ✅ No Action Required — All S303 Code Already Pushed
+## 🚀 Push Required — Camera UX Refactor (3 files)
 
-Two backend/frontend fixes pushed this session. Both live. No push block.
+```
+git add packages/frontend/components/RapidCapture.tsx
+git add "packages/frontend/pages/organizer/add-items/[saleId].tsx"
+git add claude_docs/STATE.md
+git add claude_docs/strategy/roadmap.md
+git add claude_docs/patrick-dashboard.md
+git commit -m "feat(#143): Camera UX refactor — mode toggle + carousel inside camera view, spec-correct shutter states"
+.\push.ps1
+```
+
+After push: Vercel will redeploy frontend automatically. Railway is unchanged (no backend edits).
 
 ---
 
 ## Build Status
 
-- **Railway:** ✅ Green
-- **Vercel:** ✅ Green
-- **DB:** ✅ No new migrations this session
+- **Railway:** ✅ Green (no backend changes this session)
+- **Vercel:** ⏳ Redeploys after push
+- **DB:** ✅ No new migrations
 - **Hook:** PostStop QA evidence hook active locally
 
 ---
 
-## Session 303 Summary
+## Session 305 Summary
 
-**Pure QA verification — 5 features confirmed live**
+**#143 Camera UX refactor — rebuilt to match design spec**
 
-All S302 fixes Chrome-verified this session:
-- **#17 Edit-sale geocode** ✅ — Coords saved to DB (42.98 / -85.68). No error banner on page load.
-- **#31 Profile save** ✅ — Bio "S303 verified fix" persists after full reload. GET /organizers/me now returns phone/bio/website.
-- **#65 CSV 429 feedback** ✅ — Toast: "Export limit: 1 per month. Your next export is available on April 1, 2026."
-- **#141 Category pre-pop + sort** ✅ — Category "Furniture" pre-populates on edit form. Renamed item stays visible in list.
-- **#122 Nav label** ✅ — Page H1 shows "My Loot Legend 🗺️". Browser tab: "My Loot Legend - FindA.Sale".
+The camera experience was completely wrong vs. the agreed mockup (`camera-mode-mockup.jsx`). It's now fixed:
 
-Two fixes deployed inline this session:
-- `edit-sale/[id].tsx` — geocode useEffect now saves coords to DB via PATCH + refetch (sha: 3e0198d)
-- `organizers.ts` GET /organizers/me — phone/bio/website fields added to response (sha: 66a8f871)
+**Before:** Page card with mode toggle + amber button. Tap button → fullscreen overlay opens. Carousel lived on the page behind the overlay.
 
-Still blocked:
-- **#142 Smart Inventory Upload** — Batch Upload UI confirmed (dropzone visible, file input present). Chrome MCP can't feed it a file from the VM. Patrick drags a real photo from his machine into the dropzone while Claude watches.
-- **#143 Camera AI** — UI confirmed (orange capture button renders). Computer has a camera — needs Patrick on standby to click Allow on the Chrome camera permission dialog when it pops.
+**After (matching spec):**
+- Mode toggle (⚡ Rapidfire | 📷 Regular) lives **inside** the camera view, in the top bar
+- Captured items carousel is **inside** the camera view, above the shutter — you see items while shooting
+- Shutter button: amber gradient + ⚡ in rapidfire, deeper amber + "+" in add-mode, white for regular
+- "Next shot adds to: [item]" banner shows when tapping "+" on a thumbnail
+- Corner brackets are faint white (were blue)
+- Mode hint text below top bar ("1 photo = 1 item · tap + to add more")
+- Review(N) button in top bar jumps to publish page
+- Gallery thumbnail (last shot) on left of shutter row
+
+**Session 304 verified (previously):**
+- **#142 Smart Inventory Upload** ✅ — Patrick uploaded real photo, AI analyzed as "Folding Chair, Gray Metal Frame" ($15, Furniture), saved with thumbnail
+- Dark mode for SmartInventoryUpload, ModeToggle, RapidCarousel, PreviewModal — all fixed
 
 ---
 
-## S304 Priorities
+## S306 Start
 
-1. **#143 Camera AI — Patrick on standby.** Claude navigates to Camera (AI) tab, clicks capture button. Patrick clicks Allow on Chrome permission prompt. Claude confirms draft item created.
-2. **#142 Batch Upload — Patrick drags file.** Patrick drags a real photo into the Batch Upload dropzone. Claude confirms AI draft listing appears.
-3. Pick next roadmap work items — queue is clear.
+1. **#143 verify** — Open camera tab, confirm: mode toggle in view, carousel visible inside camera, shutter is ⚡ amber
+2. **Pick next roadmap items** — consult roadmap.md "Pending Chrome QA" section
 
 ---
 
 ## Known Open Items
 
-- **#142 Smart Inventory Upload** — UI confirmed, needs Patrick to drag file from his machine.
-- **#143 Camera AI** — UI confirmed, needs Patrick present for camera permission click.
+- **#143 Camera UX** — Pushed S305, Chrome verify S306
 - #37 Sale Reminders — iCal confirmed, push "Remind Me" not built (feature gap)
 - #59 Streak Rewards — StreakWidget on dashboard, not on loyalty page (P2)
 - customStorefrontSlug — All NULL in DB, organizer profile URLs by numeric ID only

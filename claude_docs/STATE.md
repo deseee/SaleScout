@@ -7,7 +7,7 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Current Work
 
-Nothing in flight. S303 wrapped.
+S305 in progress — camera UX refactor deployed (awaiting push + verification).
 
 ---
 
@@ -15,27 +15,33 @@ Nothing in flight. S303 wrapped.
 
 | Feature | Reason | What's Needed | Session Added |
 |---------|--------|---------------|---------------|
-| #142 Smart Inventory Upload (Batch) | file_upload blocked — Chrome MCP can't reach VM filesystem paths. Dropzone never received file. | S304: Patrick drags a real photo from his machine into the Batch Upload dropzone while Claude watches via Chrome MCP. Confirm AI draft listing appears in queue. | S303 |
-| #143 Rapidfire Camera (AI) | Camera attached to computer but Chrome permission dialog needs Patrick to click Allow. | S304: Patrick on standby. Claude navigates to /organizer/add-items/[saleId] → Camera (AI) tab → clicks capture button → Patrick clicks Allow on Chrome camera permission → Claude confirms item draft created. | S303 |
+| #143 Camera UX refactor | Camera UX rebuilt to match spec (mode toggle inside camera, carousel inside camera, shutter state-aware). Not yet pushed or browser-verified. | Patrick pushes + opens camera → confirms: mode toggle visible, carousel shows captured items, shutter changes to ⚡ for rapidfire, "+" add-mode banner appears when tapping + on thumbnail. | S305 |
 
 **KNOWN BUG — Session instability:** After Cookie/localStorage clear in Chrome MCP, fresh login for shopper accounts (user11, user12) silently fails. Do NOT clear cookies — use signout route only, then log in.
 
 ---
 
-## Next Session (S304)
+## Next Session (S306)
 
 **Start with:**
-1. **#143 Camera AI (with Patrick)** — Patrick on standby for Chrome camera permission prompt. Navigate to /organizer/add-items/[saleId] → Camera (AI) tab → click capture button → Patrick clicks Allow → confirm item draft created.
-2. **#142 Batch Upload (with Patrick)** — Patrick drags a real photo from his machine into the Batch Upload dropzone → Claude confirms AI draft listing appears.
-3. Pick next work items from roadmap — all S302/S303 verified items can be moved to Shipped.
+1. **#143 Camera UX verification** — After S305 push, open camera tab → verify: mode toggle is in the camera view, carousel of captured items appears in camera, shutter is amber ⚡ for rapidfire, add-mode banner shows when tapping +.
+2. **Pick next roadmap items** — consult roadmap.md for features in "Pending Chrome QA" state.
 
-**PostStop hook active.** Every ✅ requires 3 screenshot IDs. UNVERIFIED is always fine.
-
-**No Patrick actions needed — all S303 code was pushed in-session.**
+**S305 Patrick push needed:**
+```
+git add packages/frontend/components/RapidCapture.tsx
+git add packages/frontend/pages/organizer/add-items/[saleId].tsx
+git commit -m "feat(#143): Camera UX refactor — mode toggle + carousel inside camera view, spec-correct shutter states"
+.\push.ps1
+```
 
 ---
 
 ## Recently Complete
+
+**S305 COMPLETE (2026-03-27):** Camera UX refactor for #143. The camera experience now matches the design mockup spec: (1) `RapidCapture.tsx` fully rebuilt — mode toggle (Rapidfire/Regular) now lives inside the camera top bar; rapidItems carousel embedded inside camera view above the shutter (not on the page below a button); shutter button is amber gradient + ⚡ in rapidfire mode, deeper amber + "+" in add-mode, white in regular mode; faint white corner brackets (was blue); mode hint text below top bar; adding-to banner between carousel and shutter; gallery thumbnail on left of shutter row; Review(N) button in top bar. (2) `[saleId].tsx` camera tab updated — removed standalone ModeToggle + CaptureButton from card; camera opens to fullscreen experience with all 10 new props wired. 0 TS errors. Push block provided. Pending: Patrick push + browser verification.
+
+**S304 COMPLETE (2026-03-27):** Dark mode pass + batch upload bug fixes. (1) SmartInventoryUpload.tsx: full dark mode for all 3 wizard steps + fixed preview image fallback (Tailwind `hidden` class was blocking JS `onError` override — changed to inline style). (2) ModeToggle.tsx, RapidCarousel.tsx, PreviewModal.tsx: full dark mode pass. All 4 files 0 TS errors. Vercel green. (3) #142 Smart Inventory Upload VERIFIED ✅ — Patrick uploaded real photo, AI analyzed as "Folding Chair, Gray Metal Frame" ($15, Furniture), saved to inventory with thumbnail. Removed from blocked queue. (4) #143 Camera AI — camera opens with live feed and 4:3 framing brackets confirmed. Full capture→draft flow not yet verified (no capture taken this session). Torch not present on Patrick's device camera — hardware limitation, not a bug.
 
 **S303 COMPLETE (2026-03-26):** Pure QA verification session. Chrome-confirmed: (1) #17 edit-sale geocode — coords (42.98/-85.68) saved to DB, no error banner on load ✅. (2) #31 profile save — bio "S303 verified fix" persists after reload; GET /organizers/me now returns phone/bio/website ✅. (3) #65 CSV export 429 — toast "Export limit: 1 per month. Your next export is available on April 1, 2026." appears on 429 ✅. (4) #141 item category pre-pop + sort — category "Furniture" pre-populates on edit form; renamed item stays visible in list ✅. (5) #122 nav label — H1 "My Loot Legend 🗺️" on /shopper/explorer-passport ✅. Two backend fixes pushed this session: edit-sale geocode useEffect (sha: 3e0198d), GET /organizers/me missing fields (sha: 66a8f871). Roadmap rows 137/141/125/153/122 updated to Chrome ✅. #142 attempted — Batch Upload UI confirmed, file_upload blocked (Chrome can't access VM filesystem), Smart Inventory upload failed. #143 UNVERIFIED — Camera AI tab UI confirmed, camera IS attached to computer, Patrick on standby for S304.
 
