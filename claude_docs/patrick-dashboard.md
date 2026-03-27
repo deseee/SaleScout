@@ -1,72 +1,78 @@
-# Patrick's Dashboard — Session 309 Wrap (March 27, 2026)
+# Patrick's Dashboard — Session 311 Wrap (March 27, 2026)
 
 ---
 
-## ✅ All Clear — No Push Required
-
-S309 fully pushed. Vercel green. Railway green. Nothing pending.
+## ✅ Push Required — 3 Files Below
 
 ---
 
 ## Build Status
 
-- **Railway:** ✅ Green (backend role checks + TS build error fixed)
-- **Vercel:** ✅ Green (RapidCapture → Pub fix deployed)
-- **DB:** ✅ No new migrations
+- **Railway:** ✅ Green (no backend changes this session)
+- **Vercel:** Pending push (3 frontend files changed locally)
+- **DB:** ✅ No migrations
 
 ---
 
-## Session 309 Summary
+## Session 311 Summary
 
-**#143 Camera Pipeline — 6 fixes shipped**
+**#143 Camera Pipeline — Mobile re-verification complete**
 
-**What was fixed:**
-- Thumbnail no longer goes blank after AI spinner stops (blob URL preserved through poll update)
-- → Pub button now opens PreviewModal instead of navigating to Review & Publish page
-- Railway TS build error resolved (`quantity` field removed from draft SELECT — wasn't in schema)
-- Review & Publish page 403 fixed for Alice John (admin+organizer dual-role) — singular `role` check → `roles.includes()` pattern
-- Same role check bug found and fixed in 3 more camera endpoints: `addItemPhoto`, `removeItemPhoto`, `reorderItemPhotos`
-- 📷 fallback emoji on carousel img if Cloudinary returns 503
+**All 3 S310 blocked items cleared:**
+- Check 4: Tap carousel thumbnail → PreviewModal opens for correct item ✅ ss_2271ub1kt / ss_1368kfswv
+- Check 6: Done Reviewing → item saves, no 404 ✅ ss_1368kfswv
+- Condition dropdown: shows AI value (not blank) ✅ ss_87689gmt1
 
-**Root cause of the role check bug:**
-Admin+organizer dual-role users (like Alice John) have `role: 'ADMIN'` as their primary role, so `req.user.role !== 'ORGANIZER'` always returned true → 403. Fixed by checking both `roles[]` array and `role` field. 4 itemController endpoints patched.
+**New bugs found + fixed this session:**
+- **PreviewModal broken image** — `photoUrl` prop name mismatch fixed (→ `thumbnailUrl`). Photo will now render in modal after capture.
+- **Review page thumbnails broken** — in-memory state was storing blob URL instead of Cloudinary URL. Fixed to use API-returned `photoUrl`.
+- **Toasts disappear too fast** — 3000ms → 4500ms sitewide.
 
----
-
-## S310 Start
-
-**One job: mobile Chrome E2E verify of #143**
-
-Use Chrome DevTools in mobile emulation mode (iPhone 12 Pro, 390px) — the camera UX is mobile-first. Desktop looks fine; issues only appear at mobile width.
-
-**Test sequence (log in as user1@example.com — Alice John):**
-1. Go to a sale → Add Items → Camera tab
-2. Capture 1 photo in Rapidfire mode
-3. Confirm thumbnail stays visible after AI spinner stops
-4. Tap the thumbnail → PreviewModal should open
-5. Close modal → tap → Pub → PreviewModal opens (NOT navigate to review page)
-6. Tap Done Reviewing → item saves or shows "still uploading" toast
-7. Tap Review(1) → Review & Publish page loads with item listed (not 403)
-8. Open full edit form → Category/Condition/Description pre-filled from AI
-
-If all 8 steps pass → #143 Rapidfire Camera Mode is ✅. Update roadmap.
+**QA insight logged:** Camera placeholder icon fills the same space as a real photo — invisible at a glance. QA skill update pending (needs skill-creator dispatch next session).
 
 ---
 
-## Known Open Items
+## Next Session (S312) — Start Here
 
-- **#143 mobile verify** — all fixes shipped, needs mobile Chrome walkthrough (see S310 Start above)
-- #37 Sale Reminders — iCal confirmed, push "Remind Me" not built (feature gap)
-- #59 Streak Rewards — StreakWidget on dashboard, not on /shopper/loyalty page (P2 placement)
-- customStorefrontSlug — All NULL in DB, organizer profile URLs by numeric ID only
+**Push first, then QA:**
+
+1. Run push block below → wait for Vercel green
+2. Mobile viewport (390px), log in as Alice John (user1@example.com / password123)
+3. Verify PreviewModal image renders (capture → Pub → zoom into modal photo)
+4. Verify review page thumbnails render actual photos (not camera icon — zoom to check)
+5. Verify toast stays ~4.5s
+6. Dispatch skill-creator to update QA skill with thumbnail zoom rule
+7. Delete QA test item "Vintage Yellow Plastic Lighter" from sale cmn7epuiu004pxdmfub457vb1
+8. If all pass → full desktop E2E camera pipeline
 
 ---
 
-## Test Accounts (password: password123)
+## Open Items
 
-- user1@example.com — ADMIN + ORGANIZER (Alice John, SIMPLE) — use for dual-role tests
-- user2@example.com — ORGANIZER (Bob Smith, PRO) — use for PRO feature tests
-- user3@example.com — ORGANIZER (TEAMS)
-- user4@example.com — ORGANIZER (SIMPLE) — use for SIMPLE tier gating tests
-- user11@example.com — Shopper (Karen Anderson, SIMPLE, aged 10+ days)
-- user12@example.com — Shopper only (Leo Thomas)
+- **#143 thumbnails/toast** — fixed, needs post-push verify (S312)
+- **QA skill thumbnail rule** — needs skill-creator dispatch (S312)
+- **Test item cleanup** — delete "Vintage Yellow Plastic Lighter" in sale cmn7epuiu004pxdmfub457vb1
+- #37 Sale Reminders — iCal confirmed, push "Remind Me" not built
+- #59 Streak Rewards — StreakWidget on dashboard, not on /shopper/loyalty page (P2)
+
+---
+
+## Push Block
+
+```powershell
+cd C:\Users\desee\ClaudeProjects\FindaSale
+
+git add packages/frontend/components/camera/PreviewModal.tsx
+git add packages/frontend/pages/organizer/add-items/[saleId].tsx
+git add packages/frontend/components/ToastContext.tsx
+git add claude_docs/STATE.md
+git add claude_docs/patrick-dashboard.md
+git commit -m "S311: Fix PreviewModal image, review thumbnails, toast duration
+
+- PreviewModal: photoUrl prop renamed to thumbnailUrl (fixes broken image in modal)
+- [saleId].tsx: use Cloudinary photoUrl from upload response instead of blob URL
+- ToastContext: toast duration 3000ms -> 4500ms sitewide"
+
+.\push.ps1
+```
+
