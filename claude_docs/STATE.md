@@ -7,7 +7,7 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Current Work
 
-Nothing in flight. S301 wrapped.
+Nothing in flight. S302 wrapped.
 
 ---
 
@@ -17,57 +17,32 @@ Nothing in flight. S301 wrapped.
 |---------|--------|---------------|---------------|
 | #142 Photo Upload | Never reached — login issues S300 | Chrome login + file_upload tool + gallery screenshot | S300 |
 | #143 Rapidfire Camera Mode | Never reached — login issues S300 | Chrome login + Camera AI tab + real image + result screenshot | S300 |
-| #17 Create Sale | Fixes applied, NOT pushed yet | Push 9 files + run migration + retest in Chrome | S301 |
-| #31 Organizer Profile broken save | Data doesn't persist despite success toast | Dispatch dev to fix profile save controller | S301 |
-| #65 CSV Export 429 silent fail | Both Export & Clipboard hit same rate-limited endpoint, zero UI feedback | Dispatch dev to add 429 error feedback + review rate limit window | S301 |
-| #122 Nav label fix | "Collector Passport" label ≠ page title "My Loot Legend" | Dev dispatch → nav label correction | S300 |
-| #141 P2 bugs | (a) Category field blank on edit form ("Select a category" vs saved value) (b) Item disappears from add-items list after rename (sort order glitch) | Dev dispatch — both found during S301 edit test | S301 |
+| #17 Create Sale (edit geocode) | Error banner still shows on edit-sale page despite 3 fix iterations. Auto-geocode not confirmed firing. | Open Chrome Network tab, reload page, confirm GET /api/geocode fires on load. If fires and fails: check Nominatim response. If doesn't fire: read edit-sale/[id].tsx geocodingAttempted logic. | S302 |
+| #31 Organizer Profile save | Fix deployed (frontend refetch after PATCH). Not Chrome-verified. | Navigate to /organizer/settings as user2, change Bio field, Save, reload — confirm change persisted. | S302 |
+| #65 CSV Export 429 feedback | Fix deployed (429 error message surfaced in UI). Not Chrome-verified. Rate limit: 1 export per month — Patrick decision needed on window. | Navigate to /organizer/promote/[saleId], click Export CSV, verify 429 message shows. | S302 |
+| #141 P2 bugs | Fix deployed (category pre-pop, sort glitch). Not Chrome-verified. | Edit an item with a category → confirm category shows on edit form. Rename item → confirm it stays visible in add-items list. | S302 |
+| #122 Nav label | Fix deployed (Explorer Passport → My Loot Legend in Layout.tsx). Not Chrome-verified. | Open nav as logged-in shopper, confirm label reads "My Loot Legend". | S302 |
 
 **KNOWN BUG — Session instability:** After Cookie/localStorage clear in Chrome MCP, fresh login for shopper accounts (user11, user12) silently fails. Do NOT clear cookies — use signout route only, then log in.
 
 ---
 
-## Next Session (S302)
+## Next Session (S303)
 
 **Start with:**
-1. Patrick MUST push S301 files and run migration FIRST (see push block below)
-2. After deploy confirmed: Chrome retest #17 Create Sale as user2 — fill form, submit, verify DRAFT sale created, redirect to add-items
-3. Dispatch dev to fix #31 Organizer Profile save persistence bug
-4. Dispatch dev to fix #65 CSV Export 429 UI feedback + rate limit window review
-5. Dispatch dev to fix #141 P2 bugs: category pre-pop on edit form + sort order glitch in add-items list
-6. Nav label fix: "Collector Passport" → "Loot Legend" in Layout.tsx (P2)
-7. Blocked queue remaining: #142 (photo upload), #143 (Camera AI) — use user1 organizer, file_upload tool
+1. Smoke test: open Chrome, reload `https://finda.sale/organizer/edit-sale/cmn8a5yzs000bft5hrpb5z4ha` with Network tab open. Confirm whether `GET /api/geocode` fires on page load and what the response is. If it fires and returns coordinates, #17 is fixed. If it doesn't fire, read `packages/frontend/pages/organizer/edit-sale/[id].tsx` lines around `geocodingAttempted` and dispatch dev for fourth fix attempt.
+2. Verify blocked queue: #31 (profile save), #65 (CSV 429 message), #141 (category + sort), #122 (nav label) — one Chrome test each.
+3. #142 Photo Upload and #143 Camera AI still blocked — attempt with user1 + file_upload tool.
 
 **PostStop hook active.** Every ✅ requires 3 screenshot IDs. UNVERIFIED is always fine.
 
-**Patrick actions pending (REQUIRED before S302 QA):**
-```powershell
-cd C:\Users\desee\ClaudeProjects\FindaSale
-git add packages/backend/src/services/collectorPassportService.ts
-git add packages/frontend/components/ItemPhotoManager.tsx
-git add packages/frontend/components/camera/RapidCarousel.tsx
-git add packages/frontend/pages/organizer/add-items/[saleId].tsx
-git add packages/frontend/pages/organizer/edit-item/[id].tsx
-git add packages/frontend/pages/organizer/create-sale.tsx
-git add packages/backend/src/controllers/saleController.ts
-git add packages/database/prisma/schema.prisma
-git add packages/database/prisma/migrations/20260326_make_sale_lat_lng_optional/migration.sql
-git add claude_docs/STATE.md claude_docs/patrick-dashboard.md claude_docs/strategy/roadmap.md
-git commit -m "fix(create-sale): fix URL, lat/lng optional, date format, saleType enum; fix(photos): referrerPolicy; fix(passport): upsert P2002; S301 wrap + roadmap"
-.\push.ps1
-```
-
-Then run migration:
-```powershell
-cd C:\Users\desee\ClaudeProjects\FindaSale\packages\database
-$env:DATABASE_URL="postgresql://postgres:QvnUGsnsjujFVoeVyORLTusAovQkirAq@maglev.proxy.rlwy.net:13949/railway"
-npx prisma migrate deploy
-npx prisma generate
-```
+**No Patrick actions needed — all S302 code is already pushed.**
 
 ---
 
 ## Recently Complete
+
+**S302 COMPLETE (2026-03-26):** Build recovery + multi-fix deployment. (1) Railway TS build failures fixed — lat/lng null guards added across 5 backend services (cityHeat, discovery, heatmap, ripple, wishlistAlert) after schema made lat/lng optional in S301. (2) Vercel build failure fixed — implicit `any` in edit-item/[id].tsx line 65. (3) Edit-sale auto-geocode: added auto-trigger on page load when lat/lng null; fixed wrong endpoint (POST /sales/geocode → GET /geocode). Error banner still shows at session end — 3 iterations, unresolved. (4) #31 Profile save: fix deployed (frontend refetch after PATCH), UNVERIFIED. (5) #65 CSV 429: fix deployed (error message surfaced), UNVERIFIED. (6) #141 P2 (category pre-pop + sort glitch): fix deployed, UNVERIFIED. (7) #122 nav label: "Explorer Passport" → "My Loot Legend", deployed, UNVERIFIED. QA honesty enforced mid-session — Patrick caught subagent rubber-stamping #17 ✅ with visible red error on screen. All S302 code pushed to GitHub, Vercel READY (dpl_5jmr2sZWWXk1AfKTuVhkKC8GtMTC).
 
 **S301 COMPLETE (2026-03-26):** Full D-series QA pass + Create Sale P0 root cause found and fixed. VERIFIED this session: #141 Item Edit ✅ (title persisted on reload: ss_2485qquq4→ss_7964gr7a4); #144 AI Suggest Price ✅ (returned "$15–$45, suggested $28" + "Use $28.00" CTA: ss_825360xz7); #87 Brand Tracking ✅ (Herman Miller added → persisted on reload: ss_1535iwo2a→ss_869725td0→ss_59120puay); #169 Organizer Insights ✅ (KPI cards + Per-Sale Breakdown with real data as PRO: ss_8974kxr2g→ss_4690ui68m→ss_03146gg4b). BUGS FOUND: #65 CSV Export ❌ P1 — both Export & Download and Copy to Clipboard return persistent 429 with zero UI feedback (ss_06956hzal→ss_7950ow71a→ss_64569ef3f). #31 Organizer Profile ❌ P0 — save fires success toast but data does NOT persist on reload; missing Phone shows no validation error (ss_89882ut9f→ss_2884cncce→ss_7808kolqb). #41 Item Library ⚠️ PARTIAL — page loads, empty state for user with no consignment items, misleading copy (ss_52181wtgx→ss_8451smmn0→ss_9696ouwsi). #17 Create Sale ❌ P0 — 4 compounding bugs diagnosed: wrong API URL (/organizer/create-sale → /sales), lat/lng required but not in form, date format mismatch (YYYY-MM-DD vs ISO datetime), saleType enum too narrow (4 vs 7 values). ALL FIXED in local files — pending push + migration. Additional ⚠️ P2 bugs found during #141: (a) category field blank on edit form vs saved value; (b) item invisible in add-items list after rename (sort order glitch). Code fixes: collectorPassportService.ts P2002 upsert; referrerPolicy on Cloudinary imgs (ItemPhotoManager, add-items); edit-item category normalization; RapidCarousel pb-3; create-sale.tsx URL + saleController.ts schema fixes; schema.prisma lat/lng optional; migration SQL. 9 code files + 3 doc files in push block.
 
