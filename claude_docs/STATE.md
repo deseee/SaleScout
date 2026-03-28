@@ -7,9 +7,11 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Current Work
 
-No active work. S331 complete. S332 priorities staged below.
+No active work. S332 complete. S333 priorities staged below.
 
-**S330 COMPLETE (2026-03-28):** Desktop nav search + map sale type filter + edit-sale cover photo. (1) **Desktop nav search ✅ VERIFIED** — Layout.tsx updated. Search icon in nav bar expands to input on click, collapses on Escape/blur. Submits form to `/?q=<term>`. Chrome-verified working (ss_62400ab1c, ss_1378f5bto). (2) **Map sale type filter ✅ VERIFIED** — map.tsx updated with filter pills (All Types / Estate / Yard / Auction / Flea Market / Consignment). Chrome-verified: Estate → 15 sales, Auction → 0 sales (ss_1871l57bx → ss_3209bt61b → ss_57862pvhm). (3) **Edit-sale cover photo section ✅ (CODE-VERIFIED, NOT YET BROWSER-TESTED)** — NEW SaleCoverPhotoManager.tsx component + edit-sale/[id].tsx integration. Section visible in form with upload/preview/remove buttons. (4) ⚠️ **Cover photo useState bug found:** Component uses `useState(initialPhotoUrl)` which only reads the value at mount time. When formData loads async from API, the component doesn't update — seeded photo doesn't show. Fix: add `useEffect` hook to sync state when `initialPhotoUrl` changes. P2 for S331. (5) ⚠️ **Cover photo save behavior:** Currently saves immediately on upload (bypasses "Save Changes" button). Decision pending: should hold in formData and commit only on Save Changes. P2 for S331.
+**S332 COMPLETE (2026-03-28):** Hold Button #13 full board review + design finalization + foundation implementation. (1) **Board session unanimous GO (12/12 + 1 advisory):** DA + Steelman + Hacker + Advisory Board all dispatched on abuse/fraud risk, business model, gamification angle, organizer control. Unanimous recommendation: GO with rank-gated durations (no Hunt Pass paywall, no deposit required). (2) **Design finalized:** QR check-in primary, GPS fallback by sale type (outdoor/flea 150m, indoor estate 250m, large/auction 400m). En route grace for shoppers within 10mi but outside geofence (limited holds: Initiate/Scout 1, Ranger 2, Sage/Grandmaster 3). Hold duration by rank: Initiate/Scout 30min/1 hold, Ranger 45min/2 holds, Sage 60min/3 holds, Grandmaster 90min/3 holds. Natural expiry at timer end + navigate-to-different-sale prompt (no continuous GPS polling). Organizer controls: per-sale `holdsEnabled` toggle, view/cancel/extend/edit all active holds. Business model: rank-gated free, no Hunt Pass gate, no deposit. (3) **Architecture spec produced (400+ lines):** staged in VM, locked designs for GPS haversine, QR validation, fraud detection, organizer settings, cron expiry 10min. (4) **Foundation shipped (5 files):** schema (SaleCheckin + OrganizerHoldSettings), migration, reservationController.ts (GPS/QR/fraud/rate-limit gates), 3 new routes (placeHold, checkHoldStatus, organizer endpoints), cron 30min → 10min. (5) **4 P1 gaps remain for S333:** GPS radii by sale type (built flat 100m, needs 150/250/400m), rank-based hold duration (not implemented), en route logic (not implemented), per-sale holdsEnabled toggle (not added to Sale model). Frontend HoldButton + OrganizerHoldsPanel stubs not pushed. (6) **ItemCard.tsx TS fixes:** photoUrls cast + _count cast (union type UnifiedItemCardItem | Item) shipped. Files: ItemCard.tsx (cast fixes), schema.prisma (models), migration, reservationController.ts, routes/reservations.ts, jobs/reservationExpiryJob.ts, decisions-log.md (6 decisions logged).
+
+**S331 COMPLETE (2026-03-28):** Desktop nav search + map sale type filter + edit-sale cover photo. (1) **Desktop nav search ✅ VERIFIED** — Layout.tsx updated. Search icon in nav bar expands to input on click, collapses on Escape/blur. Submits form to `/?q=<term>`. Chrome-verified working (ss_62400ab1c, ss_1378f5bto). (2) **Map sale type filter ✅ VERIFIED** — map.tsx updated with filter pills (All Types / Estate / Yard / Auction / Flea Market / Consignment). Chrome-verified: Estate → 15 sales, Auction → 0 sales (ss_1871l57bx → ss_3209bt61b → ss_57862pvhm). (3) **Edit-sale cover photo section ✅ (CODE-VERIFIED, NOT YET BROWSER-TESTED)** — NEW SaleCoverPhotoManager.tsx component + edit-sale/[id].tsx integration. Section visible in form with upload/preview/remove buttons. (4) ⚠️ **Cover photo useState bug found:** Component uses `useState(initialPhotoUrl)` which only reads the value at mount time. When formData loads async from API, the component doesn't update — seeded photo doesn't show. Fix: add `useEffect` hook to sync state when `initialPhotoUrl` changes. P2 for S331. (5) ⚠️ **Cover photo save behavior:** Currently saves immediately on upload (bypasses "Save Changes" button). Decision pending: should hold in formData and commit only on Save Changes. P2 for S331.
 
 **Decisions logged:**
 - Sale cover photo: 1 photo only (not a gallery). Index 0 of `photoUrls[]` array.
@@ -29,7 +31,7 @@ No active work. S331 complete. S332 priorities staged below.
 | #143 PreviewModal onError | Code fix pushed (sha: ffa4a83). 📷 fallback on Cloudinary 503 in place. | Defensive fix only — can't trigger 503 in prod. ACCEPTABLE UNVERIFIED. | S312 |
 | #143 AI confidence — Camera mode | cloudAIService.ts fix is code-correct; processRapidDraft passes aiConfidence through. Can't test without real camera hardware in Chrome MCP. | Real device camera capture → Review & Publish → confirm "Good (X%)" or similar. | S314 |
 | Single-item publish fix | S326 code fix deployed. S327 confirmed API call fires but no DRAFT items exist to test the button. Manual Entry creates AVAILABLE items, skipping draft pipeline. | Camera-capture an item → go to Review & Publish → click Publish on single item → confirm status changes + toast. | S326/S327 |
-| Cover photo doesn't show seed value | useState bug — initialPhotoUrl only read at mount time. When formData loads async, component doesn't re-render. | Fix: useEffect hook in SaleCoverPhotoManager to sync state when initialPhotoUrl changes. | S330 |
+| Hold Button #13 — P1 gaps | Foundation shipped with 4 gaps: GPS radii by sale type (flat 100m, needs 150/250/400m), rank-based duration (not implemented), en route logic (not implemented), per-sale holdsEnabled toggle (not in Sale model). Frontend stubs not pushed. | S333 dev dispatch: update reservationController.ts GPS radii + rank logic, add en route gate, add holdsEnabled to schema + migration, build HoldButton + OrganizerHoldsPanel. | S332 |
 
 **S326 COMPLETE (2026-03-28):** 3 bugs fixed + 1 test item cleanup. (1) **P1 Buyer Preview placeholder — ROOT CAUSE FIXED:** `buildCloudinaryUrl()` in review.tsx was replacing `:` with `_` in aspect ratio transforms (`ar_4_3` → Cloudinary rejects). Removed the `.replace(':', '_')` so it sends correct `ar_4:3`. Chrome-verified: Buyer Preview grid now shows real Cloudinary photos (ss_7201mwej2, ss_6354i4qpv). (2) **Face-detection blob URL fix (secondary):** `handleFaceUploadAnyway` in [saleId].tsx was storing blob URLs instead of Cloudinary URLs returned by API. Now stores `res.data.photoUrl`. (3) **P1 Single-item Publish button — FIXED:** `handlePublishItem` was sending `draftStatus` via generic PUT `/items/:id`, but backend `updateItem` didn't include `draftStatus` in destructured fields — silently dropped. Fix: frontend now uses dedicated `POST /items/:itemId/publish` endpoint for publishing, generic PUT for unpublishing (with `draftStatus` added to backend's accepted fields). Also relaxed publish gate to allow DRAFT + PENDING_REVIEW items (was PENDING_REVIEW-only). NEEDS CHROME VERIFY after deploy. (4) **P2 Nav search — already working:** S322/S323 fixed this. Desktop has no nav search (mobile-only) — logged as P3 gap. (5) **Test item cleanup:** Deleted 2 of 3 test lighters per Patrick, kept 1. Sale now has 14 items. Files: review.tsx, [saleId].tsx, itemController.ts. Pushblock provided.
 
@@ -39,20 +41,26 @@ No active work. S331 complete. S332 priorities staged below.
 
 **S323 COMPLETE (2026-03-28):** QA session — S322 verification + 2 bug fixes + Chrome concurrency rule. (1) Edit-sale field persist ✅ — entrance note, approach notes, treasure hunt all saved and reloaded correctly as SIMPLE user (ss_0940ajm6p/ss_2627ysx2a/ss_5529i8hqh). No PRO gate. (2) Review & Publish Publish All — UNVERIFIED (all seeded items are AVAILABLE, Publish All only shows with DRAFT items). (3) Nav menus: Organizer collapsibles ✅, shopper links ✅. P2 bug fixed: duplicate Logout in mobile nav — Layout.tsx had a bare Logout button in `authLinks` AND another in the global footer section; removed the one from `authLinks`. (4) Homepage search ✅ — FTS wired and working: "chair" returns 5 results with item cards, photos, prices, "View Sale →" links. (5) Sales Near You card ✅ — map loads, "View on Map →" links to /map. (6) Search results below-fold UX fixed: index.tsx now auto-scrolls to results heading when query ≥2 chars. (7) Chrome concurrency rule added to CLAUDE.md §10c + findasale-qa.skill packaged. Files: Layout.tsx, index.tsx, CLAUDE.md.
 
-## Next Session (S332) — #13 Hold Button Board Session
+## Next Session (S333) — Hold Button #13 P1 Gaps + QA Queue
 
 ### Push Required First
-Patrick must run S331 push block (11 files — includes STATE.md) before S332 begins.
+Patrick must run S332 push block (7 files including STATE.md) before S333 begins. Then run migrations:
+```powershell
+cd C:\Users\desee\ClaudeProjects\FindaSale\packages\database
+$env:DATABASE_URL="postgresql://postgres:QvnUGsnsjujFVoeVyORLTusAovQkirAq@maglev.proxy.rlwy.net:13949/railway"
+npx prisma migrate deploy   # applies SaleCheckin + OrganizerHoldSettings migrations
+npx prisma generate         # regenerates TypeScript client
+```
 
-### S332 Priority: Hold Button Full Board Review
-Dispatch DA + Steelman + Hacker + Advisory Board on #13 with these specific questions:
-1. **Abuse/fraud risk** — DA and Hacker weigh in on hold abuse, gaming, and security surface
-2. **Business model** — Should holds be free? Require 50% deposit (payment intent)? Tier-gated (Hunt Pass / PRO only)?
-3. **Gamification angle** — Is hold a Hunt Pass perk? Part of Explorer Rank perks? Or open to all tiers?
-4. **Organizer control** — Can organizers disable holds per sale? Set their own hold duration?
-5. After board returns: if green-lit, dispatch dev to wire the item card button with approved safeguards
+### S333 Priority 1: Hold Button #13 — Close P1 Gaps (Dev Dispatch)
+Dispatch findasale-dev to fix these 4 items in existing files:
+1. **GPS radii by sale type:** Update reservationController.ts `placeHold()` to check `sale.saleType` and apply correct radii (outdoor/flea 150m, indoor estate 250m, large/auction 400m). Add PRO organizer override: Small=100m/Medium=250m/Large=500m.
+2. **Rank-based hold duration:** In `placeHold()`, read `user.explorerRank` and set `expiresAt` based on rank (Initiate/Scout 30min, Ranger 45min, Sage 60min, Grandmaster 90min).
+3. **En route logic:** If shopper within 10 miles but outside geofence, allow limited holds (1/2/3 by rank) with `enRoute=true` flag on reservation.
+4. **Per-sale holdsEnabled toggle:** Add `holdsEnabled Boolean @default(true)` to Sale model in schema.prisma. Create migration. Check `sale.holdsEnabled` in `placeHold()` before creating reservation. Return 403 if disabled.
+5. After gaps closed: build frontend HoldButton component (item card), OrganizerHoldsPanel (organizer dashboard), LeaveSaleWarning prompt.
 
-### QA Queue (After Push — S332)
+### S333 Priority 2: QA Queue (After Dev Completes Gaps)
 - Bug 1: Dark mode stats visibility on sale page — Chrome verify
 - Bug 4: Buy Now success card persists (no auto-dismiss) — Chrome verify
 - Bug 5: Reviews aggregate count matches displayed reviews — Chrome verify
@@ -63,15 +71,19 @@ Dispatch DA + Steelman + Hacker + Advisory Board on #13 with these specific ques
 - Decision #14: Trending page renders via unified ItemCard — Chrome verify
 - Cover photo useEffect fix: seeded photo shows on edit-sale form load — Chrome verify
 
-### Decisions Logged This Session
-- **#10 Sale Soundtrack:** Move OFF sale page → integrate into existing door QR code flow (organizer prints QR → shopper scans → playlist opens). Social share card embed = roadmap backlog. Dev dispatch needed S332+.
-- **#14 ItemCard Unification:** Phase 1 complete (ItemCard.tsx + trending.tsx). Phases 2–5 = roadmap backlog.
-- **#15 Save/Wishlist:** UX spec done. Implementation = roadmap backlog.
+### Decisions Locked This Session (S332)
+- **#13 Hold Button Design:** QR check-in primary, GPS fallback by type. Rank-gated durations (30/45/60/90min). En route grace 10mi. Natural expiry + nav-away prompt.
+- **#13 Business Model:** Free, no Hunt Pass gate, no deposit.
+- **#13 Abuse Prevention:** Synchronous fraud detection, QR validation, rate limiting, 10min cron expiry.
+- **#13 Organizer Controls:** Per-sale holdsEnabled toggle, view/cancel/extend/edit, bulk export.
+- **#13 GPS Radii:** Outdoor/Flea 150m, Indoor Estate 250m, Large/Auction 400m. PRO override: 100m/250m/500m.
+- **#13 En Route Grace:** 1/2/3 holds by rank within 10mi navigating.
 
-### Roadmap Items to Add (Records to log next session)
-- #10 QR Door Experience (Sale Soundtrack): integrate playlist link into existing sale QR poster
-- #14 ItemCard Phases 2–5: migrate dashboard, search, sale detail, gallery surfaces
-- #15 Save/Wishlist item card: implement UX spec (heart + three-dot menu)
+**S332 (2026-03-28):** Hold Button #13 board review + design finalization + foundation build. Full board 12/12 + 1 advisory unanimous GO. Design locked: QR check-in primary, GPS fallback by sale type (150/250/400m), rank-gated durations (30/45/60/90min), en route grace, natural expiry. 6 decisions locked in decisions-log.md. Business model: free, no Hunt Pass, no deposit. Foundation shipped: schema (SaleCheckin + OrganizerHoldSettings), GPS haversine, QR validation, sync fraud detection, organizer settings endpoints, cron 10min. ItemCard.tsx TS union type fixes shipped. 4 P1 gaps remain for S333 (sale-type radii, rank duration, en route logic, per-sale toggle). Frontend stubs not pushed.
+
+**S331 COMPLETE (2026-03-28):** Sale page bug fixes + decisions shipped + ItemCard Phase 1 + UX specs. 8 bugs fixed (dark mode stats, stray badge "0", Buy Now card persist, reviews count aggregate, plan route verified, location card reposition, cover photo useEffect). 5 decisions shipped (#8 Share/native API, #9 Remind Me/email, #11 QR code hidden, #12 Reviews summary, #14 ItemCard Phase 1). ItemCard.tsx unified + trending.tsx migrated. Save/Wishlist UX spec ready. Files: sales/[id].tsx, CheckoutModal.tsx, SaleCoverPhotoManager.tsx, OrganizerReputation.tsx, ReviewsSection.tsx, reviewController.ts, ItemCard.tsx, trending.tsx, 2 UX specs, docs.
+
+**S330 COMPLETE (2026-03-28):** Desktop nav search + map sale type filter + edit-sale cover photo. Desktop nav search ✅ (Layout.tsx, expands input on click, Escape/blur collapse, submits `/?q=<term>`). Map sale type filter ✅ (6 pills: All/Estate/Yard/Auction/Flea/Consignment, Chrome-verified). Edit-sale cover photo section built (SaleCoverPhotoManager.tsx + integration). Cover photo useState bug found (P2 useEffect sync fix).
 
 **S329 COMPLETE (2026-03-28):** Discovery page photo fixes + two P3 fixes. (1) **Trending photos:** `getTrendingItems` backend was missing `photoUrls` in Prisma select; frontend interface referenced `photos[0].url` instead of `photoUrls[0]`. Fixed both — items with photos now render. (2) **Inspiration Gallery:** InspirationGrid.tsx had an `absolute inset-0` "Image unavailable" overlay that was unconditionally rendered on top of every card even when images loaded. Fixed with `imageErrors` Set state — overlay now only shows on `onError`. TS fix: `new Set(prev); next.add(itemId)` to avoid Set spread downlevelIteration error. (3) **Duplicate category filter pills:** Normalized category to `.toLowerCase()` before grouping in `sales/[id].tsx`. (4) **Item detail cart/views counts:** `getItemById` now queries `checkoutAttempts` and returns computed `cartCount`; `views` returns 0 (no view-tracking table yet). (5) `next.config.js`: added `picsum.photos` to image domains + CSP (later confirmed irrelevant — real issue was the overlay bug). Files: trendingController.ts, trending.tsx, sales/[id].tsx, itemController.ts, next.config.js, InspirationGrid.tsx. Chrome-verified: Inspiration ✅ (ss_3444tt102), category pills ✅ (ss_9986zybr4), cart/views counts ✅ (ss_0398yzw9c).
 

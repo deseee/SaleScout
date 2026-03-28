@@ -269,3 +269,51 @@ Only decisions that affect future sessions — not implementation details.
 - DECIDED: BUSINESS_PLAN.md fee references stale (shows 5%/7%). Full rewrite is its own future session.
 - OPEN: Virtual Queue tier (PRO vs ENTERPRISE), Affiliate (ENTERPRISE vs defer), Coupons (PRO vs SIMPLE with limits). Subagent input pending S176.
 - OPEN: Hunt Pass ($4.99 standalone) vs. future Pro Shopper tier structure. Subagent input pending S176.
+
+---
+
+## 2026-03-28 (S332) — #13 Hold Button — Geolocation Gate
+
+**Status:** LOCKED
+**Made by:** Patrick
+**Rationale:** Holds require physical presence at sale. QR check-in is primary gate (organizer posts QR at entrance; scan unlocks holds for that sale). GPS is fallback only, checked point-in-time at hold placement (not continuous polling). GPS radii by sale type: outdoor/flea 150m, indoor estate 250m, large/auction 400m. Organizer can override radius (Small/Medium/Large, PRO only). Continuous GPS revocation rejected — too many false positives from indoor drift, battery drain.
+
+---
+
+## 2026-03-28 (S332) — #13 Hold Button — En Route Grace Holds
+
+**Status:** LOCKED
+**Made by:** Patrick
+**Rationale:** Shoppers within 10 miles actively navigating to a sale (via in-app map) receive limited en route holds: Initiate/Scout 1 hold, Ranger 2 holds, Sage/Grandmaster 3 holds. Full hold allotment unlocks on QR check-in or GPS arrival within geofence. Prevents remote abuse while rewarding high-intent navigating shoppers.
+
+---
+
+## 2026-03-28 (S332) — #13 Hold Button — Duration & Concurrency by Rank
+
+**Status:** LOCKED
+**Made by:** Patrick
+**Rationale:** Hold duration and concurrency scale with Explorer Rank. Initiate/Scout: 30 min, 1 concurrent hold. Ranger: 45 min, 2 concurrent. Sage: 60 min, 3 concurrent. Grandmaster: 90 min, 3 concurrent. No Hunt Pass paywall — rank-gated, free. Longer holds reward progression without requiring payment.
+
+---
+
+## 2026-03-28 (S332) — #13 Hold Button — Expiry & Revocation Rules
+
+**Status:** LOCKED
+**Made by:** Patrick
+**Rationale:** Three revocation rules only: (1) natural timer expiry always applies, (2) shopper navigating in-app to a different sale triggers a prompt to release current holds, (3) QR check-in auto-release at another sale was considered but rejected — flea markets have multiple vendors each with their own QR, so scanning Vendor B's QR should not release holds at Vendor A. Continuous GPS monitoring for revocation rejected.
+
+---
+
+## 2026-03-28 (S332) — #13 Hold Button — Organizer Controls
+
+**Status:** LOCKED
+**Made by:** Patrick
+**Rationale:** Organizers have full hold management: per-sale disable toggle, view all active holds, cancel/delete individual holds, extend hold duration, edit holds. PRO tier gets radius override. This was flagged as a functional gap in existing code (P1 finding) and is now an explicit requirement.
+
+---
+
+## 2026-03-28 (S332) — #13 Hold Button — Business Model
+
+**Status:** LOCKED
+**Made by:** Patrick (validated by full Advisory Board 12/12 +1)
+**Rationale:** Rank-gated, free to all logged-in shoppers. No Hunt Pass paywall, no deposit requirement. Deposit model rejected — legal risk (money-transmission regulations for held funds in some states). Hunt Pass paywall rejected — creates friction at moment of discovery, suppresses adoption. Board unanimously preferred rank-gated (earned) over pay-gated.
