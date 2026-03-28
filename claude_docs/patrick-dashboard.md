@@ -1,61 +1,76 @@
-# Patrick's Dashboard — Session 330 (March 28, 2026)
+# Patrick's Dashboard — Session 331 (March 28, 2026)
 
 ---
 
 ## Build Status
 
-- **Railway:** ✅ Green
-- **Vercel:** ✅ Green
-- **DB:** ✅ No migration pending
-- **S330 Status:** ✅ COMPLETE — 3 features shipped, 1 bug found
+- **Railway:** ✅ Green (pending S331 push)
+- **Vercel:** ✅ Green (pending S331 push)
+- **DB:** ✅ No new migrations this session
+- **S331 Status:** ✅ COMPLETE — 8 bugs fixed, 5 decisions shipped, 3 queued for board
 
 ---
 
-## No Push Needed
+## Push Required — Run This Now
 
-All S330 code changes pushed and deployed.
-
----
-
-## Session 330 Summary
-
-**Desktop nav search + map sale type filter + edit-sale cover photo section.**
-
-### Shipped This Session
-1. **Desktop nav search — SHIPPED ✅** — Layout.tsx updated. Search icon in nav bar expands to input on click, collapses on Escape/blur. Navigates to `/?q=<term>`. Chrome-verified working (ss_62400ab1c, ss_1378f5bto).
-2. **Map sale type filter — SHIPPED ✅** — map.tsx updated. Filter pills added (All Types / Estate / Yard / Auction / Flea Market / Consignment). Chrome-verified: Estate → 15 sales, Auction → 0 sales (ss_1871l57bx → ss_3209bt61b → ss_57862pvhm).
-3. **Edit-sale cover photo section — CODE-SHIPPED, NOT YET BROWSER-TESTED** — NEW SaleCoverPhotoManager.tsx component + edit-sale/[id].tsx integration. Upload/preview/remove buttons visible.
-
-### Bug Found (P2 for S331)
-- **Cover photo useState bug:** Component uses `useState(initialPhotoUrl)` which only reads the value at mount time. When formData loads async from API, the component doesn't re-render — seeded photo doesn't show. **Fix needed:** add `useEffect` hook to sync state when `initialPhotoUrl` changes.
-
-### Files Changed
-`packages/frontend/components/Layout.tsx`, `packages/frontend/pages/map.tsx`, `packages/frontend/components/SaleCoverPhotoManager.tsx` (NEW), `packages/frontend/pages/organizer/edit-sale/[id].tsx`
-
-### Decisions Logged
-- Sale cover photo: 1 photo only (not a gallery). Index 0 of `photoUrls[]` array.
-- Remind Me: email reminders backend is built. "Push reminders coming soon" copy is stale — should say "Remind me by email."
+```powershell
+cd C:\Users\desee\ClaudeProjects\FindaSale
+git add packages/frontend/pages/sales/[id].tsx
+git add packages/frontend/components/CheckoutModal.tsx
+git add packages/frontend/components/SaleCoverPhotoManager.tsx
+git add packages/frontend/components/OrganizerReputation.tsx
+git add packages/frontend/components/ReviewsSection.tsx
+git add packages/backend/src/controllers/reviewController.ts
+git add packages/frontend/components/ItemCard.tsx
+git add packages/frontend/pages/trending.tsx
+git add claude_docs/architecture/ItemCard-Unification-Spec.md
+git add "claude_docs/UX_SPECS/save-wishlist-item-card.md"
+git add claude_docs/STATE.md
+git add claude_docs/patrick-dashboard.md
+git commit -m "feat: S331 sale page bug fixes + decisions 8/9/11/12 + ItemCard Phase 1 + UX specs + docs"
+.\push.ps1
+```
 
 ---
 
-## Next Session (S331) — Sale Page Audit
+## Session 331 Summary
 
-Patrick identified a "rabbit hole" of UX bugs + decisions on the sale detail page (sales/[id].tsx).
+**Sale page rabbit hole — bugs fixed, decisions shipped, 3 queued for board.**
 
-**Start here:** Fix 7 P1/P2 bugs first (text contrast, stray 0, calendar link, Buy Now flow, reviews display, map routing, card layout).
+### Bugs Fixed (8 total)
+1. **Dark mode stats text** — views/shares/saves now readable in dark mode ✅
+2. **Stray "0" under organizer badges** — ReviewsSection conditional guard added ✅
+3. **Add to Calendar 404** — verified correct in code (backend + frontend paths match) ✅
+4. **Buy Now success card** — removed auto-dismiss timeout; persists until user clicks Done ✅
+5. **Reviews count mismatch** — aggregate query now filters `APPROVED` same as list query ✅
+6. **Plan My Route** — verified correct (already using sale address) ✅
+7. **Location card** — moved below About card, same width ✅
+8. **Cover photo useState bug** — useEffect sync added to SaleCoverPhotoManager ✅
 
-**Then:** Surface 8 product decisions to Patrick (share buttons, remind me wiring, vibe check placement, QR code visibility, reviews card location, hold button wiring, item card uniformity, save/wishlist audit).
+### Decisions Shipped (5)
+- **#8 Share buttons** — native Web Share API + intent URL fallbacks ✅
+- **#9 Remind Me** — wired to email reminder endpoint, "coming soon" copy removed ✅
+- **#11 QR code** — hidden from shoppers, organizer-only ✅
+- **#12 Reviews** — summary stat in Organized By card, full section commented out (move to organizer profile next session) ✅
+- **#14 ItemCard Phase 1** — unified component ready, trending page migrated ✅
 
-See STATE.md "## Next Session (S331)" for full bug list + decision questions.
+### Specs Ready (2)
+- `claude_docs/architecture/ItemCard-Unification-Spec.md` — Phases 2–5 plan ready for dev
+- `claude_docs/UX_SPECS/save-wishlist-item-card.md` — heart + three-dot menu spec ready for dev
 
 ---
 
-## Blocked/Unverified Queue
+## Next Session (S332)
 
-| Feature | Status | What's Needed |
-|---------|--------|----------------|
-| Edit-sale cover photo | Code-verified, needs browser test | Navigate to edit-sale, verify photo section loads + upload works | S330 |
-| #143 Camera AI confidence | UNVERIFIED since S314 | Real device camera capture |
-| #143 PreviewModal onError | Acceptable UNVERIFIED | Can't trigger Cloudinary 503 in prod |
+**Priority 1: #13 Hold Button Full Board Review**
+DA + Steelman + Hacker + Advisory Board — before any code gets written.
+Questions on the table: free vs. deposit, tier-gating (Hunt Pass / PRO?), abuse prevention, organizer control.
 
----
+**Priority 2: QA the S331 changes** (after push + deploy)
+9 Chrome verifications queued — dark mode, buy now, reviews, remind me, share, QR, reviews summary, trending card, cover photo.
+
+**Also queued for S332+:**
+- #10 Sale Soundtrack → dev dispatch to add playlist link to existing door QR code
+- #14 ItemCard Phases 2–5 → backlog
+- #15 Save/Wishlist implementation → backlog
+- ReviewsSection move to organizer profile page → backlog

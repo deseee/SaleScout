@@ -39,38 +39,39 @@ No active work. S331 complete. S332 priorities staged below.
 
 **S323 COMPLETE (2026-03-28):** QA session — S322 verification + 2 bug fixes + Chrome concurrency rule. (1) Edit-sale field persist ✅ — entrance note, approach notes, treasure hunt all saved and reloaded correctly as SIMPLE user (ss_0940ajm6p/ss_2627ysx2a/ss_5529i8hqh). No PRO gate. (2) Review & Publish Publish All — UNVERIFIED (all seeded items are AVAILABLE, Publish All only shows with DRAFT items). (3) Nav menus: Organizer collapsibles ✅, shopper links ✅. P2 bug fixed: duplicate Logout in mobile nav — Layout.tsx had a bare Logout button in `authLinks` AND another in the global footer section; removed the one from `authLinks`. (4) Homepage search ✅ — FTS wired and working: "chair" returns 5 results with item cards, photos, prices, "View Sale →" links. (5) Sales Near You card ✅ — map loads, "View on Map →" links to /map. (6) Search results below-fold UX fixed: index.tsx now auto-scrolls to results heading when query ≥2 chars. (7) Chrome concurrency rule added to CLAUDE.md §10c + findasale-qa.skill packaged. Files: Layout.tsx, index.tsx, CLAUDE.md.
 
-## Next Session (S332) — QA + Gate Decisions
+## Next Session (S332) — #13 Hold Button Board Session
 
 ### Push Required First
-Patrick must run S331 push block (10 files) before QA can proceed.
+Patrick must run S331 push block (11 files — includes STATE.md) before S332 begins.
 
-### QA Queue (After Push)
+### S332 Priority: Hold Button Full Board Review
+Dispatch DA + Steelman + Hacker + Advisory Board on #13 with these specific questions:
+1. **Abuse/fraud risk** — DA and Hacker weigh in on hold abuse, gaming, and security surface
+2. **Business model** — Should holds be free? Require 50% deposit (payment intent)? Tier-gated (Hunt Pass / PRO only)?
+3. **Gamification angle** — Is hold a Hunt Pass perk? Part of Explorer Rank perks? Or open to all tiers?
+4. **Organizer control** — Can organizers disable holds per sale? Set their own hold duration?
+5. After board returns: if green-lit, dispatch dev to wire the item card button with approved safeguards
+
+### QA Queue (After Push — S332)
 - Bug 1: Dark mode stats visibility on sale page — Chrome verify
 - Bug 4: Buy Now success card persists (no auto-dismiss) — Chrome verify
 - Bug 5: Reviews aggregate count matches displayed reviews — Chrome verify
 - Decision #9: Remind Me button fires API + correct toast — Chrome verify
-- Decision #8: Share button native sheet on mobile — Chrome verify
+- Decision #8: Share button native share sheet on mobile — Chrome verify
 - Decision #11: QR code hidden from shopper view — Chrome verify
 - Decision #12: Reviews summary in Organized By card — Chrome verify
 - Decision #14: Trending page renders via unified ItemCard — Chrome verify
 - Cover photo useEffect fix: seeded photo shows on edit-sale form load — Chrome verify
 
-### Gate Decisions Pending Patrick
-**#10 Sale Soundtrack:** Move to Organizer Dashboard (simple relocate) OR bundle with QR Door Experience + social share card embed (~1 sprint)? Innovation recommends bundle.
+### Decisions Logged This Session
+- **#10 Sale Soundtrack:** Move OFF sale page → integrate into existing door QR code flow (organizer prints QR → shopper scans → playlist opens). Social share card embed = roadmap backlog. Dev dispatch needed S332+.
+- **#14 ItemCard Unification:** Phase 1 complete (ItemCard.tsx + trending.tsx). Phases 2–5 = roadmap backlog.
+- **#15 Save/Wishlist:** UX spec done. Implementation = roadmap backlog.
 
-**#13 Hold Button:** Backend 80% built. Before wiring item card button, Patrick must decide:
-1. Hold limit: 5 per shopper per sale? Or tiered (SIMPLE=3, PRO=10)?
-2. Duration default: 48h or 24h + self-serve extension?
-3. Organizer notification email on hold placed: keep or disable?
-4. Button location: item card on sale page, item detail page, or both?
-
-**#15 Save/Wishlist:** UX spec done (`claude_docs/UX_SPECS/save-wishlist-item-card.md`). Ready to dispatch dev — heart = Favorites, three-dot = named wishlist. No Patrick decision needed, just say go.
-
-### Queued for S332+
-- ItemCard unification Phases 2–5 (dashboard, search, sale detail, gallery)
-- Sale Soundtrack move (after Patrick decides scope)
-- Hold button wire-up (after Patrick answers 4 questions above)
-- ReviewsSection move to organizer profile page (commented out on sale page; needs new home)
+### Roadmap Items to Add (Records to log next session)
+- #10 QR Door Experience (Sale Soundtrack): integrate playlist link into existing sale QR poster
+- #14 ItemCard Phases 2–5: migrate dashboard, search, sale detail, gallery surfaces
+- #15 Save/Wishlist item card: implement UX spec (heart + three-dot menu)
 
 **S329 COMPLETE (2026-03-28):** Discovery page photo fixes + two P3 fixes. (1) **Trending photos:** `getTrendingItems` backend was missing `photoUrls` in Prisma select; frontend interface referenced `photos[0].url` instead of `photoUrls[0]`. Fixed both — items with photos now render. (2) **Inspiration Gallery:** InspirationGrid.tsx had an `absolute inset-0` "Image unavailable" overlay that was unconditionally rendered on top of every card even when images loaded. Fixed with `imageErrors` Set state — overlay now only shows on `onError`. TS fix: `new Set(prev); next.add(itemId)` to avoid Set spread downlevelIteration error. (3) **Duplicate category filter pills:** Normalized category to `.toLowerCase()` before grouping in `sales/[id].tsx`. (4) **Item detail cart/views counts:** `getItemById` now queries `checkoutAttempts` and returns computed `cartCount`; `views` returns 0 (no view-tracking table yet). (5) `next.config.js`: added `picsum.photos` to image domains + CSP (later confirmed irrelevant — real issue was the overlay bug). Files: trendingController.ts, trending.tsx, sales/[id].tsx, itemController.ts, next.config.js, InspirationGrid.tsx. Chrome-verified: Inspiration ✅ (ss_3444tt102), category pills ✅ (ss_9986zybr4), cart/views counts ✅ (ss_0398yzw9c).
 
