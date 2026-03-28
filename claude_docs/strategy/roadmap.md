@@ -391,6 +391,7 @@ Production MVP launched Q1 2026. Full auction lifecycle (bidding + close flow + 
 | 104 | AI Cost Ceiling + Ollama Fallback | PLATFORM | ALL | N/A | ✅ | — | ✅ | N/A | N/A | N/A | Auto-switch to Ollama if Claude API cost exceeds monthly threshold. See total-cost-of-ownership-2026-03-19.md §Section 5 |
 | 105 | Cloudinary Bandwidth Monitoring + Alerts | PLATFORM | ALL | N/A | ✅ | — | ✅ | N/A | N/A | N/A | cloudinaryBandwidthTracker.ts confirmed — tracks daily serves, alerts at 80% of 25GB free tier. (S280 verified) |
 | 119 | Aggregate Chargeback Monitoring (Stripe Health) | PLATFORM | ALL | ✅ | ✅ | — | ✅ | N/A | N/A | N/A | Tracks monthly chargeback rate; triggers pre-auth + payment hold if >0.8%, account escalation if >1%. See anti-abuse-system-design-2026-03-19.md §Novel Vector D |
+| 220 | Cloudinary URL Utility — Centralized transform helper | PLATFORM | SIMPLE | ✅ | — | — | — | N/A | N/A | N/A | Consolidate scattered Cloudinary URL generation (imageUtils.ts, uploadController.ts, individual components) into a single shared utility. Prevents divergence-driven bugs (Workbox caching S312, missing public_id S317, etc.). Medium effort — touches frontend, backend, shared. S317. |
 
 ## Deferred & Long-Term Hold
 
