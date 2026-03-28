@@ -1,53 +1,57 @@
-# Patrick's Dashboard — Session 317 Wrap (March 27, 2026)
+# Patrick's Dashboard — Session 318 (March 27, 2026)
 
 ---
 
 ## Build Status
 
-- **Railway:** ✅ Green (last push: adfb92b from S316)
-- **Vercel:** ✅ Green (last push: adfb92b from S316)
+- **Railway:** ✅ Green (last push: adfb92b from S316, S317 confirmed)
+- **Vercel:** ✅ Green (last push: adfb92b from S316, S317 confirmed)
 - **DB:** ✅ No migrations
-- **S317 Pending:** 4 files ready for push (see Push Block below)
+- **S317 Status:** ✅ Confirmed pushed (uploadController.ts, cloudinaryUtils.ts on GitHub)
+- **S318 Pending:** 4 files ready for push (see Push Block below)
 
 ---
 
-## Session 317 Summary
+## Session 318 Summary
 
-**Batch upload AI confidence verified + Cloudinary URL bug fixed**
+**Multiple batch fixes accumulated + S317 push confirmed**
 
 **Completed:**
-1. **Batch upload AI confidence ✅ VERIFIED** — dropped folding chair photo into Batch Upload drop zone. AI analysis worked: "Folding Chair, Gray Metal Frame, Modern Utility Style", $18, Furniture, Good condition. Item created successfully to sale cmn7eptij0045xdmfm5lu9oyc (now 13 items total). Batch items go straight to PUBLISHED (not DRAFT), so they appear in the items list.
-2. **Cloudinary URL bug ROOT CAUSE FOUND AND FIXED** — uploadController.ts was using incomplete Cloudinary eager transform results (e.g., `/v1774657939/` with no filename). Now generates correct URLs from `result.secure_url` via `insertTransform` helper. This explains missing thumbnails and "preview unavailable" on batch uploads.
-3. **Shared Cloudinary URL utility created** — `packages/shared/src/cloudinaryUtils.ts` with 4 transform helpers. Exported from shared/index.ts. Backend keeps inline helper (TODO to wire workspace dependency).
-4. **Roadmap #220 added** — "Cloudinary URL Utility — Centralized transform helper" (P2 housekeeping).
+1. **S317 push confirmed** — uploadController.ts (Cloudinary URL fix) and cloudinaryUtils.ts both verified on GitHub.
+2. **Batch upload image scaling fixed** — SmartInventoryUpload.tsx line 511: changed `h-32 object-cover` → `h-40 object-contain bg-gray-100 dark:bg-gray-800`. Fixes cropped/cut-off image previews in batch upload review step. **Already pushed by Patrick.**
+3. **Items list refresh bug fixed** — SmartInventoryUpload.tsx line 151: query key `['sale-items', saleId]` → `['items', saleId]`. Added `onComplete?.()` call. Items list now auto-refreshes after batch save without hard refresh. **Not yet pushed.**
+4. **Orphaned invalidation removed** — add-items/[saleId].tsx line 708: removed unused `['draft-items', saleId]` invalidation (no corresponding useQuery exists). **Not yet pushed.**
+5. **Clarifying comments added** — useAppraisal.ts and useBidBot.ts: inline comments clarifying intentional prefix-match pattern (not bugs). **Not yet pushed.**
+6. **QA finding flagged** — Pre-S317 items have broken Cloudinary eager-transform URLs stored in DB. Pre-S317 items show placeholder icons; new items uploaded after fix show correct thumbnails. Backfill task needed (add to roadmap).
 
 ---
 
 ## Patrick Action Needed
 
-**Push 4 files:**
+**Push 4 S318 files:**
 ```powershell
 cd C:\Users\desee\ClaudeProjects\FindaSale
-git add packages/backend/src/controllers/uploadController.ts packages/shared/src/cloudinaryUtils.ts packages/shared/src/index.ts claude_docs/strategy/roadmap.md
-git commit -m "S317: Fix Cloudinary URL truncation bug + create shared URL utility
+git add packages/frontend/components/SmartInventoryUpload.tsx packages/frontend/pages/organizer/add-items/[saleId].tsx packages/frontend/hooks/useAppraisal.ts packages/frontend/hooks/useBidBot.ts
+git commit -m "S318: Batch upload query key fix + orphaned invalidation removal + comments
 
-- uploadController: use result.secure_url instead of transform object (fixes missing thumbnails)
-- cloudinaryUtils: new shared utility with insertTransform, getCloudinaryThumbnailUrl, etc
-- roadmap: add #220 Cloudinary URL utility consolidation (P2)
+- SmartInventoryUpload: fix query key ['sale-items'] -> ['items'] (line 151), add onComplete() call
+- add-items/[saleId]: remove orphaned ['draft-items'] invalidation (line 708)
+- useAppraisal, useBidBot: add clarifying comments on prefix-match pattern (intentional)
 
-Verified: batch upload AI confidence working (folding chair test item)"
+Note: scaling fix (h-40 object-contain) already pushed separately by Patrick in S318"
 .\push.ps1
 ```
 
 ---
 
-## Next Session (S318) — Start Here
+## Next Session (S319) — Start Here
 
-1. **Confirm S317 push** — 4 files pushed successfully
-2. **Verify batch upload thumbnails** — Navigate to Lakefront Estate Sale 11, check items list. Thumbnails should now load (Cloudinary URLs fixed).
-3. **Delete test item** — "Folding Chair, Gray Metal Frame, Modern Utility Style" from sale cmn7eptij0045xdmfm5lu9oyc (created during S317 test)
-4. **Full product walkthrough** — walk entire app as ORGANIZER + SHOPPER before beta users arrive. Find anything broken or embarrassing.
-5. **AI confidence camera mode** — still UNVERIFIED (needs real device camera)
+1. **Push 4 pending S318 files** (see Push Block above) — SmartInventoryUpload, add-items/[saleId], useAppraisal, useBidBot
+2. **Verify batch upload items list refresh** — After push, test: add items to batch, click Save Batch → items list should auto-refresh (no hard refresh needed)
+3. **Delete test item** — "Folding Chair, Gray Metal Frame, Modern Utility Style" from sale cmn7eptij0045xdmfm5lu9oyc (still in batch queue, not saved)
+4. **Verify pre-fix thumbnail backfill** — Check old items vs. new items in items list (expected: old show placeholder, new show photos). Create backfill roadmap task if needed.
+5. **Full product walkthrough** — walk entire app as ORGANIZER + SHOPPER before beta users arrive. Find anything broken or embarrassing.
+6. **AI confidence camera mode** — still UNVERIFIED (needs real device camera)
 
 ---
 
@@ -62,11 +66,12 @@ Verified: batch upload AI confidence working (folding chair test item)"
 
 ---
 
-## Files Changed (S317)
+## Files Changed (S318)
 
 | File | Change | Status |
 |------|--------|--------|
-| `packages/backend/src/controllers/uploadController.ts` | Cloudinary URL fix: use `result.secure_url` instead of transform object | ✅ Ready |
-| `packages/shared/src/cloudinaryUtils.ts` | NEW: shared Cloudinary transform utility with 4 helpers | ✅ Ready |
-| `packages/shared/src/index.ts` | Export `cloudinaryUtils` from shared package | ✅ Ready |
-| `claude_docs/strategy/roadmap.md` | Add #220 Cloudinary URL utility consolidation | ✅ Ready |
+| `packages/frontend/components/SmartInventoryUpload.tsx` | Query key fix: `['sale-items', saleId]` → `['items', saleId]` (line 151) + add `onComplete?.()` call | ⏳ Pending push |
+| `packages/frontend/pages/organizer/add-items/[saleId].tsx` | Remove orphaned `['draft-items', saleId]` invalidation (line 708) | ⏳ Pending push |
+| `packages/frontend/hooks/useAppraisal.ts` | Add clarifying comment on prefix-match pattern | ⏳ Pending push |
+| `packages/frontend/hooks/useBidBot.ts` | Add clarifying comment on prefix-match pattern | ⏳ Pending push |
+| `packages/frontend/components/SmartInventoryUpload.tsx` (prior) | Scaling fix: `h-32 object-cover` → `h-40 object-contain bg-gray-100` (line 511) | ✅ Already pushed |
