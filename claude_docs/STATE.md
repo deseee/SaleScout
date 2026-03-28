@@ -7,7 +7,7 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Current Work
 
-**S320 COMPLETE.** Multi-role nav fixed (Layout + BottomTabNav), header breakpoint adjusted (md→lg), desktop nav pruned (Option B), logged-out nav fixed, item page auth gate removed, register email copy updated. OAuth invite code fix dispatched to dev (results pending). All files pushed except OAuth fix.
+**S321 COMPLETE.** Nav full audit (organizer + shopper, desktop + mobile), homepage search tag fix, Sales Near You redesign. All files pushed.
 
 ## Blocked/Unverified Queue
 
@@ -15,18 +15,22 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 |---------|--------|----------------|---------------|
 | #143 PreviewModal onError | Code fix pushed (sha: ffa4a83). 📷 fallback on Cloudinary 503 in place. | Defensive fix only — can't trigger 503 in prod (Cloudinary ready by the time images display). ACCEPTABLE UNVERIFIED. | S312 |
 | #143 AI confidence — Camera mode | cloudAIService.ts fix is code-correct; processRapidDraft passes aiConfidence through. Can't test without real camera hardware in Chrome MCP. | Real device camera capture → Review & Publish → confirm "Good (X%)" or similar, not "Low (50%)". | S314 |
+| Nav menus (organizer + shopper) | All changes pushed but not Chrome-verified this session. | Open desktop dropdown + mobile drawer as Bob Smith (organizer) and Leo Thomas (shopper). Verify collapsible sections, correct items, consistent font/padding. | S321 |
+| Homepage search by tags | itemSearchService.ts updated to include item/sale tags. | Search "eames" or "mid century" from homepage — verify results appear. | S321 |
+| Sales Near You card redesign | index.tsx updated. | Verify card shows in 2-column layout, displays sale counts by type, links to /map on click. | S321 |
 
-**S320 COMPLETE (2026-03-27):** Nav cleanup + item page public access + email copy + mobile drawer additions. (1) Multi-role nav bug fixed: `user.role` → `user.roles[]` migration incomplete in Layout.tsx (7 occurrences) + BottomTabNav.tsx (1 occurrence). Multi-role users (ADMIN+ORGANIZER) now see correct nav links everywhere. (2) Header breakpoint shifted from `md:` (768px) to `lg:` (1024px) — eliminated cramped tablet nav zone. (3) Desktop nav trimmed (Option B): About, Leaderboard, Contact moved from nav bar into avatar dropdown. Desktop nav: Feed → Map → Inspiration → Trending → Pricing. (4) Logged-out nav fixed: Feed, Map, Inspiration now publicly visible (were hidden); nav order consistent for all users. (5) Item page auth gate removed: global axios 401 interceptor in lib/api.ts was hard-redirecting all 401s to /login, breaking public item endpoints. Removed. Contextual sign-in prompts added at action buttons (bid, buy, save). (6) Register email opt-in copy updated (4 instances) to: "Check to receive emails about nearby sales, new features, and promotions. Unsubscribe any time in account settings." (7) Mobile drawer additions: Payouts added to organizer section; About, Leaderboard, Contact, Settings added as utility section before Sign Out. (8) OAuth invite code fix: dispatched to findasale-dev (results pending). Files: Layout.tsx, BottomTabNav.tsx, AvatarDropdown.tsx, items/[id].tsx, lib/api.ts, register.tsx. All pushed except OAuth fix.
+**S321 COMPLETE (2026-03-28):** Nav full audit + homepage fixes. (1) Review Item modal thumbnail fixed: `thumbnailUrl` dropped during ID swap in [saleId].tsx (lines 701, 757) — now preserved so review modal shows captured photo instead of placeholder. (2) Desktop dropdown full nav audit: added Organizer Tools + Pro Tools collapsible sections (were missing entirely); normalized all links to `px-3 py-2 rounded-md`; added `text-sm` to TierGatedNav.tsx both link states. (3) Shopper menu parity: desktop dropdown had only About/Settings/Sign Out for shopper users — added Shopper Dashboard, My Profile, My Saves, Referrals, Host a Sale CTA, My Explorer Profile collapsible (10 links). (4) Dual-role: "My Dashboard" → "Shopper Dashboard" in mobile; both dashboards shown for dual-role users. (5) Homepage search: itemSearchService.ts now queries item tags + sale tags via PostgreSQL `@>` — "eames", "mid century", "rolex" now searchable. (6) Sales Near You card: redesigned as 2-column layout, sale counts by type, full card links to /map. Files: [saleId].tsx, AvatarDropdown.tsx, Layout.tsx, TierGatedNav.tsx, itemSearchService.ts, index.tsx. All pushed.
 
-## Next Session (S321)
+## Next Session (S322)
 
-**Patrick push action needed: YES** — OAuth invite code fix (if dev completes in S320). All other S320 files pushed.
+**Patrick push action needed: NO** — all S321 files pushed.
 
 **Start with:**
-1. **Push the full S320 session block** — all 6 files already pushed to GitHub (Layout.tsx, BottomTabNav.tsx, AvatarDropdown.tsx, items/[id].tsx, lib/api.ts, register.tsx). Once OAuth fix arrives from dev, batch and push.
-2. **Chrome verify public item page** — navigate to /items/[id] without login; verify no 403 errors, clean layout, sign-in prompts render correctly at action buttons (bid, buy, save).
-3. **Chrome verify nav breakpoints** — test desktop 1280px (full nav: Feed → Map → Inspiration → Trending → Pricing), tablet 800px (hamburger), mobile drawer completeness (Payouts visible in organizer section; About, Leaderboard, Contact, Settings in utility section before Sign Out).
-4. **Chrome verify register email copy** — signup flow shows "Check to receive emails about nearby sales, new features, and promotions. Unsubscribe any time in account settings."
+1. **Chrome verify nav menus** — open desktop dropdown as Bob Smith (organizer): confirm Organizer Tools + Pro Tools start collapsed, all links present, consistent sizing. Open mobile drawer: confirm Shopper Dashboard label, My Saves present, Explorer Profile collapsible.
+2. **Chrome verify as Leo Thomas (shopper)** — desktop dropdown should show full shopper section; My Explorer Profile collapsed by default.
+3. **Chrome verify homepage search** — search "eames" or "mid century" — confirm results appear.
+4. **Chrome verify Sales Near You card** — confirm 2-column layout, sale type counts, clicks through to /map.
+5. **Continue homepage/product audit** — Patrick flagged sale type filters need tags populated at sale creation time.
 
 **S319 COMPLETE (2026-03-28):** 6 fixes shipped + reseed + shopper walkthrough. (1) "All items sold or reserved" banner fixed: `ACTIVE` → `AVAILABLE` + removed non-existent `PENDING` from soldCount in sales/[id].tsx. (2) Reseeded Railway with 17 real Cloudinary photos — picsum removed from seed.ts entirely. (3) Message compose footer fixed: `_app.tsx` supports `getLayout` pattern; messages/[id].tsx uses `noFooter={true}` (Chrome-verified ss_1731k6do9). (4) Badge loading P1 fixed: `/users/me/points` endpoint was missing — added `getBadges` controller + route (Chrome-verified ss_80947s2pv). (5) Badge empty state fixed: profile.tsx was rendering 3 dashed blank placeholder boxes when badges=[] — replaced with "No badges yet / Start shopping to earn your first badge!" (QA honesty failure caught by Patrick from screenshot). (6) Shopper walkthrough QA: likes ✅, profile ✅, Loot Legend ✅, Hunt Pass ✅, messaging ✅, dark mode ✅, mobile ✅.
 
