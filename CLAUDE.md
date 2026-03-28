@@ -344,6 +344,8 @@ Dispatch ONE feature or ONE flow per QA subagent call. Example: "QA the favorite
 feature for shopper (user11). Return evidence per PRE-VERIFICATION GATE." Focused
 dispatches prevent subagents from skimming 10 things and marking all ✅.
 
+**Chrome concurrency rule (HARD):** QA agents that use Chrome MCP must be dispatched SEQUENTIALLY — one at a time. Never dispatch multiple Chrome-dependent QA agents in parallel. They share a single browser instance and will conflict. Dispatch the next QA agent only after the previous returns. Alternatively, the main session may run Chrome QA directly. This rule was locked S323.
+
 **Evidence-required acceptance (HARD):** When a QA subagent returns findings, check
 every ✅ mark for the required evidence sentence:
 `Navigated to [URL] as [user]. Clicked [element]. Saw [outcome]. Refreshed — [persisted/not].`
