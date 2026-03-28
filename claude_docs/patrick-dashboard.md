@@ -1,46 +1,44 @@
-# Patrick's Dashboard — Session 325 (March 28, 2026)
+# Patrick's Dashboard — Session 326 (March 28, 2026)
 
 ---
 
 ## Build Status
 
-- **Railway:** ✅ Green
-- **Vercel:** ✅ Green
+- **Railway:** ✅ Green (pending redeploy after push)
+- **Vercel:** ✅ Green (pending redeploy after push)
 - **DB:** ✅ No migration pending
-- **S325 Status:** ✅ COMPLETE — QA only, no code changes
+- **S326 Status:** ✅ COMPLETE — 3 bug fixes + test item cleanup
 
 ---
 
-## No Push Needed This Session
+## Push Needed
 
-S325 was a QA-only session (smoke testing the S324 thumbnail fix). No code was changed.
-
----
-
-## Session 325 Summary
-
-**S324 thumbnail fix smoke test — 16+ photo surfaces verified on live site.**
-
-The Service Worker + CSP fix from S324 is working. Cloudinary thumbnails load on first visit without hard refresh across all major surfaces: sale cards, item detail, search results, map popups, categories, feed, organizer dashboards, add-items table, edit-item pages.
-
-Camera (AI) pipeline tested end-to-end: Rapidfire capture, Regular multi-angle, mode switching, Review Item modal with AI fields, Enhance, publish flow. All working with real Cloudinary uploads.
-
-**Bugs found:**
-
-1. **P1 — Buyer Preview placeholder:** When organizers preview their sale before publishing, item cards show a camera icon instead of the actual photo. The photo exists and renders everywhere else (review list, edit-item, add-items table). This is the Buyer Preview card component specifically — it doesn't pull photos for DRAFT/PENDING items.
-
-2. **P2 — Nav search bar:** The search bar in the navigation doesn't trigger item search.
-
-3. **Finding — Edit-sale cover photo section:** Missing from the edit-sale form.
+S326 has 3 changed files. Pushblock at bottom of this file.
 
 ---
 
-## Next Session (S326) — Start Here
+## Session 326 Summary
 
-1. Fix P1 Buyer Preview placeholder bug (dev dispatch)
-2. Fix P2 nav search bar
-3. Clean up 3 test lighter items from camera testing
-4. Continue product audit
+**3 bugs fixed, 1 test item cleanup, product audit continued.**
+
+1. **P1 Buyer Preview placeholder — FIXED & VERIFIED.** Root cause: `buildCloudinaryUrl()` was converting `ar_4:3` to `ar_4_3` (Cloudinary rejects underscores in aspect ratio). Removed the bad `.replace()`. Chrome-verified with screenshots — Buyer Preview now shows real photos.
+
+2. **P1 Single-item Publish button — FIXED, needs live verify.** The Publish button on Review & Publish did nothing — it sent `draftStatus` via the generic PUT endpoint, which silently ignored it. Fixed: now uses the dedicated `POST /items/:itemId/publish` endpoint. Also added `draftStatus` to the generic update handler (for unpublish). Also relaxed the publish gate to allow DRAFT items (was PENDING_REVIEW-only).
+
+3. **Face-detection blob URL fix.** Camera face-detection upload path was storing blob URLs instead of Cloudinary URLs. Now stores the real URL from the API response.
+
+4. **Nav search — already working.** S322/S323 fixed this. Desktop has no nav search (mobile-only) — logged as P3.
+
+5. **Test item cleanup.** Deleted 2 of 3 test lighters per Patrick's instruction. Sale has 14 items.
+
+---
+
+## Next Session (S327) — Start Here
+
+1. **Smoke test S326 fixes** — Chrome-verify single-item Publish on live site after deploy
+2. **Smoke test Buyer Preview** — confirm photos render in preview grid
+3. Continue product audit
+4. P3 gaps: desktop nav search, map sale type filter, edit-sale cover photo
 
 ---
 
@@ -48,8 +46,7 @@ Camera (AI) pipeline tested end-to-end: Rapidfire capture, Regular multi-angle, 
 
 | Feature | Status | What's Needed |
 |---------|--------|----------------|
-| Buyer Preview photo placeholder | P1 — found S325 | Dev fix in Buyer Preview card component |
-| Nav search bar | P2 — found S325 | Wire up search trigger |
+| Single-item publish fix | Code pushed S326 — NEEDS VERIFY | Chrome: Review & Publish → Publish one item → confirm toast + status |
 | #143 Camera AI confidence | UNVERIFIED since S314 | Real device camera capture |
 | #143 PreviewModal onError | Acceptable UNVERIFIED | Can't trigger Cloudinary 503 in prod |
 
