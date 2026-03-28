@@ -7,15 +7,22 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Current Work
 
-No active work. S327 complete. Next session starts fresh.
+No active work. S328 complete. Next session starts fresh.
 
 **Remaining bugs/gaps:**
-- **P2 — "1 draft" counter mismatch on Add Items page:** Subtitle shows "14 items • 1 draft" but all items are AVAILABLE. The `/items/drafts` endpoint returns 0. Counter uses a different counting mechanism — lying to organizer.
-- **UNVERIFIED — Single-item Publish button:** S326 fix deployed and code-correct, but no DRAFT items exist to test against. Manual Entry creates items as AVAILABLE (skips draft pipeline). Test blocked until camera capture creates a DRAFT item.
+- **P1 — Item photos broken on Trending + Inspiration pages:** All item cards show cardboard box placeholder / "Image unavailable" instead of real Cloudinary photos. Affects Trending "Most Wanted Items" section and entire Inspiration Gallery. Sale-level cards (Hot Sales) work fine. Sale detail page item cards also work fine. Root cause: Trending/Inspiration pages use a different rendering path or API that doesn't return/render photoUrls.
+- **P3 — Duplicate category filter pills on sale detail page:** "Clothing" and "Collectibles" each appear twice in the filter bar (e.g. "Clothing (2)" and "Clothing (1)"). Likely case-sensitivity issue in category grouping.
+- **P3 — Item detail page "in cart • views" shows no numbers:** Labels render but counts are empty/missing.
 - **P3 — Desktop nav search:** Desktop header has no search input (mobile-only). Low priority UX gap.
-- **P3 — Map sale type filter:** Homepage map doesn't respect sale type filter — always shows all pins.
+- **P3 — Map sale type filter:** Map doesn't filter by sale type — always shows all pins.
 - **Finding — Edit-sale cover photo:** Edit-sale page missing cover photo section.
-- **Cleanup — QA Test Item:** "QA Test Item - Delete Me" still in sale with 0 photos, AVAILABLE status. Should be deleted.
+
+**Resolved this session:**
+- ✅ P2 draft counter mismatch — FIXED: backend `getItemsBySaleId` wasn't returning `draftStatus` field. Added to select clause. Frontend `computeDraftStatus` now uses real DB value instead of guessing.
+- ✅ QA Test Item cleanup — deleted via live site UI.
+- ✅ Single-item Publish button — VERIFIED WORKING via camera capture → AI tag → Review & Publish → Publish.
+- ✅ conditionGrade + tags not loading on Edit Item page — FIXED: `getItemById` select clause was missing both fields. Chrome-verified: grade "B" highlighted correctly.
+- ✅ Edit Item / Review & Publish parity — Added Condition Grade, Tags, Suggest Price, Publish/Unpublish to Edit Item page.
 
 ## Blocked/Unverified Queue
 
@@ -33,14 +40,15 @@ No active work. S327 complete. Next session starts fresh.
 
 **S323 COMPLETE (2026-03-28):** QA session — S322 verification + 2 bug fixes + Chrome concurrency rule. (1) Edit-sale field persist ✅ — entrance note, approach notes, treasure hunt all saved and reloaded correctly as SIMPLE user (ss_0940ajm6p/ss_2627ysx2a/ss_5529i8hqh). No PRO gate. (2) Review & Publish Publish All — UNVERIFIED (all seeded items are AVAILABLE, Publish All only shows with DRAFT items). (3) Nav menus: Organizer collapsibles ✅, shopper links ✅. P2 bug fixed: duplicate Logout in mobile nav — Layout.tsx had a bare Logout button in `authLinks` AND another in the global footer section; removed the one from `authLinks`. (4) Homepage search ✅ — FTS wired and working: "chair" returns 5 results with item cards, photos, prices, "View Sale →" links. (5) Sales Near You card ✅ — map loads, "View on Map →" links to /map. (6) Search results below-fold UX fixed: index.tsx now auto-scrolls to results heading when query ≥2 chars. (7) Chrome concurrency rule added to CLAUDE.md §10c + findasale-qa.skill packaged. Files: Layout.tsx, index.tsx, CLAUDE.md.
 
-## Next Session (S328)
+## Next Session (S329)
 
 **Priority:**
-1. **Fix P2 — "1 draft" counter mismatch** on Add Items page (shows "1 draft" but no drafts exist per API)
-2. **Delete QA Test Item** ("QA Test Item - Delete Me") — 0 photos, cluttering sale
-3. **Camera-capture a test item** to create a DRAFT → then verify single-item Publish button on Review & Publish page
-4. Continue product audit — organizer flows, shopper flows
-5. P3 gaps: desktop nav search, map sale type filter, edit-sale cover photo section
+1. **Fix P1 — Item photos broken on Trending + Inspiration pages.** Dispatch findasale-dev. Investigate why item cards on `/trending` (Most Wanted Items section) and `/inspiration` show placeholder icons instead of real Cloudinary photos. Sale-level cards work fine; sale detail page item cards work fine. The issue is specific to these two discovery pages. Check: (a) what API endpoint these pages use, (b) whether `photoUrls` is in the response, (c) whether the image component differs from the sale detail page's item cards.
+2. **Fix P3 — Duplicate category filter pills.** Categories like "Clothing" and "Collectibles" appear twice on the sale detail page filter bar. Likely case-sensitivity: items have "Clothing" vs "clothing" or "CLOTHING". Fix: normalize case in the category grouping logic on the frontend.
+3. **Fix P3 — Item detail "in cart / views" counts empty.** The `/items/[id]` page shows labels "in cart • views" with no numbers. Either the data isn't being fetched or the template renders labels without values.
+4. P3 gaps: desktop nav search, map sale type filter, edit-sale cover photo section
+
+**S328 COMPLETE (2026-03-28):** Full product audit + 2 backend fixes. (1) **P2 draft counter fix:** Added `draftStatus: true` to `getItemsBySaleId` select clause in itemController.ts. Frontend `computeDraftStatus` now uses real DB field. Chrome-verified: "15 items • 14 published" (correct). (2) **conditionGrade + tags fix:** Added `conditionGrade: true` and `tags: true` to `getItemById` select clause. Chrome-verified: Edit Item page loads grade "B" highlighted + 7 tags with remove buttons. (3) **Edit Item / Review & Publish parity:** Dev dispatched to add Condition Grade (S/A/B/C/D), Tags (curated grid + custom), Suggest Price, Publish/Unpublish button to edit-item page. All deployed and working. (4) **Single-item Publish verified:** Camera-captured lighter → AI auto-tagged → Review & Publish → single-item Publish → moved to published. S326 fix confirmed. (5) **QA Test Item deleted** via live site. (6) **Full product audit (organizer + shopper flows):** Feed ✅, Map ✅, Trending Hot Sales ✅, Sale Detail ✅, Organizer Dashboard ✅, Shopper Dashboard ✅, Item Detail ✅. **3 bugs found:** P1 item photos broken on Trending "Most Wanted" + Inspiration Gallery (cardboard box placeholders), P3 duplicate category filter pills, P3 item detail missing view/cart counts. Files: itemController.ts (2 select clause fixes), edit-item/[id].tsx (conditionGrade, tags, publish/unpublish).
 
 **S327 COMPLETE (2026-03-28):** S326 smoke test session. (1) **Buyer Preview Cloudinary photos ✅ VERIFIED** — all item cards on public sale page show real Cloudinary photos with correct aspect ratios. `ar_4:3` fix confirmed working. (2) **Review & Publish hooks fix ✅ VERIFIED** — page correctly handles static export empty `router.query`. Performance API confirms `/api/items/drafts?saleId=...` fires after hydration. Shows "0 items" because all items are AVAILABLE (no DRAFT items). Hooks violation and early-return bugs both fixed. (3) **Single-item Publish button — UNVERIFIED** — no DRAFT items exist to test against. Manual Entry creates items as AVAILABLE, skipping draft pipeline entirely. (4) **New P2 found:** Add Items page subtitle says "14 items • 1 draft" but all items show AVAILABLE in table and `/items/drafts` returns empty — draft counter is wrong. (5) **Review & Publish P1 bug from S327 (now fixed):** React Rules of Hooks violation — early returns before `useQuery`/`useMutation` hooks + static export `router.query = {}`. Fixed by moving all guards after hooks and using `enabled: !!saleId`. Deployed and verified working. No files changed this session — QA only.
 

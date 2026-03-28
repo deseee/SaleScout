@@ -1,4 +1,4 @@
-# Patrick's Dashboard — Session 327 (March 28, 2026)
+# Patrick's Dashboard — Session 328 (March 28, 2026)
 
 ---
 
@@ -7,37 +7,50 @@
 - **Railway:** ✅ Green
 - **Vercel:** ✅ Green
 - **DB:** ✅ No migration pending
-- **S327 Status:** ✅ COMPLETE — S326 smoke test, 2 of 3 fixes verified
+- **S328 Status:** ✅ COMPLETE — Full product audit + 2 fixes + 3 new bugs found
 
 ---
 
 ## No Push Needed
 
-S327 was QA-only. No code changes.
+All S328 changes already pushed and deployed (4 pushes total).
 
 ---
 
-## Session 327 Summary
+## Session 328 Summary
 
-**S326 smoke test session — verified 2 of 3 fixes on live site.**
+**Product audit session — fixed 5 items from S327 queue, found 3 new bugs.**
 
-1. **Buyer Preview Cloudinary photos — ✅ VERIFIED.** All item cards on the public sale page show real Cloudinary photos with correct aspect ratios. The `ar_4:3` fix is confirmed working in production.
+### Fixed This Session
+1. **Draft counter mismatch — FIXED ✅.** Backend wasn't returning `draftStatus` field. Now shows "15 items • 14 published" correctly.
+2. **QA Test Item — DELETED ✅.** Removed via live site UI.
+3. **Single-item Publish — VERIFIED ✅.** Camera-captured lighter → AI tagged → published from Review & Publish. S326 fix confirmed working.
+4. **Edit Item / Review & Publish parity — FIXED ✅.** Added Condition Grade, Tags, Suggest Price, Publish/Unpublish to Edit Item page.
+5. **conditionGrade + tags not loading — FIXED ✅.** `getItemById` API was missing both fields. Now loads grade "B" and 7 tags correctly.
 
-2. **Review & Publish hooks fix — ✅ VERIFIED.** Page correctly handles static export empty `router.query`. API call to `/items/drafts` fires after hydration. Shows "0 items" correctly because all items are AVAILABLE. The React hooks violation bug is fixed.
+### New Bugs Found
+1. **P1 — Item photos broken on Trending + Inspiration.** Every item card on both discovery pages shows a box placeholder instead of real photos. Sale-level cards (Hot Sales) work fine. This is your biggest shopper-facing issue.
+2. **P3 — Duplicate category filters.** "Clothing" and "Collectibles" each appear twice on sale detail page filter bar.
+3. **P3 — Item detail "in cart / views" counts empty.** Labels show but no numbers.
 
-3. **Single-item Publish button — UNVERIFIED.** No DRAFT items exist to test against. Manual Entry creates items as AVAILABLE, skipping the draft pipeline. Need to camera-capture an item to create a DRAFT, then test the Publish button.
-
-4. **New P2 found: draft counter mismatch.** Add Items page says "14 items • 1 draft" but all items are AVAILABLE and the `/items/drafts` endpoint returns empty. The counter is lying.
+### Pages Audited (all dark mode)
+- ✅ Feed — sale cards, photos, TODAY badges, organizer names
+- ✅ Map — 16 pins, time filters, Plan Your Route
+- ✅ Trending — Hot Sales section with rankings
+- ✅ Sale Detail — all sections working, item grid with real photos
+- ✅ Item Detail — structure good, Buy It Now, Save, Share, QR
+- ✅ Organizer Dashboard — overview + sales tabs, tier progress
+- ✅ Shopper Dashboard — quick actions, gamification, tabs
+- ✅ Edit Item — conditionGrade B loaded, tags loaded, Publish button
 
 ---
 
-## Next Session (S328) — Start Here
+## Next Session (S329) — Start Here
 
-1. **Fix P2 draft counter mismatch** on Add Items page
-2. **Delete "QA Test Item - Delete Me"** from the sale (0 photos, clutter)
-3. **Camera-capture a test item** → creates DRAFT → verify single-item Publish button
-4. Continue product audit — organizer + shopper flows
-5. P3 gaps: desktop nav search, map sale type filter, edit-sale cover photo
+1. **Fix P1 item photos on Trending + Inspiration** — dispatch dev to investigate
+2. **Fix P3 duplicate category filter pills** — case normalization
+3. **Fix P3 item detail missing view/cart counts**
+4. P3 gaps: desktop nav search, map sale type filter, edit-sale cover photo
 
 ---
 
@@ -45,9 +58,7 @@ S327 was QA-only. No code changes.
 
 | Feature | Status | What's Needed |
 |---------|--------|----------------|
-| Single-item publish fix | Code deployed S326, verified S327 API fires but no DRAFT items | Camera-capture item → Review & Publish → Publish → confirm toast + status |
 | #143 Camera AI confidence | UNVERIFIED since S314 | Real device camera capture |
 | #143 PreviewModal onError | Acceptable UNVERIFIED | Can't trigger Cloudinary 503 in prod |
-| Draft counter mismatch | P2 found S327 | Investigate Add Items page "1 draft" counter vs `/items/drafts` endpoint |
 
 ---
