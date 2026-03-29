@@ -1,13 +1,13 @@
-# Patrick's Dashboard — Session 336 (March 28, 2026)
+# Patrick's Dashboard — Session 337 (March 29, 2026)
 
 ---
 
 ## Build Status
 
 - **Railway:** ✅ Green
-- **Vercel:** ✅ Green
+- **Vercel:** ✅ Green (HoldButton fix deployed — PWA update banner confirmed in Chrome)
 - **DB:** No new migrations this session — schema unchanged
-- **S336 Status:** ✅ COMPLETE — push block below for doc files only
+- **S337 Status:** ✅ COMPLETE — HoldButton fix MCP-pushed (sha: ac5264c). Doc files need staging.
 
 ---
 
@@ -15,53 +15,66 @@
 
 ```powershell
 cd C:\Users\desee\ClaudeProjects\FindaSale
+git fetch
 git add claude_docs/STATE.md
 git add claude_docs/patrick-dashboard.md
-git commit -m "docs: S336 session wrap — STATE and dashboard updated"
+git commit -m "docs: S337 session wrap — HoldButton fix shipped, QA findings logged"
 .\push.ps1
 ```
 
-No migrations needed after this push.
+Note: `HoldButton.tsx` was already pushed via MCP (sha: ac5264c). Only doc files need staging above.
 
 ---
 
-## Session 336 Summary
+## Session 337 Summary
 
-**S336 smoke test complete — 4 backend fixes shipped, 1 item UNVERIFIED.**
+**HoldButton UX bug fixed. Cover photo ✅ verified. 3 items still UNVERIFIED.**
 
-### Smoke Test Results
+### QA Results
 
 | Test | Status | Notes |
 |------|--------|-------|
-| holdsEnabled toggle | ✅ VERIFIED | Root cause: Zod schema stripped the field. Added `holdsEnabled` to `saleCreateSchema`. |
-| QR button hidden from shoppers | ✅ VERIFIED | Working as shipped in S335. |
-| HoldTimer countdown | UNVERIFIED | Code is correct, route now public. Test item was orphaned (RESERVED status, no DB record). Need fresh hold to verify. |
-| Toast ≥10 seconds | ⚠️ UNCERTAIN | 10000ms confirmed in ToastContext.tsx. QA agent may have miscounted. Re-verify next session. |
-| Organizer profile dark mode | ✅ VERIFIED | Working as shipped in S335. |
-
-### What Was Fixed
-
-1. **TS build error (HoldTimer):** `HoldTimer` now accepts both `itemId?` (API fetch) and `expiresAt?` (direct). Fixes `pages/items/[id].tsx:616` and CartDrawer compatibility.
-
-2. **holdsEnabled Zod schema:** `holdsEnabled: z.boolean().optional()` added to `saleCreateSchema` in `saleController.ts`. Was silently stripped on every save — root cause of the toggle never persisting.
-
-3. **HoldTimer route made public:** `GET /reservations/item/:itemId` moved before `router.use(authenticate)` in `reservations.ts` so shoppers can fetch hold expiry without logging in.
-
-4. **HoldTimer controller auth guard removed:** `getItemReservation` was also returning 401 for unauthenticated users even after the route fix. Guard removed — hold expiry is display-only info.
+| HoldButton hides for organizers | ✅ FIXED & SHIPPED | `user.role === 'ORGANIZER'` check added. Modal also now closes on error. sha: ac5264c |
+| HoldTimer countdown | UNVERIFIED | user11 is an organizer in Railway DB — backend blocks hold placement. Need shopper account. |
+| Cover photo on edit-sale form | ✅ VERIFIED | Cloudinary image loads on form open (naturalWidth: 200 confirmed). |
+| Toast fires | ✅ VERIFIED | Both error and success toasts confirmed visible in Chrome. |
+| Toast duration ≥10s | ⚠️ DISCREPANCY | Code reads 10000ms but browser test showed dismissal <6s. Possible stale Vercel cache. |
+| Bare "0" in organizer card | ❌ STILL LIVE | S331/S335 claimed this was fixed but it's still showing unlabeled in production. Dev fix needed. |
+| Bug 4 (Buy Now card persist) | UNVERIFIED | Needs Stripe test mode to complete purchase flow. |
+| Bug 5 (reviews aggregate count) | UNVERIFIED | No seeded reviews in DB to compare against. |
+| Decision #8 (Share native) | UNVERIFIED | Needs mobile viewport test. |
 
 ---
 
-## Next Session (S337)
+## What Was Shipped This Session
 
-**Step 1 — Verify HoldTimer with a fresh hold:**
-1. Log in as Karen (user11). Find AVAILABLE item with HoldButton.
-2. Click Hold → confirm placed.
-3. Log out / incognito → view same item → confirm live countdown shows.
+**`packages/frontend/components/HoldButton.tsx`** — 2 targeted edits:
 
-**Step 2 — Remaining QA queue:**
-- Toast ⚠️ — re-verify stays ≥10 seconds
-- Bug 4: Buy Now card persistence (needs Stripe test mode)
-- Bug 5: Reviews aggregate count
-- Decision #8: Share button native API on mobile
-- Decision #12: Reviews summary in Organized By card
-- Cover photo useEffect on edit-sale form load
+1. **Hide button for organizers:** `if (!user || user.role === 'ORGANIZER') return null` — button no longer renders for organizer-role users. Previously showed but errored when clicked.
+2. **Close modal on error:** `setIsOpen(false)` added to catch block — modal now dismisses cleanly when backend rejects the hold.
+
+TypeScript: ✅ zero errors. Already live on Vercel.
+
+---
+
+## What Needs Attention
+
+### 1. Bare "0" in organizer card — still broken (P2)
+The organizer card on sale detail pages shows a raw unlabeled "0" below the "New Organizer" badge. S331 and S335 both claimed to fix this but it's still live in production. Likely in `sales/[id].tsx` or `OrganizerReputation.tsx` — a review count rendering without a label or conditional hide.
+
+### 2. HoldTimer — needs shopper account
+user11 (Alice Johnson) is an ORGANIZER in Railway DB. The HoldButton now correctly hides for her (after today's fix deploys). But that also means we can't test the HoldTimer countdown as user11. You need either:
+- A non-organizer test account in Railway, or
+- A manually seeded `ItemReservation` record with a future `expiresAt`
+
+### 3. Toast duration discrepancy
+Code says 10000ms but browser showed the "Saved!" toast disappearing in under 6 seconds. Worth checking if Vercel is serving the right build (check deployment SHA in Vercel dashboard matches HEAD on GitHub).
+
+---
+
+## Next Session (S338) Priorities
+
+1. **Dispatch dev fix:** Bare "0" in organizer card — find and label/hide the review count
+2. **HoldTimer:** Either create a shopper account or seed an `ItemReservation` to verify countdown
+3. **Toast duration:** Confirm Vercel deployment is current, then re-test toast persistence
+4. **Bug 4/5 + Decision #8:** Queue for when test infrastructure is available
