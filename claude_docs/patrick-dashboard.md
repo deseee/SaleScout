@@ -1,13 +1,13 @@
-# Patrick's Dashboard — Session 335 (March 28, 2026)
+# Patrick's Dashboard — Session 336 (March 28, 2026)
 
 ---
 
 ## Build Status
 
 - **Railway:** ✅ Green
-- **Vercel:** ✅ Green (pending S335 push)
-- **DB:** No new migrations — schema unchanged this session
-- **S335 Status:** ✅ COMPLETE — 5 QA bug fixes ready to push
+- **Vercel:** ✅ Green
+- **DB:** No new migrations this session — schema unchanged
+- **S336 Status:** ✅ COMPLETE — push block below for doc files only
 
 ---
 
@@ -15,14 +15,9 @@
 
 ```powershell
 cd C:\Users\desee\ClaudeProjects\FindaSale
-git add packages/frontend/components/ToastContext.tsx
-git add packages/frontend/pages/items/[id].tsx
-git add "packages/frontend/pages/organizer/edit-sale/[id].tsx"
-git add packages/frontend/pages/organizers/[id].tsx
-git add packages/frontend/pages/sales/[id].tsx
 git add claude_docs/STATE.md
 git add claude_docs/patrick-dashboard.md
-git commit -m "fix: hold save stale closure, dark mode contrast, toast duration, QR shopper gate, hold countdown timer"
+git commit -m "docs: S336 session wrap — STATE and dashboard updated"
 .\push.ps1
 ```
 
@@ -30,38 +25,43 @@ No migrations needed after this push.
 
 ---
 
-## Session 335 Summary
+## Session 336 Summary
 
-**5 QA bug fixes from S334 QA session shipped.**
+**S336 smoke test complete — 4 backend fixes shipped, 1 item UNVERIFIED.**
+
+### Smoke Test Results
+
+| Test | Status | Notes |
+|------|--------|-------|
+| holdsEnabled toggle | ✅ VERIFIED | Root cause: Zod schema stripped the field. Added `holdsEnabled` to `saleCreateSchema`. |
+| QR button hidden from shoppers | ✅ VERIFIED | Working as shipped in S335. |
+| HoldTimer countdown | UNVERIFIED | Code is correct, route now public. Test item was orphaned (RESERVED status, no DB record). Need fresh hold to verify. |
+| Toast ≥10 seconds | ⚠️ UNCERTAIN | 10000ms confirmed in ToastContext.tsx. QA agent may have miscounted. Re-verify next session. |
+| Organizer profile dark mode | ✅ VERIFIED | Working as shipped in S335. |
 
 ### What Was Fixed
 
-1. **holdsEnabled toggle not saving (stale closure):** edit-sale/[id].tsx — `useRef` pattern ensures save mutation reads current form state, not the stale value captured at mutation creation. Unchecking holdsEnabled now persists correctly on save.
+1. **TS build error (HoldTimer):** `HoldTimer` now accepts both `itemId?` (API fetch) and `expiresAt?` (direct). Fixes `pages/items/[id].tsx:616` and CartDrawer compatibility.
 
-2. **Toast duration:** ToastContext.tsx — 4500ms → 10000ms globally. All toasts now stay visible 10 seconds. Better for beta users learning the app.
+2. **holdsEnabled Zod schema:** `holdsEnabled: z.boolean().optional()` added to `saleCreateSchema` in `saleController.ts`. Was silently stripped on every save — root cause of the toggle never persisting.
 
-3. **QR button hidden from shoppers:** items/[id].tsx — `📱 QR` button now only renders for users with ORGANIZER role. Shoppers no longer see it.
+3. **HoldTimer route made public:** `GET /reservations/item/:itemId` moved before `router.use(authenticate)` in `reservations.ts` so shoppers can fetch hold expiry without logging in.
 
-4. **HoldTimer replaces static text:** items/[id].tsx — Shoppers viewing a held item now see a live countdown (`HoldTimer` component) instead of the static "Check back soon" message.
-
-5. **Organizer profile dark mode:** organizers/[id].tsx — Page container was missing `dark:bg-gray-900`. White background in dark mode is fixed.
-
-6. **Sale page stats contrast + orphaned "0":** sales/[id].tsx — Stats row (views/shares/saves) now has proper dark mode contrast. The unlabeled "0" below the "New Organizer" badge is now labeled.
+4. **HoldTimer controller auth guard removed:** `getItemReservation` was also returning 401 for unauthenticated users even after the route fix. Guard removed — hold expiry is display-only info.
 
 ---
 
-## Next Session (S336)
+## Next Session (S337)
 
-**Step 1 — Smoke test after Vercel deploys S335:**
-1. holdsEnabled toggle: uncheck → save → reload → confirm false persists → Hold button gone for shoppers
-2. QR button: item detail as user11 (Karen) → confirm no QR button
-3. HoldTimer: find a held item as shopper → live countdown shows
-4. Toast: trigger any toast → stays ≥10 seconds
-5. Organizer profile: dark mode → no white background
+**Step 1 — Verify HoldTimer with a fresh hold:**
+1. Log in as Karen (user11). Find AVAILABLE item with HoldButton.
+2. Click Hold → confirm placed.
+3. Log out / incognito → view same item → confirm live countdown shows.
 
 **Step 2 — Remaining QA queue:**
-- Bug 4: Buy Now success card persists — needs Stripe test mode
-- Bug 5: Reviews aggregate count — needs seed reviews data
+- Toast ⚠️ — re-verify stays ≥10 seconds
+- Bug 4: Buy Now card persistence (needs Stripe test mode)
+- Bug 5: Reviews aggregate count
 - Decision #8: Share button native API on mobile
 - Decision #12: Reviews summary in Organized By card
-- Cover photo useEffect: seeded photo shows on edit-sale form load
+- Cover photo useEffect on edit-sale form load
