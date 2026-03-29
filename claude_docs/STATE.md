@@ -7,7 +7,7 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Current Work
 
-No active work. S332 complete. S333 priorities staged below.
+No active work. S333 complete. QA queue deferred to S334.
 
 **S332 COMPLETE (2026-03-28):** Hold Button #13 full board review + design finalization + foundation implementation. (1) **Board session unanimous GO (12/12 + 1 advisory):** DA + Steelman + Hacker + Advisory Board all dispatched on abuse/fraud risk, business model, gamification angle, organizer control. Unanimous recommendation: GO with rank-gated durations (no Hunt Pass paywall, no deposit required). (2) **Design finalized:** QR check-in primary, GPS fallback by sale type (outdoor/flea 150m, indoor estate 250m, large/auction 400m). En route grace for shoppers within 10mi but outside geofence (limited holds: Initiate/Scout 1, Ranger 2, Sage/Grandmaster 3). Hold duration by rank: Initiate/Scout 30min/1 hold, Ranger 45min/2 holds, Sage 60min/3 holds, Grandmaster 90min/3 holds. Natural expiry at timer end + navigate-to-different-sale prompt (no continuous GPS polling). Organizer controls: per-sale `holdsEnabled` toggle, view/cancel/extend/edit all active holds. Business model: rank-gated free, no Hunt Pass gate, no deposit. (3) **Architecture spec produced (400+ lines):** staged in VM, locked designs for GPS haversine, QR validation, fraud detection, organizer settings, cron expiry 10min. (4) **Foundation shipped (5 files):** schema (SaleCheckin + OrganizerHoldSettings), migration, reservationController.ts (GPS/QR/fraud/rate-limit gates), 3 new routes (placeHold, checkHoldStatus, organizer endpoints), cron 30min → 10min. (5) **4 P1 gaps remain for S333:** GPS radii by sale type (built flat 100m, needs 150/250/400m), rank-based hold duration (not implemented), en route logic (not implemented), per-sale holdsEnabled toggle (not added to Sale model). Frontend HoldButton + OrganizerHoldsPanel stubs not pushed. (6) **ItemCard.tsx TS fixes:** photoUrls cast + _count cast (union type UnifiedItemCardItem | Item) shipped. Files: ItemCard.tsx (cast fixes), schema.prisma (models), migration, reservationController.ts, routes/reservations.ts, jobs/reservationExpiryJob.ts, decisions-log.md (6 decisions logged).
 
@@ -31,7 +31,7 @@ No active work. S332 complete. S333 priorities staged below.
 | #143 PreviewModal onError | Code fix pushed (sha: ffa4a83). 📷 fallback on Cloudinary 503 in place. | Defensive fix only — can't trigger 503 in prod. ACCEPTABLE UNVERIFIED. | S312 |
 | #143 AI confidence — Camera mode | cloudAIService.ts fix is code-correct; processRapidDraft passes aiConfidence through. Can't test without real camera hardware in Chrome MCP. | Real device camera capture → Review & Publish → confirm "Good (X%)" or similar. | S314 |
 | Single-item publish fix | S326 code fix deployed. S327 confirmed API call fires but no DRAFT items exist to test the button. Manual Entry creates AVAILABLE items, skipping draft pipeline. | Camera-capture an item → go to Review & Publish → click Publish on single item → confirm status changes + toast. | S326/S327 |
-| Hold Button #13 — P1 gaps | Foundation shipped with 4 gaps: GPS radii by sale type (flat 100m, needs 150/250/400m), rank-based duration (not implemented), en route logic (not implemented), per-sale holdsEnabled toggle (not in Sale model). Frontend stubs not pushed. | S333 dev dispatch: update reservationController.ts GPS radii + rank logic, add en route gate, add holdsEnabled to schema + migration, build HoldButton + OrganizerHoldsPanel. | S332 |
+| Hold Button #13 — browser QA | Backend fully implemented. Frontend wired. Needs Chrome QA: place hold as shopper, organizer view holds, holdsEnabled toggle, en route grace. | S334: dispatch findasale-qa with 4 focused scenarios (shopper place hold, organizer manage, holdsEnabled off, en route). | S333 |
 
 **S326 COMPLETE (2026-03-28):** 3 bugs fixed + 1 test item cleanup. (1) **P1 Buyer Preview placeholder — ROOT CAUSE FIXED:** `buildCloudinaryUrl()` in review.tsx was replacing `:` with `_` in aspect ratio transforms (`ar_4_3` → Cloudinary rejects). Removed the `.replace(':', '_')` so it sends correct `ar_4:3`. Chrome-verified: Buyer Preview grid now shows real Cloudinary photos (ss_7201mwej2, ss_6354i4qpv). (2) **Face-detection blob URL fix (secondary):** `handleFaceUploadAnyway` in [saleId].tsx was storing blob URLs instead of Cloudinary URLs returned by API. Now stores `res.data.photoUrl`. (3) **P1 Single-item Publish button — FIXED:** `handlePublishItem` was sending `draftStatus` via generic PUT `/items/:id`, but backend `updateItem` didn't include `draftStatus` in destructured fields — silently dropped. Fix: frontend now uses dedicated `POST /items/:itemId/publish` endpoint for publishing, generic PUT for unpublishing (with `draftStatus` added to backend's accepted fields). Also relaxed publish gate to allow DRAFT + PENDING_REVIEW items (was PENDING_REVIEW-only). NEEDS CHROME VERIFY after deploy. (4) **P2 Nav search — already working:** S322/S323 fixed this. Desktop has no nav search (mobile-only) — logged as P3 gap. (5) **Test item cleanup:** Deleted 2 of 3 test lighters per Patrick, kept 1. Sale now has 14 items. Files: review.tsx, [saleId].tsx, itemController.ts. Pushblock provided.
 
@@ -41,26 +41,24 @@ No active work. S332 complete. S333 priorities staged below.
 
 **S323 COMPLETE (2026-03-28):** QA session — S322 verification + 2 bug fixes + Chrome concurrency rule. (1) Edit-sale field persist ✅ — entrance note, approach notes, treasure hunt all saved and reloaded correctly as SIMPLE user (ss_0940ajm6p/ss_2627ysx2a/ss_5529i8hqh). No PRO gate. (2) Review & Publish Publish All — UNVERIFIED (all seeded items are AVAILABLE, Publish All only shows with DRAFT items). (3) Nav menus: Organizer collapsibles ✅, shopper links ✅. P2 bug fixed: duplicate Logout in mobile nav — Layout.tsx had a bare Logout button in `authLinks` AND another in the global footer section; removed the one from `authLinks`. (4) Homepage search ✅ — FTS wired and working: "chair" returns 5 results with item cards, photos, prices, "View Sale →" links. (5) Sales Near You card ✅ — map loads, "View on Map →" links to /map. (6) Search results below-fold UX fixed: index.tsx now auto-scrolls to results heading when query ≥2 chars. (7) Chrome concurrency rule added to CLAUDE.md §10c + findasale-qa.skill packaged. Files: Layout.tsx, index.tsx, CLAUDE.md.
 
-## Next Session (S333) — Hold Button #13 P1 Gaps + QA Queue
+## Next Session (S334) — QA Queue
 
 ### Push Required First
-Patrick must run S332 push block (7 files including STATE.md) before S333 begins. Then run migrations:
+Patrick must run S333 push block (see patrick-dashboard.md) before S334 begins. Then run migrations:
 ```powershell
 cd C:\Users\desee\ClaudeProjects\FindaSale\packages\database
 $env:DATABASE_URL="postgresql://postgres:QvnUGsnsjujFVoeVyORLTusAovQkirAq@maglev.proxy.rlwy.net:13949/railway"
-npx prisma migrate deploy   # applies SaleCheckin + OrganizerHoldSettings migrations
-npx prisma generate         # regenerates TypeScript client
+npx prisma migrate deploy
+npx prisma generate
 ```
 
-### S333 Priority 1: Hold Button #13 — Close P1 Gaps (Dev Dispatch)
-Dispatch findasale-dev to fix these 4 items in existing files:
-1. **GPS radii by sale type:** Update reservationController.ts `placeHold()` to check `sale.saleType` and apply correct radii (outdoor/flea 150m, indoor estate 250m, large/auction 400m). Add PRO organizer override: Small=100m/Medium=250m/Large=500m.
-2. **Rank-based hold duration:** In `placeHold()`, read `user.explorerRank` and set `expiresAt` based on rank (Initiate/Scout 30min, Ranger 45min, Sage 60min, Grandmaster 90min).
-3. **En route logic:** If shopper within 10 miles but outside geofence, allow limited holds (1/2/3 by rank) with `enRoute=true` flag on reservation.
-4. **Per-sale holdsEnabled toggle:** Add `holdsEnabled Boolean @default(true)` to Sale model in schema.prisma. Create migration. Check `sale.holdsEnabled` in `placeHold()` before creating reservation. Return 403 if disabled.
-5. After gaps closed: build frontend HoldButton component (item card), OrganizerHoldsPanel (organizer dashboard), LeaveSaleWarning prompt.
+### S334 Priority 1: Hold Button QA (4 focused dispatches — sequential)
+1. Shopper: navigate to item detail → click Hold → confirm hold created + timer shows
+2. Organizer: /organizer/holds → view active hold → cancel/extend
+3. holdsEnabled=false: organizer disables holds on sale → shopper sees no Hold button
+4. En route: shopper >geofence but <10mi → confirm limited holds allowed
 
-### S333 Priority 2: QA Queue (After Dev Completes Gaps)
+### S334 Priority 2: QA Queue (From S331/S332)
 - Bug 1: Dark mode stats visibility on sale page — Chrome verify
 - Bug 4: Buy Now success card persists (no auto-dismiss) — Chrome verify
 - Bug 5: Reviews aggregate count matches displayed reviews — Chrome verify
@@ -71,13 +69,7 @@ Dispatch findasale-dev to fix these 4 items in existing files:
 - Decision #14: Trending page renders via unified ItemCard — Chrome verify
 - Cover photo useEffect fix: seeded photo shows on edit-sale form load — Chrome verify
 
-### Decisions Locked This Session (S332)
-- **#13 Hold Button Design:** QR check-in primary, GPS fallback by type. Rank-gated durations (30/45/60/90min). En route grace 10mi. Natural expiry + nav-away prompt.
-- **#13 Business Model:** Free, no Hunt Pass gate, no deposit.
-- **#13 Abuse Prevention:** Synchronous fraud detection, QR validation, rate limiting, 10min cron expiry.
-- **#13 Organizer Controls:** Per-sale holdsEnabled toggle, view/cancel/extend/edit, bulk export.
-- **#13 GPS Radii:** Outdoor/Flea 150m, Indoor Estate 250m, Large/Auction 400m. PRO override: 100m/250m/500m.
-- **#13 En Route Grace:** 1/2/3 holds by rank within 10mi navigating.
+**S333 (2026-03-28):** Hold Button #13 P1 gaps closed + Railway green. (1) **ItemCard.tsx TS root fix:** Full file audit — added all missing optional fields to legacy `Item` interface (`price`, `photoUrls`, `category`, `condition`, `sale`, `businessName`, `_count`, `rankingIndex`) eliminating union type errors without casting. (2) **Hold Button P1 gaps all closed:** GPS radii by sale type (ESTATE 250m, YARD/FLEA_MARKET 150m, AUCTION 400m), rank-based hold duration (Initiate/Scout 30min, Ranger 45min, Sage 60min, Grandmaster 90min), en route grace 10mi with rank-limited holds (1/2/3), per-sale `holdsEnabled` toggle on Sale model with `placeHold()` gate. (3) **Schema additions:** `holdsEnabled Boolean @default(true)` on Sale, `enRoute Boolean @default(false)` on ItemReservation. 2 new migrations. (4) **Railway fixes:** Removed invalid `user.tier` from Prisma include; replaced `DEFAULT_HOLD_HOURS` reference with inline `48` in batchUpdateHolds extend action. (5) **Frontend wired:** HoldButton + HoldTimer stubs pushed; HoldButton wired into items/[id].tsx below Buy It Now for AVAILABLE non-auction items with cache invalidation on success. (6) **QA queue deferred to S334.** Files: ItemCard.tsx, schema.prisma, migration x2, reservationController.ts, items/[id].tsx, HoldButton.tsx, HoldTimer.tsx, STATE.md, patrick-dashboard.md.
 
 **S332 (2026-03-28):** Hold Button #13 board review + design finalization + foundation build. Full board 12/12 + 1 advisory unanimous GO. Design locked: QR check-in primary, GPS fallback by sale type (150/250/400m), rank-gated durations (30/45/60/90min), en route grace, natural expiry. 6 decisions locked in decisions-log.md. Business model: free, no Hunt Pass, no deposit. Foundation shipped: schema (SaleCheckin + OrganizerHoldSettings), GPS haversine, QR validation, sync fraud detection, organizer settings endpoints, cron 10min. ItemCard.tsx TS union type fixes shipped. 4 P1 gaps remain for S333 (sale-type radii, rank duration, en route logic, per-sale toggle). Frontend stubs not pushed.
 
