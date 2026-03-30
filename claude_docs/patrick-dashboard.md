@@ -2,37 +2,35 @@
 
 ---
 
-## ✅ S342 Complete — Guild Phase 1 Foundation + 10 Roadmap Decisions
+## ✅ S343 Complete — P2 Polish + Guild Wiring + Architect Decisions
 
-Explorer's Guild Phase 1 foundation shipped (5 of 8 items). Hold bug fixed. 10 roadmap features decided. Push block ready.
-
----
-
-## What Happened This Session (S342)
-
-**Roadmap decisions session.** 9 features resolved across 5 parallel agent dispatches. (1) **Hold P1 bug fixed:** Organizers were incorrectly blocked from holding items at other sales. Fixed — they can now hold at any sale they don't own. (2) **Explorer's Guild Phase 1 — 5 of 8 items built:** P0 scan exploit capped (100 XP/day), visit XP wired, Guild nav link added to shopper dropdown, 3-screen onboarding modal added, Sage threshold lowered to 2500 XP for beta, Hunt Pass 7-day trial backend complete. (3) **3 items held for S343:** Sourcebook Editor + Early Bird 48h (need schema architect sign-off), Hunt Pass trial frontend banner. (4) **Roadmap decisions locked:** #174+#80 merged (Auction Win + Persistent Purchase Confirmation — payment at winning bid), #200 spec complete (shopper profiles, /shoppers/[id], collector title curated list), #188 resolved (pages were already working, stale note), #90 moved to organizer-side (off sale detail), #49 consolidate into /cities, #64 spec'd (My Collections UX), #149 copy fix, #69 deferred.
-
-12 files changed. Push block below.
+Visit XP wired, Soundtrack removed, P2 cleanup shipped, architect approved Items 6 & 7. Push block ready (13 files).
 
 ---
 
-## What's Next (S343)
+## What Happened This Session (S343)
 
-1. **Hold-to-Pay QA — P1 (carried from S341/S342):** Full E2E: organizer sends invoice → shopper gets email + notification → Stripe payment → SOLD. Verify STRIPE_WEBHOOK_SECRET in Railway first.
+**Polish + Guild wiring.** (1) **CLAUDE.md fix:** STATE.md + patrick-dashboard.md are now a hard rule in §12 — always first two lines of every wrap push block. This was the push.ps1 error cause from S342. (2) **Visit XP wired:** `useEffect` in `sales/[id].tsx` now fires `POST /api/sales/:id/visit` on every sale page load (auth-gated, fire-and-forget). Backend was already complete from S342. (3) **Sale Soundtrack removed from sale detail page:** `SALE_TYPE_PLAYLISTS` constant (32 lines) + JSX render block (37 lines) deleted. Will return as organizer-side inline player per locked decision. (4) **P2 cleanup shipped:** Points→XP on 9 surfaces across hunt-pass.tsx + dashboard.tsx. Messages dark mode contrast fixed (dark:text-gray-300). Estate Sale placeholder copy fixed on 6 forms (create-sale, hubs/create, settings, workspace, trails/create, OnboardingWizard). (5) **Architect decisions — Items 6 & 7:** SourcebookEntry schema approved with changes (dual @@unique indexes, named relations, backend validation for exactly-one-of). Sale.prelaunchAt approved as proposed (nullable DateTime, null=no prelaunch gate). Dev dispatch ready for S344. (6) **#149 Email Reminders:** Confirmed already correct — no stale copy found. (7) **#49 City Heat Index:** city-heat-index.tsx is a Coming Soon stub. /cities page already has the feature. Stub needs `git rm` in S344 (no nav links found — safe to delete).
 
-2. **Guild Phase 1 remaining items:** Architect review of SourcebookEntry + prelaunchAt schema. Then dev dispatch. Also: Visit XP frontend call (1 line in sales/[id].tsx) + Hunt Pass trial banner in Loot Legend.
-
-3. **P2 cleanup:** Points language on 3 surfaces. Messages dark mode. D-001 onboarding copy.
-
-4. **XP test accounts:** Use SQL from decisions-log.md S342 section to set test users to SCOUT/RANGER/SAGE/GRANDMASTER for beta.
+13 files changed. Push block below.
 
 ---
 
-## Your Actions Before S343
+## What's Next (S344)
 
-1. Run the push block below (12 files)
+1. **Hold-to-Pay QA — P1 (carried):** Full E2E verify. Confirm STRIPE_WEBHOOK_SECRET in Railway first.
+
+2. **Guild Phase 1 remaining:** Dev dispatch for SourcebookEntry + Sale.prelaunchAt schema + migrations (architect-approved). Hunt Pass trial banner in loot-legend.tsx (analysis done, quick dev task).
+
+3. **city-heat-index.tsx deletion:** `git rm packages/frontend/pages/city-heat-index.tsx` — no nav links, safe.
+
+---
+
+## Your Actions Before S344
+
+1. Run the push block below (13 files)
 2. Confirm Railway + Vercel green
-3. Check STRIPE_WEBHOOK_SECRET in Railway env vars
+3. Check STRIPE_WEBHOOK_SECRET in Railway env vars (needed for Hold-to-Pay QA)
 
 ---
 

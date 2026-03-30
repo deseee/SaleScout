@@ -416,6 +416,16 @@ Before ending any session:
 
 **Critical rule:** Never update STATE.md without also updating patrick-dashboard.md. This ensures Patrick always has a current snapshot of project state.
 
+**Wrap doc files — always in the push block (HARD RULE):**
+`claude_docs/STATE.md` and `claude_docs/patrick-dashboard.md` are edited by the main session at every wrap using the Edit tool (not MCP). They will always appear as uncommitted local changes. They MUST be included in every wrap push block — no exceptions. `push.ps1` will abort if they are omitted. Template:
+```powershell
+git add claude_docs/STATE.md
+git add claude_docs/patrick-dashboard.md
+git add [all other changed files...]
+git commit -m "..."
+.\push.ps1
+```
+
 **Subagent files:**
 - Maintain running changed-files list from all subagent dispatches
 - Cross-reference against `git status` at wrap
