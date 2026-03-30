@@ -2,50 +2,41 @@
 
 ---
 
-## ✅ S340 Complete — Nothing Needed from You
+## ✅ S341 Complete — Hold-to-Pay Shipped
 
-No push block required. All S340 work was pushed via MCP directly to GitHub.
-
----
-
-## What Happened This Session (S340)
-
-**S339 hold system fully verified.** The earlier "P0 organizer notification" was a wrong-account QA error. Logged into user6 (Frank Davis / Priority Estate Sales) directly via Railway API and confirmed: organizer has an unread bell notification — "A shopper placed a hold on 'Vintage Record Player #7' from Family Collection Sale 16." All three S339 fixes confirmed clean:
-
-- Organizer in-app notification on hold placed ✅
-- Cancel→re-hold (P2002 fix) ✅ — cancelled hold, re-placed immediately, no error
-- Rank-based batch extend ✅ — INITIATE rank = 30 min, not 48h
-
-**Onboarding modal P0 fixes shipped.** Pushed to GitHub (commit `1d633ce`), Vercel deploying now. Two bugs fixed:
-1. Step 1 stub text replaced with real brand-voice copy
-2. Close button no longer traps after Step 1 (z-index + event propagation fix)
+Hold-to-Pay feature fully built and deployed. Code is live on Railway and Vercel. Next: browser QA in S342.
 
 ---
 
-## Audit Items Still Open
+## What Happened This Session (S341)
 
-- **P1 — Legacy "points" language:** Three surfaces still say "points" instead of "Guild XP" (Hunt Pass banner, Leaderboard, Loyalty page).
-- **P2 — Messages dark mode contrast:** "No messages yet" text is nearly invisible in dark mode.
-- **P3 — D-001 drift:** Placeholder copy defaults to "Estate Sale" examples in onboarding/create-sale form.
+**Hold-to-Pay architecture approved and shipped.** (1) Strategic planning: Innovation, Investor, Game Design, and Legal agents reviewed the monetization path. Unanimous finding: Remote Invoice (consolidated Stripe checkout for held items) is the highest-ROI path — closes cash-at-pickup fee bypass, worth ~$5K/month at 50 organizers. 7 decisions locked in decisions-log.md. (2) **Schema + migration:** HoldInvoice model + InvoiceStatus enum. InvoiceId FK on ItemReservation. New Migration 20260330_add_hold_invoice deployed to Railway. (3) **Backend:** Mark-sold bundled checkout. Invoice GET/POST endpoints. Stripe webhook handlers (checkout.session.completed → PAID status + 15 guildXP, charge.failed → retry queue). Consolidates one invoice per shopper per sale. (4) **Frontend:** HoldToPayModal.tsx (organizer), ClaimCard.tsx (shopper dashboard, amber/gold styling), HoldInvoiceStatusCard.tsx (item detail). Wired into items/[id].tsx and shopper/dashboard.tsx. (5) **Fee model finalized:** Platform fee (10%/8%) is organizer-paid, not shopper-paid. Shoppers pay item price only. (6) **Roadmap updated:** Feature #221 status changed to "Pending Chrome QA" (code-shipped).
 
----
-
-## Pending Decisions
-
-**Mark Sold evolution** — say the word and the architect spec gets dispatched. Two paths: (1) POS organizers get cart integration, (2) non-POS organizers get a Stripe checkout link sent to the shopper.
+10 files changed (backend + frontend). Railway green. Vercel green.
 
 ---
 
-## This Week's Priority (S341)
+## What's Next (S342)
 
-1. **Mark Sold architect spec** — if you want to move forward, just say so.
-2. **Points → Guild XP language fix** — P1, quick dev pass on 3 surfaces.
-3. **Remaining QA queue** — Buy Now card persist, reviews aggregate, Share native sheet.
+1. **Hold-to-Pay QA — P1:** Full E2E user journey. Organizer marks held item sold → modal → invoice sent → shopper email + notification → ClaimCard on dashboard → Stripe checkout → payment → item marked SOLD → organizer notified → +15 XP awarded. Use test hold in Railway (user12 shopper, user6 organizer, Family Collection Sale 16).
+
+2. **Stripe webhook secret:** Verify `STRIPE_WEBHOOK_SECRET` is set in Railway env vars — required for payment processing.
+
+3. **P2 cleanups:** Points → Guild XP on 3 surfaces (Hunt Pass banner, Leaderboard, Loyalty page). Messages dark mode contrast fix. D-001 onboarding copy fix.
+
+---
+
+## Status Summary
+
+- **Build:** Railway ✅ Vercel ✅
+- **Code:** Complete, pushed
+- **QA:** Pending browser verification
+- **Roadmap:** #221 updated, awaiting QA
 
 ---
 
 ## Action Items for Patrick
 
-- [ ] **Decision: Mark Sold evolution** — say the word and the spec gets dispatched
-- [ ] **Manual mobile test** — Chrome MCP can't truly test 375px viewport. Worth a quick scroll before showing beta testers
-- [ ] **Verify onboarding modal** — if you have a fresh organizer account or can reset onboarding, confirm the close button and Step 1 copy look right (Vercel should be deployed within a few minutes)
+- [ ] **S342 QA:** OK to proceed with Hold-to-Pay browser QA (E2E test using user12/user6 in Railway)
+- [ ] **Verify webhook secret:** Check Railway env vars for STRIPE_WEBHOOK_SECRET before S342 QA runs
+- [ ] **Future decision:** Mark Sold → POS path still relevant for Phase 4+ (logged, not blocking)
