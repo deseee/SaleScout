@@ -7,7 +7,9 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Current Work
 
-No active work. S341 complete.
+No active work. S342 complete.
+
+**S342 COMPLETE (2026-03-30):** Roadmap decisions (9 features) + Explorer's Guild Phase 1 foundation + hold bug fix. (1) **Hold bug fixed:** Organizers were blocked from placing holds on ANY sale. Fixed — HoldButton blanket organizer gate removed; backend now only blocks organizer from holding their OWN sale's items. Files: HoldButton.tsx, reservationController.ts. (2) **Explorer's Guild Phase 1 — 5 of 8 items shipped:** P0 scan cap (100 XP/day + duplicate scan prevention), Visit XP wired (POST /api/sales/:id/visit, once/sale/day), Explorer's Guild nav link added to shopper dropdown, 3-screen onboarding modal (localStorage-gated, shows once), Sage threshold lowered 4000→2500 for beta, Hunt Pass 7-day trial backend endpoint. Files: xpService.ts, itemController.ts, saleController.ts, userController.ts, sales.ts, users.ts, AvatarDropdown.tsx, loyalty.tsx. (3) **Phase 1 items deferred to S343:** Item 6 (Sourcebook Editor — needs SourcebookEntry schema), Item 7 (Early Bird 48h — needs Sale.prelaunchAt field), Item 8 frontend (Hunt Pass trial banner in Loot Legend). (4) **Roadmap decisions locked (10 items):** #174+#80 merged (Auction Win + Persistent Purchase Confirmation, payment at winning bid), #200 spec complete, #188 resolved (pages work, stale note), #90 deferred to organizer-side, #49 consolidate into /cities, #64 UX spec complete, #149 copy fix dev pending, #69 deferred, organizer hold = bug (fixed). Full details in decisions-log.md. (5) **Visit XP + Hunt Pass trial frontend wiring** still needed — backend complete, useEffect call in sales/[id].tsx + trial banner in Loot Legend page. S343 P2.
 
 **S339 COMPLETE (2026-03-29):** Hold notification system + 5 bug fixes + product direction. (1) **Hold notification system shipped:** Shopper gets in-app Notification + Resend email on approve/cancel/extend/release via `updateHold` and `batchUpdateHolds`. New `sendHoldStatusToShopper()` in saleAlertEmailService.ts covers 4 action types (confirmed/cancelled/extended/released) with tailored copy and CTA. (2) **Organizer in-app notification on hold placed:** `placeHold` now creates Notification record for organizer (was email-only). (3) **Bug fix — "Item already has active hold" after cancel:** `itemId @unique` on ItemReservation blocked new holds when old CANCELLED/EXPIRED record existed. Fix: `deleteMany` stale records inside placeHold transaction before creating new reservation. (4) **Bug fix — batch extend used 48h hardcoded:** Changed to rank-based `getHoldDurationMinutes()` using shopper's `explorerRank`. Added `explorerRank` to user select in batch query. (5) **Bug fix — markSold notification copy:** Removed incorrect "Thank you for your purchase!" — replaced with neutral "marked as sold by the organizer." (6) **Toast duration ✅ CONFIRMED:** Patrick tested manually — toast fires for full 10 seconds. Removed from unverified queue. (7) **Product direction logged:** Patrick wants markSold to evolve into POS cart integration (for POS organizers) or Stripe invoice/checkout link (for non-POS organizers). Logged for architect spec in future session. Files: reservationController.ts, saleAlertEmailService.ts.
 
@@ -45,9 +47,37 @@ No active work. S341 complete.
 
 **S323 COMPLETE (2026-03-28):** QA session — S322 verification + 2 bug fixes + Chrome concurrency rule. (1) Edit-sale field persist ✅ — entrance note, approach notes, treasure hunt all saved and reloaded correctly as SIMPLE user (ss_0940ajm6p/ss_2627ysx2a/ss_5529i8hqh). No PRO gate. (2) Review & Publish Publish All — UNVERIFIED (all seeded items are AVAILABLE, Publish All only shows with DRAFT items). (3) Nav menus: Organizer collapsibles ✅, shopper links ✅. P2 bug fixed: duplicate Logout in mobile nav — Layout.tsx had a bare Logout button in `authLinks` AND another in the global footer section; removed the one from `authLinks`. (4) Homepage search ✅ — FTS wired and working: "chair" returns 5 results with item cards, photos, prices, "View Sale →" links. (5) Sales Near You card ✅ — map loads, "View on Map →" links to /map. (6) Search results below-fold UX fixed: index.tsx now auto-scrolls to results heading when query ≥2 chars. (7) Chrome concurrency rule added to CLAUDE.md §10c + findasale-qa.skill packaged. Files: Layout.tsx, index.tsx, CLAUDE.md.
 
-## Next Session (S342)
+## Next Session (S343)
 
-### S342 Priority 1: QA Hold-to-Pay end-to-end
+### S343 Priority 1: QA Hold-to-Pay end-to-end (carried from S342)
+Full user-journey QA: organizer marks sold on held item → modal appears → send invoice → shopper receives in-app notification + email → ClaimCard visible on dashboard → shopper opens Stripe link → payment completes → item marked SOLD → organizer notified → +15 guildXP awarded. Requires a test hold in Railway (use user12 as shopper, user6 as organizer from Family Collection Sale 16). Verify STRIPE_WEBHOOK_SECRET is set in Railway env vars.
+
+### S343 Priority 2: Explorer's Guild Phase 1 — remaining 3 items
+- **Item 6 (Sourcebook Editor):** Needs architect sign-off on `SourcebookEntry` schema model before dev dispatch.
+- **Item 7 (Early Bird 48h):** Needs architect sign-off on `Sale.prelaunchAt` field before dev dispatch.
+- **Item 8 frontend (Hunt Pass trial):** Backend complete. Wire trial banner in Loot Legend/Leaderboard — add `useEffect` in `loot-legend.tsx` to detect first visit + show "Try Hunt Pass FREE 7 days" banner.
+- **Visit XP frontend wiring:** Add `useEffect(() => { api.post(\`/api/sales/\${saleId}/visit\`) }, [saleId])` to `pages/sales/[id].tsx` (fire-and-forget, auth-gated).
+
+### S343 Priority 3: P2 cleanup (carried from S341/S342)
+- Legacy "points" language on 3 surfaces (Hunt Pass banner, Leaderboard, Loyalty page)
+- Messages dark mode contrast ("No messages yet" nearly invisible)
+- D-001 drift: placeholder copy defaults to "Estate Sale" on onboarding/create-sale
+
+### S343 Priority 4: #64 + #149 + #49 dev dispatches
+- #64 Save/Wishlist → My Collections (M effort, frontend IA only)
+- #149 Email Reminders copy/toggle fix (S effort, frontend only)
+- #49 City Heat Index → consolidate into /cities page (~30 min)
+
+### S343 Notes
+- Hold bug fix + Guild Phase 1 foundation pushed S342 — needs Railway/Vercel to go green before QA
+- XP test accounts: use SQL in decisions-log.md S342 section to set test users to any rank
+- Sage threshold is now 2500 XP (was 4000) — beta-only, revert post-beta
+- Items 6 & 7 (Sage perks Sourcebook + Early Bird) blocked on architect schema review
+
+### Patrick Actions Before S343
+1. Run the push block from S342 (12 files)
+2. Confirm Railway + Vercel green after push
+3. Check STRIPE_WEBHOOK_SECRET in Railway env vars (needed for Hold-to-Pay QA)
 Full user-journey QA: organizer marks sold on held item → modal appears → send invoice → shopper receives in-app notification + email → ClaimCard visible on dashboard → shopper opens Stripe link → payment completes → item marked SOLD → organizer notified → +15 guildXP awarded. Requires a test hold in Railway (use user12 as shopper, user6 as organizer from Family Collection Sale 16).
 
 ### S342 Priority 2: P2 cleanup items
