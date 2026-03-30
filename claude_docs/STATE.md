@@ -7,7 +7,9 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Current Work
 
-No active work. S343 complete.
+No active work. S343 Part 2 complete.
+
+**S343 Part 2 COMPLETE (2026-03-30):** Guild Phase 1 wrap-up + My Collections + BUSINESS_PLAN.md fix. (1) **Guild Items 6 & 7 schema shipped:** SourcebookEntry model (author/sale/organizer FKs, @@unique per author+target, 3 indexes) + Sale.prelaunchAt DateTime? + index added to schema.prisma. Migration SQL at `migrations/20260330_add_sourcebook_and_prelaunch/migration.sql` — Patrick must deploy to Railway manually per CLAUDE.md §6. prisma validate ✅ TypeScript ✅. (2) **Hunt Pass trial banner wired (loot-legend.tsx):** Amber banner, useState dismiss (no localStorage), POST /api/hunt-pass/trial on CTA, toast on success, silent 409 hide. Only shows if huntPassActive !== true. TS ✅. (3) **#64 My Collections shipped:** Renamed Saves/Wishlist → "My Collections" on 6 surfaces (wishlist.tsx, wishlists.tsx, AvatarDropdown.tsx, Layout.tsx, ActivitySummary.tsx, dashboard.tsx). Added collections stub UI (All Saves pill + "+ New Collection" Coming Soon toast). No backend changes. TS ✅. (4) **BUSINESS_PLAN.md truncation fixed:** Last two lines were cut off — restored "Quarterly)" + Author line. (5) **roadmap.old.md:** 179-line deletion confirmed as intentional prior cleanup — including in push block.
 
 **S343 COMPLETE (2026-03-30):** Polish + Guild wiring + architect decisions. (1) **CLAUDE.md §12 hard rule added:** STATE.md + patrick-dashboard.md must always be first two `git add` lines in every wrap push block — fixes the push.ps1 abort that ended S342. (2) **Visit XP frontend wired:** `useEffect` in `sales/[id].tsx` fires `POST /api/sales/:id/visit` on page load (auth-gated, fire-and-forget). Backend was complete from S342. (3) **Sale Soundtrack removed:** `SALE_TYPE_PLAYLISTS` constant + JSX render block deleted from `sales/[id].tsx` (−69 lines). Locked decision: return as organizer-side inline player. (4) **P2 cleanup shipped (11 files):** Points→XP on 9 UI surfaces (hunt-pass.tsx, dashboard.tsx). Messages dark mode contrast fixed (dark:text-gray-300 on empty state). Estate Sale placeholder copy fixed on 6 organizer forms. (5) **Architect approved Items 6 & 7:** SourcebookEntry schema approved with changes (@@unique per author+sale, @@unique per author+organizer, named relations, backend exactly-one-of enforcement). Sale.prelaunchAt nullable DateTime approved. Dev dispatch ready for S344. (6) **#149 confirmed correct** — no stale copy found. (7) **#49 city-heat-index.tsx** — Coming Soon stub, /cities page is the feature. Needs `git rm` in S344 (no nav links). (8) **Hunt Pass trial banner (loot-legend.tsx)** — analysis complete, NOT implemented. S344 P2.
 
@@ -51,16 +53,19 @@ No active work. S343 complete.
 
 ## Next Session (S344)
 
-### S344 Priority 1: Hold-to-Pay QA (carried from S341/S342/S343)
+### S344 Priority 1: Hold-to-Pay QA (deferred to evening — off peak hours)
 Full E2E: organizer marks sold on held item → modal → invoice sent → shopper gets email + in-app notification → ClaimCard visible → Stripe link → payment → SOLD + organizer notified + +15 guildXP. Test accounts: user12 (shopper), user6/Family Collection Sale 16 (organizer). Verify STRIPE_WEBHOOK_SECRET in Railway env vars first.
 
-### S344 Priority 2: Guild Phase 1 — remaining items
-- **Items 6 & 7 (schema):** Architect approved both. Dev dispatch: add SourcebookEntry model + Sale.prelaunchAt to schema.prisma, run migration. See decisions-log.md S342 for architect spec.
-- **Item 8 (Hunt Pass trial banner):** Wire in `loot-legend.tsx` — amber banner, dismiss state, POST /api/hunt-pass/trial on CTA click, toast on success, silent 409 hide.
-- **city-heat-index.tsx:** `git rm packages/frontend/pages/city-heat-index.tsx` — Coming Soon stub, /cities is the real feature. No nav links found.
+### S344 Priority 2: Deploy Guild schema migration (Patrick manual action)
+```powershell
+cd C:\Users\desee\ClaudeProjects\FindaSale\packages\database
+$env:DATABASE_URL="postgresql://postgres:QvnUGsnsjujFVoeVyORLTusAovQkirAq@maglev.proxy.rlwy.net:13949/railway"
+npx prisma migrate deploy
+npx prisma generate
+```
 
-### S344 Priority 3: #64 My Collections UX
-- M effort, frontend IA only — spec from decisions-log.md S342.
+### S344 Priority 3: city-heat-index.tsx deletion
+`git rm packages/frontend/pages/city-heat-index.tsx` — Coming Soon stub, /cities is the real feature. No nav links. Safe to delete.
 
 ### S344 Notes
 - XP test accounts: SQL in decisions-log.md S342 section to set users to any rank for beta testing

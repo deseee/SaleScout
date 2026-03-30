@@ -2,27 +2,31 @@
 
 ---
 
-## ✅ S343 Complete — P2 Polish + Guild Wiring + Architect Decisions
+## ✅ S343 Complete — Guild Phase 1 Done + My Collections + Schema Shipped
 
-Visit XP wired, Soundtrack removed, P2 cleanup shipped, architect approved Items 6 & 7. Push block ready (13 files).
+All Guild Phase 1 items complete. My Collections #64 renamed. Schema ready. Hold-to-Pay QA tonight.
 
 ---
 
-## What Happened This Session (S343)
+## What Happened This Session (S343 — two pushes)
 
-**Polish + Guild wiring.** (1) **CLAUDE.md fix:** STATE.md + patrick-dashboard.md are now a hard rule in §12 — always first two lines of every wrap push block. This was the push.ps1 error cause from S342. (2) **Visit XP wired:** `useEffect` in `sales/[id].tsx` now fires `POST /api/sales/:id/visit` on every sale page load (auth-gated, fire-and-forget). Backend was already complete from S342. (3) **Sale Soundtrack removed from sale detail page:** `SALE_TYPE_PLAYLISTS` constant (32 lines) + JSX render block (37 lines) deleted. Will return as organizer-side inline player per locked decision. (4) **P2 cleanup shipped:** Points→XP on 9 surfaces across hunt-pass.tsx + dashboard.tsx. Messages dark mode contrast fixed (dark:text-gray-300). Estate Sale placeholder copy fixed on 6 forms (create-sale, hubs/create, settings, workspace, trails/create, OnboardingWizard). (5) **Architect decisions — Items 6 & 7:** SourcebookEntry schema approved with changes (dual @@unique indexes, named relations, backend validation for exactly-one-of). Sale.prelaunchAt approved as proposed (nullable DateTime, null=no prelaunch gate). Dev dispatch ready for S344. (6) **#149 Email Reminders:** Confirmed already correct — no stale copy found. (7) **#49 City Heat Index:** city-heat-index.tsx is a Coming Soon stub. /cities page already has the feature. Stub needs `git rm` in S344 (no nav links found — safe to delete).
-
-13 files changed. Push block below.
+**Push 1 (earlier):** CLAUDE.md wrap rule, Visit XP wired, Soundtrack removed, P2 cleanup. **Push 2 (this):** SourcebookEntry + Sale.prelaunchAt schema shipped, prisma migration SQL created, Hunt Pass trial banner wired in loot-legend.tsx, #64 My Collections renamed across 6 surfaces (wishlist.tsx, wishlists.tsx, AvatarDropdown, Layout, ActivitySummary, dashboard), BUSINESS_PLAN.md truncation fixed, roadmap.old.md cleanup committed.
 
 ---
 
 ## What's Next (S344)
 
-1. **Hold-to-Pay QA — P1 (carried):** Full E2E verify. Confirm STRIPE_WEBHOOK_SECRET in Railway first.
+1. **Hold-to-Pay QA — tonight (off peak hours).** STRIPE_WEBHOOK_SECRET confirmed in Railway.
 
-2. **Guild Phase 1 remaining:** Dev dispatch for SourcebookEntry + Sale.prelaunchAt schema + migrations (architect-approved). Hunt Pass trial banner in loot-legend.tsx (analysis done, quick dev task).
+2. **Run schema migration (Patrick manual — Railway):**
+```powershell
+cd C:\Users\desee\ClaudeProjects\FindaSale\packages\database
+$env:DATABASE_URL="postgresql://postgres:QvnUGsnsjujFVoeVyORLTusAovQkirAq@maglev.proxy.rlwy.net:13949/railway"
+npx prisma migrate deploy
+npx prisma generate
+```
 
-3. **city-heat-index.tsx deletion:** `git rm packages/frontend/pages/city-heat-index.tsx` — no nav links, safe.
+3. **city-heat-index.tsx:** `git rm packages/frontend/pages/city-heat-index.tsx` then commit.
 
 ---
 
