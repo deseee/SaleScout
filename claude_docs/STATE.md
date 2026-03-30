@@ -97,6 +97,7 @@ git commit -m "S349: mobile nav rewrite, dashboard dead space removal, dual-role
 - Produce wireframe-level content spec: what's above the fold, what's below, what's never visible unless sought
 - Organizer dashboard must be STATE-AWARE: new organizer (0 sales) vs. active organizer (sale in progress) vs. between-sales organizer show different content
 - Shopper gamification must have a MOTIVATING HOOK on every rank/XP display: not just "Initiate 0/500 XP" but "Visit a sale this week to earn 5 XP → reach Scout at 500 XP"
+= Tooltips and desctriptive text and cta's where applicable, users skew older and less tech savvy and need guidance through the app
 
 **Game Designer brief:**
 - Audit every gamification display in the shopper dashboard
