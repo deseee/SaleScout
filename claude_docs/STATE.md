@@ -7,6 +7,8 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Current Work
 
+**S347 Batch 1 COMPLETE (2026-03-30):** QA deferred to evening. 4 parallel agents, 8 files changed. (1) **#212 Leaderboard badges FIXED:** leaderboardController.ts now includes top-3 userBadges (id, name, iconUrl) in shopper query; leaderboard.tsx adds `> 0` guard on totalItemsSold display. (2) **#59 Streak Rewards:** StreakWidget was already wired into loyalty.tsx — confirmed no change needed (was already there per S346). (3) **#71 Reputation stray-0 on leaderboard FIXED:** `{org.totalItemsSold > 0 && ...}` guard added to leaderboard.tsx. (4) **#213 Hunt Pass CTA FIXED:** dashboard.tsx Hunt Pass card upgraded — now shows 3 benefits (2x XP, 6h early access, exclusive badge), prominent "Upgrade Now" button to /shopper/hunt-pass, pricing visible ($4.99/mo). Only shows when huntPassActive !== true. (5) **#131 Share Templates FIXED:** SharePromoteModal.tsx — Facebook uses sharer popup, Nextdoor = copy+open newsfeed with toast, Threads uses threads.net/intent/post popup, Pinterest uses pin dialog, TikTok = copy+open with toast. (6) **#60 Premium Tier Bundle IMPROVED:** organizer/pricing.tsx updated with correct prices ($49 PRO, $99 TEAMS) and full feature lists (Flip Report, AI Valuation, CSV Export, Brand Kit, Auto-Markdown, Print Kit, etc). (7) **#123 Explorer's Guild Phase 2 IMPROVED:** loyalty.tsx — XP earn tooltip (+5 visit, +10 scan, +25 purchase), rank threshold display (Initiate→Scout 500→Ranger 1500→Sage 2500→Grandmaster 5000), Hunt Pass "$4.99/month" badge. Layout.tsx — "Loyalty" nav label → "Explorer's Guild". (8) **#153 Organizer Profile IMPROVED:** settings.tsx — Facebook, Instagram, Etsy URL fields added (all exist in schema). PARTIAL items 8 of 14 now addressed.
+
 **S346 Batch 1 COMPLETE (2026-03-30):** TS build fixes + 4 BROKEN items cleared. (1) **TS fixes:** `estimatedValue` (non-existent field) → `price` in userController.ts line 442; `name` → `businessName` in routes/users.ts OrganizerSelect; added `profileSlug`, `collectorTitle`, `purchasesVisible` to AuthContext.tsx User interface (fields exist in schema, were missing from frontend type). Both Railway and Vercel unblocked. (2) **#48 Treasure Trail FIXED:** Dark mode contrast on trail/[shareToken].tsx + stale state after edit save in trails/[trailId].tsx. (3) **#13 TEAMS Workspace FIXED:** Member lookup missing workspace relations in workspaceController.ts + invite error handlers parsing wrong field (`error` vs `message`) in workspace.tsx. (4) **#157 Pickup Scheduling FIXED:** All 4 react-query mutations (PickupBookingCard, PickupSlotManager x2, MyPickupAppointments) were returning full axios response instead of `response.data` — onSuccess callbacks silently received wrong shape. (5) **#46 Typology Classifier FIXED:** Missing ANTHROPIC_API_KEY guard in typologyService.ts batchClassify() + dark mode contrast in TypologyBadge.tsx. BROKEN section now clear of all P1 code bugs.
 
 **S346 Batch 2 COMPLETE (2026-03-30):** 5 PARTIAL features improved. (1) **#199 User Profile:** Bid status was hardcoded `PARTICIPATING` in routes/users.ts — now returns real DB value (ACTIVE/WINNING/WON/LOST). Hunt Pass section added to profile.tsx. Push notification toggle moved from profile.tsx to shopper/settings.tsx. (2) **#58 Achievement Badges:** New `AchievementBadgesSection.tsx` component wired into dashboard.tsx, loyalty.tsx, explorer-passport.tsx — badges were only rendering on /shopper/achievements. (3) **#59 Streak Rewards:** Was already on loyalty page per code check — no fix needed. (4) **#29 Loyalty Passport:** Copy rewritten to Explorer's Guild narrative — XP earn guide (Scan +10, Visit +5, Purchase +25), tier names (Initiate/Scout/Ranger/Sage/Grandmaster), coupon/rarity boost explainers updated. (5) **#177 Sale Detail:** Reviews moved inside Organized By card, platform fee display gated to auction items only, item cards now aspect-square with uniform height.
@@ -59,61 +61,47 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 **S323 COMPLETE (2026-03-28):** QA session — S322 verification + 2 bug fixes + Chrome concurrency rule. (1) Edit-sale field persist ✅ — entrance note, approach notes, treasure hunt all saved and reloaded correctly as SIMPLE user (ss_0940ajm6p/ss_2627ysx2a/ss_5529i8hqh). No PRO gate. (2) Review & Publish Publish All — UNVERIFIED (all seeded items are AVAILABLE, Publish All only shows with DRAFT items). (3) Nav menus: Organizer collapsibles ✅, shopper links ✅. P2 bug fixed: duplicate Logout in mobile nav — Layout.tsx had a bare Logout button in `authLinks` AND another in the global footer section; removed the one from `authLinks`. (4) Homepage search ✅ — FTS wired and working: "chair" returns 5 results with item cards, photos, prices, "View Sale →" links. (5) Sales Near You card ✅ — map loads, "View on Map →" links to /map. (6) Search results below-fold UX fixed: index.tsx now auto-scrolls to results heading when query ≥2 chars. (7) Chrome concurrency rule added to CLAUDE.md §10c + findasale-qa.skill packaged. Files: Layout.tsx, index.tsx, CLAUDE.md.
 
-## Next Session (S347)
+## Next Session (S348)
 
-### S347 Priority 1: Hold-to-Pay QA (evening — off peak hours)
+### S348 Priority 1: Hold-to-Pay QA (evening — off peak hours)
 Full E2E: organizer marks sold on held item → modal → invoice sent → shopper gets email + in-app notification → ClaimCard visible → Stripe link → payment → SOLD + organizer notified + +15 guildXP. Test accounts: user12 (shopper), user6/Family Collection Sale 16 (organizer). Verify STRIPE_WEBHOOK_SECRET in Railway env vars first.
 
-### S347 Priority 2: Chrome QA — all FIXED S344+S346 items
+### S348 Priority 2: Chrome QA — all FIXED S344+S346+S347 items
 S344 pending: #174+#80, #184, #41, #7, #89, #62, #37, #149.
 S346 pending: #48, #13, #157, #46, #199, #177, #58, #29.
+S347 pending: #212, #213, #131, #60, #123, #153.
 One dispatch per feature, sequential Chrome QA.
 
-### S347 Notes
+### S348 Priority 3 (batch dev): Remaining PARTIAL items
+- #176 Browse Sales: filter pill re-verify after S288 fix
+- #172 Stripe Connect: complete payout flow E2E verify
+- #75 Tier Lapse State Logic: cron + suspension logic (not yet built)
+- #218 Shopper Trades: full feature build
+
+### S348 Notes
 - XP test accounts: SQL in decisions-log.md S342 section to set users to any rank for beta testing
 - Sage threshold is 2500 XP (was 4000) — beta-only, revert post-beta
 - Shopper profiles migration must be deployed (20260330_add_shopper_profile_fields)
 
-### Patrick Actions Before S347
-1. Run S346 push block below
-2. Deploy migration 20260330_add_shopper_profile_fields to Railway (from S344)
+### Patrick Actions Before S348
+1. Run S347 push block below
+2. Deploy migration 20260330_add_shopper_profile_fields to Railway (from S344) if not yet done
 3. Check STRIPE_WEBHOOK_SECRET in Railway env vars (for Hold-to-Pay QA)
 
-### S344 Complete Push Block (31 files)
+### S347 Complete Push Block (10 files)
 ```powershell
 cd C:\Users\desee\ClaudeProjects\FindaSale
 git add claude_docs/STATE.md
 git add claude_docs/patrick-dashboard.md
-git add claude_docs/strategy/roadmap.md
-git add claude_docs/architecture/AUCTION_WIN_SPEC.md
-git add packages/frontend/components/HuntPassModal.tsx
-git add packages/frontend/components/TreasureHuntBanner.tsx
-git add packages/frontend/components/StreakWidget.tsx
-git add packages/frontend/components/EmptyState.tsx
-git add "packages/frontend/pages/city-heat-index.tsx"
-git add packages/frontend/components/RemindMeButton.tsx
-git add "packages/frontend/pages/sales/[id].tsx"
-git add packages/database/prisma/schema.prisma
-git add packages/database/prisma/migrations/20260330_add_shopper_profile_fields/migration.sql
-git add packages/backend/src/controllers/userController.ts
-git add packages/backend/src/routes/users.ts
-git add "packages/frontend/pages/shoppers/[id].tsx"
-git add packages/frontend/pages/shopper/settings.tsx
+git add packages/backend/src/controllers/leaderboardController.ts
+git add packages/frontend/pages/leaderboard.tsx
 git add packages/frontend/pages/shopper/dashboard.tsx
-git add packages/frontend/components/BottomTabNav.tsx
+git add packages/frontend/components/SharePromoteModal.tsx
+git add packages/frontend/pages/organizer/pricing.tsx
+git add packages/frontend/pages/shopper/loyalty.tsx
 git add packages/frontend/components/Layout.tsx
-git add packages/frontend/pages/_app.tsx
-git add packages/backend/src/jobs/auctionJob.ts
-git add "packages/frontend/pages/purchases/[id].tsx"
-git add packages/frontend/components/CheckoutModal.tsx
-git add packages/frontend/pages/shopper/checkout-success.tsx
-git add packages/backend/src/routes/sales.ts
-git add packages/backend/src/services/flipReportService.ts
-git add packages/backend/src/controllers/flipReportController.ts
-git add packages/backend/src/controllers/referralController.ts
-git add packages/frontend/pages/organizer/print-inventory.tsx
-git add packages/backend/src/controllers/receiptController.ts
-git commit -m "S344: roadmap batch — shopper profiles, reminders, collections, auction win UX, 6 bug fixes"
+git add packages/frontend/pages/organizer/settings.tsx
+git commit -m "S347: leaderboard badges, Hunt Pass CTA, share templates, tier pricing, Guild tooltips, org profile fields"
 .\push.ps1
 ```
 
