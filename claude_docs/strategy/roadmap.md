@@ -77,17 +77,8 @@ These are decisions that block other work. Only Patrick can decide.
 
 | # | Feature | Tier | Decision | Impact | Blocker? |
 |-----|---------|------|----------|--------|----------|
-| 188 | Neighborhood Pages | FREE | Pages are FUNCTIONAL — was stale note. 14 GR neighborhoods live. Needs Chrome QA only. | Site nav | Yes — nav links to dead pages |
-|  49 | City Heat Index | FREE | Shipped S344 — /city-heat-index now redirects to /cities. Heat density indicator on /cities page is future enhancement. | Dashboard layout | No |
-|  90 | Sale Soundtrack (Ambient Vibes) | FREE | DEFERRED to organizer-side — remove from sale detail. Rebuild as inline player when POS/dashboard ready. S342. | Page redesign | No |
-| 200 | Shopper Public Profiles | FREE | Shipped S344 — full stack: profileSlug/purchasesVisible/collectorTitle schema + migration (deploy needed), GET /shoppers/:id, /shoppers/[id].tsx, settings section. Pending Chrome QA. | Shopper profile UX | No |
-|  69 | Local-First Offline Mode | PRO | DEFERRED — coming soon. Post-beta. | Architecture | No |
-|  64 | Save/Wishlist/Hold UX | FREE | Shipped S344 — nav unified to /shopper/wishlist, favorites tab removed from dashboard, /shopper/favorites + /shopper/alerts redirect. Pending Chrome QA. | Nav, user mental model | Yes — dashboard redesign |
-| 122 | Explorer's Guild Phase 1 | FREE | Shipped S342–S343 — XP scan cap (100/day), visit XP, Guild nav link, onboarding modal, Sage 2500 threshold (beta). SourcebookEntry + Sale.prelaunchAt schema S343. Hunt Pass trial banner S343. Pending Chrome QA. | Gamification | No |
-| 149 | Email Reminders to Shoppers | SIMPLE | Shipped S344 — copy → "Remind me by email", toggle-off "Cancel Reminder" state, disabled for ended sales. Pending Chrome QA. | Settings redesign | No |
-| 174 | Auction Mechanics + Close Flow | SIMPLE | MERGED WITH #80 — Phase 1 (auctionJob reserve check) + Phase 2 (/purchases/[id] page + CheckoutModal redirect + checkout-success compat) SHIPPED S344 Batch 2. Pending Chrome QA. Arch spec: claude_docs/architecture/AUCTION_WIN_SPEC.md. | Checkout redesign | Yes — blocks purchase UX |
 |  82 | Trademark — FindA.Sale | LEGAL | File USPTO trademark? ~$250–400/class + attorney fees | Legal | No |
-|  83 | Trade Secret Housekeeping | LEGAL | Document proprietary algorithms as trade secrets + NDA review | Legal | No | 
+|  83 | Trade Secret Housekeeping | LEGAL | Document proprietary algorithms as trade secrets + NDA review | Legal | No |
 
 ## BROKEN — Fix Before Anything Else
 
@@ -279,6 +270,10 @@ Features built but never browser-tested or Chrome test is stale (>3 sessions old
 | 143 | ✅ | ✅ | ✅ | ✅ | ⬜ | ⬜ | UNTESTED | Rapidfire Camera Mode | ORG | SIMPLE | Chrome QA: verify S313 AI confidence fix deployed, photo upload E2E |  | 
 | 173 | ✅ | ✅ | ✅ | ✅ | ⬜ | ⬜ | UNTESTED | Message Templates | ORG | PRO | Chrome QA: verify `/organizer/message-templates` page, templates CRUD |  |
 | 221 | -— | ⬜ | ⬜ | -— | ⬜ | ⬜ | Pending Chrome QA | Mark Sold → Hold-to-Pay (Remote Invoice + POS Cart) | BOTH | SIMPLE | Code shipped S341 (schema, backend, frontend). Railway ✅ Vercel ✅. Awaiting browser QA (user journey, Stripe webhook validation). Remote Path: consolidated Stripe Checkout for held items, shopper pays item price, organizer receives minus platform fee. POS Path: pre-stage into organizer's active POS cart. Rank-gated payment windows (Initiate 2h→Scout 3h→Ranger 4h→Sage 6h→Grandmaster 8h), +15 guildXP, Hunt Pass fast-track, Verified Buyer badge, 3-strike no-show system. | Depends on #13 (shipped S332-S340) + Stripe Connect (existing) + POS (existing) |
+| 188 | ✅ | ✅ | ✅ | ✅ | ⬜ | ⬜ | Pending Chrome QA | Neighborhood Pages | SHO | FREE | Chrome QA: verify 14 GR neighborhood pages load, content correct, links work | Pages confirmed functional S342 — was stale "not found" note |
+|  49 | ✅ | NA | ✅ | ✅ | ⬜ | ⬜ | Pending Chrome QA | City Heat Index | SHO | FREE | Chrome QA: verify /city-heat-index redirects to /cities correctly | Shipped S344 — redirects to /cities; heat density indicator on /cities is future enhancement |
+|  64 | ✅ | ✅ | ✅ | ✅ | ✅ | ⬜ | Pending Chrome QA | Save/Wishlist/My Collections | SHO | FREE | Chrome QA: verify nav unified to /shopper/wishlist, favorites tab removed from dashboard, /shopper/favorites + /shopper/alerts redirect correctly | Shipped S344 — nav unified, My Collections label applied to 6 surfaces |
+| 122 | ✅ | ✅ | ✅ | ✅ | ✅ | ⬜ | Pending Chrome QA | Explorer's Guild Phase 1 | SHO | FREE | Chrome QA: XP scan cap (100/day), visit XP, Guild nav link, onboarding modal (localStorage-gated), Sage threshold 2500 (beta), Hunt Pass trial banner, SourcebookEntry + Sale.prelaunchAt schema | Shipped S342–S344 |
 
 ## ✅ SHIPPED & VERIFIED (Both Claude QA + Human QA)
 
@@ -345,6 +340,7 @@ Infrastructure and internal systems that don't need browser QA. All verified. Fo
 
 | Feature | Role | Tier | Reason | Revisit Trigger |
 |---------|------|------|--------|-----------------|
+| #69 Local-First Offline Mode | ORG | PRO | Post-beta deferred — architectural complexity, service worker caching strategy needs validation against Railway/Vercel constraints. | After beta stabilizes and offline demand confirmed |
 | Zero-Downtime Migration Framework | INFRA | TEAMS | Blue-green migrations for large tables (items, purchases). Critical as data grows past 10k rows. Architect designs; Dev builds helpers. | When table sizes warrant it |
 | Canary Deploy + Auto-Rollback | INFRA | SIMPLE | Deploy to Vercel preview + Railway staging first; auto-rollback if smoke tests fail. Enables daily deploys without risk. | After beta stabilizes — **trigger effectively met; pre-wire: Vercel preview env + Railway staging slot config can be set up now** |
 | Audit Automation Library | INFRA | SIMPLE | Codify 8 pre-beta audit paths as reusable tests; run on every deploy. health-scout creates `audit_baseline.json`. | After beta launch — **trigger effectively met; pre-wire: health-scout baseline JSON and test harness can be scaffolded now** |
@@ -387,6 +383,7 @@ Infrastructure and internal systems that don't need browser QA. All verified. Fo
 
 | Feature | Role | Tier | Reason | Revisit Trigger |
 |---------|------|------|--------|-----------------|
+| #90 Sale Soundtrack (Ambient Vibes) | ORG | FREE | DEFERRED to organizer-side (S342). Remove from sale detail page — rebuild as inline ambient player on organizer dashboard or POS view when that redesign is in scope. | When organizer dashboard/POS redesign is underway |
 | Instant Flash Auctions | ORG | PRO | Pre-beta, zero shoppers — no demand signal yet | After beta + 4–6 wks shopper data |
 | Live Stream Sale Events | ORG | PRO | Heaviest build (3–4 sprints), requires on-camera organizers | After beta proves organizer appetite |
 | Verified Organizer Insurance Badge | ORG | TEAMS | Requires micro-insurance partner — unvalidated market | After beta data + partner conversations |

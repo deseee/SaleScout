@@ -7,7 +7,9 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Current Work
 
-No active work. S344 complete (Batch 1 + Batch 2) — push block below.
+No active work. S345 roadmap re-slot complete — push block below.
+
+**S345 COMPLETE (2026-03-30):** roadmap.md Decisions Needed cleanup. Removed 9 signed-off features from ## Decisions Needed (kept #82 + #83 legal items). Re-slotted: #188, #49, #64, #122 → UNTESTED Pending Chrome QA; #149/#174/#200 were already in correct sections (no change needed). #90 Sale Soundtrack → Deferred > Advanced Organizer Features. #69 Local-First Offline Mode → Deferred > Infrastructure & Platform. QA deferred per Patrick.
 
 **S344 Batch 2 COMPLETE (2026-03-30):** 5-agent parallel bug-fix + feature batch. (1) **#174+#80 Phase 1+2 shipped:** auctionJob.ts reserve price check (16-line block — if reserve not met, item moves to AUCTION_ENDED + organizer notified); /purchases/[id].tsx new 400+ line persistent confirmation page (hero, item details, pickup info, order details, status badges, auction buyer premium 5%); CheckoutModal now captures purchaseId and redirects to /purchases/${id}; checkout-success.tsx backward-compat redirect added. (2) **#184 iCal FIXED:** Express route ordering fix in routes/sales.ts — /:id/calendar.ics moved before generic /:id catch-all. (3) **#41 Flip Report FIXED:** null-safety on bestCategory.category + itemsSold division-by-zero guard in flipReportService.ts; enhanced error logging in flipReportController.ts. (4) **#7 Referral FIXED:** missing return statements before res.json() on lines 26+38 of referralController.ts — API was hanging silently, frontend showed 0. (5) **#89 Print Kit FIXED:** frontend was POSTing to /organizer/sales/{id}/print-kit (wrong prefix) — corrected to /organizers/{id}/print-kit in print-inventory.tsx. (6) **#62 Digital Receipts FIXED:** receiptController.getMyReceipts now queries Purchase model (status: PAID) directly instead of DigitalReceipt which had no auto-created records. Response shape preserved (issuedAt mapped from createdAt). (7) **#50 Loot Log:** NOT a code bug — user11's purchases are PENDING not PAID. Loot Log correctly filters PAID only. No fix needed.
 
@@ -55,31 +57,23 @@ No active work. S344 complete (Batch 1 + Batch 2) — push block below.
 
 **S323 COMPLETE (2026-03-28):** QA session — S322 verification + 2 bug fixes + Chrome concurrency rule. (1) Edit-sale field persist ✅ — entrance note, approach notes, treasure hunt all saved and reloaded correctly as SIMPLE user (ss_0940ajm6p/ss_2627ysx2a/ss_5529i8hqh). No PRO gate. (2) Review & Publish Publish All — UNVERIFIED (all seeded items are AVAILABLE, Publish All only shows with DRAFT items). (3) Nav menus: Organizer collapsibles ✅, shopper links ✅. P2 bug fixed: duplicate Logout in mobile nav — Layout.tsx had a bare Logout button in `authLinks` AND another in the global footer section; removed the one from `authLinks`. (4) Homepage search ✅ — FTS wired and working: "chair" returns 5 results with item cards, photos, prices, "View Sale →" links. (5) Sales Near You card ✅ — map loads, "View on Map →" links to /map. (6) Search results below-fold UX fixed: index.tsx now auto-scrolls to results heading when query ≥2 chars. (7) Chrome concurrency rule added to CLAUDE.md §10c + findasale-qa.skill packaged. Files: Layout.tsx, index.tsx, CLAUDE.md.
 
-## Next Session (S345)
+## Next Session (S346)
 
-### S345 Priority 1: Deploy shopper profiles migration (Patrick manual action — required before Railway works)
-```powershell
-cd C:\Users\desee\ClaudeProjects\FindaSale\packages\database
-$env:DATABASE_URL="postgresql://postgres:QvnUGsnsjujFVoeVyORLTusAovQkirAq@maglev.proxy.rlwy.net:13949/railway"
-npx prisma migrate deploy
-npx prisma generate
-```
-
-### S345 Priority 2: Hold-to-Pay QA (evening — off peak hours)
+### S346 Priority 1: Hold-to-Pay QA (evening — off peak hours)
 Full E2E: organizer marks sold on held item → modal → invoice sent → shopper gets email + in-app notification → ClaimCard visible → Stripe link → payment → SOLD + organizer notified + +15 guildXP. Test accounts: user12 (shopper), user6/Family Collection Sale 16 (organizer). Verify STRIPE_WEBHOOK_SECRET in Railway env vars first.
 
-### S345 Priority 3: Chrome QA — all FIXED S344 items
+### S346 Priority 2: Chrome QA — all FIXED S344 items
 #174+#80, #184, #41, #7, #89, #62 all need browser verification. One dispatch per feature, sequential.
 
-### S345 Notes
+### S346 Notes
 - XP test accounts: SQL in decisions-log.md S342 section to set users to any rank for beta testing
 - Sage threshold is 2500 XP (was 4000) — beta-only, revert post-beta
+- Shopper profiles migration must be deployed before S346 QA begins
 
-### Patrick Actions Before S345
-1. Run S344 push block below (31 files + wrap docs)
-2. Run shopper profiles migration (above)
-3. Confirm Railway + Vercel green
-4. Check STRIPE_WEBHOOK_SECRET in Railway env vars (for Hold-to-Pay QA)
+### Patrick Actions Before S346
+1. Run S345 push block below (roadmap.md + STATE.md + patrick-dashboard.md)
+2. Confirm Railway + Vercel green
+3. Check STRIPE_WEBHOOK_SECRET in Railway env vars (for Hold-to-Pay QA)
 
 ### S344 Complete Push Block (31 files)
 ```powershell
