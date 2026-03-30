@@ -217,6 +217,33 @@ against project context (STATE.md, DECISIONS.md, roadmap, prior Patrick decision
 - **UNCLEAR** — If the orchestrator cannot confidently determine the right action,
   surface to Patrick with options. Do not guess.
 
+**BATCH DISPATCH PROTOCOL (parallel dev work — orchestrator loop):**
+
+When Patrick says "dispatch in parallel" or "work through the roadmap," follow this loop until context is tight:
+
+**Step 1 — Pre-dispatch triage:**
+Read STATE.md + scan roadmap BROKEN section. Group items by file ownership. Items touching the same file must run sequentially (different batches). Items touching different files can run in parallel. Identify cross-agent dependencies before dispatching — if Agent A adds a route that Agent B's component calls, either batch them together or note the dependency explicitly in Agent B's prompt.
+
+**Step 2 — Knock-on effect check (before every dispatch):**
+For each item being dispatched, answer: (a) Does it add/change an API route? → check if any existing frontend component calls the old path. (b) Does it change a shared service or controller? → grep for all callers. (c) Does it touch schema? → flag migration requirement and block dependent features until migration ships. Document found knock-ons in the dispatch prompt so the agent handles them in one pass.
+
+**Step 3 — Dev agent prompt requirements (every dispatch, no exceptions):**
+Each dev agent prompt MUST include:
+1. Schema preflight: "Read schema.prisma. Confirm every field you reference exists before writing any code."
+2. Knock-on effects: "After implementing, grep for any other file that references the old behavior and fix it or flag it."
+3. TS check gate: `cd packages/frontend && npx tsc --noEmit --skipLibCheck 2>&1 | grep "error TS" | grep -v node_modules` — zero errors required before returning.
+4. Changed-files list: "Return an explicit list of every file you created or modified."
+
+**Step 4 — Post-batch processing (before next dispatch):**
+When agents return, do all four before dispatching again:
+1. Update roadmap rows for every completed item (BROKEN → FIXED S[N], add root-cause one-liner, mark Pending Chrome QA).
+2. Update STATE.md Current Work with a Batch N summary paragraph.
+3. Inline-fix any item an agent returned as "analysis only" if the fix is <20 lines.
+4. Compile the changed-files list across all agents — this becomes the push block.
+
+**Step 5 — Context budget:**
+Each batch burns ~400–500k agent tokens. Main session grows ~15–20k per batch processed. At 80% context (~170k tokens), wrap instead of dispatching another batch. A fresh session with updated STATE.md produces better dispatches than a compressed one.
+
 **QA DISPATCH GATE (fires when orchestrator dispatches QA work):**
 Before dispatching any QA or audit task:
 1. Identify which roles are affected (SHOPPER, ORGANIZER, ADMIN)
