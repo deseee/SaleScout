@@ -2,11 +2,31 @@
 
 ---
 
-## ✅ S347 Complete — 10 PARTIAL/UNTESTED items addressed across 2 batches
+## ✅ S348 Complete — Full nav/dashboard redesign shipped
 
 ---
 
-## What Happened This Session (S347)
+## What Happened This Session (S348)
+
+**Nav redesign (Layout.tsx + AvatarDropdown.tsx + TierGatedNav.tsx):**
+- Icons on every nav link — amber for organizer tools, indigo for shopper, purple for Pro, red for Admin
+- Sections renamed: "Your Sales", "Selling Tools", "Pro Tools", "My Collection", "Explore & Connect"
+- Dual-role users no longer see duplicate "My Profile" / "Shopper Dashboard" / "My Collections"
+- "Payouts" → "Earnings", "Typology Classifier" → "Item Tagger", "UGC Moderation" → "Manage Photos"
+- Coming soon badges on: Sale Hubs, Virtual Queue, Trades
+- Tooltips on 10 confusing items (hover over Holds, POS, Brand Kit, Hunt Pass, etc.)
+- Admin collapsible: all 7 sub-links, red styling, only visible to ADMIN users
+- Rank badge in desktop dropdown header (⚔️ Scout placeholder — TODO: wire to real XP)
+
+**Dashboard redesign (organizer/dashboard.tsx + shopper/dashboard.tsx):**
+- Organizer dashboard now has 5 tier-gated sections — FREE tiers see locked sections with "Upgrade" button to /pricing
+- Shopper dashboard has 5 new gamification widgets: Streak Tracker 🔥, Rank & XP bar, Recent Achievements, Hunt Pass CTA, Leaderboard Snippet
+
+⚠️ **Two TODOs flagged:** ExplorerProfile model doesn't exist in schema yet → rank/XP widget shows placeholder. Leaderboard widget shows static data until API endpoint built. Both have `// TODO` comments in code.
+
+---
+
+## What Happened Last Session (S347)
 
 **Batch 1 — 4 agents, 8 files:**
 - **#212 Leaderboard:** Badges now load on ranking cards (top 3 per user). Stray "0" salesCount removed.
@@ -23,15 +43,17 @@
 
 ---
 
-## Your Actions Before S348
+## Your Actions Now
 
-1. **Run push block below (13 files)**
+1. **Run combined push block below** (includes all S347 + S348 files — use this if you haven't pushed S347 yet)
 2. **Deploy migration** `20260330_add_shopper_profile_fields` to Railway (from S344, if not yet done)
 3. **Check STRIPE_WEBHOOK_SECRET** in Railway env vars before Hold-to-Pay QA
 
 ---
 
-## S347 Push Block (13 files)
+## Combined S347 + S348 Push Block (18 files)
+
+Use this block if you have NOT yet pushed the S347 block. It covers everything.
 
 ```powershell
 cd C:\Users\desee\ClaudeProjects\FindaSale
@@ -40,41 +62,61 @@ git add claude_docs/patrick-dashboard.md
 git add claude_docs/strategy/roadmap.md
 git add packages/backend/src/controllers/leaderboardController.ts
 git add packages/frontend/pages/leaderboard.tsx
-git add packages/frontend/pages/shopper/dashboard.tsx
 git add packages/frontend/components/SharePromoteModal.tsx
 git add packages/frontend/pages/organizer/pricing.tsx
 git add packages/frontend/pages/shopper/loyalty.tsx
-git add packages/frontend/components/Layout.tsx
 git add packages/frontend/pages/organizer/settings.tsx
 git add packages/frontend/components/RarityBoostModal.tsx
 git add packages/frontend/hooks/useXpSink.ts
-git commit -m "S347: leaderboard badges, Hunt Pass CTA, share templates, tier pricing, Guild UX, org profile, rarity boost UI, roadmap sync"
+git add packages/frontend/components/Layout.tsx
+git add packages/frontend/components/AvatarDropdown.tsx
+git add packages/frontend/components/TierGatedNav.tsx
+git add packages/frontend/pages/organizer/dashboard.tsx
+git add packages/frontend/pages/shopper/dashboard.tsx
+git commit -m "S347+S348: nav redesign (icons, dedup, tier sections), organizer/shopper dashboards, leaderboard badges, Hunt Pass CTA, share templates, tier pricing, Guild UX, rarity boost"
 .\push.ps1
 ```
 
 ---
 
-## What's Next (S348)
+## S348-Only Push Block (use this if you already pushed S347)
+
+```powershell
+cd C:\Users\desee\ClaudeProjects\FindaSale
+git add claude_docs/STATE.md
+git add claude_docs/patrick-dashboard.md
+git add packages/frontend/components/Layout.tsx
+git add packages/frontend/components/AvatarDropdown.tsx
+git add packages/frontend/components/TierGatedNav.tsx
+git add packages/frontend/pages/organizer/dashboard.tsx
+git add packages/frontend/pages/shopper/dashboard.tsx
+git commit -m "S348: nav redesign — icons, dual-role dedup, tier-aware dashboard, gamification widgets"
+.\push.ps1
+```
+
+---
+
+## What's Next (S349)
 
 1. **Hold-to-Pay E2E QA** — user12 (shopper) + user6/Family Collection Sale 16 (organizer)
-2. **Chrome QA** of all S344 + S346 + S347 fixed items (sequential, one per dispatch)
-3. **Batch dev:** #218 Shopper Trades (needs Architect spec first), #176 Browse Sales re-verify, #172 Stripe Connect E2E
+2. **Chrome QA** of S344/S346/S347/S348 items (sequential)
+3. **ExplorerProfile Architect spec** — needed to wire rank/XP badge in nav + dashboard
 
 ---
 
 ## Status Summary
 
-- **Build:** Railway ✅ Vercel ✅
+- **Build:** Railway ✅ Vercel ✅ (S348 changes pending push — TypeScript clean)
 - **BROKEN section:** Clear
-- **PARTIAL section:** 10 of 14 items now addressed (2 batches S347)
-- **Newly confirmed code-complete:** #75 Tier Lapse (no changes needed, ready for QA)
-- **QA queue:** Deferred to tonight — Hold-to-Pay + all S344/S346/S347 items
+- **Nav:** Fully redesigned with icons, dedup, brand voice, tooltips, admin collapsible
+- **Dashboards:** Tier-aware organizer sections + 5 gamification widgets on shopper
+- **QA queue:** Hold-to-Pay + all S344/S346/S347 + S348 nav/dashboard
 
 ---
 
 ## Action Items for Patrick
 
-- [ ] **Run S347 push block (13 files)**
+- [ ] **Run combined push block above**
 - [ ] **Deploy migration** to Railway: `20260330_add_shopper_profile_fields`
 - [ ] **Verify webhook secret:** Check Railway env vars for STRIPE_WEBHOOK_SECRET
 - [ ] **Trademark decision (#82):** File USPTO trademark for FindA.Sale? ~$250–400/class + attorney fees

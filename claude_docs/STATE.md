@@ -7,6 +7,8 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Current Work
 
+**S348 Nav/Dashboard Redesign COMPLETE (2026-03-30):** 2 parallel dev agents, 5 files changed. Full nav redesign across Layout.tsx, AvatarDropdown.tsx, TierGatedNav.tsx + tier-aware dashboard sections + shopper gamification widgets. (1) **Dual-role deduplication:** Fixed — "My Profile", "Shopper Dashboard", "My Collections" no longer appear twice for organizer+shopper users. (2) **Icons on all nav items:** lucide-react icons added to every link and section header across both menus (amber for organizer, indigo for shopper, purple for Pro Tools, red for Admin). (3) **Section restructure:** "Your Sales", "Selling Tools", "Pro Tools", "My Collection", "Explore & Connect", "Admin" — consistent across mobile + desktop. (4) **Rank badge in AvatarDropdown:** Static "⚔️ Scout" placeholder with XP mini-bar in dropdown header. TODO comment for real data wire. (5) **Brand voice:** Payouts→Earnings, Typology Classifier→Item Tagger, UGC Moderation→Manage Photos, standalone Explorer's Guild link removed. (6) **Coming soon badges:** Sale Hubs, Virtual Queue, Trades. (7) **Tooltips:** 10 confusing items (Holds, POS, Print Inventory, Brand Kit, Flip Report, Webhooks, Item Tagger, Hunt Pass, Explorer Passport, League). (8) **Admin collapsible:** ShieldAlert icon, red styling, all 7 sub-links, ADMIN-only gate. (9) **Organizer dashboard tier sections:** CollapsibleSection component, 5 tier-gated sections (FREE/SIMPLE/PRO/TEAMS), locked state shows upgrade CTA linking to /pricing, placeholder tier via `// TODO: wire to real tier field`. (10) **Shopper dashboard gamification:** 5 widgets (Streak Tracker, Rank/XP Bar, Recent Achievements, Hunt Pass CTA, Leaderboard Snippet) in responsive grid below quick-links. ⚠️ ExplorerProfile model not in schema — Rank/XP widget uses placeholder with TODO. ⚠️ Leaderboard widget uses static placeholder with TODO for API. Files: Layout.tsx, AvatarDropdown.tsx, TierGatedNav.tsx, organizer/dashboard.tsx, shopper/dashboard.tsx.
+
 **S347 Batch 2 COMPLETE (2026-03-30):** 3 parallel agents, 3 more files changed + roadmap updated. (1) **Roadmap updated:** 7 rows updated to reflect S347 Batch 1 completions (#212, #213, #131, #123, #153, #60, #59). (2) **#75 Tier Lapse — CONFIRMED FULLY IMPLEMENTED (no code change needed):** Audit found complete implementation — tierLapseService.ts, tierLapseJob.ts (8AM + 11PM UTC crons), stripeController.ts handles customer.subscription.deleted + invoice.payment_failed, auth.ts middleware sets req.user.subscriptionLapsed, organizer dashboard lapse banner exists. Feature is code-complete, moving to Chrome QA queue. (3) **#124 Rarity Boost XP Sink UI BUILT:** New RarityBoostModal.tsx (sale picker, 15 XP cost, disabled when insufficient XP); useXpSink.ts updated (saleId param added); loyalty.tsx "Coming Soon" placeholder replaced with functional Rarity Boost card. Backend POST /api/xp/sink/rarity-boost was already complete.
 
 **S347 Batch 1 COMPLETE (2026-03-30):** QA deferred to evening. 4 parallel agents, 8 files changed. (1) **#212 Leaderboard badges FIXED:** leaderboardController.ts now includes top-3 userBadges (id, name, iconUrl) in shopper query; leaderboard.tsx adds `> 0` guard on totalItemsSold display. (2) **#59 Streak Rewards:** StreakWidget was already wired into loyalty.tsx — confirmed no change needed (was already there per S346). (3) **#71 Reputation stray-0 on leaderboard FIXED:** `{org.totalItemsSold > 0 && ...}` guard added to leaderboard.tsx. (4) **#213 Hunt Pass CTA FIXED:** dashboard.tsx Hunt Pass card upgraded — now shows 3 benefits (2x XP, 6h early access, exclusive badge), prominent "Upgrade Now" button to /shopper/hunt-pass, pricing visible ($4.99/mo). Only shows when huntPassActive !== true. (5) **#131 Share Templates FIXED:** SharePromoteModal.tsx — Facebook uses sharer popup, Nextdoor = copy+open newsfeed with toast, Threads uses threads.net/intent/post popup, Pinterest uses pin dialog, TikTok = copy+open with toast. (6) **#60 Premium Tier Bundle IMPROVED:** organizer/pricing.tsx updated with correct prices ($49 PRO, $99 TEAMS) and full feature lists (Flip Report, AI Valuation, CSV Export, Brand Kit, Auto-Markdown, Print Kit, etc). (7) **#123 Explorer's Guild Phase 2 IMPROVED:** loyalty.tsx — XP earn tooltip (+5 visit, +10 scan, +25 purchase), rank threshold display (Initiate→Scout 500→Ranger 1500→Sage 2500→Grandmaster 5000), Hunt Pass "$4.99/month" badge. Layout.tsx — "Loyalty" nav label → "Explorer's Guild". (8) **#153 Organizer Profile IMPROVED:** settings.tsx — Facebook, Instagram, Etsy URL fields added (all exist in schema). PARTIAL items 8 of 14 now addressed.
@@ -63,21 +65,23 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 **S323 COMPLETE (2026-03-28):** QA session — S322 verification + 2 bug fixes + Chrome concurrency rule. (1) Edit-sale field persist ✅ — entrance note, approach notes, treasure hunt all saved and reloaded correctly as SIMPLE user (ss_0940ajm6p/ss_2627ysx2a/ss_5529i8hqh). No PRO gate. (2) Review & Publish Publish All — UNVERIFIED (all seeded items are AVAILABLE, Publish All only shows with DRAFT items). (3) Nav menus: Organizer collapsibles ✅, shopper links ✅. P2 bug fixed: duplicate Logout in mobile nav — Layout.tsx had a bare Logout button in `authLinks` AND another in the global footer section; removed the one from `authLinks`. (4) Homepage search ✅ — FTS wired and working: "chair" returns 5 results with item cards, photos, prices, "View Sale →" links. (5) Sales Near You card ✅ — map loads, "View on Map →" links to /map. (6) Search results below-fold UX fixed: index.tsx now auto-scrolls to results heading when query ≥2 chars. (7) Chrome concurrency rule added to CLAUDE.md §10c + findasale-qa.skill packaged. Files: Layout.tsx, index.tsx, CLAUDE.md.
 
-## Next Session (S348)
+## Next Session (S349)
 
-### S348 Priority 1: Hold-to-Pay QA (evening — off peak hours)
+### S349 Priority 1: Push S347 + S348 files (Patrick action first)
+See patrick-dashboard.md for combined push block.
+
+### S349 Priority 2: Hold-to-Pay QA (evening — off peak hours)
 Full E2E: organizer marks sold on held item → modal → invoice sent → shopper gets email + in-app notification → ClaimCard visible → Stripe link → payment → SOLD + organizer notified + +15 guildXP. Test accounts: user12 (shopper), user6/Family Collection Sale 16 (organizer). Verify STRIPE_WEBHOOK_SECRET in Railway env vars first.
 
-### S348 Priority 2: Chrome QA — all FIXED S344+S346+S347 items
+### S349 Priority 3: Chrome QA — all FIXED S344+S346+S347 + new nav/dashboard
 S344 pending: #174+#80, #184, #41, #7, #89, #62, #37, #149.
 S346 pending: #48, #13, #157, #46, #199, #177, #58, #29.
 S347 pending: #212, #213, #131, #60, #123, #153.
+S348 new: nav icons + tier-aware dashboard + gamification widgets.
 One dispatch per feature, sequential Chrome QA.
 
-### S348 Priority 3 (batch dev): Remaining PARTIAL items
-- #176 Browse Sales: filter pill re-verify after S288 fix
-- #172 Stripe Connect: complete payout flow E2E verify
-- #75 Tier Lapse State Logic: cron + suspension logic (not yet built)
+### S349 Priority 4: ExplorerProfile schema — Architect decision
+Rank/XP widget + AvatarDropdown rank badge both have TODO placeholders waiting for real XP data. Architect needs to spec ExplorerProfile model (or confirm which existing model carries rank/xp) before those can be wired.
 - #218 Shopper Trades: full feature build
 
 ### S348 Notes
