@@ -1,6 +1,6 @@
 # ROADMAP – FindA.Sale v2
 
-**Last Updated:** 2026-03-31 (v85 — S353–S356: dashboard redesign, nav polish, UX skill rewrite, multiple Chrome QA verifications, Railway TS build fixes)
+**Last Updated:** 2026-03-31 (v87 — S359–S360: #48 Treasure Trail Chrome-verified ✅, #37 Sale Alerts backend fixes pushed, Railway TS1127 null byte fix, Vercel webhook unblocked via Dockerfile cache-bust)
 
 **Status:** Production MVP live at finda.sale. Beta: GO. Full build history: `claude_docs/strategy/COMPLETED_PHASES.md`.
 
@@ -92,7 +92,7 @@ Features that Patrick's human QA walkthrough confirmed are broken. Use the two-s
 |  62 | ✅ | ✅ | ✅ | ✅ | ✅ | ⬜ Chrome-verified S355 | Digital Receipt + Returns | SHO | FREE | Chrome-verified S355: page renders, empty state correct. S356: receiptController null guard on p.item?.title (TS build fix). Ready to graduate to TESTING. | Auto-generated receipt post-POS, return window |
 |  50 | ✅ | ✅ | ✅ | ✅ | ⬜ | ⚠️ NOT A CODE BUG — test data issue | Loot Log | SHO | FREE | user11's purchases are PENDING not PAID — Loot Log correctly filters PAID only. No code fix needed. Verify with a PAID purchase. | Personal purchase history with photos + prices |
 | 184 | ✅ | ✅ | ✅ | NA | ⬜ | ⬜ FIXED S355 | iCal / Calendar Export | SHO | SIMPLE | Pending Chrome QA — S344: route ordering fix. S355: changed relative path to NEXT_PUBLIC_API_URL in [id].tsx. Both fixes in GitHub, pending Railway deploy + Chrome QA. | Download .ics file for sales + items |
-|  48 | ✅ | ✅ | ✅ | ✅ | ⬜ | ⬜ FIXED S346 | FIXED S346 | Treasure Trail Route Builder | SHO | FREE | Pending Chrome QA — dark mode contrast fix (trail/[shareToken].tsx), edit save flow fix (trails/[trailId].tsx) | Trail pages + share token, multi-sale routing |
+|  48 | ✅ | ✅ | ✅ | ✅ | ⬜ | ✅ Chrome-verified S360 | FIXED S359+S360 | Treasure Trail Route Builder | SHO | FREE | Chrome-verified S360 (ss_5655xvb8r): GET /api/trails → 200, "Grand Rapids Saturday Run" renders name/desc/stops, Edit/Delete buttons present. S359: switched to `api` lib. S360: fixed double /api/ prefix. Ready to graduate to TESTING. | Trail pages + share token, multi-sale routing |
 |  13 | ✅ | ✅ | ✅ | 📋 | ⬜ | ⬜ FIXED S346 | FIXED S346 | TEAMS Workspace | ORG | TEAMS | Pending Chrome QA — member lookup missing relations fixed, invite error parsing fixed (error→message field) | Multi-user workspace, role management |
 | 157 | ✅ | ✅ | ✅ | 📋 | ✅ | ⬜ Chrome-verified S356 | Pickup Scheduling | BOTH | SIMPLE | Chrome-verified S356: "+ Add Pickup Slot" button (type="button") stays on page, slot form opens with 6 date/time inputs. Axios fix (S346) confirmed working. Ready to graduate to TESTING. | Organizer slots + shopper booking |
 |   7 | ✅ | ✅ | ✅ | ✅ | ✅ | ⬜ Chrome-verified S355 | Shopper Referral Rewards | SHO | FREE | Chrome-verified S355: renders at /referral-dashboard. No nav link yet (planned). API fix (S344) confirmed working. Ready to graduate to TESTING. | Referral tracking + rewards distribution |
