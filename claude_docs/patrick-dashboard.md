@@ -2,84 +2,76 @@
 
 ---
 
-## ✅ S350 Complete — Design specs locked. Ready for dev dispatch in S351.
+## ✅ S351 Complete — Dashboard redesign shipped. 7 files changed.
 
 ---
 
-## What Happened This Session (S350)
+## What Happened This Session (S351)
 
-Three design/spec documents created — no code changes this session. Push block below.
+**Organizer Dashboard — full state-aware redesign:**
+Three completely different views depending on where the organizer is in their lifecycle. New organizer (0 sales): welcome hero + 3-step path + benefit grid + 3-screen onboarding modal (shows once, never again). Active sale (DRAFT or PUBLISHED): Sale Status Widget at the top (real sale data, status badge, stats row, smart CTAs), Next Action Zone (one context-aware recommended action — add items, review holds, extend sale), Quick Stats Grid, Tier Progress card, 6-tool Selling Tools grid. Between sales (all ENDED): congratulations card + past sales archive. Old nav-menu-on-a-page replaced entirely.
 
-**dashboard-redesign-brief-s350.md (new):**
-Ground-up dashboard spec for both organizer and shopper. Organizer gets 3 state-aware layouts (new / active sale / between sales). Each state shows a Sale Status Widget, Next Action Zone, and Quick Stats — not a nav menu. Shopper gets 3 state-aware headers (new / returning / pending payment) with gamification fully rethought. Locked decisions: revenue shown to all tiers, tier progress always visible (compact), Hunt Pass upsell one placement only with 7-day dismiss, analytics inline + PRO-gated Flip Report link. Sale Momentum feed (real-time activity) green-lit as S351 innovation add. Nav shortcuts (3–5 most-used tools) added to both dashboards.
+**Shopper Dashboard — gamification redesign:**
+State-aware header (new shopper vs. returning shopper). Returning shoppers with pending payments see a red/orange urgency card first. Rank Progress Card with exact per-rank copy: each rank shows XP progress, "Y more XP until [next rank]", and a specific call-to-action ("Scan an item" for Initiate, "Make a purchase" for Scout, etc.). Permanent streak explainer always visible above the Streak Widget. Hunt Pass CTA only shows when not already subscribed.
 
-**organizer-guidance-spec-s350.md (new):**
-Tooltip and explainer copy for every confusing part of the organizer side — 20+ features covered. Feature names stay as-is (SIMPLE, PRO, Flip Report, etc.) — plain-language explainers go in tooltips, CTAs, and onboarding modals alongside the names. 3-screen onboarding modal (shows once, localStorage gate). Error message rewrites. Explorer's Guild rank badges on holds panel — tells organizers what a Grandmaster or Initiate rank means about how likely that shopper is to follow through. First time we've made gamification useful for organizers, not just shoppers.
-
-**photo-capture-protocol-s350.md (new):**
-Camera flow gets a real protocol. 9-shot sequence: hero, back, left side, right side, maker's mark/label, damage closeup, detail/pattern, scale reference, inside/underside. 3-tier lighting system — good lighting proceeds silently, soft warning allows upload, hard warning strongly recommends retake. AI feedback copy for confidence levels, maker's mark detection, damage detection. 12 item-type-specific guides (furniture, ceramics, glass, silver, jewelry, books, electronics, art, textiles, tools, toys, clothing). Replaces the single-line "it's too dark" error.
-
-**Roadmap updated:** #222 (Dashboard Redesign), #223 (Organizer Guidance Layer), #224 (Photo Capture Protocol) added to Building — Active Backlog.
-
-⚠️ One misplaced file: `claude_docs/DASHBOARD_CONTENT_SPEC.md` was created at the root (should be in `ux-spotchecks/`). It's superseded by the new spec — will be cleaned up S351.
+**Guidance layer (5 files):**
+New `TooltipHelper` component (❓ icon with floating tooltip, dark mode, accessible). New 3-screen onboarding modal for first-time organizers. Tier explainers on pricing page (plain English below SIMPLE/PRO/TEAMS names). Rank badges on the holds panel — organizers now see ⚔️ Initiate / 🐦 Scout / 🧗 Ranger / 🧙 Sage / 👑 Grandmaster next to each shopper's name, with "Grandmaster buyers almost always follow through" for the highest rank. Backend holds query updated to include explorerRank.
 
 ---
 
-## What Happened Last Session (S349)
+## What Happened Last Session (S350)
 
-**Nav/dashboard cleanup (4 files):**
-- Shopper Dashboard visible for dual-role users — was hidden by bug
-- Webhooks moved to TEAMS-gated "Developer Tools" section
-- Mobile nav rewritten — 8 dead items removed, now matches desktop with icons + color coding
-- Dashboard dead space cleaned — empty sections hidden, duplicate cards removed, welcome banner gated to new users
+Three design/spec docs created: dashboard redesign brief (3-state organizer + 3-state shopper + exact gamification copy), organizer guidance spec (tooltips for 20+ features, onboarding modal copy), photo capture protocol (9-shot sequence, 3-tier lighting, 12 item-type guides). No code that session — all specs, all locked, dispatched to dev this session.
 
 ---
 
 ## Your Actions Now
 
-1. **Run push block below** (S350 doc files — 6 files, no code)
-2. **Check STRIPE_WEBHOOK_SECRET** in Railway env vars before Hold-to-Pay QA (S351)
+1. **Run push block below** (7 code files + STATE + dashboard)
+2. **Check STRIPE_WEBHOOK_SECRET** in Railway env vars before Hold-to-Pay QA (S352)
 3. **Deploy migration** `20260330_add_shopper_profile_fields` to Railway (if not done)
 
 ---
 
-## S350 Push Block (6 files)
+## S351 Push Block (9 files)
 
 ```powershell
 cd C:\Users\desee\ClaudeProjects\FindaSale
 git add claude_docs/STATE.md
 git add claude_docs/patrick-dashboard.md
-git add claude_docs/strategy/roadmap.md
-git add "claude_docs/ux-spotchecks/dashboard-redesign-brief-s350.md"
-git add "claude_docs/ux-spotchecks/organizer-guidance-spec-s350.md"
-git add "claude_docs/ux-spotchecks/photo-capture-protocol-s350.md"
-git commit -m "S350: dashboard redesign brief, organizer guidance layer, photo capture protocol, roadmap #222-224"
+git add packages/frontend/pages/organizer/dashboard.tsx
+git add packages/frontend/pages/shopper/dashboard.tsx
+git add packages/frontend/components/TooltipHelper.tsx
+git add packages/frontend/components/OrganizerOnboardingModal.tsx
+git add packages/backend/src/controllers/reservationController.ts
+git add packages/frontend/pages/organizer/pricing.tsx
+git add packages/frontend/pages/organizer/holds.tsx
+git commit -m "S351: organizer+shopper dashboard redesign, tooltip layer, onboarding modal, rank badges on holds, tier explainers"
 .\push.ps1
 ```
 
 ---
 
-## What's Next (S351)
+## What's Next (S352)
 
-1. **Dev dispatch — Dashboard Redesign** against `dashboard-redesign-brief-s350.md` (3 parallel agents: organizer dashboard, shopper dashboard, guidance layer)
+1. **Dashboard QA** — Chrome verify State 1/2/3 organizer, shopper rank card + streak explainer, dark mode
 2. **Hold-to-Pay E2E QA** — user12 (shopper) + user6/Family Collection Sale 16 (organizer)
 3. **Chrome QA backlog** — S344/S346/S347 items still pending
-4. **ExplorerProfile Architect spec** — needed to wire real rank/XP data into nav + dashboard
 
 ---
 
 ## Status Summary
 
-- **Build:** Railway ✅ Vercel ✅
+- **Build:** Railway ✅ Vercel ✅ (pending S351 push)
 - **BROKEN section:** Clear
-- **Design specs:** 3 new docs locked and ready for dev dispatch (S351)
-- **QA queue:** Hold-to-Pay + all S344/S346/S347/S349 pending items
+- **Dashboard:** Both organizer + shopper fully redesigned per S350 specs ✅
+- **QA queue:** Dashboard QA + Hold-to-Pay + all S344/S346/S347 pending items
 
 ---
 
 ## Action Items for Patrick
 
-- [ ] **Run S350 push block above**
+- [ ] **Run S351 push block above**
 - [ ] **Deploy migration** to Railway: `20260330_add_shopper_profile_fields`
 - [ ] **Verify webhook secret:** Check Railway env vars for STRIPE_WEBHOOK_SECRET
 - [ ] **Trademark decision (#82):** File USPTO trademark for FindA.Sale? ~$250–400/class + attorney fees

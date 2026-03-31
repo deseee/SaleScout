@@ -7,6 +7,8 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Current Work
 
+**S351 Dashboard Redesign COMPLETE (2026-03-30):** 3 parallel dev agents, 7 files changed + 2 new components. (1) **Organizer dashboard (organizer/dashboard.tsx):** Full 3-state redesign — State 1 (new organizer): welcome hero, 3-step path, benefit grid, CTAs; State 2 (active sale): Sale Status Widget (full-width, title/thumbnail/status badge/stats), Next Action Zone (single context-aware recommended action), Quick Stats Grid, Tier Progress card, 6-tool Selling Tools grid, 4 shortcuts; State 3 (between sales): congratulations card, past sales archive. State detection via getDashboardState(). Removed old CollapsibleSection nav dumps. OrganizerOnboardingModal wired: shows once to new organizers (State 1), localStorage gate. (2) **Shopper dashboard (shopper/dashboard.tsx):** State-aware hero (A: new shopper welcome, B: returning shopper with pending payments priority zone), Rank Progress Card with exact spec copy formulas per rank (INITIATE→SCOUT→RANGER→SAGE→GRANDMASTER with XP thresholds, progress bars, "best way to earn" per rank), permanent Streak explainer + StreakWidget, Hunt Pass CTA (only when huntPassActive !== true, 3 benefits, $4.99/mo). Preserved ClaimCard + AchievementBadgesSection. (3) **Guidance layer (5 files):** TooltipHelper.tsx (new — ❓ icon, floating tooltip, dark mode, accessible); OrganizerOnboardingModal.tsx (new — 3-screen: Welcome, Photos matter, You're in control, localStorage gate); pricing.tsx tier inline explainers (SIMPLE/PRO/TEAMS plain-English below names); holds.tsx rank badges (⚔️/🐦/🧗/🧙/👑 per rank, Grandmaster "almost always follows through" copy); reservationController.ts adds explorerRank to organizer holds query. ⚠️ TODO placeholders: revenue API, items count, visitor metrics (not in existing API), ExplorerProfile (not in schema). Files: organizer/dashboard.tsx, shopper/dashboard.tsx, TooltipHelper.tsx (NEW), OrganizerOnboardingModal.tsx (NEW), reservationController.ts, pricing.tsx, holds.tsx.
+
 **S350 Design Brief COMPLETE (2026-03-30):** Ground-up dashboard redesign brief + organizer guidance layer + photo capture protocol. (1) **dashboard-redesign-brief-s350.md CREATED:** 5-part spec — state-aware organizer layouts (3 states: new/active/between-sales), state-aware shopper layouts (3 states: new/returning/pending-payment), gamification copy (exact per-rank formulas for Initiate→Grandmaster), 11 shared design rules, innovation recommendations (Sale Momentum feed green-lit). Locked decisions: revenue display on dashboard for all tiers/both, tier progress always-visible-compact, Hunt Pass one-placement/7-day-dismiss, analytics inline+PRO-Flip-Report link. Nav shortcuts added (3–5 most-used features) — not nav-as-primary-content, shortcuts only. Rank Unlock Pathway card replaces decorative leaderboard snippet. Urgency color-coding (red <6h, orange <24h, green healthy). (2) **organizer-guidance-spec-s350.md CREATED:** Feature names unchanged — tooltip/explainer copy lives alongside existing labels. Tooltip library for 20+ features, 4 critical workflow guidance flows, 3-screen onboarding modal, error message rewrites, Explorer's Guild buyer intelligence layer (rank badges on holds = Grandmaster "almost always follows through"). (3) **photo-capture-protocol-s350.md CREATED:** 9-shot sequence (hero, back, sides ×2, maker's mark/label, damage closeup, detail/pattern, scale reference, inside/underside), 3-tier lighting system (Tier 1 proceed silently, Tier 2 soft warning allow, Tier 3 hard warning recommend retake), AI feedback copy (high/medium/low confidence, maker's mark detected, damage detected), 12 item-type guides (furniture through clothing). (4) **Roadmap updated:** #222 (Dashboard Redesign), #223 (Organizer Guidance Layer), #224 (Photo Capture Protocol) added to Building — Active Backlog. ⚠️ claude_docs/DASHBOARD_CONTENT_SPEC.md misplaced (UX agent created at root instead of ux-spotchecks/); cannot delete via shell — Records cleanup needed S351. Files: ux-spotchecks/dashboard-redesign-brief-s350.md (CREATED), ux-spotchecks/organizer-guidance-spec-s350.md (CREATED), ux-spotchecks/photo-capture-protocol-s350.md (CREATED), strategy/roadmap.md (updated).
 
 **S348 Nav/Dashboard Redesign COMPLETE (2026-03-30):** 2 parallel dev agents, 5 files changed. Full nav redesign across Layout.tsx, AvatarDropdown.tsx, TierGatedNav.tsx + tier-aware dashboard sections + shopper gamification widgets. (1) **Dual-role deduplication:** Fixed — "My Profile", "Shopper Dashboard", "My Collections" no longer appear twice for organizer+shopper users. (2) **Icons on all nav items:** lucide-react icons added to every link and section header across both menus (amber for organizer, indigo for shopper, purple for Pro Tools, red for Admin). (3) **Section restructure:** "Your Sales", "Selling Tools", "Pro Tools", "My Collection", "Explore & Connect", "Admin" — consistent across mobile + desktop. (4) **Rank badge in AvatarDropdown:** Static "⚔️ Scout" placeholder with XP mini-bar in dropdown header. TODO comment for real data wire. (5) **Brand voice:** Payouts→Earnings, Typology Classifier→Item Tagger, UGC Moderation→Manage Photos, standalone Explorer's Guild link removed. (6) **Coming soon badges:** Sale Hubs, Virtual Queue, Trades. (7) **Tooltips:** 10 confusing items (Holds, POS, Print Inventory, Brand Kit, Flip Report, Webhooks, Item Tagger, Hunt Pass, Explorer Passport, League). (8) **Admin collapsible:** ShieldAlert icon, red styling, all 7 sub-links, ADMIN-only gate. (9) **Organizer dashboard tier sections:** CollapsibleSection component, 5 tier-gated sections (FREE/SIMPLE/PRO/TEAMS), locked state shows upgrade CTA linking to /pricing, placeholder tier via `// TODO: wire to real tier field`. (10) **Shopper dashboard gamification:** 5 widgets (Streak Tracker, Rank/XP Bar, Recent Achievements, Hunt Pass CTA, Leaderboard Snippet) in responsive grid below quick-links. ⚠️ ExplorerProfile model not in schema — Rank/XP widget uses placeholder with TODO. ⚠️ Leaderboard widget uses static placeholder with TODO for API. Files: Layout.tsx, AvatarDropdown.tsx, TierGatedNav.tsx, organizer/dashboard.tsx, shopper/dashboard.tsx.
@@ -71,7 +73,53 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ---
 
-## Next Session (S351)
+## Next Session (S352)
+
+### S352 Priority 1: Push S351 files (Patrick action first)
+
+```powershell
+cd C:\Users\desee\ClaudeProjects\FindaSale
+git add claude_docs/STATE.md
+git add claude_docs/patrick-dashboard.md
+git add packages/frontend/pages/organizer/dashboard.tsx
+git add packages/frontend/pages/shopper/dashboard.tsx
+git add packages/frontend/components/TooltipHelper.tsx
+git add packages/frontend/components/OrganizerOnboardingModal.tsx
+git add packages/backend/src/controllers/reservationController.ts
+git add packages/frontend/pages/organizer/pricing.tsx
+git add packages/frontend/pages/organizer/holds.tsx
+git commit -m "S351: organizer+shopper dashboard redesign, tooltip layer, onboarding modal, rank badges on holds, tier explainers"
+.\push.ps1
+```
+
+### S352 Priority 2: Dashboard QA
+
+After push, Chrome QA the two dashboards:
+- Organizer State 1: log in as user with 0 sales — confirm welcome hero shows, onboarding modal appears once
+- Organizer State 2: log in as Alice/user1 — confirm Sale Status Widget shows with real data
+- Shopper: log in as user12 (Leo Thomas) — confirm Rank Progress Card shows real XP, Streak explainer visible
+- Dark mode pass on both dashboards
+
+### S352 Priority 3: Hold-to-Pay QA (carried from S349/S350/S351)
+Full E2E: organizer marks sold on held item → modal → invoice sent → shopper gets ClaimCard → Stripe link → payment → SOLD + XP. Test: user12 (shopper), user6/Family Collection Sale 16 (organizer). Verify STRIPE_WEBHOOK_SECRET in Railway env vars first.
+
+### S352 Priority 4: Chrome QA backlog
+S344 pending: #174+#80, #184, #41, #7, #89, #62, #37, #149.
+S346 pending: #48, #13, #157, #46, #199, #177, #58, #29.
+S347 pending: #212, #213, #131, #60, #123, #153.
+
+### S352 Notes
+- ExplorerProfile schema (Architect decision) still pending — Rank/XP uses User.guildXp + User.explorerRank (both in schema) ✅. ExplorerProfile-specific TODO placeholders in dashboard.
+- Revenue/items count/visitor metrics on organizer dashboard are TODO — need API endpoints
+- DASHBOARD_CONTENT_SPEC.md at claude_docs root is stale/misplaced — Records should delete it (superseded by ux-spotchecks/dashboard-redesign-brief-s350.md)
+- Sage threshold is 2500 XP (beta only)
+
+### Patrick Actions Before S352
+1. Push S351 files (block above)
+2. Check STRIPE_WEBHOOK_SECRET in Railway env vars (Hold-to-Pay QA)
+3. Deploy migration `20260330_add_shopper_profile_fields` to Railway (if not done)
+
+## Next Session (S351 — COMPLETED)
 
 ### S351 Priority 1: Push S350 files (Patrick action first)
 
