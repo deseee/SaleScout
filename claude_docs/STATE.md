@@ -79,150 +79,39 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ---
 
-## Next Session (S354)
+**S354 COMPLETE (2026-03-31):** findasale-ux skill rewrite + Dashboard State 2 redesign shipped. (1) **findasale-ux skill rewritten:** Added 4 mandatory gates — Job-to-be-Done gate (must answer "what is the user trying to DO in 30-60s" before any layout), Code-First gate (read API/schema before speccing any data), Action-First Section rule (every section needs a user action or gets cut), No-Redundancy check (no duplicate nav links as dashboard cards). Ran 3-eval A/B test (new vs old skill), generated static eval viewer, packaged as findasale-ux.skill. Patrick installed. (2) **Dashboard State 2 redesign shipped:** organizer/dashboard.tsx + organizers.ts route updated. Sale Status Widget: urgency tags (red <6h, orange <24h), context-aware primary button (Add Photos / Publish Sale / Close Early / Manage Items). Next Action Zone: 6-condition logic tree (draft+items, high holds, ending soon, draft items, traffic-no-holds, healthy). Real-Time Metrics Panel: LIVE 4-col (items/visitors/holds/sold) vs DRAFT 3-col (drafted/with photos/ready to publish), wired to real statsData. Selling Tools: static 6-item → dynamic 4-item state-aware grid (DRAFT vs LIVE tools, tier gates). Tier card: full card → compact single-line badge + link. Earnings/payout alert: conditional green banner when cashFeeBalance > 0. 2 TS fixes applied (urgency null narrowing, arithmetic ?? unreachable). Files: packages/backend/src/routes/organizers.ts, packages/frontend/pages/organizer/dashboard.tsx.
 
-### S354 Priority 1: Push S353 files (Patrick action first)
+---
+
+## Next Session (S355)
+
+### S355 Priority 1: Push S354 files (Patrick action first)
 
 ```powershell
 cd C:\Users\desee\ClaudeProjects\FindaSale
 git add claude_docs/STATE.md
 git add claude_docs/patrick-dashboard.md
-git add packages/frontend/components/Layout.tsx
+git add packages/backend/src/routes/organizers.ts
 git add packages/frontend/pages/organizer/dashboard.tsx
-git add packages/frontend/pages/shopper/dashboard.tsx
-git commit -m "S353: fix dashboard dead space, nav mirroring, mobile shopper nav, rank-aware gamification"
+git commit -m "S354: findasale-ux skill rewrite + Dashboard State 2 redesign (state-aware tools, Next Action Zone, real metrics)"
 .\push.ps1
 ```
 
-### S354 Priority 2: UX Skill Research + Rewrite (BEFORE any more dashboard work)
-The findasale-ux skill keeps producing specs that miss organizer workflow logic. S353 was wasted largely because UX produced data-display specs instead of job-to-be-done workflow specs.
+### S355 Priority 2: Hold-to-Pay E2E QA
+Full E2E: organizer marks sold on held item → modal → invoice sent → shopper gets ClaimCard → Stripe link → payment → SOLD + XP. Test: user12 (shopper), user6/Family Collection Sale 16 (organizer). Chrome QA — dispatch findasale-qa.
 
-**Task:** Use skill-creator to research what makes a good UX skill for Claude and rewrite findasale-ux SKILL.md to enforce:
-- Workflow-first thinking (jobs to be done, not features to display)
-- Mandatory: "What is the user trying to accomplish in the next 30 seconds?" before any layout decision
-- Mandatory: every section must have an action/button or be removed
-- Mandatory: no redundant cards (if a button already exists for an action, don't add a card for it)
-- Mandatory: read actual code to understand what data is available before speccing anything
-
-### S354 Priority 3: Dashboard State 2 Redesign (after UX skill is fixed)
-UX spec from S353 is ready — remove redundant cards, fix revenue source, replace dead tier progress with subscription card, add Next Action Zone. Dev dispatch only after UX skill rewrite is confirmed.
-
-### S354 Priority 4: Hold-to-Pay E2E QA
-Full E2E: organizer marks sold on held item → modal → invoice sent → shopper gets ClaimCard → Stripe link → payment → SOLD + XP. Test: user12 (shopper), user6/Family Collection Sale 16 (organizer).
-
-### S354 Priority 5: Chrome QA backlog
+### S355 Priority 3: Chrome QA backlog
 S344 pending: #174+#80, #184, #41, #7, #89, #62, #37, #149.
 S346 pending: #48, #13, #157, #46, #199, #177, #58, #29.
 S347 pending: #212, #213, #131, #60, #123, #153.
 
-### S354 Notes
+### S355 Notes
 - All Railway env vars confirmed ✅. All migrations deployed ✅. Sage threshold 2500 XP (beta only).
+- findasale-ux.skill updated — Patrick installed new version S354.
+- Dashboard State 2 pending Chrome QA after push deploys.
 - Legal: #82 USPTO trademark, #83 trade secrets — Patrick decision pending
 - findasale-ux skill path: `/sessions/*/mnt/.claude/skills/findasale-ux/SKILL.md`
 
 ### Patrick Actions Before S354
 1. Push S353 files (block above)
 
-## Next Session (S351 — COMPLETED)
-
-### S351 Priority 1: Push S350 files (Patrick action first)
-
-```powershell
-cd C:\Users\desee\ClaudeProjects\FindaSale
-git add claude_docs/STATE.md
-git add claude_docs/patrick-dashboard.md
-git add claude_docs/strategy/roadmap.md
-git add "claude_docs/ux-spotchecks/dashboard-redesign-brief-s350.md"
-git add "claude_docs/ux-spotchecks/organizer-guidance-spec-s350.md"
-git add "claude_docs/ux-spotchecks/photo-capture-protocol-s350.md"
-git commit -m "S350: dashboard redesign brief, organizer guidance layer, photo capture protocol, roadmap #222-224"
-.\push.ps1
-```
-
-### S351 Priority 2: Dev Dispatch — Dashboard Redesign (THE MAIN WORK)
-
-Dispatch `findasale-dev` against `dashboard-redesign-brief-s350.md`. Three focused agents:
-- **Agent A:** Organizer dashboard — state-aware layout (all 3 states), Sale Status Widget, Next Action Zone, Quick Stats Grid, tier progress compact, revenue/cash fee alert, selling tools grid
-- **Agent B:** Shopper dashboard — state-aware header, Rank Unlock Pathway card, Hunt Pass badge/upsell, Streak Tracker, pending payments priority zone, collections/upcoming/recently-viewed sections
-- **Agent C:** Organizer guidance layer — tooltip/explainer implementation from `organizer-guidance-spec-s350.md`, onboarding modal (3 screens, localStorage gate), rank-as-buyer-intelligence badges on holds panel
-
-Pre-dispatch: confirm schema fields (`guildXp`, `explorerRank`, `UserStreak.currentStreak`, `reputationTier`) — use `findasale-architect` if any are missing. ExplorerProfile schema decision still pending — Dev must either wire real data or note TODO clearly.
-
-### S351 Priority 3: Hold-to-Pay QA (carried from S349/S350)
-Full E2E: organizer marks sold on held item → modal → invoice sent → shopper gets ClaimCard → Stripe link → payment → SOLD + XP. Test: user12 (shopper), user6/Family Collection Sale 16 (organizer). Verify STRIPE_WEBHOOK_SECRET in Railway env vars first.
-
-### S351 Priority 4: Chrome QA backlog
-S344 pending: #174+#80, #184, #41, #7, #89, #62, #37, #149.
-S346 pending: #48, #13, #157, #46, #199, #177, #58, #29.
-S347 pending: #212, #213, #131, #60, #123, #153.
-
-### S351 Notes
-- Specs locked — do NOT redesign. Dispatch dev directly against dashboard-redesign-brief-s350.md
-- ExplorerProfile schema (Architect decision) still pending — Rank/XP widget uses placeholder data until resolved
-- Sage threshold is 2500 XP (beta only, revert post-beta)
-- Shopper profiles migration 20260330_add_shopper_profile_fields must be deployed to Railway if not done
-- claude_docs/DASHBOARD_CONTENT_SPEC.md is a misplaced file at root (should be in ux-spotchecks/). Superseded by dashboard-redesign-brief-s350.md. Flag for Records cleanup.
-
-### Patrick Actions Before S351
-1. Push S350 files (block above)
-2. Check STRIPE_WEBHOOK_SECRET in Railway env vars (Hold-to-Pay QA)
-
-### S347 Complete Push Block (13 files)
-```powershell
-cd C:\Users\desee\ClaudeProjects\FindaSale
-git add claude_docs/STATE.md
-git add claude_docs/patrick-dashboard.md
-git add claude_docs/strategy/roadmap.md
-git add packages/backend/src/controllers/leaderboardController.ts
-git add packages/frontend/pages/leaderboard.tsx
-git add packages/frontend/pages/shopper/dashboard.tsx
-git add packages/frontend/components/SharePromoteModal.tsx
-git add packages/frontend/pages/organizer/pricing.tsx
-git add packages/frontend/pages/shopper/loyalty.tsx
-git add packages/frontend/components/Layout.tsx
-git add packages/frontend/pages/organizer/settings.tsx
-git add packages/frontend/components/RarityBoostModal.tsx
-git add packages/frontend/hooks/useXpSink.ts
-git commit -m "S347: leaderboard badges, Hunt Pass CTA, share templates, tier pricing, Guild UX, org profile, rarity boost UI, roadmap sync"
-.\push.ps1
-```
-
-### S342 Priority 3: Remaining QA queue
-- Bug 4: Buy Now success card persist (needs Stripe test mode)
-- Bug 5: Reviews aggregate count (needs seeded reviews)
-- Decision #8: Share button native share sheet (needs mobile viewport)
-
-### S342 Notes
-- Hold-to-Pay is code-complete but unverified in browser — QA is P1
-- Webhook STRIPE_WEBHOOK_SECRET must be configured for hold invoice payments to process — verify in Railway env vars
-- Mark Sold → POS/Invoice architect spec still relevant for future POS path (Phase 4+)
-
-**S340 (2026-03-30):** S339 verification + onboarding P0 fix. (1) **S339 hold notification system — ✅ FULLY VERIFIED via Railway API:** Authenticated as user6 (Frank Davis / Priority Estate Sales) directly against Railway backend. Confirmed organizer inbox has unread `hold_update` notification: "A shopper placed a hold on 'Vintage Record Player #7' from Family Collection Sale 16." Previous QA agent had been checking wrong account (user1 Alice Johnson instead of user6). No P0 existed — system was working the whole time. (2) **Cancel→re-hold (P2002 fix) — ✅ VERIFIED:** Cancelled hold via API, immediately re-placed on same item. New hold created cleanly, no unique constraint error. (3) **Rank-based batch extend — ✅ VERIFIED:** Batch-extended 2 holds via API. Both now expire in ~30 min. INITIATE rank = 30 min per `getHoldDurationMinutes()`. Correct, not hardcoded 48h. (4) **OnboardingWizard.tsx P0 fix — PUSHED (commit 1d633ce):** Vercel deploying. Fixes: (a) Step 1 stub text replaced with brand-voice copy "Check your email for a verification link. This helps us send you sale alerts and payment confirmations to the right address." (b) Close button trap fixed: `z-10` on sticky header, `e.preventDefault()`/`e.stopPropagation()` on click handler, `type="button"`, `cursor-pointer pointer-events-auto` classes.
-
-**S338 (2026-03-29):** Bare "0" fix + HoldTimer verified + file recovery. (1) **Bare "0" avgRating — FIXED & VERIFIED:** `sales/[id].tsx` line 426: `{sale.organizer.avgRating && (` → `{(sale.organizer.avgRating ?? 0) > 0 && (` — React falsy `{0 && ...}` rendered literal "0" in DOM. TS fix at line 429: `.toFixed(1)` → `(avgRating ?? 0).toFixed(1)` (TS doesn't narrow inside the guard). Vercel green. (2) **OrganizerReputation.tsx salesCount guard** — `{reputation.salesCount > 0 && ...}` — "New Organizer" badge area now clean (sha: 213169d). (3) **HoldButton roles array fix** — organizer gate updated from `user.role === 'ORGANIZER'` to `user.roles?.includes('ORGANIZER') || user.role === 'ORGANIZER'` — handles dual-role users who have `role: 'USER'` but `roles: ['ORGANIZER', 'USER']` (sha: 462fff1). (4) **HoldTimer countdown — ✅ VERIFIED:** user12@example.com (Leo Thomas, shopper) placed hold on "Vintage Record Player #7" via UI. HoldTimer showed "Your hold expires in 00:29:50" confirmed in Chrome. user12 confirmed as reliable shopper test account. (5) **File recovery:** MCP push from earlier in session had truncated `sales/[id].tsx` at 1142 lines (ended mid-line). Recovered full 1153-line version from git commit `4f63036` via `git show`, applied fixes with sed, resolved merge conflict, repushed. Vercel green confirmed. (6) **Toast duration ⚠️ STILL UNVERIFIED** — kicked to S339. Files: `pages/sales/[id].tsx`, `components/OrganizerReputation.tsx`, `components/HoldButton.tsx`.
-
-**S337 (2026-03-29):** QA session — HoldButton UX bug fixed + P2 queue. (1) **HoldButton organizer gate — FIXED & PUSHED (sha: ac5264c):** HoldButton was rendering for organizer users; backend blocked with "Organizers cannot place holds." Fix: `if (!user || user.role === 'ORGANIZER') return null` added; `setIsOpen(false)` added to catch block so modal closes on error. TypeScript ✅ zero errors. Vercel deployed (PWA update banner confirmed in Chrome). (2) **HoldTimer countdown — UNVERIFIED:** user11 (Alice Johnson) has ORGANIZER role in Railway DB — cannot place hold to seed a fresh `ItemReservation`. All known test accounts appear to be organizers. HoldButton modal and error toast both verified via JS click. (3) **Toast duration ⚠️:** Toast fires confirmed ("Organizers cannot place holds" error + "Saved!" success both visible). Browser test: "Saved!" toast dismissed before 6s despite code reading 10000ms. Possible stale Vercel build. Needs investigation. (4) **Bare "0" in organizer card — STILL LIVE:** S331/S335 claimed fix, but production still shows bare "0" (unlabeled) below "New Organizer" badge on sale detail organizer card. Raw text node, no label, no stars. Dev fix needed. (5) **Cover photo useEffect — ✅ VERIFIED:** Navigated to edit-sale/cmn9opmza004pij7toox3iibi as Alice Johnson. Cover photo section shows real Cloudinary image (naturalWidth: 200). useEffect sync fix working. (6) **Bug 4, Bug 5, Decision #8 — UNVERIFIED:** Buy Now card persist needs Stripe test mode; reviews aggregate needs seeded reviews; Share native needs mobile viewport. Files changed: `packages/frontend/components/HoldButton.tsx` (MCP-pushed sha: ac5264c).
-
-**S336 (2026-03-28):** S336 smoke test — 4 backend fixes + TS fix. (1) **TS error fixed:** `HoldTimer` prop interface updated to accept both `itemId?: string` (API fetch mode) AND `expiresAt?: string` (direct mode for CartDrawer). Resolves `pages/items/[id].tsx:616` build error. (2) **holdsEnabled toggle ✅ VERIFIED:** Root cause — `holdsEnabled` not in Zod `saleCreateSchema`, silently stripped before DB write. Added `holdsEnabled: z.boolean().optional()` to schema. `saleUpdateSchema` picks it up via `.partial()`. Chrome-verified: toggle now persists false correctly. (3) **QR button hidden from shoppers ✅ VERIFIED:** working as shipped in S335. (4) **Organizer profile dark mode ✅ VERIFIED:** working as shipped in S335. (5) **HoldTimer route made public:** Moved `GET /item/:itemId` before `router.use(authenticate)` in `reservations.ts`. Also removed `if (!req.user) return 401` controller-level guard from `getItemReservation`. Both layers blocked unauthenticated access. (6) **HoldTimer UNVERIFIED:** test item had RESERVED status but no active `ItemReservation` DB record (orphaned). Code is correct. Need fresh hold to verify. (7) **Toast ⚠️:** ToastContext 10000ms confirmed in code. QA agent may have miscounted — re-verify next session. Files: HoldTimer.tsx, saleController.ts, routes/reservations.ts, reservationController.ts.
-
-**S335 (2026-03-28):** QA bug fixes shipped (5 files). (1) **holdsEnabled stale closure fixed:** edit-sale/[id].tsx — `useRef` pattern added so save mutation reads `formDataRef.current` instead of stale closure capture. Toggle now correctly persists false. (2) **Toast duration extended:** ToastContext.tsx 4500ms → 10000ms globally for beta. (3) **QR button gated to organizers:** items/[id].tsx — QR code button hidden from shoppers via `user?.roles?.includes('ORGANIZER')` check. (4) **HoldTimer for shoppers on held items:** items/[id].tsx — replaced static "Check back soon" text with `<HoldTimer>` component showing live countdown. (5) **Organizer profile dark mode:** organizers/[id].tsx — added `dark:bg-gray-900` to page wrapper, fixing white background in dark mode. (6) **Sale page stats dark mode contrast:** sales/[id].tsx — `text-gray-600` → `text-gray-600 dark:text-gray-300` on stats row; orphaned "0" below "New Organizer" badge now labeled.
-
-**S333 (2026-03-28):** Hold Button #13 P1 gaps closed + Railway green. (1) **ItemCard.tsx TS root fix:** Full file audit — added all missing optional fields to legacy `Item` interface (`price`, `photoUrls`, `category`, `condition`, `sale`, `businessName`, `_count`, `rankingIndex`) eliminating union type errors without casting. (2) **Hold Button P1 gaps all closed:** GPS radii by sale type (ESTATE 250m, YARD/FLEA_MARKET 150m, AUCTION 400m), rank-based hold duration (Initiate/Scout 30min, Ranger 45min, Sage 60min, Grandmaster 90min), en route grace 10mi with rank-limited holds (1/2/3), per-sale `holdsEnabled` toggle on Sale model with `placeHold()` gate. (3) **Schema additions:** `holdsEnabled Boolean @default(true)` on Sale, `enRoute Boolean @default(false)` on ItemReservation. 2 new migrations. (4) **Railway fixes:** Removed invalid `user.tier` from Prisma include; replaced `DEFAULT_HOLD_HOURS` reference with inline `48` in batchUpdateHolds extend action. (5) **Frontend wired:** HoldButton + HoldTimer stubs pushed; HoldButton wired into items/[id].tsx below Buy It Now for AVAILABLE non-auction items with cache invalidation on success. (6) **QA queue deferred to S334.** Files: ItemCard.tsx, schema.prisma, migration x2, reservationController.ts, items/[id].tsx, HoldButton.tsx, HoldTimer.tsx, STATE.md, patrick-dashboard.md.
-
-**S332 (2026-03-28):** Hold Button #13 board review + design finalization + foundation build. Full board 12/12 + 1 advisory unanimous GO. Design locked: QR check-in primary, GPS fallback by sale type (150/250/400m), rank-gated durations (30/45/60/90min), en route grace, natural expiry. 6 decisions locked in decisions-log.md. Business model: free, no Hunt Pass, no deposit. Foundation shipped: schema (SaleCheckin + OrganizerHoldSettings), GPS haversine, QR validation, sync fraud detection, organizer settings endpoints, cron 10min. ItemCard.tsx TS union type fixes shipped. 4 P1 gaps remain for S333 (sale-type radii, rank duration, en route logic, per-sale toggle). Frontend stubs not pushed.
-
-**S331 COMPLETE (2026-03-28):** Sale page bug fixes + decisions shipped + ItemCard Phase 1 + UX specs. 8 bugs fixed (dark mode stats, stray badge "0", Buy Now card persist, reviews count aggregate, plan route verified, location card reposition, cover photo useEffect). 5 decisions shipped (#8 Share/native API, #9 Remind Me/email, #11 QR code hidden, #12 Reviews summary, #14 ItemCard Phase 1). ItemCard.tsx unified + trending.tsx migrated. Save/Wishlist UX spec ready. Files: sales/[id].tsx, CheckoutModal.tsx, SaleCoverPhotoManager.tsx, OrganizerReputation.tsx, ReviewsSection.tsx, reviewController.ts, ItemCard.tsx, trending.tsx, 2 UX specs, docs.
-
-**S330 COMPLETE (2026-03-28):** Desktop nav search + map sale type filter + edit-sale cover photo. Desktop nav search ✅ (Layout.tsx, expands input on click, Escape/blur collapse, submits `/?q=<term>`). Map sale type filter ✅ (6 pills: All/Estate/Yard/Auction/Flea/Consignment, Chrome-verified). Edit-sale cover photo section built (SaleCoverPhotoManager.tsx + integration). Cover photo useState bug found (P2 useEffect sync fix).
-
-**S329 COMPLETE (2026-03-28):** Discovery page photo fixes + two P3 fixes. (1) **Trending photos:** `getTrendingItems` backend was missing `photoUrls` in Prisma select; frontend interface referenced `photos[0].url` instead of `photoUrls[0]`. Fixed both — items with photos now render. (2) **Inspiration Gallery:** InspirationGrid.tsx had an `absolute inset-0` "Image unavailable" overlay that was unconditionally rendered on top of every card even when images loaded. Fixed with `imageErrors` Set state — overlay now only shows on `onError`. TS fix: `new Set(prev); next.add(itemId)` to avoid Set spread downlevelIteration error. (3) **Duplicate category filter pills:** Normalized category to `.toLowerCase()` before grouping in `sales/[id].tsx`. (4) **Item detail cart/views counts:** `getItemById` now queries `checkoutAttempts` and returns computed `cartCount`; `views` returns 0 (no view-tracking table yet). (5) `next.config.js`: added `picsum.photos` to image domains + CSP (later confirmed irrelevant — real issue was the overlay bug). Files: trendingController.ts, trending.tsx, sales/[id].tsx, itemController.ts, next.config.js, InspirationGrid.tsx. Chrome-verified: Inspiration ✅ (ss_3444tt102), category pills ✅ (ss_9986zybr4), cart/views counts ✅ (ss_0398yzw9c).
-
-**S328 COMPLETE (2026-03-28):** Full product audit + 2 backend fixes. (1) **P2 draft counter fix:** Added `draftStatus: true` to `getItemsBySaleId` select clause in itemController.ts. Frontend `computeDraftStatus` now uses real DB field. Chrome-verified: "15 items • 14 published" (correct). (2) **conditionGrade + tags fix:** Added `conditionGrade: true` and `tags: true` to `getItemById` select clause. Chrome-verified: Edit Item page loads grade "B" highlighted + 7 tags with remove buttons. (3) **Edit Item / Review & Publish parity:** Dev dispatched to add Condition Grade (S/A/B/C/D), Tags (curated grid + custom), Suggest Price, Publish/Unpublish button to edit-item page. All deployed and working. (4) **Single-item Publish verified:** Camera-captured lighter → AI auto-tagged → Review & Publish → single-item Publish → moved to published. S326 fix confirmed. (5) **QA Test Item deleted** via live site. (6) **Full product audit (organizer + shopper flows):** Feed ✅, Map ✅, Trending Hot Sales ✅, Sale Detail ✅, Organizer Dashboard ✅, Shopper Dashboard ✅, Item Detail ✅. **3 bugs found:** P1 item photos broken on Trending "Most Wanted" + Inspiration Gallery (cardboard box placeholders), P3 duplicate category filter pills, P3 item detail missing view/cart counts. Files: itemController.ts (2 select clause fixes), edit-item/[id].tsx (conditionGrade, tags, publish/unpublish).
-
-**S327 COMPLETE (2026-03-28):** S326 smoke test session. (1) **Buyer Preview Cloudinary photos ✅ VERIFIED** — all item cards on public sale page show real Cloudinary photos with correct aspect ratios. `ar_4:3` fix confirmed working. (2) **Review & Publish hooks fix ✅ VERIFIED** — page correctly handles static export empty `router.query`. Performance API confirms `/api/items/drafts?saleId=...` fires after hydration. Shows "0 items" because all items are AVAILABLE (no DRAFT items). Hooks violation and early-return bugs both fixed. (3) **Single-item Publish button — UNVERIFIED** — no DRAFT items exist to test against. Manual Entry creates items as AVAILABLE, skipping draft pipeline entirely. (4) **New P2 found:** Add Items page subtitle says "14 items • 1 draft" but all items show AVAILABLE in table and `/items/drafts` returns empty — draft counter is wrong. (5) **Review & Publish P1 bug from S327 (now fixed):** React Rules of Hooks violation — early returns before `useQuery`/`useMutation` hooks + static export `router.query = {}`. Fixed by moving all guards after hooks and using `enabled: !!saleId`. Deployed and verified working. No files changed this session — QA only.
-
-**S325 COMPLETE (2026-03-28):** S324 thumbnail fix smoke test — comprehensive live-site QA of photo rendering across 16+ surfaces. (1) Thumbnail fix confirmed working: Cloudinary photos render without hard refresh on sale pages, item detail, search results, map popups, category grids, feed cards, organizer dashboards, add-items table, edit-item. (2) Service Worker fix verified: added Cloudinary `StaleWhileRevalidate` route to runtimeCaching + `connect-src` CSP for SW fetch in next.config.js. Removed stale custom sw.js. (3) Camera (AI) full pipeline tested: Rapidfire capture, Regular multi-angle (1/5, 2/5), mode switching, thumbnail → Review Item modal with AI-generated fields (title, description, price, category, condition, tags), Done Reviewing (save toast), Enhance, camera switch, → Pub button, close. All working end-to-end with real Cloudinary uploads. (4) **P1 bug found:** Buyer Preview card component shows camera placeholder icon instead of actual Cloudinary photo for DRAFT/PENDING items. Photo exists everywhere else. (5) P2 finding: nav search bar doesn't trigger search. (6) Finding: edit-sale missing cover photo section. No code changes this session — QA only. 3 test items created (lighters) need cleanup.
-
-**S324 COMPLETE (2026-03-28):** Sitewide thumbnail first-load fix. SaleCard.tsx `useEffect` resets imgLoaded/imgError on URL change + `key={optimizedUrl}`; [saleId].tsx + review.tsx `key={item.photoUrls[0]}` on thumbnail imgs. Service Worker runtimeCaching updated for Cloudinary `StaleWhileRevalidate`. CSP connect-src added. Stale custom sw.js removed. Smoke tests: mobile nav ✅, homepage search ✅, sale type filters ✅, Publish All SIMPLE ✅. Files: next.config.js, SaleCard.tsx (prior session), [saleId].tsx, review.tsx, sw.js (deleted).
-
-**S319 COMPLETE (2026-03-28):** 6 fixes shipped + reseed + shopper walkthrough. (1) "All items sold or reserved" banner fixed: `ACTIVE` → `AVAILABLE` + removed non-existent `PENDING` from soldCount in sales/[id].tsx. (2) Reseeded Railway with 17 real Cloudinary photos — picsum removed from seed.ts entirely. (3) Message compose footer fixed: `_app.tsx` supports `getLayout` pattern; messages/[id].tsx uses `noFooter={true}` (Chrome-verified ss_1731k6do9). (4) Badge loading P1 fixed: `/users/me/points` endpoint was missing — added `getBadges` controller + route (Chrome-verified ss_80947s2pv). (5) Badge empty state fixed: profile.tsx was rendering 3 dashed blank placeholder boxes when badges=[] — replaced with "No badges yet / Start shopping to earn your first badge!" (QA honesty failure caught by Patrick from screenshot). (6) Shopper walkthrough QA: likes ✅, profile ✅, Loot Legend ✅, Hunt Pass ✅

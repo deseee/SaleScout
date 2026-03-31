@@ -2,21 +2,21 @@
 
 ---
 
-## ✅ S353 Complete — Nav fixed, stats wired, UX skill gap identified
+## ✅ S354 Complete — UX skill rebuilt + Dashboard State 2 redesigned
 
 ---
 
-## What Happened This Session (S353)
+## What Happened This Session (S354)
 
-**Dashboard stats:** Items Listed, Visitors Today, Active Holds now show real data. Was fetched but never rendered.
+**findasale-ux skill rewritten:** The old skill produced data-display specs instead of workflow specs. New version has 4 mandatory gates: Job-to-be-Done (what is the user trying to DO in 30-60s), Code-First (read API/schema before speccing data), Action-First (every section needs a user action), No-Redundancy (no nav link duplicated as a dashboard card). New .skill file installed.
 
-**Mobile nav:** Now mirrors desktop. Organizer collapsibles (Your Sales, Selling Tools, Pro Tools) + shopper sections (My Collection, Explore & Connect with all subitems + Coming Soon badges) all present. Orphaned Payouts/Insights/Workspace items removed.
-
-**Gamification:** Hunt Pass CTA is rank-aware — different hook per rank instead of generic copy.
-
-**Deployment verified:** All code on GitHub ✅, all Railway migrations deployed ✅, all env vars confirmed set (STRIPE_WEBHOOK_SECRET, MAILERLITE_SHOPPERS_GROUP_ID, RESEND_API_KEY, RESEND_FROM_EMAIL) ✅.
-
-**UX skill problem identified:** The dashboard still has fundamental workflow problems (redundant cards, wrong-sale revenue, dead tier progress). Root cause is the findasale-ux skill doesn't enforce workflow-first thinking. S354 starts with a skill rewrite before any more dashboard dev.
+**Dashboard State 2 redesigned:**
+- Sale Status Widget: urgency tags (red <6h, orange <24h), context-aware primary button
+- Next Action Zone: 6-condition logic tree (replaces vague "recommended action")
+- Real-Time Metrics: LIVE 4-col / DRAFT 3-col, wired to real statsData
+- Selling Tools: static 6-item menu → 4 dynamic state-aware tools (different set for DRAFT vs LIVE)
+- Tier card: full card removed → compact single-line badge + link
+- Earnings alert: green banner shows only when payout is available
 
 ---
 
@@ -26,10 +26,9 @@
 cd C:\Users\desee\ClaudeProjects\FindaSale
 git add claude_docs/STATE.md
 git add claude_docs/patrick-dashboard.md
-git add packages/frontend/components/Layout.tsx
+git add packages/backend/src/routes/organizers.ts
 git add packages/frontend/pages/organizer/dashboard.tsx
-git add packages/frontend/pages/shopper/dashboard.tsx
-git commit -m "S353: fix dashboard dead space, nav mirroring, mobile shopper nav, rank-aware gamification"
+git commit -m "S354: findasale-ux skill rewrite + Dashboard State 2 redesign (state-aware tools, Next Action Zone, real metrics)"
 .\push.ps1
 ```
 
@@ -41,13 +40,14 @@ git commit -m "S353: fix dashboard dead space, nav mirroring, mobile shopper nav
 - **All migrations:** Deployed ✅
 - **Railway env vars:** All confirmed ✅
 - **BROKEN section:** Clear
-- **Dashboard:** Stats real, nav mirrored — workflow redesign still needed (S354)
+- **Dashboard:** State 2 redesigned — pending Chrome QA after deploy
+- **findasale-ux skill:** Rebuilt with workflow-first gates — installed S354
 - **QA queue:** Hold-to-Pay E2E + S344/S346/S347 backlog (~30 features)
 
 ---
 
 ## Open Action Items for Patrick
 
-- [ ] **Run S353 push block above**
+- [ ] **Run S354 push block above**
 - [ ] **Trademark decision (#82):** File USPTO trademark for FindA.Sale? ~$250–400/class
 - [ ] **Trade secrets (#83):** Document proprietary algorithms + NDA review
