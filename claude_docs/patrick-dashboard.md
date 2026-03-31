@@ -1,62 +1,80 @@
-# Patrick's Dashboard — S360 Complete (2026-03-31)
+# Patrick's Dashboard — S361 Complete (2026-03-31)
 
 ---
 
-## ✅ S360 Done — Railway unblocked + #48 Chrome-verified
+## ✅ S361 Done — Camera UX polished + P3 fixes + null byte sweep
 
 ---
 
-## What Happened This Session (S360)
+## What Happened This Session (S361)
 
-**Railway unblocked (TS1127):** Two backend files had null bytes stuffed at the end from prior MCP pushes, causing TypeScript to choke on build. `followerNotificationService.ts` and `notificationInboxController.ts` both had this issue. Stripped the null bytes and pushed clean versions. Railway is green.
+**Camera AI feedback loop fixed:** After capturing a photo in Rapidfire mode, the AI status was completely invisible. Root cause: the quality overlays (too dark, overexposed warnings) were rendering in page JSX, hidden behind the full-screen camera overlay. Fixed: overlays now render inside the camera via a `qualityOverlay` prop. Added polling logic that watches for the item's DRAFT→PENDING_REVIEW transition every 3 seconds, updating the carousel badge in real time.
 
-**#48 Treasure Trail ✅ Verified in browser:** Trail detail page now loads correctly. Navigated to `finda.sale/shopper/trails/cmnf1tje1000b12dr4j2n55hm` as Bob Smith — "Grand Rapids Saturday Run" rendered with description, stops count, and Edit/Delete buttons. Network confirmed `GET /api/trails → 200` (was hitting `/api/api/trails → 404` before the fix). Done.
+**Brightness threshold fixed:** The "too dark" warning was firing on normal indoor photos. The threshold was set at 40 (normalized 0–100) — way too aggressive. Lowered to 15, which means it only fires on genuinely pitch-black scenes. You should barely see it trigger in normal conditions.
 
-**Vercel deployment unblocked:** Vercel was sitting on old code even though the fix was on GitHub. Vercel's "Redeploy" button reruns old source — it doesn't pull fresh from GitHub. The only way to force a fresh build is a new commit + push. Used a Dockerfile comment update as the trigger. This is worth knowing for future deploys.
+**Camera UX improvements:**
+- "→ Pub" button removed from the in-camera thumbnail strip — it was doing the same thing as tapping a thumbnail (opening the review screen), and there's already a Review button at the top of the camera view
+- Thumbnails are now 96×96px (was 80×80px) — bigger, easier to see what's in each shot
+- The "+" button to add more photos to an item is now larger (32×32px, larger tap target)
+- PENDING_REVIEW items now show a green "Ready ✓" strip at the bottom of the thumbnail — much clearer than the small green circle
+- Auto-enhance is working correctly: applies brightness +15% and saturation +10%. The ✨ badge shows when it ran. The effect is intentionally subtle.
+
+**P3 fixes completed:**
+- CSV import: was rejecting all rows when status/category columns were blank. Now converts empty strings to "not provided" before validation.
+- Organizer settings: Business Name field was blank every time you opened the page. Now loads correctly from the API.
+
+**Null byte sweep:** Found that many frontend TypeScript files had null bytes appended at the end (a recurring side effect of how files get written). Did a full sweep across all frontend and shared files. TypeScript compiler is now clean — zero TS1127 errors across the codebase (except one unrelated pre-existing issue in a trails page).
 
 ---
 
 ## Your Action Now
 
+First run `git diff --name-only` to see all changed files, then:
+
 ```powershell
 git add claude_docs/STATE.md
 git add claude_docs/patrick-dashboard.md
+git add packages/frontend/pages/organizer/add-items/[saleId].tsx
+git add packages/frontend/components/RapidCapture.tsx
+git add packages/frontend/components/camera/RapidCarousel.tsx
+git add packages/backend/src/controllers/itemController.ts
+git add packages/frontend/pages/organizer/settings.tsx
+git add packages/frontend/components/ActivityFeed.tsx
+git add packages/frontend/tsconfig.json
+git add packages/shared/src/constants/tagVocabulary.ts
 git add packages/frontend/pages/shopper/notifications.tsx
-git commit -m "fix(#37): notification page tab styling + S360 wrap"
+REM Also add any other files shown by git diff --name-only
+git commit -m "fix(camera): UX polish, brightness threshold, Pub button removed, thumbnails enlarged; fix(p3): CSV Zod, biz name, typology refresh; fix: null byte sweep"
 .\push.ps1
 ```
-
-*(notifications.tsx is the last #37 file — tab styling fix — that never got pushed. The two backend fixes were already pushed in S360.)*
 
 ---
 
 ## Status Summary
 
-- **Vercel:** ✅ Green
+- **Vercel:** ✅ Green (last known)
 - **Railway:** ✅ Green
 - **All migrations:** ✅ Deployed
 - **All Railway env vars:** ✅ Confirmed
 
 ---
 
-## Next Up (S361) — AI Tagging Diagnostic First
+## Next Up (S362)
 
-**P1 — Camera AI tagging is silent/broken.** When you capture a photo in camera mode, there's no spinner showing AI is running, no confidence result, and no error if limits are hit. Something in the S351 camera refactor (the lighting tiers + shot sequence work) broke the feedback loop. S361 starts with a code read to find the break point, then a dev fix.
+**QA camera flow after push deploys** — verify: amber spinner during AI, green "Ready ✓" on completion, → Pub button gone, bigger thumbnails visible.
 
-**Then continue QA backlog:**
-- #37 Sale Alerts — browser verify after today's push deploys
+**Continue QA backlog:**
+- #37 Sale Alerts — after notifications.tsx deploys
 - #199 User Profile dark mode
 - #58 Achievement Badges
 - #29 Loyalty Passport
 - #213 Hunt Pass CTA
 - #131 Share Templates
 
-**P2 dev dispatches still queued:** CSV import Zod fix, typology classify no UI refresh, Business Name blank on organizer settings, social fields on public organizer profile, #177 Buy Now modal UX gap.
-
 ---
 
 ## Open Action Items for Patrick
 
-- [ ] **Run push block above** (notifications.tsx + wrap docs)
+- [ ] **Run push block above** (camera UX + P3 + wrap docs)
 - [ ] **Trademark decision (#82):** File USPTO trademark for FindA.Sale? ~$250–400/class
 - [ ] **Trade secrets (#83):** Document proprietary algorithms + NDA review

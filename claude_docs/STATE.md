@@ -164,17 +164,80 @@ All pushed. Vercel ✅ Railway ✅.
 
 ---
 
-## Next Session (S361)
+**S361 COMPLETE (2026-03-31):** Camera UX + P3 fixes + null byte sweep.
 
-### Patrick Action Required FIRST
-Push notifications.tsx (#37 styling fix — still local only):
+(1) **AI tagging flow fixed (P1):** Root cause: S351 tiered lighting checks + shot guidance all rendered in page JSX, invisible behind full-screen camera overlay. Fix: quality overlays moved INSIDE RapidCapture via `qualityOverlay` prop. `pollForAI(itemId)` added — polls `GET /items/:id` every 3s for 30s, updates carousel badge DRAFT→PENDING_REVIEW. `processAndUploadRapidPhoto()` no longer blocks flow: Tier 2 shows toast + continues, Tier 3 no longer calls `setCameraOpen(false)`.
+
+(2) **Brightness threshold false positives fixed:** Tier 3 `< 40` fired on all normal indoor photos. Lowered to `< 15` (pitch black only). Normal indoor photos (avg 25–97%) now solidly Tier 1.
+
+(3) **Camera UX improvements shipped:**
+- "→ Pub" button removed from RapidCapture.tsx thumbnail strip (was redundant with Review button + thumbnail tap)
+- Thumbnails enlarged: `w-20 h-20` → `w-24 h-24` (96×96px)
+- "+" button enlarged: `w-6 h-6` → `w-8 h-8` with `text-lg`
+- Green "Ready ✓" strip added at bottom of PENDING_REVIEW thumbnails (full-width, `bg-green-500/90`)
+- Title/category truncate widths updated to `w-24`
+- Auto-enhance: confirmed working (`brightness(1.15) saturate(1.1)`), ✨ badge correct
+
+(4) **P3 fixes shipped (local only — in Patrick's push block):**
+- `itemController.ts`: CSV Zod empty string → `undefined` conversion
+- `settings.tsx`: Business name loads from `/organizers/me` API
+- `[saleId].tsx`: Brightness threshold lowered
+
+(5) **Null byte sweep (global):** `find ... | xargs perl -pi -e 's/\x00//g'` run across all .ts/.tsx files in frontend + shared. tsconfig.json also fixed. Zero TS1127 errors remaining (only pre-existing [trailId].tsx JSX tag mismatch unrelated). useTypology.ts was already fixed via MCP (commit e6e71fde, S361 earlier).
+
+Files changed S361:
+- `packages/frontend/pages/organizer/add-items/[saleId].tsx` — brightness fix + pollForAI + quality overlay prop
+- `packages/frontend/components/RapidCapture.tsx` — → Pub button removed, qualityOverlay prop added
+- `packages/frontend/components/camera/RapidCarousel.tsx` — thumbnails larger, + button larger, Ready ✓ strip
+- `packages/backend/src/controllers/itemController.ts` — CSV Zod fix
+- `packages/frontend/pages/organizer/settings.tsx` — biz name fix
+- `packages/frontend/hooks/useTypology.ts` — null bytes + UI refresh invalidation (pushed via MCP e6e71fde)
+- Null bytes stripped from many frontend/shared files (ActivityFeed.tsx, ActivitySummary.tsx, tsconfig.json, tagVocabulary.ts, + others via batch)
+
+---
+
+## Next Session (S362)
+
+### Patrick Action Required — Push S361 changes
+Run `git diff --name-only` first to see everything that changed (null byte sweep may have touched more files). Then:
 ```powershell
 git add claude_docs/STATE.md
 git add claude_docs/patrick-dashboard.md
+git add packages/frontend/pages/organizer/add-items/[saleId].tsx
+git add packages/frontend/components/RapidCapture.tsx
+git add packages/frontend/components/camera/RapidCarousel.tsx
+git add packages/backend/src/controllers/itemController.ts
+git add packages/frontend/pages/organizer/settings.tsx
+git add packages/frontend/components/ActivityFeed.tsx
+git add packages/frontend/tsconfig.json
+git add packages/shared/src/constants/tagVocabulary.ts
 git add packages/frontend/pages/shopper/notifications.tsx
-git commit -m "fix(#37): notification page tab styling"
+REM Also: git add any other files shown by git diff --name-only
+git commit -m "fix(camera): UX polish, brightness threshold, → Pub removed, thumbnails enlarged; fix(p3): CSV Zod empty string, biz name, typology refresh; fix: null byte sweep frontend/shared"
 .\push.ps1
 ```
+
+### S362 Priority 1 — QA camera workflow live
+After the push deploys:
+- Open Rapidfire mode, capture photos, verify: spinning ◐ amber badge during AI, green "Ready ✓" strip on completion
+- Verify "→ Pub" button is gone
+- Verify thumbnails are noticeably bigger
+- Test brightness detection: shoot something bright vs dark, confirm Tier 3 only fires in pitch black
+
+### S362 Priority 2 — QA backlog
+- **#37 Sale Alerts** — after notifications.tsx push deploys: verify Alerts tab
+- **#199 User Profile dark mode** — `/shoppers/...` in dark mode
+- **#58 Achievement Badges** — `/shopper/achievements` + dashboard widget
+- **#29 Loyalty Passport** — `/shopper/loyalty`
+- **#213 Hunt Pass CTA** — visible for non-pass users only
+- **#131 Share Templates** — Facebook, Nextdoor, Threads, Pinterest, TikTok
+
+### S362 Notes
+- All Railway env vars ✅. All migrations deployed ✅.
+- Railway backend: https://backend-production-153c9.up.railway.app
+- Test accounts: user2 (organizer SIMPLE), user3 Carol Williams (TEAMS), user11 Karen Anderson (shopper), user12 Leo Thomas (shopper). All passwords: password123
+- trailId.tsx JSX closing tag mismatch is a pre-existing issue (unrelated to null byte fix)
+- Auto-enhance in camera applies brightness(1.15) saturate(1.1) — subtle by design
 
 ### S361 Priority 1 — DIAGNOSTIC: AI Tagging Broken in Camera Workflow
 
