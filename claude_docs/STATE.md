@@ -7,17 +7,22 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Current Work
 
-**S356 IN PROGRESS (2026-03-31):** Continued Chrome QA from S355. 3 pre-compression fixes verified/pending + 1 new bug diagnosed + fixed.
+**S357 COMPLETE (2026-03-31):** Shopper page consolidation — purchases/receipts/loot-log → /shopper/history. Continuation from S356 context limit.
 
-QA Results:
-- ✅ **#157 Pickup Scheduling** — Chrome-verified user2. "+ Add Pickup Slot" button has `type="button"`, stays on edit-sale page when clicked, slot form opens with 6 date/time inputs.
-- ✅ **#212 Leaderboard** — Chrome-verified user12. `/shopper/leaderboard` loads. `/api/xp/leaderboard` returns 200 empty array (no XP data in test env yet). Correct empty state shown.
-- ✅ **#177 Sale Detail Page** — Chrome-verified user12. Sale info, items, prices, SOLD/RESERVED/AVAILABLE badges all render. Item detail page navigates correctly. Buy Now → "Complete Purchase" modal opens. ⚠️ UX gap: modal missing item name/price confirmation.
-- ⏳ **#153 Organizer Profile social fields** — Fix on GitHub (commit a60e912, 13:19 UTC) but Railway not deploying. facebook/instagram/etsy absent from live API. Cache-bust pushed (commit 994ba10, 13:59 UTC). PENDING RAILWAY DEPLOY.
-- ⏳ **#41 Flip Report ownership fix** — Fix on GitHub (commit 9ec5ea1, 13:23 UTC) but Railway not deploying. PENDING RAILWAY DEPLOY (same Railway issue as above).
-- ✅ **#80 Purchase Confirmation — diagnosed + fixed.** `GET /api/users/purchases` was missing `sale.organizer.businessName` (causing "From: [blank]") and `createdAt`/`updatedAt` serializing as `{}` (causing "Purchased [blank]"). Dev dispatch complete: `packages/backend/src/controllers/userController.ts` updated — `organizer: { select: { businessName: true } }` added to sale include, dates mapped to `.toISOString()`. **NEEDS PUSH + Railway deploy.**
+Changes:
+- `packages/frontend/pages/shopper/history.tsx` (NEW — 397 lines): consolidated page with List/Gallery/Receipts view tabs, URL query param `?view=list|gallery|receipts`, fetches all 3 data sources
+- `packages/frontend/pages/shopper/loot-log/[purchaseId].tsx` (MODIFIED): back-link updated → /shopper/history, title "My History"
+- `packages/frontend/components/Layout.tsx` (MODIFIED): 3 nav entries updated href → /shopper/history, label → "My History"; also fixed truncated `export default Layou` → `export default Layout`
+- `packages/frontend/components/AvatarDropdown.tsx` (MODIFIED): 1 nav entry updated href + label
+- `packages/frontend/pages/shopper/dashboard.tsx` (MODIFIED): 2 Quick Link buttons (Loot Log + Receipts) → 1 "My History" button
 
-⚠️ **Railway deploy stuck:** 4 commits pushed 13:11–13:59 UTC, backend still running old code. Patrick should check Railway dashboard for build status/failures.
+Delete via push block: `purchases.tsx`, `receipts.tsx`, `loot-log.tsx`
+Preserved: `loot-log/[purchaseId].tsx` (reused as detail page), `loot-log/public/[userId].tsx` (external share URL)
+
+⚠️ **S356 carry-over still pending push + Railway:**
+- ⏳ **#153 Organizer Profile social fields** — code on GitHub (a60e912 + cache-bust 994ba10), Railway not deployed
+- ⏳ **#41 Flip Report ownership** — code on GitHub (9ec5ea1), Railway not deployed
+- ⏳ **#80 Purchase Confirmation** — `packages/backend/src/controllers/userController.ts` edited locally, NEEDS PUSH
 
 **S355 COMPLETE (2026-03-31):** Live Chrome QA of S344 backlog + 2 bug fixes dispatched. QA results: ✅ #7 Referral — renders at /referral-dashboard (no nav link yet); ✅ #89 Print Kit — toast fires correctly; ✅ #149 Remind Me by Email — fires, toggles to Cancel Reminder; ✅ #62 Digital Receipts — page renders, empty state correct; ❌ #184 iCal — FIXED (changed relative path to NEXT_PUBLIC_API_URL); ⚠️ #41 Flip Report — PRO gate correct for SIMPLE user, ownership bug fixed in code. Files: packages/frontend/pages/sales/[id].tsx (iCal), packages/backend/src/controllers/authController.ts (Hunt Pass JWT), packages/frontend/pages/organizer/dashboard.tsx (dedup stats).
 
@@ -99,35 +104,42 @@ QA Results:
 
 ---
 
-## Next Session (S357)
+## Next Session (S358)
 
-### S357 Priority 1: Push S356 fix + check Railway (Patrick action first)
+### S358 Priority 1: Push S357 consolidation (Patrick action first)
 
 ```powershell
 cd C:\Users\desee\ClaudeProjects\FindaSale
 git add claude_docs/STATE.md
 git add claude_docs/patrick-dashboard.md
+git add packages/frontend/pages/shopper/history.tsx
+git add packages/frontend/pages/shopper/loot-log/[purchaseId].tsx
+git add packages/frontend/components/Layout.tsx
+git add packages/frontend/components/AvatarDropdown.tsx
+git add packages/frontend/pages/shopper/dashboard.tsx
 git add packages/backend/src/controllers/userController.ts
-git commit -m "S356: fix #80 purchases API — add sale.organizer.businessName + fix createdAt serialization"
+git rm packages/frontend/pages/shopper/purchases.tsx
+git rm packages/frontend/pages/shopper/receipts.tsx
+git rm packages/frontend/pages/shopper/loot-log.tsx
+git commit -m "S357: consolidate purchases/receipts/loot-log into /shopper/history; fix #80 purchases API"
 .\push.ps1
 ```
 
-⚠️ Then check Railway dashboard at railway.app — the backend has not redeployed after 4 commits today (13:11–13:59 UTC). Look for build failures. The #153 (social fields) and #41 (flip report ownership) fixes are in GitHub but not live.
+⚠️ Then check Railway dashboard at railway.app — backend has been stuck since multiple commits 13:11–13:59 UTC. #153 and #41 fixes are in GitHub but not live.
 
-### S357 Priority 2: Verify after Railway deploys
-After Railway is confirmed green:
-- ✅ Verify #153 Organizer Profile social fields — `/organizer/settings` profile tab should populate facebook/instagram/etsy inputs with saved values (currently blank for all organizers)
-- ✅ Verify #41 Flip Report — as PRO organizer (user3 = Carol Williams, TEAMS tier), navigate to completed sale flip report. Should return 200 not 403.
-- ✅ Verify #80 Purchase Confirmation — as user11 (Karen Anderson), `/shopper/purchases` — "From: [organizer name]" and "Purchased [date]" should now render correctly.
+### S358 Priority 2: Verify after Railway deploys
+- ✅ Verify #153 Organizer Profile social fields — `/organizer/settings` profile tab should show facebook/instagram/etsy inputs
+- ✅ Verify #41 Flip Report — as user3 (Carol Williams, TEAMS), navigate to completed sale flip report. Should return 200 not 403.
+- ✅ Verify #80 — as user11 (Karen Anderson), `/shopper/history` → "From: [organizer name]" and "Purchased [date]" should render correctly
+- ✅ Verify /shopper/history page loads with 3 view tabs
 
-### S357 Priority 3: Continue QA backlog
-Remaining from S355 queue:
+### S358 Priority 3: Continue QA backlog
 - #37 (Sale Alerts), #46 (Typology Classifier), #48 (Treasure Trail), #199 (User Profile), #58 (Achievement Badges), #29 (Loyalty Passport), #213 (Hunt Pass CTA), #131 (Share Templates)
+- #177 Buy Now modal ⚠️ UX gap: "Complete Purchase" modal shows no item name or price — flag to findasale-ux for spec
 
-### S357 Notes
+### S358 Notes
 - All Railway env vars confirmed ✅. All migrations deployed ✅. Sage threshold 2500 XP (beta only).
 - Railway backend URL: https://backend-production-153c9.up.railway.app
 - Test accounts: user2 = organizer (SIMPLE), user3 = Carol Williams (TEAMS), user11 = Karen Anderson (shopper), user12 = Leo Thomas (shopper). All passwords: password123
-- Login via Railway backend directly: POST https://backend-production-153c9.up.railway.app/api/auth/login (NOT /api/auth/login on Vercel — NextAuth intercepts that)
-- #177 Buy Now modal ⚠️ UX gap: "Complete Purchase" modal shows no item name or price — flag to findasale-ux for spec
+- Login via Railway backend directly: POST https://backend-production-153c9.up.railway.app/api/auth/login
 

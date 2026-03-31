@@ -2,53 +2,63 @@
 
 ---
 
-## ⚠️ S356 Complete — QA + 3 fixes verified + Railway stuck
+## ⚠️ S357 Complete — Shopper page consolidation shipped + Railway still stuck
 
 ---
 
-## What Happened This Session (S356)
+## What Happened This Session (S357)
 
-**Chrome QA completed across 4 features:**
-- ✅ **#157 Pickup Scheduling** — "+ Add Pickup Slot" button now correctly opens the form (was redirecting to dashboard). Live on Vercel.
-- ✅ **#212 Leaderboard** — Page loads correctly, correct empty state, API working.
-- ✅ **#177 Sale Detail Page** — Items, prices, statuses all render. Buy Now modal opens. ⚠️ Modal doesn't show item name or price — minor UX gap.
-- ✅ **#80 Purchase Confirmation diagnosed + fixed** — "/shopper/purchases" was showing "From: [blank]" and "Purchased [blank]". Root cause: API missing organizer name + dates serializing as `{}`. Fix written to `userController.ts`. **Needs your push (see below).**
+**Consolidated 3 redundant shopper pages into one:**
+- **Before:** `/shopper/purchases`, `/shopper/receipts`, `/shopper/loot-log` — all showed purchase data from slightly different angles
+- **After:** `/shopper/history` — single page, 3 view tabs (List / Gallery / Receipts), one nav entry "My History"
+- Detail page: existing `/shopper/loot-log/[purchaseId]` reused, back-link updated to "My History"
+- **Also fixed:** Layout.tsx had a truncated `export default Layou` (missing `t`) causing a TypeScript build error — fixed
 
-**Railway appears stuck:** 4 commits were pushed today (13:11–13:59 UTC) including fixes for #153 (organizer social fields) and #41 (flip report). Vercel deployed fine. Railway has not updated. Cache-bust commit was pushed to force rebuild — check Railway dashboard if it's still not building.
+**Files changed:**
+- `history.tsx` — NEW (397 lines, 3-view consolidated page)
+- `loot-log/[purchaseId].tsx` — back-link updated
+- `Layout.tsx` — 3 nav links updated + truncation fix
+- `AvatarDropdown.tsx` — 1 nav link updated
+- `dashboard.tsx` — 2 Quick Links → 1 "My History"
+- Delete: `purchases.tsx`, `receipts.tsx`, `loot-log.tsx`
 
 ---
 
-## Your Actions Now
+## Your Action Now — Push Everything
 
-**Step 1 — Push S356 fix:**
 ```powershell
 cd C:\Users\desee\ClaudeProjects\FindaSale
 git add claude_docs/STATE.md
 git add claude_docs/patrick-dashboard.md
+git add packages/frontend/pages/shopper/history.tsx
+git add packages/frontend/pages/shopper/loot-log/[purchaseId].tsx
+git add packages/frontend/components/Layout.tsx
+git add packages/frontend/components/AvatarDropdown.tsx
+git add packages/frontend/pages/shopper/dashboard.tsx
 git add packages/backend/src/controllers/userController.ts
-git commit -m "S356: fix #80 purchases API — add sale.organizer.businessName + fix createdAt serialization"
+git rm packages/frontend/pages/shopper/purchases.tsx
+git rm packages/frontend/pages/shopper/receipts.tsx
+git rm packages/frontend/pages/shopper/loot-log.tsx
+git commit -m "S357: consolidate purchases/receipts/loot-log into /shopper/history; fix #80 purchases API"
 .\push.ps1
 ```
 
-**Step 2 — Check Railway dashboard:**
-Go to railway.app → your project → check if the backend service has any failed builds since 13:11 UTC today. If a build failed, check the logs for the error. The #153 and #41 fixes are confirmed in GitHub but not live on the backend yet.
+Then check Railway dashboard — backend still appears stuck from S356 commits (13:11–13:59 UTC). #153 and #41 fixes are in GitHub but not live.
 
 ---
 
 ## Status Summary
 
 - **Vercel:** ✅ Deploying normally
-- **Railway:** ⚠️ Appears stuck — check dashboard for build failures
+- **Railway:** ⚠️ Check dashboard — backend may still be stuck
 - **All migrations:** Deployed ✅
 - **Railway env vars:** All confirmed ✅
-- **BROKEN section:** Clear
-- **QA queue:** #153/#41 pending Railway deploy verification, then #37/#46/#48/#199/#58/#29/#213/#131 remaining
 
 ---
 
 ## Open Action Items for Patrick
 
-- [ ] **Push S356 block above (userController.ts fix)**
+- [ ] **Run push block above** (S357 consolidation + S356 #80 fix)
 - [ ] **Check Railway dashboard** — look for failed build since 13:11 UTC today
 - [ ] **Trademark decision (#82):** File USPTO trademark for FindA.Sale? ~$250–400/class
 - [ ] **Trade secrets (#83):** Document proprietary algorithms + NDA review
