@@ -79,6 +79,7 @@ These are decisions that block other work. Only Patrick can decide.
 |-----|---------|------|----------|--------|----------|
 |  82 | Trademark — FindA.Sale | LEGAL | File USPTO trademark? ~$250–400/class + attorney fees | Legal | No |
 |  83 | Trade Secret Housekeeping | LEGAL | Document proprietary algorithms as trade secrets + NDA review | Legal | No |
+|  84 | ExplorerProfile Schema | ARCH | RESOLVED S352 — Option A: all gamification fields (guildXp, explorerRank, huntPassActive, huntPassExpiry) already exist on User model. No schema change needed. GET /api/xp/profile already existed; service response shape corrected + GRANDMASTER threshold fixed (10000→5000). Dashboard fully wired. | None — resolved | No |
 
 ## BROKEN — Fix Before Anything Else
 
@@ -108,6 +109,9 @@ Features that Patrick's human QA walkthrough confirmed are broken. Use the two-s
 | 222 | ✅ | ✅ | ✅ | ✅ | ⬜ | ⬜ | Shipped S351 — Pending Chrome QA | Dashboard Redesign (Org + Shopper) | BOTH | ALL | Chrome QA S352 | Organizer: 3-state layout (new/active/between), Sale Status Widget, Next Action Zone, Quick Stats, Tier Progress, 6-tool grid, OrganizerOnboardingModal wired. Shopper: state-aware hero, Rank Progress Card w/ exact per-rank XP copy, StreakWidget + permanent explainer, Hunt Pass CTA. TODOs: revenue API, visitor metrics. |
 | 223 | ✅ | ✅ | ✅ | ✅ | ⬜ | ⬜ | Shipped S351 — Pending Chrome QA | Organizer Guidance Layer (Tooltips + Explainers) | ORG | ALL | Chrome QA S352 | TooltipHelper.tsx + OrganizerOnboardingModal.tsx created. Tier inline explainers on pricing.tsx. Rank badges + Grandmaster "almost always follows through" copy on holds.tsx. reservationController now returns explorerRank on holds list. |
 | 224 | ✅ | ✅ | ✅ | ✅ | ⬜ | ⬜ | Shipped S351 — Pending Chrome QA | Photo Capture Protocol (Camera Flow Enhancement) | ORG | SIMPLE | Chrome QA S352 | Tiered lighting system (Tier 1 silent/Tier 2 soft toast+buttons/Tier 3 hard modal); shot sequence guidance (copy after each of 5 shots); AI confidence-based copy on PreviewModal (high/medium/low); pre-capture viewfinder brightness indicator (green/yellow/red real-time). New: BrightnessIndicator.tsx. |
+| 225 | ✅ | ✅ | ✅ | NA | ⬜ | ⬜ | Shipped S352 — Pending Chrome QA | Revenue/Metrics API Endpoints | ORG | ALL | Chrome QA S352 | GET /api/organizers/stats endpoint built: revenue (lifetime/current-sale/this-month), item counts (total/available/sold/draft), active sale metrics (viewCount, holdCount). Wired into organizer dashboard State 2 Revenue Widget + Quick Stats Grid. Zero TS errors. |
+| 226 | ✅ | NA | NA | NA | NA | NA | Shipped S352 — Pending Railway migration | Pre-wire Schema Additions (Deferred Unlocks) | ORG | PRO | Patrick: deploy migration 20260330_add_item_prewire_fields to Railway | persistentInventory Boolean + masterItemLibraryId FK on Item; consignor relation wired. Migration SQL created. No API/UI — schema only. |
+| 227 | ✅ | ✅ | ✅ | NA | ⬜ | ⬜ | Shipped S352 — Pending Chrome QA | XP Profile API + Shopper Dashboard Wiring | SHO | FREE | Chrome QA S352 | GET /api/xp/profile was already built; service response shape corrected (returns guildXp, explorerRank, huntPassActive, rankProgress with nextRank/xpToNextRank). GRANDMASTER threshold fixed 10000→5000. Shopper dashboard already wired via useXpProfile hook. |
 
 
 ## TESTING — Active QA Queue
