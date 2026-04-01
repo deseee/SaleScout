@@ -7,28 +7,20 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Current Work
 
-**S363 COMPLETE (2026-03-31):** Camera workflow audit + consolidation. UX + Architect audit → 2 Dev batches.
+**S364 IN PROGRESS (2026-03-31):** S363 verification + push, camera UI mobile refactor, scheduled task backlog dispatch.
 
-(1) **"+" button fix pushed (commit 5a83d03):** RapidCapture.tsx — enlarged from 20px (w-5) to 40px (w-10), repositioned from bottom-right to bottom-center of thumbnails. S362 had mistakenly edited RapidCarousel (wrong component). This session identified the root cause via DOM inspection and fixed the correct component.
+(1) **S363 batches verified + pushed (commit 18235d33):** All 3 deleted files confirmed absent, BrightnessIndicator solid colors confirmed, [saleId].tsx clean, zero TS errors. Then caught orphaned `setPreCaptureWarning` call in sampling interval — fixed inline and pushed (separate commit).
 
-(2) **Full camera audit dispatched (UX + Architect in parallel):** Identified 512 lines of dead code, overlapping features across S351–S362, and features rendering behind z-50 camera overlay. Key findings: RapidCarousel dead code (never visible), BrightnessIndicator invisible (20% opacity on black), face detection modal behind overlay, retake toast behind overlay, orphaned CaptureButton.tsx and ModeToggle.tsx.
+(2) **Camera UI mobile refactor — pushed:** Real Pixel 6a test showed viewfinder at ~60% height due to multi-row bottom bar. UX spec produced, dev dispatched:
+- RapidCapture.tsx: collapsed 3-row bottom (carousel row + stats row + shutter row) into single ~80px band. Thumbnails now sit LEFT of shutter button in same row. Stats line shrunk to text-xs above row. + button changed from dark filled circle → transparent outline-only (thumbnail photo now visible through it).
+- BrightnessIndicator.tsx: 500ms startup delay added, null state now renders "Checking light..." placeholder instead of blank, isActive changed from `!flashEffect` → `cameraReady`.
+- Files: RapidCapture.tsx, BrightnessIndicator.tsx
 
-(3) **Batch 1 — Dead code cleanup + BrightnessIndicator fix (local, NOT pushed):**
-- BrightnessIndicator.tsx: bg-green-500/20 → bg-green-600 (solid), same for yellow/red tiers
-- RapidCapture.tsx: removed preCaptureWarning amber banner (redundant with BrightnessIndicator)
-- [saleId].tsx: removed dead showRetakeToast, showFaceModal, pendingFaceUpload state + JSX
-- DELETED: RapidCarousel.tsx, CaptureButton.tsx, ModeToggle.tsx (zero imports)
-- TS check: zero errors
+(3) **Scheduled task backlog — dispatching:** Small independent fixes from health scout + friction audits. See dispatch below.
 
-(4) **Batch 2 — Face modal + retake toast moved into RapidCapture (local, NOT pushed):**
-- Face detection modal now renders inside RapidCapture overlay (visible to users)
-- Retake suggestion already handled by existing qualityOverlay (verified — no new code needed)
-- [saleId].tsx: state + handlers added for face detection prop passing to RapidCapture
-- TS check: zero errors
+⚠️ **Camera refactor push block still needed** — Patrick has not yet pushed the camera UI changes (RapidCapture.tsx + BrightnessIndicator.tsx from step 2).
 
-⚠️ **Batches 1+2 are LOCAL ONLY — not yet pushed.** S364 must verify all changes compiled correctly, then push.
-
-Patrick decisions locked: keep face detection (moved into camera), keep retake suggestion (already in camera via qualityOverlay), keep BrightnessIndicator thresholds (65%/40%).
+⚠️ **Scheduled task backlog patch — in flight** — dev dispatch in progress.
 
 ---
 
