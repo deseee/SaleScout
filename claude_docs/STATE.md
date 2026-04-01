@@ -7,7 +7,7 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Current Work
 
-**S366 COMPLETE (2026-04-01):** Camera P1 QA ✅ verified. Review & Publish mobile card width fixed (4 iterations). Dashboard P1/P2 batch fixed + gamification research done.
+**S366 COMPLETE (2026-04-01):** Camera P1 QA ✅ verified. Review & Publish mobile card width fixed (4 iterations). Dashboard P1/P2 batch fixed + gamification research done. All orphaned organizer pages wired into nav (19 items).
 
 **Review & Publish mobile card (shipped):**
 1. AI confidence moved out of right column → inline under health bar (sm:hidden)
@@ -37,11 +37,11 @@ Files changed: `packages/frontend/pages/organizer/dashboard.tsx`, `packages/fron
 - Organizer reputation stays ratings-only (S268 locked). Zero shopper gamification cross-pollination.
 - OrganizerReputation model IS in schema for #71
 
-**Orphaned pages (S366 audit):**
-- `ripples.tsx` — Sale Ripples, removed from nav S348, #51 exists, nav restored this session
-- `reputation.tsx` (organizer) — exists at /organizer/reputation.tsx, no nav link, DECISION NEEDED
-- `command-center.tsx`, `performance.tsx`, `inventory.tsx` — no nav link, no decisions found
-- `appraisals.tsx`, `typology.tsx`, `ugc-moderation.tsx`, `fraud-signals.tsx` — likely admin/PRO, not nav-linked
+**Orphaned pages (S366 audit + all wired into nav):**
+All 19 orphaned pages wired into Layout.tsx nav (desktop + mobile). File: `packages/frontend/components/Layout.tsx`
+Active links added: messages, profile, settings, payouts, item-library, reputation, message-templates, manage-photos (ugc-moderation), appraisals, command-center, typology, fraud-signals, workspace
+Disabled/coming-soon links added: inventory, promote, send-update, photo-ops, print-kit, line-queue
+Skipped (redirect pages): performance.tsx (→insights), upgrade.tsx (→pricing), offline.tsx (PWA fallback)
 
 **S365 COMPLETE (2026-04-01):** Camera UI scroll strip + add-mode fixes.
 
