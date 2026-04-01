@@ -7,7 +7,7 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Current Work
 
-**S364 IN PROGRESS (2026-03-31):** S363 verification + push, camera UI mobile refactor, scheduled task backlog dispatch.
+**S364 IN PROGRESS (2026-03-31):** S363 verification + push, camera UI mobile refactor, scheduled task backlog dispatch. Orphaned components discovered & wired: OrganizerHoldsPanel.tsx (holds dashboard summary) + LeaveSaleWarning.tsx (shopper GPS navigation guard) wired into organizer dashboard + sale detail page.
 
 (1) **S363 batches verified + pushed (commit 18235d33):** All 3 deleted files confirmed absent, BrightnessIndicator solid colors confirmed, [saleId].tsx clean, zero TS errors. Then caught orphaned `setPreCaptureWarning` call in sampling interval — fixed inline and pushed (separate commit).
 
