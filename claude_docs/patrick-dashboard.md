@@ -2,7 +2,50 @@
 
 ---
 
-## 🚨 Vercel is broken — push this FIRST
+## ✅ All S367 pushes confirmed on GitHub — Vercel should be green
+
+---
+
+## S368 — What to do next
+
+**1. Push this session's doc updates:**
+```powershell
+cd C:\Users\desee\ClaudeProjects\FindaSale
+git add claude_docs/STATE.md
+git add claude_docs/patrick-dashboard.md
+git add claude_docs/strategy/roadmap.md
+git add claude_docs/feature-notes/dashboard-makeover-architect-spec-S367.md
+git add claude_docs/feature-notes/dashboard-makeover-ux-spec-S367.md
+git add claude_docs/feature-notes/dashboard-makeover-dev-brief-S367.md
+git add claude_docs/feature-notes/dashboard-makeover-dev-dispatch-S368.md
+git add .checkpoint-manifest.json
+git commit -m "docs(S367): dashboard makeover arch+ux+dev spec complete, roadmap updated #228-239, all decisions locked"
+.\push.ps1
+```
+
+**2. Start S368 — paste this prompt to dispatch Dev:**
+
+> You are findasale-dev. Your task is the Dashboard Makeover Phase 1 build. Read ALL THREE spec files before writing any code:
+> - `claude_docs/feature-notes/dashboard-makeover-architect-spec-S367.md`
+> - `claude_docs/feature-notes/dashboard-makeover-ux-spec-S367.md`
+> - `claude_docs/feature-notes/dashboard-makeover-dev-brief-S367.md`
+>
+> Then follow the complete dispatch instructions in:
+> - `claude_docs/feature-notes/dashboard-makeover-dev-dispatch-S368.md`
+>
+> This dispatch covers features #228, #230, #231, #232, #233, #234, #236, #237. All decisions are locked in the dev brief. Do not begin implementation until you have read all four files. Return: complete file list, any unanswered decisions, TypeScript check results, and full migration SQL.
+
+**3. After Dev returns — Patrick must run migration:**
+```powershell
+cd C:\Users\desee\ClaudeProjects\FindaSale\packages\database
+$env:DATABASE_URL="postgresql://postgres:QvnUGsnsjujFVoeVyORLTusAovQkirAq@maglev.proxy.rlwy.net:13949/railway"
+npx prisma migrate deploy
+npx prisma generate
+```
+
+---
+
+## S368 — Before you start
 
 ```powershell
 cd C:\Users\desee\ClaudeProjects\FindaSale

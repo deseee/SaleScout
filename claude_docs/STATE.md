@@ -9,22 +9,12 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 **S367 COMPLETE (2026-04-01):** Dashboard bug fixes (5 P1s from S366 deploy) + Dashboard Makeover architecture + spec.
 
-**S367 Bug Fixes — PENDING PUSH:**
+**S367 Bug Fixes — ✅ PUSHED (commits 5a835a3, 6f309f1, 78a3439, 72357ef, ed11aee, bd25b83):**
 - Fix 1: Close Sale Early moved to all PUBLISHED sales (removed `< 1 hour` gate)
-- Fix 2: Past sales section now shows ENDED-only sales (was hidden if organizer had ≤1 sale total)
-- Fix 3: Close sale dialog copy corrected — "You can reopen it later from your dashboard" (was "can't be undone")
-- Fix 4: Sale Status Widget missing for PUBLISHED sales past their endDate — root cause: stats API filtered by `endDate > now`. Fixed: now returns any PUBLISHED or DRAFT sale.
-- Fix 5: Edit-sale page ENDED status not handled — added ENDED badge (✓ ENDED), button text (Reopen), confirm copy, and title suffix (Ended)
-
-⚠️ **Vercel build in ERROR — push this immediately:**
-```powershell
-cd C:\Users\desee\ClaudeProjects\FindaSale
-git add packages/frontend/pages/organizer/dashboard.tsx
-git add "packages/frontend/pages/organizer/edit-sale/[id].tsx"
-git add packages/backend/src/routes/organizers.ts
-git commit -m "fix(dashboard): close-sale early always visible, past sales fixed, ENDED state handling in edit-sale, stats API sync fix"
-.\push.ps1
-```
+- Fix 2: Past sales section now shows ENDED-only sales
+- Fix 3: Close sale dialog copy corrected
+- Fix 4: Sale Status Widget restored for PUBLISHED sales past their endDate
+- Fix 5: Edit-sale ENDED state fully handled (badge, button, copy)
 
 **S367 Dashboard Makeover — Architecture + UX Spec COMPLETE:**
 - Architect spec: `claude_docs/feature-notes/dashboard-makeover-architect-spec-S367.md` (7 new Prisma models, 16 API endpoints, full TypeScript interfaces)
@@ -325,11 +315,12 @@ Files changed S362 (in push block — NOT YET COMMITTED):
 
 ---
 
-## Next Session (S365)
+## Next Session (S368)
 
-### Patrick Action Required First
-1. Push Feature #121 wiring (block in Current Work above)
-2. Push #37 notifications.tsx:
+### Patrick Action Items Before S368 Dev Dispatch
+1. **Add `defaultCommissionRate` to organizer profile settings** — Dev will need to know if this field already exists in schema or needs adding. Check `Organizer` model in schema.prisma.
+2. **Confirm weather API choice** — Dev brief calls for a weather widget. Suggest OpenWeatherMap free tier. Patrick needs an API key OR we can defer weather to Phase 2 and ship everything else first.
+3. **Push #37 notifications.tsx if not done:**
 ```powershell
 cd C:\Users\desee\ClaudeProjects\FindaSale
 git add packages/frontend/pages/shopper/notifications.tsx
@@ -337,21 +328,26 @@ git commit -m "fix(#37): notifications tab styling"
 .\push.ps1
 ```
 
-### S366 Camera Mobile Layout — ✅ VERIFIED (S366)
-Navigated to add-items as Bob Smith → Open Camera. BrightnessIndicator: "Checking light..." → "Lighting looks good" within 1s ✅. Single-row bottom strip: shutter button center, thumbnail to the right with + badge ✅. (ss_9337t0blj, ss_33946qsd3)
+### S368 Priority 1 — Dashboard Makeover Dev Dispatch (Phase 1)
+Full one-shot dev dispatch. Use the prompt in the session (saved below in this STATE or ask Claude to regenerate from dev-brief-S367.md). Covers features #228, #230, #231, #232, #233, #234, #236, #237.
 
-### S365 Priority 2 — Chrome QA: verify S364 fixes live
-- Password reset email: trigger forgot-password → confirm email arrives
-- SharePromoteModal: open share modal for a garage sale → confirm copy doesn't say "estate sale"
+All decisions locked:
+- Commission rate: default in Organizer profile + override per-sale in settlement wizard
+- Tax receipts: both PDF download + optional email (email NOT required) — Phase 2
+- Flea market settlement (#238): Phase 2, separate scoping
+- Efficiency Coaching: feature-gated, no tier gate
+- Multi-consignor (#239): Phase 2, separate scoping
+- Single executor payout for Phase 1
 
-### S365 Priority 3 — QA backlog
-After push deploys:
-- Open camera on mobile viewport, verify BrightnessIndicator is now VISIBLE (solid green/yellow/red backgrounds)
-- Verify face detection modal appears inside camera overlay (not behind it)
-- Verify retake suggestion works via qualityOverlay (dim lighting → "Use Anyway" / "Retake")
-- Full capture→AI→review cycle end-to-end
+**Patrick must run migration after Dev returns:**
+```powershell
+cd C:\Users\desee\ClaudeProjects\FindaSale\packages\database
+$env:DATABASE_URL="postgresql://postgres:QvnUGsnsjujFVoeVyORLTusAovQkirAq@maglev.proxy.rlwy.net:13949/railway"
+npx prisma migrate deploy
+npx prisma generate
+```
 
-### S364 Priority 3 — QA backlog
+### S368 Priority 2 — QA backlog (after dashboard ships)
 - **#37 Sale Alerts** — verify Alerts tab filtering + in-app notification on publish
 - **#199 User Profile dark mode**
 - **#58 Achievement Badges**
@@ -359,11 +355,10 @@ After push deploys:
 - **#213 Hunt Pass CTA**
 - **#131 Share Templates**
 
-### S364 Notes
+### Standing Notes
 - All Railway env vars ✅. All migrations deployed ✅.
 - Railway backend: https://backend-production-153c9.up.railway.app
 - Test accounts: user2 (organizer SIMPLE), user3 Carol Williams (TEAMS), user11 Karen Anderson (shopper), user12 Leo Thomas (shopper). All passwords: password123
-- Camera architecture after S363: RapidCapture owns everything visible during capture. Only 2 sub-components remain: BrightnessIndicator.tsx, PreviewModal.tsx. Feature placement rule: if visible while viewfinder is open → must be inside RapidCapture or z-index > 50.
 
 ### S361 Priority 2: Continue QA backlog
 - **#37 Sale Alerts** — after notifications.tsx push deploys: navigate to notification inbox as shopper, verify Alerts tab shows only followed-organizer sale alerts (not all notifications)
