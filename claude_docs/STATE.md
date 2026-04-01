@@ -7,6 +7,8 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Current Work
 
+**S366 IN PROGRESS (2026-04-01):** Camera P1 QA ✅ verified. Review & Publish mobile card width fix dispatched (review.tsx — AI confidence hidden from right column on mobile, shown inline under health bar). Push block given to Patrick.
+
 **S365 COMPLETE (2026-04-01):** Camera UI scroll strip + add-mode fixes.
 
 All changes pushed this session:
@@ -281,12 +283,8 @@ git commit -m "fix(#37): notifications tab styling"
 .\push.ps1
 ```
 
-### S365 Priority 1 — Chrome QA: camera mobile layout
-Open finda.sale on Pixel 6a (or Chrome DevTools mobile simulation). Verify:
-- Viewfinder takes ≥80% of screen height (single-row bottom)
-- BrightnessIndicator shows "Checking light..." immediately, then updates within 1s
-- + button outline visible over thumbnail photo
-- Thumbnail scrolls horizontally in same row as shutter
+### S366 Camera Mobile Layout — ✅ VERIFIED (S366)
+Navigated to add-items as Bob Smith → Open Camera. BrightnessIndicator: "Checking light..." → "Lighting looks good" within 1s ✅. Single-row bottom strip: shutter button center, thumbnail to the right with + badge ✅. (ss_9337t0blj, ss_33946qsd3)
 
 ### S365 Priority 2 — Chrome QA: verify S364 fixes live
 - Password reset email: trigger forgot-password → confirm email arrives
