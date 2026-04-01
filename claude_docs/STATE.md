@@ -7,26 +7,21 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Current Work
 
-**S367 COMPLETE (2026-04-01):** Dashboard bug fixes (5 P1s from S366 deploy) + Dashboard Makeover architecture + spec.
+**S368 COMPLETE (2026-04-01):** Dashboard Makeover Phase 1 built — 8 roadmap items (#228, #230-234, #236-237). Migration deployed to Railway. All TypeScript checks pass. Pending push + Chrome QA.
 
-**S367 Bug Fixes — ✅ PUSHED (commits 5a835a3, 6f309f1, 78a3439, 72357ef, ed11aee, bd25b83):**
-- Fix 1: Close Sale Early moved to all PUBLISHED sales (removed `< 1 hour` gate)
-- Fix 2: Past sales section now shows ENDED-only sales
-- Fix 3: Close sale dialog copy corrected
-- Fix 4: Sale Status Widget restored for PUBLISHED sales past their endDate
-- Fix 5: Edit-sale ENDED state fully handled (badge, button, copy)
+**S368 Dashboard Makeover Phase 1 — Implementation:**
+- Schema: 4 new models (SaleSettlement, SaleExpense, ClientPayout, SaleTransaction) + field additions to Sale, Item, Organizer
+- Migration: `20260401_settlement_hub_dashboard_widgets` deployed to Railway ✅
+- Backend: settlementController (7 functions), settlement routes, 3 widget endpoints on organizer routes, high-value toggle on items, lifecycle endpoint on sales
+- Shared: settlement.ts types + CONSIGNMENT/OTHER added to SaleType enum
+- Frontend: 6 dashboard widgets (SalePulse, SmartBuyer, HighValueTracker, EfficiencyCoaching, WeatherStrip, PostSaleMomentum), settlement wizard (5-step + simple card), 3 wizard sub-components, settlement page, dashboard integration, edit-sale "Settle" button
+- Knock-ons: saleType now in stats API activeSale response
+- TS: Zero errors across frontend, backend, shared
 
-**S367 Dashboard Makeover — Architecture + UX Spec COMPLETE:**
-- Architect spec: `claude_docs/feature-notes/dashboard-makeover-architect-spec-S367.md` (7 new Prisma models, 16 API endpoints, full TypeScript interfaces)
-- UX spec: `claude_docs/feature-notes/dashboard-makeover-ux-spec-S367.md` (adaptive layout × 5 sale types × 3 states, Settlement Hub 5-step wizard, all widget specs)
-- Dev brief (one-shot): `claude_docs/feature-notes/dashboard-makeover-dev-brief-S367.md`
+**Pending push — S368 full batch (23 files):**
+See pushblock in patrick-dashboard.md
 
-**Patrick decisions needed before dev dispatch:**
-1. Commission rate — editable per-sale by organizer, or locked to subscription tier?
-2. Tax receipts (Charity Close) — auto-email or download-only PDF?
-3. Flea market vendor splits — Phase 1 or Phase 2?
-4. Efficiency Coaching widget — all tiers or SIMPLE+ benefit only?
-5. Multi-consignor estate — one Stripe payout to executor or separate per consignor?
+**S367 COMPLETE (2026-04-01):** Dashboard bug fixes (5 P1s) + Dashboard Makeover architecture + spec. All pushes confirmed on GitHub.
 
 **S366 COMPLETE (2026-04-01):** Camera P1 QA ✅ verified. Review & Publish mobile card width fixed (4 iterations). Dashboard P1/P2 batch. All orphaned organizer pages wired into nav (19 items). Close Sale Early: confirm dialog + reopen flow added. Eastside Collector's Sale 2 manually restored to PUBLISHED via Railway SQL.
 
