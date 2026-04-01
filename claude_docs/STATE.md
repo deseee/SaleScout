@@ -7,20 +7,18 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Current Work
 
-**S365 IN PROGRESS (2026-04-01):** Camera UI polish + zoom/autofocus dispatch.
+**S365 COMPLETE (2026-04-01):** Camera UI scroll strip + add-mode fixes.
 
-Camera UI changes pushed this session (all in `RapidCapture.tsx` + `BrightnessIndicator.tsx`):
-- Floating shutter above scrollable thumbnail strip (shutter no longer moves)
-- Camera switch button moved to top bar
-- Brightness indicator: single line, semi-transparent, softer wording, positioned below mode hint
-- Thumbnail `+` badge: small corner badge, no longer covers full thumbnail (tap-to-preview restored)
-- Stats line: "X taken · X enhanced ✨" + greyed Review(0) link
-- Scroll strip: LTR, paddingLeft pushes first photo right of shutter, auto-scroll to newest on capture
-- AI-analyzed badge: bright `bg-green-600`
-- Shutter row height reduced to `min-h-[76px]`
-- **`+` add-mode bug fixed:** `+` button now hidden on temp-* items (prevented stale-id API calls); orphan temp entry removed from carousel after successful append upload
+All changes pushed this session:
+- Thumbnail scroll strip: LTR with `paddingLeft: calc(50% + 40px)`, auto-scroll to newest on capture. Photos start right of shutter, grow right, older ones scroll left.
+- `+` add-mode stale closure fix: added `onPhotoCapture` to `capturePhoto` useCallback deps — was causing 2nd photo to create new item instead of appending
+- `+` disabled on temp-* items (append only works on real DB ids)
+- Orphan temp entry removed from carousel after successful append
+- `hold-analysis` endpoint: cancels AI debounce timer entirely when + is tapped (organizer repositioning)
+- `release-analysis` endpoint: restarts fresh 4.5s debounce when + is turned off
+- Frontend: `onAddToItem` fires hold on enter, release on exit
 
-Dispatched: zoom + continuous autofocus + tap-to-focus to findasale-dev.
+Files changed: `RapidCapture.tsx`, `[saleId].tsx`, `itemController.ts`, `routes/items.ts`
 
 ---
 
