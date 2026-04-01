@@ -1,25 +1,37 @@
-# Patrick's Dashboard — S365 Complete (2026-04-01)
+# Patrick's Dashboard — S366 Complete (2026-04-01)
 
 ---
 
-## ⚠️ Pushes still needed
+## ⚠️ Pushes needed
 
----
+### Push 1 — S366 full batch (do this first)
 
-## Push 1 — Feature #121 wiring (OrganizerHoldsPanel + LeaveSaleWarning)
+```powershell
+cd C:\Users\desee\ClaudeProjects\FindaSale
+git add packages/frontend/pages/organizer/dashboard.tsx
+git add packages/frontend/components/Layout.tsx
+git add packages/frontend/components/OrganizerTierBadge.tsx
+git add packages/frontend/components/OrganizerHoldsPanel.tsx
+git add packages/backend/src/controllers/saleController.ts
+git add "packages/frontend/pages/organizer/add-items/[saleId]/review.tsx"
+git add claude_docs/STATE.md
+git add claude_docs/patrick-dashboard.md
+git commit -m "fix(dashboard): P1/P2 batch + orphaned nav wiring + close sale confirm + reopen ENDED sales + mobile card width"
+.\push.ps1
+```
+
+### Push 2 — Feature #121 wiring (carried from S364)
 
 ```powershell
 cd C:\Users\desee\ClaudeProjects\FindaSale
 git add packages/frontend/components/LeaveSaleWarning.tsx
-git add packages/frontend/components/OrganizerHoldsPanel.tsx
-git add packages/frontend/pages/organizer/dashboard.tsx
 git add "packages/frontend/pages/sales/[id].tsx"
 git add claude_docs/strategy/roadmap.md
-git commit -m "feat(#121): wire OrganizerHoldsPanel into dashboard, LeaveSaleWarning into sale detail page"
+git commit -m "feat(#121): wire LeaveSaleWarning into sale detail page"
 .\push.ps1
 ```
 
-## Push 2 — #37 notifications.tsx (carried over from S359)
+### Push 3 — #37 notifications.tsx (carried from S359)
 
 ```powershell
 cd C:\Users\desee\ClaudeProjects\FindaSale
@@ -28,51 +40,43 @@ git commit -m "fix(#37): notifications tab styling"
 .\push.ps1
 ```
 
-## Push 3 — S365 wrap docs
-
-```powershell
-cd C:\Users\desee\ClaudeProjects\FindaSale
-git add claude_docs/STATE.md
-git add claude_docs/patrick-dashboard.md
-git commit -m "docs: S365 wrap — camera scroll strip + add-mode fixes"
-.\push.ps1
-```
-
 ---
 
-## What Happened This Session (S365)
+## What Happened This Session (S366)
 
-**Thumbnail scroll strip overhaul:** Went through several iterations to get the carousel right. Final approach: LTR scroll with `paddingLeft: calc(50% + 40px)` so first photo appears to the right of the shutter. Each new capture auto-scrolls so the newest is always visible. Older photos scroll off left.
+**Review & Publish mobile card width** — 4 rounds of iteration driven by real Android photos. Final layout: checkbox → [photo + status badge below] → [title / price·category / health bar / AI confidence] → arrow. Status badge moved out of content column entirely; title now has full width.
 
-**Add-mode (`+`) stale closure bug fixed:** `capturePhoto` was a `useCallback` that didn't include `onPhotoCapture` in its deps. When you tapped `+` the parent re-rendered with a new `onPhotoCapture` (carrying `addingToItemId`), but `capturePhoto` held the old version. So the 2nd photo always created a new item. 3rd photo worked because `photos.length` changed and forced a refresh. Fixed by adding `onPhotoCapture` to deps.
+**Dashboard P1/P2 audit + fixes** — 8 P1 bugs and 2 P2 gaps fixed. Close Sale Early now has a confirm dialog and organizers can reopen ENDED sales. Free organizers now routed to Ripples instead of pricing wall. Sale card is clickable with quick-action buttons. All real-time metrics linked.
 
-**Add-mode reliability fixes:** `+` button now hidden on items still uploading (temp-* ids), preventing append calls to non-existent DB records. Orphan temp carousel entry removed after successful append.
+**19 orphaned pages wired into nav** — every page that existed on disk but had no nav entry is now linked in both desktop and mobile nav. Param-based pages (promote, send-update, photo-ops, print-kit, line-queue) are shown as disabled with tooltips. Nothing is unreachable anymore.
 
-**AI debounce hold/release:** Tapping `+` now calls `POST /items/:id/hold-analysis` which cancels the 4.5s AI timer entirely — so the organizer can take their time repositioning, changing angles, finding the maker's mark. Turning `+` off calls `POST /items/:id/release-analysis` which starts a fresh 4.5s countdown. AI fires once, 4.5s after the last photo.
+**Eastside Collector's Sale 2 restored** — accidentally closed via the new Close Sale Early button (Vercel was still serving old code with no confirmation). Fixed directly in Railway DB via SQL. Sale is back to PUBLISHED.
+
+**Gamification/tier research** — confirmed OrganizerTierBadge is Phase 31 fee-benefit tiers (Bronze/Silver/Gold), earned by activity, separate from subscription and from shopper gamification. The "Verified Organizer" label was a naming bug — now "Bronze Organizer."
 
 ---
 
 ## Status
 
-- **Vercel:** ✅ Green (pending S365 push)
-- **Railway:** ✅ Green (pending S365 push)
-- **Pending pushes:** Feature #121, notifications.tsx, S365 wrap docs (see blocks above)
+- **Vercel:** ⏳ Pending Push 1
+- **Railway:** ⏳ Pending Push 1 (backend saleController.ts change)
+- **DB:** ✅ Eastside Collector's Sale 2 manually restored
 
 ---
 
-## Next Session (S366)
+## Next Session
 
-1. **Review & Publish page — mobile card width:** Item cards are not as wide as the screen allows on mobile. Dispatch to dev.
-2. Chrome QA add-mode: verify `+` hold/release flow works end-to-end with real photos
-3. QA backlog: #37 Sale Alerts, #199 User Profile dark mode, #46 Typology Classifier refresh bug
+1. QA the dashboard fixes after push (Close Sale Early confirm, Reopen button, sale card links, dark mode holds)
+2. QA backlog: #37 Sale Alerts full browser test, #46 Typology CSV bug, #199 User Profile dark mode
+3. Chrome verify add-mode `+` hold/release flow
 
 ---
 
 ## Open Action Items for Patrick
 
-- [ ] **Push Feature #121 wiring** (Push 1 above — carried from S364)
-- [ ] **Push #37 notifications.tsx** (Push 2 above — carried from S359)
-- [ ] **Push S365 wrap docs** (Push 3 above)
+- [ ] **Push S366 batch** (Push 1 above — do first)
+- [ ] **Push Feature #121 wiring** (Push 2 — carried from S364)
+- [ ] **Push #37 notifications.tsx** (Push 3 — carried from S359)
 - [ ] **Trademark decision (#82):** File USPTO trademark for FindA.Sale? ~$250–400/class
 - [ ] **Trade secrets (#83):** Document proprietary algorithms + NDA review
 - [ ] **Brand Voice Session:** Overdue — real beta users forming impressions without documented voice

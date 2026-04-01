@@ -7,41 +7,30 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Current Work
 
-**S366 COMPLETE (2026-04-01):** Camera P1 QA ✅ verified. Review & Publish mobile card width fixed (4 iterations). Dashboard P1/P2 batch fixed + gamification research done. All orphaned organizer pages wired into nav (19 items).
+**S366 COMPLETE (2026-04-01):** Camera P1 QA ✅ verified. Review & Publish mobile card width fixed (4 iterations). Dashboard P1/P2 batch. All orphaned organizer pages wired into nav (19 items). Close Sale Early: confirm dialog + reopen flow added. Eastside Collector's Sale 2 manually restored to PUBLISHED via Railway SQL.
 
-**Review & Publish mobile card (shipped):**
-1. AI confidence moved out of right column → inline under health bar (sm:hidden)
-2. Tighter padding/gap on mobile (p-3 sm:p-4, gap-2 sm:gap-4)
-3. Status badge moved to photo column as thumbnail overlay → then below thumbnail (flex-col)
-4. Right column on mobile = arrow only; status badge sits below photo; title gets full flex-1 width
-File: `packages/frontend/pages/organizer/add-items/[saleId]/review.tsx`
+**Pending push — S366 full batch:**
+Files: `packages/frontend/pages/organizer/dashboard.tsx`, `packages/frontend/components/Layout.tsx`, `packages/frontend/components/OrganizerTierBadge.tsx`, `packages/frontend/components/OrganizerHoldsPanel.tsx`, `packages/backend/src/controllers/saleController.ts`, `packages/frontend/pages/organizer/add-items/[saleId]/review.tsx`, `claude_docs/STATE.md`, `claude_docs/patrick-dashboard.md`
 
-**Dashboard P1/P2 batch (pending push — S366):**
-- P1: Close Sale Early → PATCH /sales/:id/status (ENDED), toast + reload
-- P1: Manage Holds dark mode → OrganizerHoldsPanel.tsx `dark:bg-gray-800 dark:border-gray-700`
-- P1: Analytics FREE route → /organizer/ripples (was /pricing)
-- P1: Sale card clickable → wrapped in Link to /organizer/edit-sale/:id
-- P1: Sale card quick-actions → View Live, Add Items, Holds, POS pill buttons added
-- P1: Metrics linked → Items Listed → add-items, Active Holds → holds
-- P1: Sale Ripples in nav → Layout.tsx both desktop + mobile, Activity icon, ALL tiers
-- P1: OrganizerTierBadge BRONZE label → "Bronze Organizer" (was "Verified Organizer"), upgrade link removed
-- P2: Compact all-sales list below active sale card (up to 5, View all → /organizer/sales)
-- P2: QR Codes route fixed /organizer/qr → /organizer/qr-codes
+**Dashboard changes:**
+- P1: Close Sale Early → confirm dialog added + ENDED→PUBLISHED transition unlocked for organizers
+- P1: Manage Holds dark mode fixed (OrganizerHoldsPanel.tsx)
+- P1: Analytics FREE → /organizer/ripples (was /pricing)
+- P1: Sale card clickable + quick-actions (View Live, Add Items, Holds, POS)
+- P1: Metrics linked (Items Listed → add-items, Active Holds → holds)
+- P1: Sale Ripples restored to nav (desktop + mobile, all tiers)
+- P1: OrganizerTierBadge BRONZE → "Bronze Organizer", upgrade link removed
+- P2: Compact all-sales list (up to 5, View all → /organizer/sales)
+- P2: QR Codes route fixed
 
-Files changed: `packages/frontend/pages/organizer/dashboard.tsx`, `packages/frontend/components/Layout.tsx`, `packages/frontend/components/OrganizerTierBadge.tsx`, `packages/frontend/components/OrganizerHoldsPanel.tsx`
+**Nav wiring (19 orphaned pages):**
+Active: messages, profile, settings, payouts, item-library, reputation, message-templates, manage-photos, appraisals, command-center, typology, fraud-signals, workspace
+Disabled/coming-soon: inventory, promote, send-update, photo-ops, print-kit, line-queue
 
-**Gamification/Tier research (S366):**
-- OrganizerTierBadge = Phase 31 "fee benefit" activity tiers (schema: `tier` field). NOT subscription tiers. NOT verification. Earned (not bought).
-- verificationStatus field (NONE/PENDING/VERIFIED/REJECTED) is Feature #16 — separate system
-- reputationTier (NEW/TRUSTED/ESTATE_CURATOR) is Feature #71 — separate system
-- Organizer reputation stays ratings-only (S268 locked). Zero shopper gamification cross-pollination.
-- OrganizerReputation model IS in schema for #71
-
-**Orphaned pages (S366 audit + all wired into nav):**
-All 19 orphaned pages wired into Layout.tsx nav (desktop + mobile). File: `packages/frontend/components/Layout.tsx`
-Active links added: messages, profile, settings, payouts, item-library, reputation, message-templates, manage-photos (ugc-moderation), appraisals, command-center, typology, fraud-signals, workspace
-Disabled/coming-soon links added: inventory, promote, send-update, photo-ops, print-kit, line-queue
-Skipped (redirect pages): performance.tsx (→insights), upgrade.tsx (→pricing), offline.tsx (PWA fallback)
+**Gamification/Tier research locked:**
+- OrganizerTierBadge = Phase 31 fee-benefit tiers (BRONZE/SILVER/GOLD), earned by activity, NOT subscription
+- verificationStatus = Feature #16 (separate), reputationTier = Feature #71 (separate, ratings-based)
+- OrganizerReputation model in schema for #71. S268 decision: zero shopper gamification cross-pollination.
 
 **S365 COMPLETE (2026-04-01):** Camera UI scroll strip + add-mode fixes.
 
