@@ -7,6 +7,17 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Current Work
 
+**S369 COMPLETE (2026-04-01):** Dashboard QA fixes shipped. Vercel green. QA not yet run — S370 P1.
+
+**S369 Implementation Summary:**
+- Greeting: dashboard now shows saleType-aware greeting via `getSaleTypeConfig(activeSale.saleType).greeting` (State 2 active sale)
+- Upgrade guard: "Upgrade →" link now hidden when `tierData.progress.nextTier === null` (already on highest tier)
+- Settle links: "Settle →" link added to ENDED sales in both dashboard State 3 past-sales list and organizer/sales.tsx card actions
+- Dark mode holds: OrganizerHoldsPanel.tsx dark mode contrast fixed
+- Build fix 1: `SettlementWizard.tsx` was missing `import Link from 'next/link'` — fixed by S369 dev agent
+- Build fix 2: `Sale` interface in `dashboard.tsx` was missing `saleType?: string` — found + fixed this session (strict TS caught it during Vercel build)
+- Commits: `8cd4647` (S369 dev fixes), `174811502` (Link import fix), `4f4c438` (cache-bust), Patrick's commit (saleType fix + cache-bust cleanup)
+
 **S368 COMPLETE (2026-04-01):** Dashboard Makeover Phase 1 built + deployed. 8 roadmap items (#228, #230-234, #236-237). Migration deployed to Railway. Code pushed — both Vercel and Railway green.
 
 **S368 Implementation Summary:**
@@ -316,39 +327,21 @@ Files changed S362 (in push block — NOT YET COMMITTED):
 
 ---
 
-## Next Session (S368)
+## Next Session (S370)
 
-### Patrick Action Items Before S368 Dev Dispatch
-1. **Add `defaultCommissionRate` to organizer profile settings** — Dev will need to know if this field already exists in schema or needs adding. Check `Organizer` model in schema.prisma.
-2. **Confirm weather API choice** — Dev brief calls for a weather widget. Suggest OpenWeatherMap free tier. Patrick needs an API key OR we can defer weather to Phase 2 and ship everything else first.
-3. **Push #37 notifications.tsx if not done:**
-```powershell
-cd C:\Users\desee\ClaudeProjects\FindaSale
-git add packages/frontend/pages/shopper/notifications.tsx
-git commit -m "fix(#37): notifications tab styling"
-.\push.ps1
-```
+### S370 Priority 1 — QA all S369 fixes (Chrome, mandatory first action)
+Per §10 post-fix live verification rule. Read "S369 Implementation Summary" above and verify each in Chrome:
 
-### S368 Priority 1 — Dashboard Makeover Dev Dispatch (Phase 1)
-Full one-shot dev dispatch. Use the prompt in the session (saved below in this STATE or ask Claude to regenerate from dev-brief-S367.md). Covers features #228, #230, #231, #232, #233, #234, #236, #237.
+1. **Dashboard greeting (State 2 active sale)** — Log in as an organizer with a DRAFT or PUBLISHED sale. Verify greeting line below "Welcome, [name]" shows saleType-aware text (not static "Your sale is live…"). Test with an ESTATE sale organizer.
+2. **Upgrade guard** — Log in as an organizer on the highest tier. Verify "Upgrade →" link is absent from Tier Progress card.
+3. **Settle → link on dashboard (State 3)** — Log in as organizer whose most recent sale is ENDED. Verify "Settle →" link appears next to the sale in the Past Sales section, and it navigates to `/organizer/settlement/[saleId]`.
+4. **Settle → link on /organizer/sales** — Same organizer, go to /organizer/sales. Verify ENDED sales show "Settle" button in the action row. DRAFT/PUBLISHED sales should NOT show it.
+5. **Settlement wizard page** — Click a Settle link, verify the 5-step settlement wizard renders (or simple card for appropriate sale type). Dark mode.
+6. **OrganizerHoldsPanel dark mode** — Navigate to Holds page, toggle dark mode, verify cards and table have correct contrast (not washed out).
 
-All decisions locked:
-- Commission rate: default in Organizer profile + override per-sale in settlement wizard
-- Tax receipts: both PDF download + optional email (email NOT required) — Phase 2
-- Flea market settlement (#238): Phase 2, separate scoping
-- Efficiency Coaching: feature-gated, no tier gate
-- Multi-consignor (#239): Phase 2, separate scoping
-- Single executor payout for Phase 1
+Use user7@example.com (has ENDED sales) and user2/Bob (YARD sale type — HighValueTracker should be absent).
 
-**Patrick must run migration after Dev returns:**
-```powershell
-cd C:\Users\desee\ClaudeProjects\FindaSale\packages\database
-$env:DATABASE_URL="postgresql://postgres:QvnUGsnsjujFVoeVyORLTusAovQkirAq@maglev.proxy.rlwy.net:13949/railway"
-npx prisma migrate deploy
-npx prisma generate
-```
-
-### S368 Priority 2 — QA backlog (after dashboard ships)
+### S370 Priority 2 — QA backlog (after S369 verified)
 - **#37 Sale Alerts** — verify Alerts tab filtering + in-app notification on publish
 - **#199 User Profile dark mode**
 - **#58 Achievement Badges**
