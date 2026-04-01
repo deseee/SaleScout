@@ -1,10 +1,45 @@
-# Patrick's Dashboard — S366 Complete (2026-04-01)
+# Patrick's Dashboard — S367 Complete (2026-04-01)
 
 ---
 
-## ⚠️ Pushes needed
+## 🚨 Vercel is broken — push this FIRST
 
-### Push 1 — S366 full batch (do this first)
+```powershell
+cd C:\Users\desee\ClaudeProjects\FindaSale
+git add packages/frontend/pages/organizer/dashboard.tsx
+git add "packages/frontend/pages/organizer/edit-sale/[id].tsx"
+git add packages/backend/src/routes/organizers.ts
+git commit -m "fix(dashboard): close-sale early always visible, past sales fixed, ENDED state handling in edit-sale, stats API sync fix"
+.\push.ps1
+```
+
+**What this fixes:**
+- Close Sale Early now shows for ALL live sales (not just < 1 hour remaining)
+- Past Sales section now shows for organizers with 1 sale (was hidden unless > 1)
+- Edit-sale page now shows ✓ ENDED badge + Reopen button for ended sales
+- Dashboard Sale Status Widget now stays visible for sales past their end date
+- Close sale dialog copy corrected (you CAN reopen later)
+
+---
+
+## ⚠️ Also needed
+
+### Push 2 — S366 full batch (do after S367 fix goes green)
+
+```powershell
+cd C:\Users\desee\ClaudeProjects\FindaSale
+git add packages/frontend/components/Layout.tsx
+git add packages/frontend/components/OrganizerTierBadge.tsx
+git add packages/frontend/components/OrganizerHoldsPanel.tsx
+git add packages/backend/src/controllers/saleController.ts
+git add "packages/frontend/pages/organizer/add-items/[saleId]/review.tsx"
+git add claude_docs/STATE.md
+git add claude_docs/patrick-dashboard.md
+git commit -m "fix(dashboard): P1/P2 batch + orphaned nav wiring + close sale confirm + reopen ENDED sales + mobile card width"
+.\push.ps1
+```
+
+### Push 3 — Feature #121 wiring (carried from S364)
 
 ```powershell
 cd C:\Users\desee\ClaudeProjects\FindaSale
