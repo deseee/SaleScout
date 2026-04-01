@@ -7,6 +7,22 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Current Work
 
+**S365 IN PROGRESS (2026-04-01):** Camera UI polish + zoom/autofocus dispatch.
+
+Camera UI changes pushed this session (all in `RapidCapture.tsx` + `BrightnessIndicator.tsx`):
+- Floating shutter above scrollable thumbnail strip (shutter no longer moves)
+- Camera switch button moved to top bar
+- Brightness indicator: single line, semi-transparent, softer wording, positioned below mode hint
+- Thumbnail `+` badge: small corner badge, no longer covers full thumbnail (tap-to-preview restored)
+- Stats line: "X taken · X enhanced ✨" + greyed Review(0) link
+- Scroll strip: `paddingRight: calc(50% + 40px)` ensures thumbnails never rest under shutter
+- AI-analyzed badge: bright `bg-emerald-500` (was too-similar `bg-green-100`)
+- Shutter row height reduced to `min-h-[76px]`
+
+Dispatched: zoom + continuous autofocus + tap-to-focus to findasale-dev.
+
+---
+
 **S364 COMPLETE (2026-03-31):** S363 verification + camera mobile refactor + scheduled task backlog + orphaned component wiring.
 
 (1) **S363 verified + pushed (commit 18235d33):** Dead files confirmed gone, TS clean. Caught orphaned `setPreCaptureWarning` call from Batch 1 removal — fixed inline.
