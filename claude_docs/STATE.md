@@ -7,6 +7,18 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Current Work
 
+**S374 COMPLETE (2026-04-01):** Roadmap planning session. #240–244 slotted into Building backlog. eBay Quick List spec written. S375 parallel dispatch prompts prepared.
+
+**S374 Summary:**
+- Roadmap v90: features #240 (Print-to-QR Sign Kit), #241 (Organizer Brand Kit Expansion), #242 (QR/Barcode Item Labels), #243 (Smart Cart), #244 (eBay Quick List) slotted into Building — Active Backlog from Next Up staging section
+- `claude_docs/feature-decisions/ebay-quick-list-spec.md` created: full eBay Inventory API field mapping, 3-phase build plan, confirmed decisions (watermark default, both phases prioritized, cross-platform sold sync Phase 3, EPN affiliate + watermark removal fee revenue model)
+- `claude_docs/feature-notes/s375-batch-dispatch-prompts-2026-04-01.md` created: 5 ready-to-dispatch agent prompts for features #229/#235/#240–244. Session A (4 agents parallel, no schema): Agents 1-4. Session B (1 agent, schema migration): Agent 5.
+- Key survey finding: pdfkit + qrcode already installed, printKitController.ts + labelController.ts already exist — #240/#242 are extensions not greenfield
+- eBay prerequisite flagged: Patrick needs EBAY_CLIENT_ID + EBAY_CLIENT_SECRET from eBay developer app before S375
+
+**S374 Files Changed (all pushed):**
+`claude_docs/strategy/roadmap.md`, `claude_docs/feature-decisions/ebay-quick-list-spec.md`, `claude_docs/feature-notes/s375-batch-dispatch-prompts-2026-04-01.md`
+
 **S373 COMPLETE (2026-04-01):** Ripples + Command Center auth/data/UX fixes. Two pushes. Seed data synced.
 
 **S373 Summary:**
