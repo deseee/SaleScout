@@ -1,16 +1,31 @@
-# Patrick's Dashboard — S370 Complete (2026-04-01)
+# Patrick's Dashboard — S371 Complete (2026-04-01)
 
 ---
 
 ## Status
 
-- **Vercel:** ✅ Green (S369 code deployed, S370 fixes NOT YET PUSHED)
+- **Vercel:** ✅ Green (S371 all pushed)
 - **Railway:** ✅ Green
-- **DB:** ✅ No migration this session (schema unchanged)
+- **DB:** ✅ Migration 20260401_auto_high_value_flagging deployed
 
 ---
 
-## What Happened This Session (S370)
+## What Happened This Session (S371)
+
+Major dashboard overhaul across 5 dev rounds:
+- Top action bar (New Sale / Add Items / Holds / POS / Ripples pills) with sale-selector dropdown for multi-sale
+- Weather now inline with LIVE badge in sale card header
+- All live sale card buttons consolidated; Holds + POS now carry saleId
+- Smart contextual nudge replaces static "looking good" card
+- Collapsible "Other Active Sales" section (between nudge and metrics)
+- Selling Tools card removed; Boost visibility 404 fixed
+- Manage Holds compact summary inside sale card (full panel removed)
+- Tooltips on all metrics and widget headers
+- OrganizerTierBadge copy corrected (no false fee discount claims)
+- Auto high-value item flagging: schema + migration + backend utility + widget (AI wiring deferred to S372)
+- SecondarySaleCard created; stats show 0 until /sales/mine expanded (S372)
+
+## What Happened Last Session (S370)
 
 Full QA pass on S369 fixes + 4 bugs found and fixed in code. Push block below.
 

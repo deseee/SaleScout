@@ -7,7 +7,26 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Current Work
 
-**S370 COMPLETE (2026-04-01):** QA all S369 fixes + 4 bugs fixed. 4 files changed, NOT YET PUSHED.
+**S371 COMPLETE (2026-04-01):** Dashboard overhaul — 5 dev rounds, all pushed. Migration deployed.
+
+**S371 Summary:**
+- Top action bar: [+ New Sale] [Add Items] [Holds] [POS] [Ripples] pills below Welcome header
+- Smart nudge replaces static "looking good" card (contextual: no items / questions / no description / default)
+- Multi-sale: collapsible "Other Active Sales" section between nudge and Real-Time Metrics; max 2 SecondarySaleCards + "X more → Command Center" link
+- Weather inline with LIVE badge in sale card header
+- Holds summary compact inside live sale card; full OrganizerHoldsPanel removed from page
+- Selling Tools card removed; Boost visibility 404 fixed → /organizer/ripples
+- Holds + POS buttons in live sale card now include saleId in href
+- Add Items / POS top bar buttons: dropdown sale selector when 2+ active sales
+- Tooltips on all Real-Time Metrics, Sale Pulse, Efficiency Coach labels, High-Value Items header
+- OrganizerTierBadge: accurate tier copy (no false fee discounts); Gold "dedicated support" claim removed from badge + tierService.ts
+- Auto high-value flagging: schema (3 Item fields + 2 Sale fields), migration deployed, backend utility + PATCH endpoint, widget badge. ⚠️ Utility not yet wired into AI analysis callback — needs one more dev pass.
+- SecondarySaleCard: stats (items/holds/visitors) show 0 because /sales/mine doesn't return per-sale counts yet — needs /sales/mine endpoint expansion.
+
+**S371 Files changed (all pushed):**
+dashboard.tsx, WeatherStrip.tsx, OrganizerHoldsPanel.tsx, HighValueTrackerWidget.tsx, SecondarySaleCard.tsx (NEW), SalePulseWidget.tsx, EfficiencyCoachingWidget.tsx, OrganizerTierBadge.tsx, next.config.js, schema.prisma, migrations/20260401_auto_high_value_flagging/, itemController.ts, items.ts (routes), highValueFlagging.ts (NEW), tierService.ts, shoppers/[id].tsx, useAchievements.ts, SaleShareButton.tsx
+
+**S370 COMPLETE (2026-04-01):** QA all S369 fixes + 4 bugs fixed. All pushed S371.
 
 **S370 QA Results:**
 - Dashboard greeting ✅ (ss_4723mliw1, ss_9241d0vbz, ss_7467gghly)
@@ -352,7 +371,30 @@ Files changed S362 (in push block — NOT YET COMMITTED):
 
 ---
 
-## Next Session (S371)
+## Next Session (S372)
+
+### S372 Priority 1 — Live sale card button consolidation
+Merge all live sale card buttons into one row below the LIVE+weather line. Rename + reorder:
+- "Manage Items" → **"Items"**
+- "Close Sale Early" → **"Close Sale"**
+- Keep: View Live, Holds, POS
+- All 5 in one row, below the LIVE badge + weather strip
+
+Also fix: Holds and POS buttons already have `?saleId=` in their URLs but the Holds page and POS page don't auto-select/filter by that saleId on load. Both pages need to read the `saleId` query param and pre-select or filter to that sale on mount.
+
+### S372 Priority 2 — Auto high-value flagging wiring
+The utility (`highValueFlagging.ts`) is built but not yet called from the AI analysis flow. Find where AI results (estimatedValue, category, aiConfidence) are written back to items after analysis and call `evaluateAutoHighValueFlag()` there. One targeted backend edit.
+
+### S372 Priority 3 — Secondary sale card stats
+`/sales/mine` endpoint doesn't return per-sale item counts or visitor (qrScanCount) totals. SecondarySaleCard shows 0s. Expand the endpoint or add a batch stats call so cards show real numbers.
+
+### S372 Priority 4 — QA dashboard changes live
+Full organizer dashboard walkthrough as Carol (user3) — verify all S371 changes render correctly in browser.
+
+### Standing Notes
+- All Railway env vars ✅. Migration 20260401_auto_high_value_flagging deployed ✅.
+- Railway backend: https://backend-production-153c9.up.railway.app
+- Test accounts: user2 (organizer SIMPLE), user3 Carol Williams (TEAMS), user11 Karen Anderson (shopper, Hunt Pass active), user12 Leo Thomas (shopper). All passwords: password123
 
 ### S371 Priority 1 — Push S370 fixes + smoke verify (mandatory)
 Patrick must push S370 first (push block below). After push and Vercel deploys:
