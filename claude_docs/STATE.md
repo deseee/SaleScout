@@ -7,6 +7,23 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Current Work
 
+**S372 COMPLETE (2026-04-01):** Dashboard polish + AI wiring + endpoint expansion. All pushed.
+
+**S372 Summary:**
+- P1: Live sale card buttons consolidated into one row (PUBLISHED: View Live | Items(purple) | Holds | POS | Close Sale; DRAFT: View Live | Items(purple) | Publish Sale(amber) | Holds | POS). Dead space above buttons removed.
+- P1: Holds and POS pages now read `?saleId=` query param on mount and pre-select that sale
+- P2: Auto high-value flagging wired into `itemController.ts` AI callback — fires after `estimatedValue`/`aiConfidence` update, respects `isHighValueLocked`, graceful error handling
+- P3: `/sales/mine` endpoint expanded — explicit `select` clause guarantees `qrScanCount`, added `_count.items` for itemCount, grouped `holdCount` per sale. SecondarySaleCard now shows real stats.
+- Bug: "Other Active Sales" renamed → "Other Sales"
+- Bug: Collapse loop with 1 sale fixed (setState-in-render → useEffect + useRef guard)
+- Bug: Make Primary now updates sale name + all button hrefs (switched from `statsData.activeSale` → local `getActiveSale()` variable)
+- Bug: Multiple `statsData` possibly-undefined Vercel errors fixed with optional chaining
+- Bug: `highValueFlagging.ts` `category` type fixed (`string` → `string | null`) to match Prisma
+- localStorage persistence: `manualPrimaryId` + `otherSalesExpanded` lazy-initialized from localStorage, saved on change
+
+**S372 Files changed (all pushed):**
+dashboard.tsx, holds.tsx, pos.tsx, itemController.ts, saleController.ts, highValueFlagging.ts, claude_docs/human-QA-walkthrough-findings.md
+
 **S371 COMPLETE (2026-04-01):** Dashboard overhaul — 5 dev rounds, all pushed. Migration deployed.
 
 **S371 Summary:**
@@ -371,7 +388,24 @@ Files changed S362 (in push block — NOT YET COMMITTED):
 
 ---
 
-## Next Session (S372)
+## Next Session (S373)
+
+### S373 Priority 1 — Fix Ripples page "No sales found"
+`/organizer/ripples` shows "No sales found" in the Your Sales panel for Carol (user3, TEAMS) despite her having active sales. All metrics show 0 (Views, Shares, Saves, Total Activity). Diagnose the Ripples backend endpoint or frontend data fetch — likely a saleId ownership query issue or missing `userId` filter. Fix and verify with Chrome.
+
+### S373 Priority 2 — QA all S372 dashboard changes (as Carol, user3)
+Full organizer dashboard walkthrough verifying: consolidated button row renders correctly for PUBLISHED and DRAFT states, Make Primary updates name+buttons+weather, Other Sales collapse works with 1 and 2 sales, localStorage persistence survives refresh, SecondarySaleCard shows real item/hold/visitor counts.
+
+### S373 Priority 3 — Unverified queue carry
+- **#37 Sale Alerts trigger** — Need organizer to publish while user11 is watching. Test: open user11 in one tab, publish a sale as user2 in another, check user11 notification inbox.
+- **#213 Hunt Pass CTA** — Find shopper with `huntPassActive = false` to verify CTA card shows 3 benefits + "Upgrade Now".
+
+### Standing Notes
+- All Railway env vars ✅. Migrations ✅ (20260401_auto_high_value_flagging deployed).
+- Railway backend: https://backend-production-153c9.up.railway.app
+- Test accounts: user2 (organizer SIMPLE), user3 Carol Williams (TEAMS), user11 Karen Anderson (shopper, Hunt Pass active), user12 Leo Thomas (shopper). All passwords: password123
+
+---
 
 ### S372 Priority 1 — Live sale card button consolidation
 Merge all live sale card buttons into one row below the LIVE+weather line. Rename + reorder:

@@ -1,82 +1,56 @@
-# Patrick's Dashboard — S371 Complete (2026-04-01)
+# Patrick's Dashboard — S372 Complete (2026-04-01)
 
 ---
 
 ## Status
 
-- **Vercel:** ✅ Green (S371 all pushed)
+- **Vercel:** ✅ Green (S372 all pushed)
 - **Railway:** ✅ Green
 - **DB:** ✅ Migration 20260401_auto_high_value_flagging deployed
 
 ---
 
-## What Happened This Session (S371)
+## What Happened This Session (S372)
 
-Major dashboard overhaul across 5 dev rounds:
-- Top action bar (New Sale / Add Items / Holds / POS / Ripples pills) with sale-selector dropdown for multi-sale
-- Weather now inline with LIVE badge in sale card header
-- All live sale card buttons consolidated; Holds + POS now carry saleId
-- Smart contextual nudge replaces static "looking good" card
-- Collapsible "Other Active Sales" section (between nudge and metrics)
-- Selling Tools card removed; Boost visibility 404 fixed
-- Manage Holds compact summary inside sale card (full panel removed)
-- Tooltips on all metrics and widget headers
-- OrganizerTierBadge copy corrected (no false fee discount claims)
-- Auto high-value item flagging: schema + migration + backend utility + widget (AI wiring deferred to S372)
-- SecondarySaleCard created; stats show 0 until /sales/mine expanded (S372)
+Dashboard polish + bug fixes + two backend wiring tasks:
 
-## What Happened Last Session (S370)
+**Button consolidation (P1):** Live sale card now has one clean button row for both PUBLISHED and DRAFT states. PUBLISHED: View Live | Items (purple) | Holds | POS | Close Sale. DRAFT: View Live | Items (purple) | Publish Sale (amber) | Holds | POS. Dead space above buttons removed. Holds and POS now carry `?saleId=` in URL AND the Holds/POS pages now auto-select that sale on load.
 
-Full QA pass on S369 fixes + 4 bugs found and fixed in code. Push block below.
+**Auto high-value flagging wired (P2):** AI analysis callback in `itemController.ts` now calls `evaluateAutoHighValueFlag()` after writing back `estimatedValue` and `aiConfidence`. Respects `isHighValueLocked` (organizer override). Graceful — flagging failure won't break the AI flow.
 
-**S369 QA results:**
-- ✅ Dashboard greeting (saleType-aware text working)
-- ✅ Settle → link on dashboard Past Sales (ENDED sales only)
-- ✅ Settle button on /organizer/sales (ENDED only, not DRAFT/PUBLISHED)
-- ✅ Settlement wizard renders (5-step, dark mode OK)
-- ✅ Holds page dark mode (good contrast)
-- ⚠️ Upgrade guard was broken → **FIXED** (see below)
+**SecondarySaleCard real stats (P3):** `/sales/mine` endpoint now returns itemCount, holdCount, and visitorCount per sale. Cards no longer show 0.
 
-**Backlog QA results:**
-- ✅ #37 Sale Alerts tab filter works
-- ✅ #29 Loyalty Passport — XP guide, rank thresholds, real data
-- ✅ #213 Hunt Pass CTA — correctly hidden for active pass user
+**Bug fixes:** Make Primary now updates the sale name AND all button hrefs (was only updating weather/thumbnail). Collapse loop with 1 sale fixed. "Other Active Sales" renamed to "Other Sales". Multiple optional chaining fixes for Vercel. localStorage persistence for collapsed state and primary sale selection.
 
-**Bugs fixed this session (4 files, in code, need your push):**
-1. **Upgrade guard** — Was comparing activity tier (BRONZE/SILVER/GOLD) instead of subscription tier. TEAMS users still saw "Upgrade →". Fixed to check `user?.organizerTier !== 'TEAMS'`.
-2. **#199 Profile page dark mode** — White cards showing on dark background. Added `dark:` variants throughout `shoppers/[id].tsx`.
-3. **#58 Achievements page 401** — Page was crashing with "unauthorized" for logged-in users. Root cause: bare `fetch()` without auth headers. Fixed to use authenticated `api` lib.
-4. **#131 Share Templates** — Nextdoor, Threads, Pinterest, TikTok were completely missing from the share button. Added all 4 platform handlers to `SaleShareButton.tsx`.
+## What Happened Last Session (S371)
+
+Major dashboard overhaul — 5 dev rounds. Top action bar, weather in sale card header, smart nudge, collapsible Other Sales section, tooltips, OrganizerTierBadge copy fix, auto high-value schema+migration+widget.
 
 ---
 
-## Push Block (S370 fixes)
+## Push Block (S372 wrap docs only — code already pushed)
 
 ```powershell
 cd C:\Users\desee\ClaudeProjects\FindaSale
 git add claude_docs/STATE.md
 git add claude_docs/patrick-dashboard.md
-git add packages/frontend/pages/organizer/dashboard.tsx
-git add packages/frontend/pages/shoppers/[id].tsx
-git add packages/frontend/hooks/useAchievements.ts
-git add packages/frontend/components/SaleShareButton.tsx
-git commit -m "fix: upgrade guard tier logic, profile dark mode, achievements auth, share templates"
+git commit -m "docs: S372 wrap — dashboard polish, AI wiring, endpoint expansion"
 .\push.ps1
 ```
 
 ---
 
-## S371 — What's Next
+## Next Session (S373)
 
-**P1 — Verify S370 fixes after push deploys:**
-- Upgrade guard gone for user3 (TEAMS)
-- Profile `/shoppers/[id]` no longer white cards in dark mode
-- Achievements page loads for user11 (was 401)
-- Share button shows Nextdoor/Threads/Pinterest/TikTok
+**P1 — Fix Ripples page "No sales found"**
+`/organizer/ripples` shows "No sales found" for Carol (user3) even though she has active sales. All metrics 0. Needs diagnosis and fix.
 
-**P2 — Finish unverified queue:**
-- #37 trigger test (need organizer to publish while user11 is watching)
-- #213 Hunt Pass CTA with inactive user (user11 has active pass — couldn't test)
+**P2 — QA all S372 dashboard changes as Carol (user3)**
+Verify consolidated buttons, Make Primary full update, collapse/expand with 1 and 2 sales, localStorage persistence, SecondarySaleCard real counts.
+
+**P3 — Unverified carry**
+- #37 Sale Alerts trigger (organizer publish → user11 inbox)
+- #213 Hunt Pass CTA for inactive shopper
 
 ---
 
@@ -85,4 +59,3 @@ git commit -m "fix: upgrade guard tier logic, profile dark mode, achievements au
 - [ ] **Trademark decision (#82):** File USPTO trademark for FindA.Sale? ~$250–400/class
 - [ ] **Trade secrets (#83):** Document proprietary algorithms + NDA review
 - [ ] **Brand Voice Session:** Overdue — real beta users forming impressions without documented voice
-- [ ] **S366 push block** — Still pending from S366 (8 files including dashboard/Layout/OrganizerHoldsPanel/saleController/review changes)
