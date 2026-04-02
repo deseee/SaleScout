@@ -1,36 +1,60 @@
-# Patrick's Dashboard — S378 Complete (2026-04-02)
+# Patrick's Dashboard — S379 Complete (2026-04-02)
 
 ---
 
 ## Status
 
-- **Vercel:** ✅ Green (confirmed after S377 revert push)
+- **Vercel:** ✅ Green
 - **Railway:** ✅ Green
 - **DB:** ✅ Migration 20260402_add_charity_donation deployed
 
 ---
 
-## What Happened This Session (S378)
+## What Happened This Session (S379)
 
-**Nav menus mirrored.** Mobile and desktop now have the same sections, items, order, and icons. Mobile got: full collapsible Admin section (7 items), quick links with icons, IN-SALE TOOLS (renamed from "Sale Context"), TEAMS section (new), DEVELOPER TOOLS section (new), Shopping Cart button. "Account & Profile" section removed — Messages/Settings now in footer like desktop.
+**Full mobile + desktop nav overhaul — 4 rounds of changes.**
 
-**Shopping Cart fixed.** Desktop button now works — imports the cart hook, shows item count badge, renders the drawer. Mobile gets the same cart button in both organizer+shopper and shopper-only paths.
+- Bottom nav reordered: Map → Calendar → Wishlist → Messages → Profile
+- Mobile user info block added above Admin section (name, email, rank badge, XP bar)
+- Selling Tools section removed from both menus
+- Section order: In-Sale Tools → Post Sales → Pro Tools
+- Pro Tools header is now purple in mobile to match desktop
+- Desktop My Profile + Settings moved to footer (above logout)
+- Desktop Settings uses amber gear icon matching My Profile
+- Desktop Messages link removed from dropdown (stays in top header bar)
+- Subscription link moved above Pro Tools in mobile
+- Explore & Connect in both menus now contains: Map, Calendar, Feed, Inspiration, Trending — plus existing passport/gamification links
+- Pricing added above My Profile in both menus
+- My Collection section header icon changed to Package; Wishlist icon changed to Heart
+- Dead space/border above username in mobile drawer removed
+- Duplicate In-Sale Tools section in desktop dropdown removed
+- print-kit/index.tsx created (sale picker landing page)
+- Admin guard added to subscription page (admins bypass the page silently)
 
-**Icons fixed.** Manage Photos, UGC Moderation, Workspace, Payouts, Item Library all have correct icons now.
+## What Happened Last Session (S378)
 
-**11 coming-soon pages created** for routes that previously 404'd (admin/items, admin/reports, admin/feature-flags, admin/broadcast, organizer/calendar, organizer/earnings, organizer/staff, organizer/qr-codes, shopper/bounties, shopper/reputation, shopper/trades).
-
-## What Happened Last Session (S377)
-
-Print Kit 404 fix pushed. user1 upgraded to TEAMS. Nav audit research completed. Nav menus reverted after unauthorized removal.
+Nav menus mirrored — mobile and desktop matched. Shopping Cart fixed. 11 coming-soon pages created.
 
 ---
 
-## Next Session (S379)
+## Push Required — S379
 
-**Priority 1:** Chrome QA of S375+S376 features (Smart Cart end-to-end, Print Suite, Brand Kit, eBay CSV, AI Comp Tool, Charity Close). Carried from S377/S378.
+```powershell
+git add packages/frontend/components/Layout.tsx
+git add packages/frontend/components/AvatarDropdown.tsx
+git add packages/frontend/pages/organizer/print-kit/index.tsx
+git add packages/frontend/pages/organizer/subscription.tsx
+git add claude_docs/STATE.md
+git add claude_docs/patrick-dashboard.md
+git commit -m "S379: full nav overhaul complete — mobile/desktop menus restructured, icons updated, Explore section expanded"
+.\push.ps1
+```
 
-**Priority 2:** Verify S378 nav changes live — both menus, all sections expand/collapse, Shopping Cart opens drawer, all links resolve.
+---
+
+## Next Session (S380)
+
+**Orphaned pages & features audit.** Find every page/widget/feature that isn't surfaced in the nav or roadmap. Starting point: `claude_docs/frontend-pages-inventory-S294.html`. Session will produce a decision table — no code changes until Patrick reviews.
 
 ---
 
@@ -49,7 +73,7 @@ Print Kit 404 fix pushed. user1 upgraded to TEAMS. Nav audit research completed.
 
 ## Open Action Items for Patrick
 
-- [x] **~~Push the nav revert~~** (done S377)
+- [ ] **⚠️ Push S379 changes** (push block above)
 - [ ] **⚠️ eBay Developer App (enables real comps for #229/#244):** Create app at https://developer.ebay.com → get `EBAY_CLIENT_ID` + `EBAY_CLIENT_SECRET` → set as Railway env vars.
 - [ ] **Trademark decision (#82):** File USPTO trademark for FindA.Sale? ~$250–400/class
 - [ ] **Trade secrets (#83):** Document proprietary algorithms + NDA review

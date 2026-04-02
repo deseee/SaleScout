@@ -7,6 +7,20 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Current Work
 
+**S379 COMPLETE (2026-04-02):** Full mobile + desktop nav overhaul — 4 rounds of changes.
+
+**S379 Summary:**
+- **Round 1:** Admin icons, Admin Dashboard above collapse, My Profile/Plan a Sale repositioning, POST SALES section, In-Sale Tools ordering, Pro Tools reorder (Command Center first), Workspace→Teams, icon standardization, print-kit general page, subscription admin toast fix.
+- **Round 2:** Bottom nav reorder (Map→Calendar→Wishlist→Messages→Profile), Selling Tools section removed, section reorder (In-Sale→Post Sales→Pro Tools), Sale Ripples→Your Sales, Reputation→Post Sales, mobile color fixes, desktop message badge, "as a shopper" removal.
+- **Round 3:** Mobile user info block (name/email/rank/XP) above Admin section, Pro Tools purple color, desktop My Profile/Settings moved to footer, desktop Settings uses amber gear icon, desktop Messages link removed.
+- **Round 4+:** Restored Map/Calendar to staticNavLinks. Feed/Inspiration/Trending moved to Explore & Connect (both menus), with Map+Calendar duplicated there too — ordered Map, Calendar, Feed, Inspiration, Trending. Pricing added above My Profile in both menus. My Collection icon changed to Package; Wishlist icon changed to Heart. Mobile: dead space/border above username removed, Subscription moved above Pro Tools, hr above Your Sales removed. Desktop AvatarDropdown: duplicate In-Sale Tools section below Post Sales removed.
+
+**S379 Files Changed:**
+- `packages/frontend/components/Layout.tsx` — mobile drawer full restructure
+- `packages/frontend/components/AvatarDropdown.tsx` — desktop dropdown restructure
+- `packages/frontend/pages/organizer/print-kit/index.tsx` — NEW sale picker landing page
+- `packages/frontend/pages/organizer/subscription.tsx` — admin guard added
+
 **S378 COMPLETE (2026-04-02):** Nav menu parity (mobile ↔ desktop), Shopping Cart fix, icon fixes.
 
 **S378 Summary:**
@@ -460,88 +474,47 @@ Files changed S361:
 
 ---
 
-## Next Session (S378)
+## Next Session (S380)
 
-### S378 Priority 1 — Verify Vercel green after revert push
-Confirm both Layout.tsx and AvatarDropdown.tsx revert deployed cleanly. Quick smoke test of nav menus to confirm they match pre-S377 state.
+### S380 Priority 1 — Orphaned Pages & Features Audit
 
-### S378 Priority 2 — NON-DESTRUCTIVE Nav Menu Audit (CRITICAL)
+**Goal:** Find every page, widget, or feature in the frontend that is NOT surfaced anywhere in the current navigation (mobile drawer or desktop dropdown) AND/OR not on the roadmap.
 
-**⚠️ ABSOLUTE RULES — READ BEFORE TOUCHING ANY CODE:**
-1. DO NOT REMOVE ANY NAV LINKS without Patrick's explicit per-item approval
-2. Present ALL proposed changes as a DECISION DOCUMENT first — Patrick reviews and approves each line before any code is written
-3. A 404 link is a BUG TO FIX (build index page / add sale selector / add "(Soon)" tag), NOT a signal to delete
-4. Items proposed for removal go into a "PROPOSED FOR REMOVAL" section — they stay in nav until Patrick says otherwise
-5. The Removal Gate (CLAUDE.md §7) is absolute — S377 violated it and wasted an entire Opus session
+**Starting point:** `claude_docs/frontend-pages-inventory-S294.html` — use as baseline, cross-reference against current nav state in `Layout.tsx` and `AvatarDropdown.tsx`.
 
-**Step 1 — Build the decision document.** For EVERY nav link in both Layout.tsx (mobile) and AvatarDropdown.tsx (desktop), create a table:
+**Method:**
+1. Glob all pages under `packages/frontend/pages/` — get the full current file list.
+2. For each page, check: (a) Is it linked from Layout.tsx mobile drawer? (b) Is it linked from AvatarDropdown.tsx desktop dropdown? (c) Is it referenced in `claude_docs/roadmap.md`?
+3. Produce a table: `| Page path | In mobile nav? | In desktop nav? | In roadmap? | Status | Proposed action |`
+4. Flag any page that answers NO to all three — these are orphans.
+5. Also flag features/widgets that exist in the codebase but have no nav entry point and no roadmap item.
 
-| # | Menu | Section | Link Name | Current Path | Page Exists? | Status | Proposed Action | Patrick Decision |
-|---|------|---------|-----------|-------------|-------------|--------|----------------|-----------------|
+**Do NOT touch code.** Present the full table to Patrick for review first.
 
-Status values: WORKING / 404 / WRONG PATH / MISSING FROM OTHER MENU
-Proposed Action values: KEEP / RENAME TO "X" / MOVE TO SECTION "X" / FIX PATH TO "X" / BUILD INDEX PAGE / ADD "(Soon)" / PROPOSED FOR REMOVAL (with reason)
-Patrick Decision: BLANK — Patrick fills this in.
+**Important context on known orphan patterns (from S377 research):**
+- `[saleId].tsx` pages (line-queue, promote, send-update, photo-ops, print-kit) 404 at base path — they need index pages, not removal. `print-kit/index.tsx` was built in S379.
+- `organizer/calendar` — TEAMS scheduling feature, not just sale dates. Research original spec before flagging.
+- `organizer/earnings` and `organizer/payouts` are SEPARATE features.
+- `organizer/item-tagger` — QR-based price tag feature, NOT AI photo tagging.
+- `shopper/reputation` — separate from organizer reputation, may have a different spec name.
+- Admin pages (items, reports, feature-flags, broadcast) — planned features, do not remove.
 
-**Step 2 — Present to Patrick.** Do NOT touch code. Wait for Patrick's line-by-line decisions.
-
-**Step 3 — After Patrick approves,** implement ONLY approved changes. Each change must cite the decision row number.
-
-### S377 Nav Audit Research Results (feed to S378)
-
-**Page Existence Audit — Pages that DO exist:**
-organizer/insights (NOT analytics), organizer/appraisals, organizer/command-center, organizer/fraud-signals, organizer/hubs, organizer/inventory, organizer/item-library, organizer/line-queue/[id] (saleId route only), organizer/message-templates, organizer/payouts, organizer/photo-ops/[saleId] (saleId route only), organizer/print-kit/[saleId] (saleId route only), organizer/promote/[saleId] (saleId route only), organizer/reputation, organizer/ripples, organizer/send-update/[saleId] (saleId route only), organizer/subscription, organizer/typology, organizer/ugc-moderation, organizer/webhooks, organizer/workspace, shopper/wishlist
-
-**Pages that DO NOT exist (404):**
-admin/items ❌, admin/reports ❌, admin/feature-flags ❌, admin/broadcast ❌, organizer/active-sale ❌, organizer/calendar ❌, organizer/map ❌, organizer/qr-codes ❌, organizer/earnings ❌, organizer/staff ❌, organizer/item-tagger ❌, shopper/saved-items ❌ (favorites page exists instead), shopper/bounties ❌, shopper/reputation ❌, shopper/trades ❌
-
-**Desktop (AvatarDropdown.tsx) missing items that mobile has:**
-payouts, item-library, inventory, reputation, message-templates, ugc-moderation, ripples, appraisals, command-center, typology, fraud-signals, webhooks, workspace, promote, send-update, photo-ops, print-kit, line-queue
-
-**Mobile (Layout.tsx) missing:**
-Username/email/rank badge at top of menu (desktop has it in avatar dropdown)
-
-**Known bugs in current nav:**
-- Admin section not collapsible on desktop
-- My Collection and Explore & Connect not collapsible on desktop
-- Admin section positioned BELOW shopper sections in mobile — Patrick wants it ABOVE Organizer Dashboard
-- Three mobile sections (Your Sales, Account & Profile, Selling Tools) share the same `mobileOrgToolsOpen` state — they all expand/collapse together (bug)
-- Desktop says "Sign Out" — Patrick wants "Logout"
-- Shopping Cart (Smart Cart) not in nav at all — needs to be added
-
-### Patrick's Research Notes (OVERRIDE earlier conclusions — DO NOT SKIP)
-
-**[saleId] routes that 404 at base path (line-queue, promote, send-update, photo-ops):**
-These are sale-specific pages. The base path 404s because there's no index page — only the `[saleId].tsx` variant exists. Patrick says: "how do we get to it or have it list the sales or?" — NEEDS INDEX PAGES with sale selectors, NOT removal. Research what pattern works best (sale dropdown? card list? redirect to active sale?).
-
-**Admin pages (admin/items, reports, feature-flags, broadcast, active-sale):**
-DO NOT KILL. Research what the original admin dashboard spec wanted and what a proper admin dashboard should include. These may be planned features.
-
-**organizer/calendar:**
-Patrick says: "pretty sure this was supposed to be a TEAMS feature that helped with scheduling and employee schedules and was gonna have a dashboard widget." NOT just "sale dates." Research the original spec.
-
-**shopper/reputation:**
-Patrick says: "I distinctly remember a planning session addressing this needing to be separate from organizer reputation. It may have had a different name." DO NOT KILL — research further. Check DECISIONS.md and session logs.
-
-**organizer/earnings vs organizer/payouts:**
-Patrick says these are SEPARATE features: "payouts was what data they get from stripe and earnings was going to be part of the more in depth sales data for full estate sale flows." Earnings ≠ Payouts. DO NOT merge or remove either.
-
-**organizer/item-tagger:**
-Patrick says: "this was for the QR based item price tags and the ones for the pre-priced misc items that weren't photographed." This is NOT AI photo tagging. Completely different feature. DO NOT KILL — research what was specced.
-
-### S378 Priority 3 — Chrome QA of S375+S376 features (carry from S377)
-Still not done from S377. After nav audit decision doc is presented:
-- Smart Cart full flow (add items, open drawer, cross-sale switch)
-- Print Suite (download sign PDFs, item labels)
-- Brand Kit PDF downloads (business cards, letterhead, social headers, yard sign)
-- eBay CSV Export (download CSV, verify format)
-- AI Comp Tool (click Get Price Comps — mock data until eBay creds set)
-- Charity Close + Tax Receipt PDF
+### Patrick's Actions from S379
+```powershell
+git add packages/frontend/components/Layout.tsx
+git add packages/frontend/components/AvatarDropdown.tsx
+git add packages/frontend/pages/organizer/print-kit/index.tsx
+git add packages/frontend/pages/organizer/subscription.tsx
+git add claude_docs/STATE.md
+git add claude_docs/patrick-dashboard.md
+git commit -m "S379: full nav overhaul complete — mobile/desktop menus restructured, icons updated, Explore section expanded"
+.\push.ps1
+```
 
 ### Standing Notes
 - All Railway env vars ✅. Migrations ✅ (20260402_add_charity_donation deployed).
 - Railway backend: https://backend-production-153c9.up.railway.app
-- Test accounts: user1 (TEAMS, upgraded S377), user2 (organizer SIMPLE), user3 Carol Williams (TEAMS), user11 Karen Anderson (shopper, Hunt Pass active), user12 Leo Thomas (shopper). All passwords: password123
+- Test accounts: user1 (TEAMS), user2 (organizer SIMPLE), user3 Carol Williams (TEAMS), user11 Karen Anderson (shopper, Hunt Pass active), user12 Leo Thomas (shopper). All passwords: password123
 - eBay comps show mock data until Patrick sets EBAY_CLIENT_ID + EBAY_CLIENT_SECRET on Railway
 - Backend route mounts: `app.use('/api/organizers', organizerRoutes)` and `app.use('/api/sales', saleRoutes)` — Print Kit signs at `/api/organizers/:saleId/signs/{type}` (plural)
 
