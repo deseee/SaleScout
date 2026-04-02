@@ -7,17 +7,24 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Current Work
 
+**S375 COMPLETE (2026-04-01):** Session A — 4 parallel dev agents built 7 features. Zero TS errors. Push block ready.
+
+**S375 Summary:**
+- 4 agents dispatched in parallel (~447k agent tokens total), all returned clean
+- **#240 Print-to-QR Sign Kit:** 5 sign templates (yard, directional, table tent, hang tag, full kit). Routes: `/api/organizer/sales/:saleId/signs/{type}`. UI on print-kit page.
+- **#242 QR/Barcode Item Labels:** QR codes in item labels (40×40px → item page URL). Print Label button on edit-item page.
+- **#241 Brand Kit Expansion (PRO):** 4 PDF generators (business cards, letterhead, social headers, branded yard sign). PRO-gated with SIMPLE upsell.
+- **#229 AI Comp Tool:** eBay Browse API OAuth + search. "Get Price Comps" on edit-item page. Mock fallback without credentials.
+- **#244 Phase 1 eBay CSV Export:** eBay File Exchange CSV from add-items page. Watermark toggle (clean = PRO-gated).
+- **#243 Smart Cart:** localStorage shopper cart — hook + drawer + FAB. Single-sale scoping, cross-sale switch confirm. Integrated into sale detail page.
+- Agents 1+3 both modified edit-item/[id].tsx — no conflict (different sections: header vs price form)
+- Combined TS check passed: zero errors frontend + backend
+
+**S375 Files Changed (NOT YET PUSHED):**
+Modified: `printKitController.ts`, `labelController.ts`, `organizers.ts` (routes), `print-kit/[saleId].tsx`, `edit-item/[id].tsx`, `brandKit.ts` (routes), `brand-kit.tsx`, `items.ts` (routes), `sales.ts` (routes), `add-items/[saleId].tsx`, `sales/[id].tsx`
+New: `brandKitPrintController.ts`, `ebayController.ts`, `useShopperCart.ts`, `ShopperCartDrawer.tsx`, `ShopperCartFAB.tsx`
+
 **S374 COMPLETE (2026-04-01):** Roadmap planning session. #240–244 slotted into Building backlog. eBay Quick List spec written. S375 parallel dispatch prompts prepared.
-
-**S374 Summary:**
-- Roadmap v90: features #240 (Print-to-QR Sign Kit), #241 (Organizer Brand Kit Expansion), #242 (QR/Barcode Item Labels), #243 (Smart Cart), #244 (eBay Quick List) slotted into Building — Active Backlog from Next Up staging section
-- `claude_docs/feature-decisions/ebay-quick-list-spec.md` created: full eBay Inventory API field mapping, 3-phase build plan, confirmed decisions (watermark default, both phases prioritized, cross-platform sold sync Phase 3, EPN affiliate + watermark removal fee revenue model)
-- `claude_docs/feature-notes/s375-batch-dispatch-prompts-2026-04-01.md` created: 5 ready-to-dispatch agent prompts for features #229/#235/#240–244. Session A (4 agents parallel, no schema): Agents 1-4. Session B (1 agent, schema migration): Agent 5.
-- Key survey finding: pdfkit + qrcode already installed, printKitController.ts + labelController.ts already exist — #240/#242 are extensions not greenfield
-- eBay prerequisite flagged: Patrick needs EBAY_CLIENT_ID + EBAY_CLIENT_SECRET from eBay developer app before S375
-
-**S374 Files Changed (all pushed):**
-`claude_docs/strategy/roadmap.md`, `claude_docs/feature-decisions/ebay-quick-list-spec.md`, `claude_docs/feature-notes/s375-batch-dispatch-prompts-2026-04-01.md`
 
 **S373 COMPLETE (2026-04-01):** Ripples + Command Center auth/data/UX fixes. Two pushes. Seed data synced.
 
@@ -436,22 +443,22 @@ Files changed S362 (in push block — NOT YET COMMITTED):
 
 ---
 
-## Next Session (S373)
+## Next Session (S376)
 
-### S373 Priority 1 — Fix Ripples page "No sales found"
-`/organizer/ripples` shows "No sales found" in the Your Sales panel for Carol (user3, TEAMS) despite her having active sales. All metrics show 0 (Views, Shares, Saves, Total Activity). Diagnose the Ripples backend endpoint or frontend data fetch — likely a saleId ownership query issue or missing `userId` filter. Fix and verify with Chrome.
+### S376 Priority 1 — Smoke test S375 features on finda.sale
+After Patrick pushes, verify all 7 features deployed. Quick Chrome checks: print-kit page loads sign templates, brand-kit shows download section, edit-item has Price Comps + Print Label, add-items has eBay Export, sale detail has cart FAB + Add to Cart buttons.
 
-### S373 Priority 2 — QA all S372 dashboard changes (as Carol, user3)
-Full organizer dashboard walkthrough verifying: consolidated button row renders correctly for PUBLISHED and DRAFT states, Make Primary updates name+buttons+weather, Other Sales collapse works with 1 and 2 sales, localStorage persistence survives refresh, SecondarySaleCard shows real item/hold/visitor counts.
+### S376 Priority 2 — Agent 5: #235 Charity Close + Tax Receipt PDF
+Schema migration required (SaleDonation, DonatedItem, TaxReceipt models). Dispatch Agent 5, Patrick runs migration, then QA.
 
-### S373 Priority 3 — Unverified queue carry
-- **#37 Sale Alerts trigger** — Need organizer to publish while user11 is watching. Test: open user11 in one tab, publish a sale as user2 in another, check user11 notification inbox.
-- **#213 Hunt Pass CTA** — Find shopper with `huntPassActive = false` to verify CTA card shows 3 benefits + "Upgrade Now".
+### S376 Priority 3 — Chrome QA of S375 features
+Detailed walkthrough of all 7 features with real data. Prioritize Smart Cart (shopper-facing) and Print Suite (organizer tooling).
 
 ### Standing Notes
 - All Railway env vars ✅. Migrations ✅ (20260401_auto_high_value_flagging deployed).
 - Railway backend: https://backend-production-153c9.up.railway.app
 - Test accounts: user2 (organizer SIMPLE), user3 Carol Williams (TEAMS), user11 Karen Anderson (shopper, Hunt Pass active), user12 Leo Thomas (shopper). All passwords: password123
+- eBay comps show mock data until Patrick sets EBAY_CLIENT_ID + EBAY_CLIENT_SECRET on Railway
 
 ---
 
