@@ -92,6 +92,20 @@ The eBay Inventory API (`createOrReplaceInventoryItem`) accepts all of these fie
 
 ---
 
+### Phase 3 — Cross-Platform Sold Sync (Requires Phase 2)
+**Complexity:** Medium (1–2 sprints)
+**How it works:**
+- **Sold on FindA.Sale →** call eBay API `deleteOffer` or set quantity to 0 on the corresponding eBay listing. Auto-triggered on purchase webhook.
+- **Sold on eBay →** eBay Notifications API sends `ItemSold` event to FindA.Sale webhook endpoint → FindA.Sale marks item as SOLD, removes from active inventory. Organizer gets in-app notification: "Item sold on eBay — removed from your FindA.Sale listing."
+
+Items stay active on both platforms until one platform confirms the sale. No manual delisting needed.
+
+**Prerequisite:** Phase 2 (eBay OAuth connected account) must be complete first.
+
+**Effort estimate:** ~40–60 hours (webhook receiver, eBay notification subscription, bidirectional status sync)
+
+---
+
 ## Overlap with #229 AI Comp Tool
 
 #229 (AI Comp Tool) searches eBay sold listings to suggest a price. The eBay Quick List (#244) uses that price suggestion as the default `offer.pricingSummary.price` when generating the listing. These features should be designed to wire together:
@@ -129,17 +143,21 @@ Post-sale item view (filter: Unsold)
 
 ## Revenue & Strategic Value
 
-- **Direct revenue:** No per-listing fee (Phase 1). Potential: gate Phase 2 direct push as PRO feature or charge $0.25/item pushed (explore post-beta).
-- **Retention driver:** Organizers who list unsold items on eBay via FindA.Sale associate eBay success with FindA.Sale — increases platform stickiness.
-- **Differentiation:** No estate sale competitor offers eBay integration. First-mover advantage in "AI intake → multi-platform export" workflow.
-- **eBay TOS compliance:** Phase 1 CSV has zero TOS risk. Phase 2 requires organizer approval per listing (eBay policy) — UX must enforce this with explicit confirmation step.
+- **eBay Partner Network (EPN) — primary revenue.** Enroll in eBay's affiliate program (1–4% commission per sale). Phase 2 listings embed EPN tracking parameter in the offer. When eBay buyer purchases, FindA.Sale earns a cut automatically. Passive, scales with volume. Add EPN enrollment to Phase 2 build checklist.
+- **Watermark removal fee — micro-revenue.** Phase 1 free exports use Cloudinary watermarked photos (brand advertising). Organizer pays to export clean photos: e.g. $0.99/item or $4.99 per batch. Gate clean exports as a SIMPLE paid add-on or PRO perk. Every free listing is a FindA.Sale ad on eBay at zero cost.
+- **Phase 2 gated to PRO.** Direct API push (one-click "List on eBay") is a PRO tier feature. Natural upsell anchor for SIMPLE organizers who find the CSV workflow friction.
+- **Pirate Ship / shipping affiliate (Phase 2+).** eBay sellers must ship items. Add "Ship with Pirate Ship" button post-export — referral revenue per shipment. Low build effort, complements the workflow naturally.
+- **Retention driver:** Organizers who flip unsold items on eBay via FindA.Sale associate eBay revenue with the platform — strong retention signal.
+- **Differentiation:** No estate sale competitor offers AI-assisted eBay export. First-mover in "AI intake → multi-platform publish" workflow.
+- **eBay TOS compliance:** Phase 1 CSV has zero TOS risk. Phase 2 requires explicit organizer approval per listing before publish — UX must enforce this with a confirmation step (eBay policy requirement).
 
 ---
 
-## Open Questions for Patrick
-1. Should eBay Quick List export **watermarked** photos (brand protection) or clean photos (better eBay shopper experience)?
-2. Phase 1 only, or prioritize Phase 2 direct push from the start?
-3. Should items exported to eBay be marked as "unavailable" on FindA.Sale automatically, or stay active on both?
+## Confirmed Decisions (S374)
+
+1. **Photos: watermarked by default.** Clean photo export = paid feature (see Revenue below). Free exports carry FindA.Sale watermark — every eBay listing becomes brand advertising.
+2. **Both phases prioritized.** Phase 1 (CSV, SIMPLE) and Phase 2 (direct API push, PRO) build in parallel — they serve different organizer tiers and neither blocks the other.
+3. **Items stay active on both platforms.** Do NOT auto-mark as unavailable on FindA.Sale when exported to eBay. Instead, build cross-platform sold sync (Phase 3): if item sells on FindA.Sale → auto-end eBay listing via API; if item sells on eBay → eBay webhook fires → FindA.Sale marks item sold. Phase 3 requires Phase 2 (connected eBay account) as prerequisite.
 
 ---
 
