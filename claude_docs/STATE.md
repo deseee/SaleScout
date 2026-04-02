@@ -7,6 +7,42 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Current Work
 
+**S373 COMPLETE (2026-04-01):** Ripples + Command Center auth/data/UX fixes. Two pushes. Seed data synced.
+
+**S373 Summary:**
+
+**Root cause bugs fixed (both pushed):**
+- **Ripples "No sales found"** — Two compounding bugs: (1) missing `GET /organizers/me/sales` endpoint (bare path without auth); (2) `ripples.tsx` + `useRipples.ts` both used bare `axios` (no JWT) instead of authenticated `api` lib. Fixed: added endpoint to `organizers.ts`, converted all 4 axios calls across both files to `api` lib with correct paths (no `/api` prefix).
+- **Command Center always 401** — `commandCenterController.ts` checked `req.user?.organizer?.id` which auth middleware never populates. Fixed to DB lookup pattern (`prisma.organizer.findUnique({ where: { userId: req.user.id } })`).
+- **Command Center all tabs same data** — Redis cache key was `command-center:${organizerId}` (status-agnostic). Fixed to `command-center:${organizerId}:${status}`.
+- **Command Center Recent tab empty** — Service required `status: 'ENDED'` but sales never auto-transition from PUBLISHED when dates pass. Fixed: `status: { in: ['PUBLISHED', 'ENDED'] }`.
+
+**UX improvements (pushed):**
+- `CommandCenterCard.tsx` — date-aware badge logic: `◷ UPCOMING` for future PUBLISHED sales, `● LIVE` only when dates bracket today, `◉ ENDED` for past. Status colors updated with dark mode variants.
+- `CommandCenterCard.tsx` — title now has `hover:underline`. "View Sale ↗" button added alongside Manage.
+- `command-center.tsx` — SaleStatusWidget gated: only renders when sale is currently live (dates + PUBLISHED).
+- Dark mode added to CommandCenterCard and SaleStatusWidget (prev session).
+
+**Ripple events wired (pushed):**
+- `sales/[id].tsx` — VIEW ripple fires on page load (fire-and-forget)
+- `FavoriteButton.tsx` — SAVE ripple fires after successful favorite toggle
+- `SaleShareButton.tsx` — SHARE ripple fires from all 6 share handlers
+
+**Seed data fixed (DB direct):**
+- Seeded 30 SaleRipple records for Carol's 2 published sales (VIEW/SAVE/SHARE/BID)
+- Synced Item.status vs Purchase.status: 18 items updated to SOLD (had PAID purchases), 17 orphaned SOLD items reset to AVAILABLE. All sales now show consistent sold count + revenue.
+
+**S373 Files changed (all pushed):**
+Push 1: `packages/frontend/hooks/useRipples.ts`, `packages/frontend/pages/organizer/ripples.tsx`, `packages/backend/src/routes/organizers.ts`, `packages/backend/src/controllers/commandCenterController.ts`, `packages/backend/src/services/commandCenterService.ts`, `packages/frontend/components/CommandCenterCard.tsx`, `packages/frontend/components/SaleStatusWidget.tsx`, `packages/frontend/pages/sales/[id].tsx`, `packages/frontend/components/FavoriteButton.tsx`, `packages/frontend/components/SaleShareButton.tsx`
+
+Push 2: `packages/backend/src/services/commandCenterService.ts` (Recent tab fix), `packages/frontend/components/CommandCenterCard.tsx` (badge + View Sale), `packages/frontend/pages/organizer/command-center.tsx` (SaleStatusWidget gate)
+
+**S373 Chrome QA:**
+- Ripples ✅ ss_6281sqjiq — Carol: 10 views, 2 shares, 2 saves, 15 total, chart rendering across 3 sales
+- Command Center dark mode ✅ ss_8507mzglt
+- Command Center Upcoming tab ✅ ss_8507mzglt — real data (14 items, $1136 rev, 14.3% conv)
+- Command Center All tab ✅ ss_5606o78tb — multiple sales, tabs correctly segmented
+
 **S372 COMPLETE (2026-04-01):** Dashboard polish + AI wiring + endpoint expansion. All pushed.
 
 **S372 Summary:**
