@@ -1,50 +1,44 @@
-# Patrick's Dashboard — S375 Complete (2026-04-01)
+# Patrick's Dashboard — S376 Complete (2026-04-02)
 
 ---
 
 ## Status
 
-- **Vercel:** Pending push (7 features built, TS clean)
-- **Railway:** Pending push
-- **DB:** ✅ No schema changes this session
+- **Vercel:** ✅ Green (S376 pushed)
+- **Railway:** ✅ Green (S376 pushed)
+- **DB:** ✅ Migration 20260402_add_charity_donation deployed
 
 ---
 
-## What Happened This Session (S375)
+## What Happened This Session (S376)
 
-Session A complete — 4 parallel dev agents built 7 features in one batch. Zero TypeScript errors. All code ready to push.
+Smoke tested all 7 S375 features on finda.sale — all deployed and working. Then dispatched 2 parallel dev agents for fixes + new feature.
 
-**#240 Print-to-QR Sign Kit:** 5 sign templates (yard, directional, table tent, hang tag, full kit) via PDFKit. New routes + UI section on print-kit page.
+**S375 Smoke Test Results:**
+All 7 features verified live: Print-to-QR Sign Kit ✅, Brand Kit Expansion ✅, QR/Barcode Item Labels ✅, AI Comp Tool ✅, eBay CSV Export ✅, Smart Cart ✅ (tested as Karen Anderson — Buy Now, + Cart, In Cart toggle, toast, cart drawer all working).
 
-**#242 QR/Barcode Item Labels:** QR codes embedded in item labels linking to item page. Print Label button added to edit-item page.
+**Smart Cart Fixes:** FAB z-index fixed (was behind bottom nav), positioned above nav bar. Full cart integration added to individual item detail pages (+ Cart button, drawer, FAB, cross-sale switch).
 
-**#241 Brand Kit Expansion (PRO):** 4 PDF generators — business cards, letterhead, social headers, branded yard sign. PRO-gated with upsell.
+**#235 Charity Close + Tax Receipt PDF:** New schema (SaleDonation + DonatedItem), backend endpoints (create donation, list donations, generate PDF receipt), 3-step DonationModal (charity info → item selection → confirm + download receipt), PRO-gated with upgrade CTA, integrated into Settlement Wizard.
 
-**#229 AI Comp Tool:** eBay Browse API integration. "Get Price Comps" on edit-item page. Mock data fallback when credentials not set.
+## What Happened Last Session (S375)
 
-**#244 Phase 1 eBay CSV Export:** eBay File Exchange CSV download from add-items page. Watermark toggle (clean = PRO).
-
-**#243 Smart Cart:** localStorage shopper cart — FAB with badge, slide-in drawer, add/remove/clear, single-sale scoping.
-
-## What Happened Last Session (S374)
-
-Roadmap planning + feature prep. #240–244 slotted into active backlog. eBay Quick List spec written. Dispatch prompts prepared.
+4 parallel dev agents built 7 features: Print-to-QR Sign Kit, QR/Barcode Item Labels, Brand Kit Expansion, AI Comp Tool, eBay CSV Export, Smart Cart. All pushed S376.
 
 ---
 
-## Next Session (S376)
+## Next Session (S377)
 
-**Session B:** Agent 5 — #235 Charity Close + Tax Receipt PDF (schema migration required). Patrick deploys migration after push.
+**Smoke test:** Verify Smart Cart FAB visibility + #235 Charity Close flow (Settlement Wizard → Donate → PDF).
 
-**QA:** Chrome verification of all 7 features shipped in S375. Prioritize Smart Cart (shopper-facing) and Print Suite (organizer tooling).
+**Chrome QA:** Full walkthrough of S375+S376 features with real data.
 
-**Smoke test:** Verify S375 features deployed correctly on finda.sale after push.
+**Continue roadmap:** Next unbuilt backlog items.
 
 ---
 
 ## Open Action Items for Patrick
 
-- [ ] **⚠️ Push S375 code** — push block provided above (16 files, 7 features)
 - [ ] **⚠️ eBay Developer App (enables real comps for #229/#244):** Create app at https://developer.ebay.com → get `EBAY_CLIENT_ID` + `EBAY_CLIENT_SECRET` → set as Railway env vars. Features work with mock data until set.
 - [ ] **Trademark decision (#82):** File USPTO trademark for FindA.Sale? ~$250–400/class
 - [ ] **Trade secrets (#83):** Document proprietary algorithms + NDA review

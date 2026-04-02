@@ -7,7 +7,20 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Current Work
 
-**S375 COMPLETE (2026-04-01):** Session A — 4 parallel dev agents built 7 features. Zero TS errors. Push block ready.
+**S376 COMPLETE (2026-04-02):** S375 smoke test + Smart Cart fixes + #235 Charity Close. All pushed. Migration deployed.
+
+**S376 Summary:**
+- Smoke tested all 7 S375 features on finda.sale — all deployed and rendering correctly
+- **Smart Cart Chrome QA (as Karen Anderson / user11):** "Buy Now" + "+ Cart" buttons on every item card for shoppers ✅. Toast on add ✅. Button toggles to "✓ In Cart" ✅. SOLD items excluded ✅. Cart drawer in DOM ✅.
+- **Smart Cart FAB fix:** z-index bumped z-40 → z-50, bottom position adjusted to sit above bottom nav bar (bottom-24 mobile, md:bottom-8 desktop)
+- **Smart Cart on item detail page:** Full integration added to `items/[id].tsx` — useShopperCart hook, "+ Cart" / "✓ In Cart" button next to Buy It Now, ShopperCartDrawer + ShopperCartFAB rendered, cross-sale switch modal. HoldButton recolored blue to avoid amber conflict.
+- **#235 Charity Close + Tax Receipt PDF:** SaleDonation + DonatedItem schema models, migration deployed, donationController (POST donate, GET list, GET receipt PDF via PDFKit), 3 routes wired, DonationModal (3-step: charity info → item select → confirm), PRO-gated with upgrade CTA, integrated into SettlementWizard receipt step.
+
+**S376 Files Changed (all pushed):**
+Modified: `ShopperCartFAB.tsx`, `items/[id].tsx`, `schema.prisma`, `organizers.ts` (routes), `SettlementWizard.tsx`
+New: `donationController.ts`, `DonationModal.tsx`, `migrations/20260402_add_charity_donation/migration.sql`
+
+**S375 COMPLETE (2026-04-01):** Session A — 4 parallel dev agents built 7 features. All pushed S376.
 
 **S375 Summary:**
 - 4 agents dispatched in parallel (~447k agent tokens total), all returned clean
@@ -19,10 +32,6 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 - **#243 Smart Cart:** localStorage shopper cart — hook + drawer + FAB. Single-sale scoping, cross-sale switch confirm. Integrated into sale detail page.
 - Agents 1+3 both modified edit-item/[id].tsx — no conflict (different sections: header vs price form)
 - Combined TS check passed: zero errors frontend + backend
-
-**S375 Files Changed (NOT YET PUSHED):**
-Modified: `printKitController.ts`, `labelController.ts`, `organizers.ts` (routes), `print-kit/[saleId].tsx`, `edit-item/[id].tsx`, `brandKit.ts` (routes), `brand-kit.tsx`, `items.ts` (routes), `sales.ts` (routes), `add-items/[saleId].tsx`, `sales/[id].tsx`
-New: `brandKitPrintController.ts`, `ebayController.ts`, `useShopperCart.ts`, `ShopperCartDrawer.tsx`, `ShopperCartFAB.tsx`
 
 **S374 COMPLETE (2026-04-01):** Roadmap planning session. #240–244 slotted into Building backlog. eBay Quick List spec written. S375 parallel dispatch prompts prepared.
 
@@ -443,19 +452,25 @@ Files changed S362 (in push block — NOT YET COMMITTED):
 
 ---
 
-## Next Session (S376)
+## Next Session (S377)
 
-### S376 Priority 1 — Smoke test S375 features on finda.sale
-After Patrick pushes, verify all 7 features deployed. Quick Chrome checks: print-kit page loads sign templates, brand-kit shows download section, edit-item has Price Comps + Print Label, add-items has eBay Export, sale detail has cart FAB + Add to Cart buttons.
+### S377 Priority 1 — Smoke test S376 features
+Verify Smart Cart FAB visible on sale detail page + item detail page. Test #235 Charity Close flow: end a sale → Settlement Wizard → Donate Unsold Items → generate receipt PDF.
 
-### S376 Priority 2 — Agent 5: #235 Charity Close + Tax Receipt PDF
-Schema migration required (SaleDonation, DonatedItem, TaxReceipt models). Dispatch Agent 5, Patrick runs migration, then QA.
+### S377 Priority 2 — Chrome QA of S375+S376 features
+Detailed walkthrough of all features with real data. Prioritize:
+- Smart Cart full flow (add items, open drawer, cross-sale switch)
+- Print Suite (download sign PDFs, item labels)
+- Brand Kit PDF downloads (business cards, letterhead, social headers, yard sign)
+- eBay CSV Export (download CSV, verify format)
+- AI Comp Tool (click Get Price Comps — mock data until eBay creds set)
+- Charity Close + Tax Receipt PDF
 
-### S376 Priority 3 — Chrome QA of S375 features
-Detailed walkthrough of all 7 features with real data. Prioritize Smart Cart (shopper-facing) and Print Suite (organizer tooling).
+### S377 Priority 3 — Continue roadmap
+Next unbuilt items from backlog. Check roadmap.md for current priorities.
 
 ### Standing Notes
-- All Railway env vars ✅. Migrations ✅ (20260401_auto_high_value_flagging deployed).
+- All Railway env vars ✅. Migrations ✅ (20260402_add_charity_donation deployed).
 - Railway backend: https://backend-production-153c9.up.railway.app
 - Test accounts: user2 (organizer SIMPLE), user3 Carol Williams (TEAMS), user11 Karen Anderson (shopper, Hunt Pass active), user12 Leo Thomas (shopper). All passwords: password123
 - eBay comps show mock data until Patrick sets EBAY_CLIENT_ID + EBAY_CLIENT_SECRET on Railway
