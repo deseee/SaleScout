@@ -1,3 +1,5 @@
+> ⚠️ DEPRECATED — Content moved to STATE.md "## Next Session". Do not update this file.
+
 # Next Session Prompt — S264
 
 **Date:** 2026-03-24 (S263 complete)

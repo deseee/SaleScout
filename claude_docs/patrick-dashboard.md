@@ -43,6 +43,21 @@ All 7 features verified live: Print-to-QR Sign Kit ✅, Brand Kit Expansion ✅,
 
 ---
 
+## Audit Alerts (Weekly Audit — 2026-04-02)
+
+**1 CRITICAL + 5 HIGH findings detected.** Full report: `claude_docs/audits/weekly-audit-2026-04-02.md`
+
+- **CRITICAL — Sale detail items buried below map (D-006 drift):** Items for Sale section appears BELOW Location/Map/Reviews. Shoppers must scroll far down to find items — the #1 reason they visit a sale page.
+- **HIGH — Trending page images broken:** Hot Sales cards show blank white areas. Most Wanted Items partially broken.
+- **HIGH — Inspiration Gallery ALL images missing:** Every item card shows grey placeholder instead of photos. Gallery is unusable.
+- **HIGH — Feed page images blurry/low-res:** All sale card images are heavily blurred thumbnails stretched to full size.
+- **HIGH — Pricing page says Teams = 5 members, should be 12 (D-007 LOCKED):** Misrepresents a locked business decision.
+- **HIGH — Seed data quality:** Item categories wrong (Cast Iron Skillet = "Clothing"), descriptions template-generic.
+
+**Top 3 fix priorities:** (1) Reorder sale detail sections per D-006, (2) Fix image loading on Trending/Inspiration/Feed, (3) Update Teams tier to 12 members.
+
+---
+
 ## Open Action Items for Patrick
 
 - [ ] **⚠️ eBay Developer App (enables real comps for #229/#244):** Create app at https://developer.ebay.com → get `EBAY_CLIENT_ID` + `EBAY_CLIENT_SECRET` → set as Railway env vars. Features work with mock data until set.

@@ -1,3 +1,5 @@
+> ⚠️ DEPRECATED — Content moved to STATE.md "## Recent Sessions". Do not update this file.
+
 # Session Log — FindA.Sale
 
 Cross-session memory for Claude. Updated at every session end.

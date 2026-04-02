@@ -1,3 +1,5 @@
+> ⚠️ DEPRECATED — Content moved to STATE.md "## Recent Sessions". Do not update this file.
+
 # Session Log — Recent Activity
 
 **Note:** Older entries archived to `claude_docs/archive/session-logs/`. Keep 5 most recent sessions for quick reference.

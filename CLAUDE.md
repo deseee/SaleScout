@@ -472,6 +472,7 @@ git commit -m "..."
 | Model routing | `operations/model-routing.md` |
 | QA accountability | `operations/orchestrator-qa-accountability.md` |
 | Wrap protocol | `operations/WRAP_PROTOCOL_QUICK_REFERENCE.md` |
+| Decisions log | `decisions-log.md` |
 | Tech stack | `STACK.md` |
 | Security | `SECURITY.md` |
 | Recovery | `RECOVERY.md` |

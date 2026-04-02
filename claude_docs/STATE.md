@@ -130,12 +130,6 @@ dashboard.tsx, WeatherStrip.tsx, OrganizerHoldsPanel.tsx, HighValueTrackerWidget
 3. **#58 Achievements 401 P1** — `hooks/useAchievements.ts`: replaced bare `fetch()` (no auth headers) with authenticated `api` lib. Root cause: same `fetch` vs `api` pattern that caused other 401s.
 4. **#131 Share Templates ❌→FIXED** — QA found SaleShareButton.tsx only had Copy Link + Facebook + Twitter. Added Nextdoor (copy+toast+newsfeed), Threads (intent popup), Pinterest (pin dialog), TikTok (copy+toast+TikTok). `SaleShareButton.tsx` is the component on sale pages (not SharePromoteModal.tsx).
 
-**S370 Files Changed (NOT YET PUSHED):**
-- `packages/frontend/pages/organizer/dashboard.tsx` — upgrade guard fix
-- `packages/frontend/pages/shoppers/[id].tsx` — dark mode variants
-- `packages/frontend/hooks/useAchievements.ts` — auth fix
-- `packages/frontend/components/SaleShareButton.tsx` — 4 missing share platforms added
-
 **S369 COMPLETE (2026-04-01):** Dashboard QA fixes shipped. Vercel green. QA done S370.
 
 **S369 Implementation Summary:**
@@ -171,17 +165,6 @@ dashboard.tsx, WeatherStrip.tsx, OrganizerHoldsPanel.tsx, HighValueTrackerWidget
 
 **S366 COMPLETE (2026-04-01):** Camera P1 QA ✅ verified. Review & Publish mobile card width fixed (4 iterations). Dashboard P1/P2 batch. All orphaned organizer pages wired into nav (19 items). Close Sale Early: confirm dialog + reopen flow added. Eastside Collector's Sale 2 manually restored to PUBLISHED via Railway SQL.
 
-**Pending push — S366 full batch:**
-Files: `packages/frontend/pages/organizer/dashboard.tsx`, `packages/frontend/components/Layout.tsx`, `packages/frontend/components/OrganizerTierBadge.tsx`, `packages/frontend/components/OrganizerHoldsPanel.tsx`, `packages/backend/src/controllers/saleController.ts`, `packages/frontend/pages/organizer/add-items/[saleId]/review.tsx`, `claude_docs/STATE.md`, `claude_docs/patrick-dashboard.md`
-
-**Dashboard changes:**
-- P1: Close Sale Early → confirm dialog added + ENDED→PUBLISHED transition unlocked for organizers
-- P1: Manage Holds dark mode fixed (OrganizerHoldsPanel.tsx)
-- P1: Analytics FREE → /organizer/ripples (was /pricing)
-- P1: Sale card clickable + quick-actions (View Live, Add Items, Holds, POS)
-- P1: Metrics linked (Items Listed → add-items, Active Holds → holds)
-- P1: Sale Ripples restored to nav (desktop + mobile, all tiers)
-- P1: OrganizerTierBadge BRONZE → "Bronze Organizer", upgrade link removed
 - P2: Compact all-sales list (up to 5, View all → /organizer/sales)
 - P2: QR Codes route fixed
 
@@ -442,18 +425,6 @@ Files changed S361:
 
 (4) **CRITICAL: Repo wipe recovered.** `3ceae665` deleted 1,483 files on push (second occurrence this project). Recovery: `git reset --hard cadddf6e` + `git push origin main --force` via Patrick's PowerShell. 10 S362 files saved to VM temp before reset, restored to disk. Pushblock provided — Patrick must run it. Root cause locked in CLAUDE.md §5: subagent git ban (hard rule).
 
-Files changed S362 (in push block — NOT YET COMMITTED):
-- `packages/frontend/components/RapidCapture.tsx`
-- `packages/frontend/components/camera/RapidCarousel.tsx`
-- `packages/frontend/lib/imageUtils.ts`
-- `packages/frontend/components/ItemCard.tsx`
-- `packages/frontend/components/LibraryItemCard.tsx`
-- `packages/frontend/components/ItemSearchResults.tsx`
-- `packages/frontend/components/ItemListWithBulkSelection.tsx`
-- `packages/frontend/components/RecentlyViewed.tsx`
-- `packages/frontend/components/InspirationGrid.tsx`
-- `packages/frontend/pages/items/[id].tsx`
-
 ---
 
 ## Next Session (S377)
@@ -481,46 +452,6 @@ Next unbuilt items from backlog. Check roadmap.md for current priorities.
 
 ---
 
-### S372 Priority 1 — Live sale card button consolidation
-Merge all live sale card buttons into one row below the LIVE+weather line. Rename + reorder:
-- "Manage Items" → **"Items"**
-- "Close Sale Early" → **"Close Sale"**
-- Keep: View Live, Holds, POS
-- All 5 in one row, below the LIVE badge + weather strip
-
-Also fix: Holds and POS buttons already have `?saleId=` in their URLs but the Holds page and POS page don't auto-select/filter by that saleId on load. Both pages need to read the `saleId` query param and pre-select or filter to that sale on mount.
-
-### S372 Priority 2 — Auto high-value flagging wiring
-The utility (`highValueFlagging.ts`) is built but not yet called from the AI analysis flow. Find where AI results (estimatedValue, category, aiConfidence) are written back to items after analysis and call `evaluateAutoHighValueFlag()` there. One targeted backend edit.
-
-### S372 Priority 3 — Secondary sale card stats
-`/sales/mine` endpoint doesn't return per-sale item counts or visitor (qrScanCount) totals. SecondarySaleCard shows 0s. Expand the endpoint or add a batch stats call so cards show real numbers.
-
-### S372 Priority 4 — QA dashboard changes live
-Full organizer dashboard walkthrough as Carol (user3) — verify all S371 changes render correctly in browser.
-
-### Standing Notes
-- All Railway env vars ✅. Migration 20260401_auto_high_value_flagging deployed ✅.
-- Railway backend: https://backend-production-153c9.up.railway.app
-- Test accounts: user2 (organizer SIMPLE), user3 Carol Williams (TEAMS), user11 Karen Anderson (shopper, Hunt Pass active), user12 Leo Thomas (shopper). All passwords: password123
-
-### S371 Priority 1 — Push S370 fixes + smoke verify (mandatory)
-Patrick must push S370 first (push block below). After push and Vercel deploys:
-
-1. **Upgrade guard** — Log in as user3@example.com (TEAMS). Verify "Upgrade →" link is GONE. (Fixed: now checks `user?.organizerTier !== 'TEAMS'`)
-2. **#199 Profile dark mode** — Navigate to `/shoppers/cmn9opa330009ij7tqwvt463c` in dark mode. Verify no white cards or washed-out stat labels.
-3. **#58 Achievements** — Log in as user11@example.com, navigate to `/shopper/achievements`. Verify page loads (was 401).
-4. **#131 Share Templates** — Navigate to any published sale, click Share button. Verify Nextdoor, Threads, Pinterest, TikTok options now appear.
-
-### S371 Priority 2 — Unverified queue
-- **#37 Sale Alerts trigger** — Need organizer to publish a sale while user11 is logged in. Test: log in as user11, then in a separate tab as user2 and publish a sale — check user11's notification inbox for in-app alert.
-- **#213 Hunt Pass CTA** — Find/use a shopper with `huntPassActive = false` to verify CTA card shows 3 benefits + "Upgrade Now" button. (user11 has active pass, couldn't test CTA state.)
-
-### Standing Notes
-- All Railway env vars ✅. All migrations deployed ✅.
-- Railway backend: https://backend-production-153c9.up.railway.app
-- Test accounts: user2 (organizer SIMPLE), user3 Carol Williams (TEAMS), user11 Karen Anderson (shopper, Hunt Pass active), user12 Leo Thomas (shopper). All passwords: password123
-- S366 push block still PENDING (see S366 entry above)
 
 ### S361 Priority 2: Continue QA backlog
 - **#37 Sale Alerts** — after notifications.tsx push deploys: navigate to notification inbox as shopper, verify Alerts tab shows only followed-organizer sale alerts (not all notifications)
