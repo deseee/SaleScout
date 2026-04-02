@@ -7,6 +7,26 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Current Work
 
+**S378 COMPLETE (2026-04-02):** Nav menu parity (mobile ↔ desktop), Shopping Cart fix, icon fixes.
+
+**S378 Summary:**
+- **P1 Vercel green:** Confirmed READY after S377 revert push.
+- **P2 Nav audit decision doc:** Built 43+ line decision document, Patrick approved every item.
+- **P2 Nav implementation (3 dev dispatches + inline fixes):**
+  - Mobile menu now mirrors desktop exactly: Admin (collapsible, 7 items), Quick Links w/icons, Your Sales, Selling Tools, IN-SALE TOOLS (renamed from "Sale Context", added Print Kit), PRO TOOLS (added Insights, Sale Hubs, Virtual Queue, UGC Moderation), TEAMS (new section), DEVELOPER TOOLS (new section).
+  - Removed "Account & Profile" section from mobile (Messages/Settings in footer like desktop).
+  - 11 coming-soon placeholder pages created for routes that had no page.
+  - "(Coming Soon)" labels standardized to "(Soon)" across both menus.
+  - Shopping Cart fixed: desktop button now imports useShopperCart + renders ShopperCartDrawer with item count badge. Mobile gets same cart button in both organizer+shopper and shopper-only paths.
+  - Icons fixed: Manage Photos → Image, UGC Moderation → Image, Workspace → Network, Payouts → Wallet, Item Library → BookOpen.
+  - Caught and fixed temporal dead zone bug (isClient referenced before declaration).
+- **P3 Chrome QA:** Carried to S379 — context tight after large dev dispatches.
+
+**S378 Files Changed:**
+- `packages/frontend/components/AvatarDropdown.tsx` — icons, cart integration, ShopperCartDrawer
+- `packages/frontend/components/Layout.tsx` — full mobile menu restructure, cart, footer
+- 11 new coming-soon pages: `organizer/calendar.tsx`, `organizer/earnings.tsx`, `organizer/staff.tsx`, `organizer/qr-codes.tsx`, `admin/items.tsx`, `admin/reports.tsx`, `admin/feature-flags.tsx`, `admin/broadcast.tsx`, `shopper/bounties.tsx`, `shopper/reputation.tsx`, `shopper/trades.tsx`
+
 **S377 COMPLETE (2026-04-02):** Print Kit path fix + user1 TEAMS upgrade + nav audit research. Nav menus reverted after unauthorized removal.
 
 **S377 Summary:**
