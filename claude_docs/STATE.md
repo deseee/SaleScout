@@ -7,6 +7,19 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Current Work
 
+**S377 COMPLETE (2026-04-02):** Print Kit path fix + user1 TEAMS upgrade + nav audit research. Nav menus reverted after unauthorized removal.
+
+**S377 Summary:**
+- **Print Kit 404 fix (PUSHED, commit 143780c6):** `print-kit/[saleId].tsx` — changed 6 `window.open` paths from `/organizer/sales/${saleId}/signs/...` to `/organizers/${saleId}/signs/...` (matching backend route mount `app.use('/api/organizers', organizerRoutes)`). Labels path `/sales/${saleId}/labels` was already correct, untouched. This is the ONLY valid code change from S377.
+- **user1 upgraded to TEAMS tier:** Direct Railway DB update via psycopg2.
+- **Nav audit research COMPLETED (valuable — pass to S378):** Full page-existence audit of every nav link in both Layout.tsx (mobile) and AvatarDropdown.tsx (desktop). Results documented in Next Session handoff.
+- **⚠️ CRITICAL INCIDENT: Unauthorized nav removal.** Dev agent REMOVED working nav links without Patrick's approval — direct Removal Gate violation (CLAUDE.md §7). Both Layout.tsx and AvatarDropdown.tsx REVERTED to pre-S377 state (commit 4018b881). Root cause: orchestrator included removal instructions in dev agent prompt instead of presenting decisions to Patrick first.
+
+**S377 Files Changed:**
+- `packages/frontend/pages/organizer/print-kit/[saleId].tsx` — pushed (commit 143780c6, correct)
+- `packages/frontend/components/Layout.tsx` — REVERTED to 4018b881
+- `packages/frontend/components/AvatarDropdown.tsx` — REVERTED to 4018b881
+
 **S376 COMPLETE (2026-04-02):** S375 smoke test + Smart Cart fixes + #235 Charity Close + Print Kit bug fixes. All pushed. Migration deployed.
 
 **S376 Summary:**
@@ -427,13 +440,77 @@ Files changed S361:
 
 ---
 
-## Next Session (S377)
+## Next Session (S378)
 
-### S377 Priority 1 — Smoke test S376 features
-Verify Smart Cart FAB visible on sale detail page + item detail page. Test #235 Charity Close flow: end a sale → Settlement Wizard → Donate Unsold Items → generate receipt PDF.
+### S378 Priority 1 — Verify Vercel green after revert push
+Confirm both Layout.tsx and AvatarDropdown.tsx revert deployed cleanly. Quick smoke test of nav menus to confirm they match pre-S377 state.
 
-### S377 Priority 2 — Chrome QA of S375+S376 features
-Detailed walkthrough of all features with real data. Prioritize:
+### S378 Priority 2 — NON-DESTRUCTIVE Nav Menu Audit (CRITICAL)
+
+**⚠️ ABSOLUTE RULES — READ BEFORE TOUCHING ANY CODE:**
+1. DO NOT REMOVE ANY NAV LINKS without Patrick's explicit per-item approval
+2. Present ALL proposed changes as a DECISION DOCUMENT first — Patrick reviews and approves each line before any code is written
+3. A 404 link is a BUG TO FIX (build index page / add sale selector / add "(Soon)" tag), NOT a signal to delete
+4. Items proposed for removal go into a "PROPOSED FOR REMOVAL" section — they stay in nav until Patrick says otherwise
+5. The Removal Gate (CLAUDE.md §7) is absolute — S377 violated it and wasted an entire Opus session
+
+**Step 1 — Build the decision document.** For EVERY nav link in both Layout.tsx (mobile) and AvatarDropdown.tsx (desktop), create a table:
+
+| # | Menu | Section | Link Name | Current Path | Page Exists? | Status | Proposed Action | Patrick Decision |
+|---|------|---------|-----------|-------------|-------------|--------|----------------|-----------------|
+
+Status values: WORKING / 404 / WRONG PATH / MISSING FROM OTHER MENU
+Proposed Action values: KEEP / RENAME TO "X" / MOVE TO SECTION "X" / FIX PATH TO "X" / BUILD INDEX PAGE / ADD "(Soon)" / PROPOSED FOR REMOVAL (with reason)
+Patrick Decision: BLANK — Patrick fills this in.
+
+**Step 2 — Present to Patrick.** Do NOT touch code. Wait for Patrick's line-by-line decisions.
+
+**Step 3 — After Patrick approves,** implement ONLY approved changes. Each change must cite the decision row number.
+
+### S377 Nav Audit Research Results (feed to S378)
+
+**Page Existence Audit — Pages that DO exist:**
+organizer/insights (NOT analytics), organizer/appraisals, organizer/command-center, organizer/fraud-signals, organizer/hubs, organizer/inventory, organizer/item-library, organizer/line-queue/[id] (saleId route only), organizer/message-templates, organizer/payouts, organizer/photo-ops/[saleId] (saleId route only), organizer/print-kit/[saleId] (saleId route only), organizer/promote/[saleId] (saleId route only), organizer/reputation, organizer/ripples, organizer/send-update/[saleId] (saleId route only), organizer/subscription, organizer/typology, organizer/ugc-moderation, organizer/webhooks, organizer/workspace, shopper/wishlist
+
+**Pages that DO NOT exist (404):**
+admin/items ❌, admin/reports ❌, admin/feature-flags ❌, admin/broadcast ❌, organizer/active-sale ❌, organizer/calendar ❌, organizer/map ❌, organizer/qr-codes ❌, organizer/earnings ❌, organizer/staff ❌, organizer/item-tagger ❌, shopper/saved-items ❌ (favorites page exists instead), shopper/bounties ❌, shopper/reputation ❌, shopper/trades ❌
+
+**Desktop (AvatarDropdown.tsx) missing items that mobile has:**
+payouts, item-library, inventory, reputation, message-templates, ugc-moderation, ripples, appraisals, command-center, typology, fraud-signals, webhooks, workspace, promote, send-update, photo-ops, print-kit, line-queue
+
+**Mobile (Layout.tsx) missing:**
+Username/email/rank badge at top of menu (desktop has it in avatar dropdown)
+
+**Known bugs in current nav:**
+- Admin section not collapsible on desktop
+- My Collection and Explore & Connect not collapsible on desktop
+- Admin section positioned BELOW shopper sections in mobile — Patrick wants it ABOVE Organizer Dashboard
+- Three mobile sections (Your Sales, Account & Profile, Selling Tools) share the same `mobileOrgToolsOpen` state — they all expand/collapse together (bug)
+- Desktop says "Sign Out" — Patrick wants "Logout"
+- Shopping Cart (Smart Cart) not in nav at all — needs to be added
+
+### Patrick's Research Notes (OVERRIDE earlier conclusions — DO NOT SKIP)
+
+**[saleId] routes that 404 at base path (line-queue, promote, send-update, photo-ops):**
+These are sale-specific pages. The base path 404s because there's no index page — only the `[saleId].tsx` variant exists. Patrick says: "how do we get to it or have it list the sales or?" — NEEDS INDEX PAGES with sale selectors, NOT removal. Research what pattern works best (sale dropdown? card list? redirect to active sale?).
+
+**Admin pages (admin/items, reports, feature-flags, broadcast, active-sale):**
+DO NOT KILL. Research what the original admin dashboard spec wanted and what a proper admin dashboard should include. These may be planned features.
+
+**organizer/calendar:**
+Patrick says: "pretty sure this was supposed to be a TEAMS feature that helped with scheduling and employee schedules and was gonna have a dashboard widget." NOT just "sale dates." Research the original spec.
+
+**shopper/reputation:**
+Patrick says: "I distinctly remember a planning session addressing this needing to be separate from organizer reputation. It may have had a different name." DO NOT KILL — research further. Check DECISIONS.md and session logs.
+
+**organizer/earnings vs organizer/payouts:**
+Patrick says these are SEPARATE features: "payouts was what data they get from stripe and earnings was going to be part of the more in depth sales data for full estate sale flows." Earnings ≠ Payouts. DO NOT merge or remove either.
+
+**organizer/item-tagger:**
+Patrick says: "this was for the QR based item price tags and the ones for the pre-priced misc items that weren't photographed." This is NOT AI photo tagging. Completely different feature. DO NOT KILL — research what was specced.
+
+### S378 Priority 3 — Chrome QA of S375+S376 features (carry from S377)
+Still not done from S377. After nav audit decision doc is presented:
 - Smart Cart full flow (add items, open drawer, cross-sale switch)
 - Print Suite (download sign PDFs, item labels)
 - Brand Kit PDF downloads (business cards, letterhead, social headers, yard sign)
@@ -441,38 +518,10 @@ Detailed walkthrough of all features with real data. Prioritize:
 - AI Comp Tool (click Get Price Comps — mock data until eBay creds set)
 - Charity Close + Tax Receipt PDF
 
-### S377 Priority 3 — Continue roadmap
-Next unbuilt items from backlog. Check roadmap.md for current priorities.
-
 ### Standing Notes
 - All Railway env vars ✅. Migrations ✅ (20260402_add_charity_donation deployed).
 - Railway backend: https://backend-production-153c9.up.railway.app
-- Test accounts: user2 (organizer SIMPLE), user3 Carol Williams (TEAMS), user11 Karen Anderson (shopper, Hunt Pass active), user12 Leo Thomas (shopper). All passwords: password123
+- Test accounts: user1 (TEAMS, upgraded S377), user2 (organizer SIMPLE), user3 Carol Williams (TEAMS), user11 Karen Anderson (shopper, Hunt Pass active), user12 Leo Thomas (shopper). All passwords: password123
 - eBay comps show mock data until Patrick sets EBAY_CLIENT_ID + EBAY_CLIENT_SECRET on Railway
-
----
-
-
-### S361 Priority 2: Continue QA backlog
-- **#37 Sale Alerts** — after notifications.tsx push deploys: navigate to notification inbox as shopper, verify Alerts tab shows only followed-organizer sale alerts (not all notifications)
-- **#199 User Profile dark mode** — `/shoppers/cmn9opa330009ij7tqwvt463c` in dark mode; `bg-warm-50` has no `dark:` variant
-- **#58 Achievement Badges** — `/shopper/achievements` page + dashboard widget showing real badge data
-- **#29 Loyalty Passport** — `/shopper/loyalty` XP earn guide + rank thresholds
-- **#213 Hunt Pass CTA** — visible for non-pass users, hidden when `huntPassActive=true`
-- **#131 Share Templates** — Facebook sharer popup, Nextdoor copy+open, Threads intent, Pinterest pin, TikTok copy+open
-
-### S361 Priority 3: P2 dev dispatches (carry from S360)
-- **CSV import broken** — Zod `.enum().optional()` rejects empty string `""`. Fix: pre-process `""` → `undefined` in CSVImportModal.tsx before Zod
-- **Typology classify no UI refresh** — invalidate item query on classify mutation success
-- **Business Name blank** — organizer settings Profile tab field not loading from API on open
-- **Social fields on public organizer profile** — `facebookUrl` etc. not verified rendering at `/organizers/[id]`
-- **#177 Buy Now modal UX gap** — modal shows no item name or price; needs findasale-ux spec
-
-### S361 Notes
-- All Railway env vars ✅. All migrations deployed ✅. Sage threshold 2500 XP (beta only).
-- Railway backend URL: https://backend-production-153c9.up.railway.app
-- Test accounts: user2 = organizer (SIMPLE), user3 = Carol Williams (TEAMS), user11 = Karen Anderson (shopper), user12 = Leo Thomas (shopper). All passwords: password123
-- Null byte pattern: MCP-pushed files accumulate null bytes at end. Strip with `content.rstrip(b'\x00')` before pushing. TS1127 = null bytes.
-- `test-import.csv` is in `FindaSale/` workspace folder (Patrick's computer) for manual CSV import testing.
-- camera workflow: add-items/[saleId].tsx → RapidCapture.tsx → PreviewModal.tsx → AI classification → confidence display. S351 added BrightnessIndicator.tsx + tiered lighting + shot sequence. Suspect: lighting gate or restructured state broke AI call feedback loop.
+- Backend route mounts: `app.use('/api/organizers', organizerRoutes)` and `app.use('/api/sales', saleRoutes)` — Print Kit signs at `/api/organizers/:saleId/signs/{type}` (plural)
 
