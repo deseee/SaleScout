@@ -7,6 +7,50 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Current Work
 
+**S387 COMPLETE (2026-04-03):** Rapidfire camera mode polish sprint.
+
+**S387 Summary:**
+- **Site down fix (P0):** `_app.tsx` — `CartProvider` was missing. CartIcon was wired to Layout in S386 but the context provider was never added. Added import + wrapped `<CartProvider>` around `<ErrorBoundary>` inside `<QueryClientProvider>`. Site restored.
+- **+ button visible immediately:** `RapidCapture.tsx` — restructured thumbnail div: outer container no longer has `overflow-hidden` (was clipping corner badges). Inner image-only div keeps `overflow-hidden rounded-lg border`. + button removed `thumbnailUrl` gate — always visible. w-7 h-7, `-bottom-1.5 -right-1.5`, z-10.
+- **+ button clickable on temp- items:** Removed `if (!item.id.startsWith('temp-'))` guard from + onClick. Calls `onAddToItem` unconditionally.
+- **AI analysis blocked while in + mode:** Integrated existing backend hold/release infrastructure. `api.post('/items/${id}/hold-analysis')` called on entering add-mode; `api.post('/items/${id}/release-analysis')` on exiting or camera close. Backend already had full `rapidfireAIDebounce` Map + controllers — frontend was just never calling them.
+- **Toast z-index fix:** `PreviewModal.tsx` — backdrop changed `z-50` → `z-[60]` so modal renders above toasts.
+- **Blue "analyzing" toasts removed:** All 3 `showToast('Analyzing item with AI...', 'info')` calls deleted from `[saleId].tsx`. "AI identified:" renamed → "Tagged:". "AI enhancement coming soon" → "Enhancement coming soon".
+- **`showShotGuidance` identified as dead code:** Function coaching organizers through 5-shot coverage (regular mode only) — defined at lines 1031–1041 but never called. Deletion deferred to S388 (coaching approach decision pending — non-toast replacement needed).
+
+**S387 Files Changed:**
+- `packages/frontend/components/RapidCapture.tsx` — overflow-hidden restructure, + button always visible, icon sizing/positioning
+- `packages/frontend/components/camera/PreviewModal.tsx` — z-[60] backdrop
+- `packages/frontend/pages/_app.tsx` — CartProvider added
+- `packages/frontend/pages/organizer/add-items/[saleId].tsx` — hold/release API calls, toast removals/renames
+
+**S387 Push Block:**
+```powershell
+cd C:\Users\desee\ClaudeProjects\FindaSale
+git add packages/frontend/components/RapidCapture.tsx
+git add packages/frontend/components/camera/PreviewModal.tsx
+git add packages/frontend/pages/_app.tsx
+git add "packages/frontend/pages/organizer/add-items/[saleId].tsx"
+git add claude_docs/STATE.md
+git add claude_docs/patrick-dashboard.md
+git commit -m "fix: S387 — rapidfire + button polish, CartProvider fix, hold/release AI analysis, toast cleanup"
+.\push.ps1
+```
+
+---
+
+**S387 Next Session — S388 Focus: Documentation & Coaching Overhaul**
+
+Documentation/coaching has been neglected while features shipped. S388 researches all relevant planning sessions and produces:
+1. **In-workflow coaching approach** — `showShotGuidance` is dead; need a non-toast coaching pattern for camera mode and other key workflows (contextual hints, progressive disclosure, step counters, etc.)
+2. **Pricing page overhaul** — page never properly updated after pricing decisions. Tier names/counts differ from planning sessions. Ala carte item presence needs verification. Full audit needed.
+3. **Organizer feature × tier matrix** — what's FREE/SIMPLE/PRO/TEAMS, what's gamification-gated vs tier-gated, what's been built vs surfaced vs planned.
+4. **Shopper feature × rank matrix** — gamification ranks, Hunt Pass tiers, premium features per tier. Full breakdown based on planning sessions.
+5. **FAQ + user-facing copy** — update to reflect all shipped features since last update. Strict branding: no "AI" or synonyms anywhere in user-facing copy.
+Research sources: DECISIONS.md, roadmap.md, planning session STATE.md entries, gamification/Hunt Pass planning docs.
+
+---
+
 **S386 COMPLETE (2026-04-03):** TS error repair sprint + 3 deferred component wirings + full roadmap audit (S373–S386).
 
 **S386 Summary:**
