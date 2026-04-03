@@ -1,62 +1,41 @@
-# Patrick's Dashboard — S387 Complete (2026-04-03)
+# Patrick's Dashboard — S388 Complete (2026-04-03)
 
 ---
 
 ## Status
 
-- **Vercel:** ✅ Green
-- **Railway:** ✅ Green
+- **Vercel:** ⏳ Push needed (15 frontend files changed)
+- **Railway:** ⏳ Push needed (1 backend file changed)
 - **DB:** ✅ No migrations this session
 
 ---
 
-## What Happened This Session (S387)
+## What Happened This Session (S388)
 
-**Rapidfire camera mode polish + site-down fix.**
+**Documentation & Coaching Overhaul — research + implementation across all 5 focus areas.**
 
-Site was down after S386 push — `CartProvider` was missing from `_app.tsx`. CartIcon was wired in S386 but its context provider was never added. Fixed immediately.
+Researched pricing, tier matrix, rank matrix, coaching, and FAQ/copy with 5 parallel agents. All 10 key decisions confirmed as already locked from prior sessions (no new decisions needed).
 
-Camera polish: + button now appears on every thumbnail the moment it renders (no more waiting for AI analysis). It's immediately clickable even on temp items. When you tap +, the backend's hold/release analysis infrastructure is now properly called — AI analysis pauses while you're in add-photo mode and resumes when you exit. Toast z-index fixed so the PreviewModal's X button is never obscured. All three blue "analyzing..." info toasts removed. "AI identified:" renamed to "Tagged:" throughout.
+**Fixes shipped:**
+- Pricing page corrected: PRO $49→$29, TEAMS $99→$79 (TierComparisonTable was already correct)
+- XP rank thresholds aligned to board numbers: Ranger 2000, Sage 5000, Grandmaster 12000
+- XP values corrected: visit 10→5, purchase flat 15→$1=1XP
+- 13 "AI" branding violations replaced with "smart tagging" / "auto-tagging" / "system" across 9 files
+- Sale type language broadened from "estate sales" to include yard/garage/flea/consignment across 4 files
+- Camera coaching banner added (regular mode) — progressive 5-shot guidance, replaces dead `showShotGuidance`
+- 7 new FAQ entries added (Explorer's Guild, challenges, Passport, Condition Rating, tier differences, Brand Kit, Command Center)
 
-`showShotGuidance` identified — it was a 5-shot coaching function for regular mode (never wired up). Kept for now; S388 will decide on a non-toast coaching approach before deleting or replacing it.
+**Research produced:** Full synthesis doc with code-verified file paths for all findings + game design matrix reconciled against S259 source of truth.
 
 ---
 
-## What Happened Last Session (S386)
+## What Happened Last Session (S387)
 
-TS repair sprint + 3 component wirings (CartIcon in header, AddressAutocomplete on create-sale, TooltipHelper on pricing) + full roadmap audit to v92.
+Rapidfire camera polish + site-down fix (CartProvider missing). + button timing, hold/release AI analysis, toast cleanup.
 
 ---
 
 ## Push Required
-
-```powershell
-cd C:\Users\desee\ClaudeProjects\FindaSale
-git add packages/frontend/components/RapidCapture.tsx
-git add packages/frontend/components/camera/PreviewModal.tsx
-git add packages/frontend/pages/_app.tsx
-git add "packages/frontend/pages/organizer/add-items/[saleId].tsx"
-git add claude_docs/STATE.md
-git add claude_docs/patrick-dashboard.md
-git commit -m "fix: S387 — rapidfire + button polish, CartProvider fix, hold/release AI analysis, toast cleanup"
-.\push.ps1
-```
-
----
-
-## Next Session (S388) — Documentation & Coaching Overhaul
-
-S388 is a research + documentation sprint. The product has changed dramatically since docs were last touched. S388 will:
-
-**1. In-workflow coaching** — `showShotGuidance` (camera 5-shot coach) is dead code using toasts we just removed. Need a non-toast coaching pattern. S388 will spec and implement something appropriate — contextual hints, step counters, progressive disclosure, or inline guidance.
-
-**2. Pricing page** — the pricing page was never properly updated after planning decisions. The tier structure on the page may not match what was decided. The ala carte item needs verification. S388 audits the page against DECISIONS.md and planning session records, then fixes it.
-
-**3. Organizer feature × tier matrix** — a definitive breakdown of FREE / SIMPLE / PRO / TEAMS features: what's gamified, what's tier-gated, what's been built but not surfaced. This becomes the source of truth for pricing page copy and FAQ.
-
-**4. Shopper feature × rank matrix** — gamification ranks, Hunt Pass / premium tiers, what shoppers get at each level. Based on all the planning sessions that discussed gamification and Hunt Pass.
-
-**5. FAQ + user-facing copy** — update to reflect everything shipped since the last doc pass. Hard rule: zero "AI" or synonyms in any user-facing copy. Branding guidelines enforced throughout.
 
 ---
 
@@ -70,6 +49,16 @@ S388 is a research + documentation sprint. The product has changed dramatically 
 - **HIGH — Seed data quality:** Item categories wrong, descriptions template-generic.
 
 Full report: `claude_docs/audits/weekly-audit-2026-04-02.md`
+
+---
+
+## Next Session (S389)
+
+- **Stripe price objects:** Verify stripeController.ts price IDs match $29/$79 — may need recreation
+- **SIMPLE concurrent sales gate:** Architect spec needed for maxConcurrentSales in tierLimits.ts + enforcement
+- **Gamification Phase 1:** ~45-50% built. Major gaps: seasonal infrastructure, notifications, XP wiring to purchase/visit/auction flows, dynamic Hunt Pass pricing
+- **Organizer tier rearrangement:** All features open to reorg except social/viral (stays free). Formal proposal needed.
+- **Smoke test S388 changes:** Verify pricing page, FAQ, coaching banner, AI branding fixes live
 
 ---
 

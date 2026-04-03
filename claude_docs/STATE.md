@@ -7,47 +7,57 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Current Work
 
-**S387 COMPLETE (2026-04-03):** Rapidfire camera mode polish sprint.
+**S388 COMPLETE (2026-04-03):** Documentation & Coaching Overhaul — research sprint + implementation across 5 focus areas.
 
-**S387 Summary:**
-- **Site down fix (P0):** `_app.tsx` — `CartProvider` was missing. CartIcon was wired to Layout in S386 but the context provider was never added. Added import + wrapped `<CartProvider>` around `<ErrorBoundary>` inside `<QueryClientProvider>`. Site restored.
-- **+ button visible immediately:** `RapidCapture.tsx` — restructured thumbnail div: outer container no longer has `overflow-hidden` (was clipping corner badges). Inner image-only div keeps `overflow-hidden rounded-lg border`. + button removed `thumbnailUrl` gate — always visible. w-7 h-7, `-bottom-1.5 -right-1.5`, z-10.
-- **+ button clickable on temp- items:** Removed `if (!item.id.startsWith('temp-'))` guard from + onClick. Calls `onAddToItem` unconditionally.
-- **AI analysis blocked while in + mode:** Integrated existing backend hold/release infrastructure. `api.post('/items/${id}/hold-analysis')` called on entering add-mode; `api.post('/items/${id}/release-analysis')` on exiting or camera close. Backend already had full `rapidfireAIDebounce` Map + controllers — frontend was just never calling them.
-- **Toast z-index fix:** `PreviewModal.tsx` — backdrop changed `z-50` → `z-[60]` so modal renders above toasts.
-- **Blue "analyzing" toasts removed:** All 3 `showToast('Analyzing item with AI...', 'info')` calls deleted from `[saleId].tsx`. "AI identified:" renamed → "Tagged:". "AI enhancement coming soon" → "Enhancement coming soon".
-- **`showShotGuidance` identified as dead code:** Function coaching organizers through 5-shot coverage (regular mode only) — defined at lines 1031–1041 but never called. Deletion deferred to S388 (coaching approach decision pending — non-toast replacement needed).
+**S388 Summary:**
 
-**S387 Files Changed:**
-- `packages/frontend/components/RapidCapture.tsx` — overflow-hidden restructure, + button always visible, icon sizing/positioning
-- `packages/frontend/components/camera/PreviewModal.tsx` — z-[60] backdrop
-- `packages/frontend/pages/_app.tsx` — CartProvider added
-- `packages/frontend/pages/organizer/add-items/[saleId].tsx` — hold/release API calls, toast removals/renames
+Research phase dispatched 5 parallel agents covering pricing, tier matrix, rank matrix, coaching, and FAQ/copy. Patrick corrected initial research that re-surfaced locked decisions as open questions — all 10 key decisions were already locked in S240/S259/S268/S332/S341. Game design agent output was ~85% redundant with S259's comprehensive gamification session; synthesized into research doc with S259 as source of truth.
 
-**S387 Push Block:**
-```powershell
-cd C:\Users\desee\ClaudeProjects\FindaSale
-git add packages/frontend/components/RapidCapture.tsx
-git add packages/frontend/components/camera/PreviewModal.tsx
-git add packages/frontend/pages/_app.tsx
-git add "packages/frontend/pages/organizer/add-items/[saleId].tsx"
-git add claude_docs/STATE.md
-git add claude_docs/patrick-dashboard.md
-git commit -m "fix: S387 — rapidfire + button polish, CartProvider fix, hold/release AI analysis, toast cleanup"
-.\push.ps1
-```
+Implementation phase (3 dev batches, all zero TS errors):
+- **Pricing fix (P0):** `pricing.tsx` — $49→$29 PRO, $99→$79 TEAMS. TierComparisonTable and AlaCartePublishModal already correct.
+- **XP threshold fix:** `xpService.ts` — RANGER 1500→2000, SAGE 2500→5000, GRANDMASTER 5000→12000. Visit XP 10→5, Purchase XP 15→$1=1XP.
+- **AI branding purge (13 locations):** Replaced all "AI" references with "smart tagging" / "auto-tagging" / "system" across plan.tsx, privacy.tsx, dashboard.tsx, settings.tsx, faq.tsx, OrganizerOnboardingModal, SmartInventoryUpload, PriceSuggestion, guide.tsx.
+- **Sale type inclusivity:** Broadened "estate sale" language in index.tsx, about.tsx, guide.tsx, faq.tsx.
+- **Camera coaching banner:** Replaced dead `showShotGuidance` with inline contextual banner in RapidCapture.tsx (regular mode only). Progressive messages for shots 1–5+. Dismissable. Dead function removed from [saleId].tsx.
+- **7 new FAQ entries:** Explorer's Guild, seasonal challenges, Collector Passport, Condition Rating (shopper); SIMPLE/PRO/TEAMS differences, Brand Kit, Command Center (organizer).
+- **Research docs:** Full synthesis at `claude_docs/research/S388-documentation-coaching-research.md` with code-verified file paths. Game design matrix at `claude_docs/feature-notes/gamedesign-shopper-rank-matrix-S388.md`.
 
----
+**Confirmed Decisions (S388):**
+1. PRO = $29/mo, TEAMS = $79/mo (S268 locked)
+2. SIMPLE stays SIMPLE (not "Essential")
+3. Enterprise stays per D-007 ($500-800/mo, contact-sales)
+4. Founding Organizer program: REJECTED
+5. À la carte = $9.99/sale for non-subscribers
+6. Fee model: standard (10% SIMPLE / 8% PRO/TEAMS)
+7. Rank thresholds: board numbers (500/2000/5000/12000)
+8. Social/viral features stay on ALL tiers
+9. Gate SIMPLE concurrent sales: approved (architect spec needed — maxConcurrentSales not yet in tierLimits.ts)
+10. Coaching: Option A (inline banner) — implemented
 
-**S387 Next Session — S388 Focus: Documentation & Coaching Overhaul**
+**S388 Files Changed:**
+- `packages/frontend/pages/organizer/pricing.tsx` — price fixes ($29/$79)
+- `packages/backend/src/services/xpService.ts` — rank thresholds + XP values
+- `packages/frontend/pages/plan.tsx` — AI branding
+- `packages/frontend/pages/privacy.tsx` — AI branding
+- `packages/frontend/pages/organizer/dashboard.tsx` — AI branding
+- `packages/frontend/pages/organizer/settings.tsx` — AI branding
+- `packages/frontend/pages/faq.tsx` — AI branding + 7 new FAQ entries
+- `packages/frontend/components/OrganizerOnboardingModal.tsx` — AI branding
+- `packages/frontend/components/SmartInventoryUpload.tsx` — AI branding
+- `packages/frontend/components/PriceSuggestion.tsx` — AI branding
+- `packages/frontend/pages/guide.tsx` — AI branding + inclusivity
+- `packages/frontend/pages/about.tsx` — inclusivity
+- `packages/frontend/pages/index.tsx` — inclusivity
+- `packages/frontend/components/RapidCapture.tsx` — coaching banner added
+- `packages/frontend/pages/organizer/add-items/[saleId].tsx` — dead showShotGuidance removed
+- `claude_docs/research/S388-documentation-coaching-research.md` — research synthesis
+- `claude_docs/feature-notes/gamedesign-shopper-rank-matrix-S388.md` — game design matrix
 
-Documentation/coaching has been neglected while features shipped. S388 researches all relevant planning sessions and produces:
-1. **In-workflow coaching approach** — `showShotGuidance` is dead; need a non-toast coaching pattern for camera mode and other key workflows (contextual hints, progressive disclosure, step counters, etc.)
-2. **Pricing page overhaul** — page never properly updated after pricing decisions. Tier names/counts differ from planning sessions. Ala carte item presence needs verification. Full audit needed.
-3. **Organizer feature × tier matrix** — what's FREE/SIMPLE/PRO/TEAMS, what's gamification-gated vs tier-gated, what's been built vs surfaced vs planned.
-4. **Shopper feature × rank matrix** — gamification ranks, Hunt Pass tiers, premium features per tier. Full breakdown based on planning sessions.
-5. **FAQ + user-facing copy** — update to reflect all shipped features since last update. Strict branding: no "AI" or synonyms anywhere in user-facing copy.
-Research sources: DECISIONS.md, roadmap.md, planning session STATE.md entries, gamification/Hunt Pass planning docs.
+**S388 Deferred / Next Session:**
+- Concurrent sales gate for SIMPLE: architect spec needed (maxConcurrentSales field + enforcement)
+- Organizer tier rearrangement: Patrick open to moving features between tiers — needs formal proposal
+- Stripe price objects: may need recreation to match $29/$79 (check stripeController.ts L1125-1127)
+- Gamification Phase 1 completion: ~45-50% ready. Seasonal infrastructure, notifications, dynamic pricing all missing. Full checklist at DEV_HANDOFF_CHECKLIST-S259.md.
 
 ---
 
