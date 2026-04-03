@@ -7,6 +7,18 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Current Work
 
+**S381 COMPLETE (2026-04-02):** Camera flow fixes — RapidCapture bugs + regular flow overhaul.
+
+**S381 Summary:**
+- **Bug 1 (RapidCapture "+" button timing):** `+` button now appears immediately when `thumbnailUrl` exists, grayed out until DB ID confirmed — no longer waits 4.5s for AI analysis. (`RapidCapture.tsx`)
+- **Bug 2 (AI analysis not pausing on "+" tap):** Verified `hold-analysis` endpoint call was already correctly wired in `onAddToItem` handler — no changes needed.
+- **Bug 3 ("+" mode item assignment regression post-debounce):** Introduced `addingToItemIdRef` (`useRef`) to track append target item ID. Ref is set on "+" tap and read at upload time — eliminates stale closure where post-analysis state overwrote the append target. (`[saleId].tsx`)
+- **Regular camera flow overhaul:** Deferred AI analysis — no auto-analysis on capture. Added live "X/5" counter (replaces static text), per-thumbnail delete buttons, explicit "Analyze" button (triggers AI on all captured photos). Post-analysis: same "taken → enhanced → review" status flow as RapidCapture. "Done" button added to RapidCapture for rapidfire mode. (`RapidCapture.tsx`, `[saleId].tsx`)
+
+**S381 Files Changed:**
+- `packages/frontend/components/RapidCapture.tsx` — "+" button timing fix + regular mode UI (X/5 counter, delete buttons, Analyze/Done buttons)
+- `packages/frontend/pages/organizer/add-items/[saleId].tsx` — addingToItemIdRef fix + regular camera handler refactor + isAnalyzing state
+
 **S380 COMPLETE (2026-04-02):** Orphaned pages audit + nav dead-link cleanup + gamification nav wiring.
 
 **S380 Summary:**
@@ -498,47 +510,16 @@ Files changed S361:
 
 ---
 
-## Next Session (S381)
+## Next Session (S382)
 
-### S381 Priority 1 — Camera Flow Fixes (RapidCapture + Regular flow)
+### S382 Priority 1 — Camera QA + smoke test
 
-Two separate camera flows need fixes. Read `packages/frontend/pages/organizer/add-items/[saleId].tsx`, `packages/frontend/components/RapidCapture.tsx`, and `packages/frontend/pages/organizer/add-items/[saleId]/review.tsx` before starting.
+After Patrick pushes S380 + S381:
+1. Run smoke test on finda.sale — check RapidCapture flow (capture → + button appears immediately → + mode assigns photos correctly → AI analysis on main item).
+2. Test regular camera flow — capture 2-3 photos → verify X/5 counter → click Analyze → verify AI runs → form pre-fills.
+3. Any remaining nav items from S380 that need verification.
 
----
-
-#### RapidCapture fixes
-
-**Bug 1 — + button timing:**
-The `+` button currently appears delayed — it comes in with the enhanced icon and id status a second after the thumbnail appears. It should appear as soon as the thumbnail shows (as soon as the image is captured and the thumbnail renders), not waiting for AI analysis results to return.
-
-**Bug 2 — AI analysis not pausing on + tap:**
-When + is tapped, the AI toast and analysis debounce should pause immediately. Currently the analysis may still fire during the + mode transition. The `hold-analysis` endpoint should cancel the debounce entirely on + tap (this was partially implemented in S365 — verify it's still wired correctly).
-
-**Bug 3 — + mode item assignment regression:**
-Repro steps: take 1st photo → wait for the 4.5s debounce to complete (analysis runs) → tap + → shutter changes to + icon → take 2nd photo → 2nd photo creates a new separate item instead of appending to the 1st → 3rd, 4th, etc. photos append to the 1st photo (wrong item).
-
-Root cause hypothesis: After the 4.5s debounce completes and analysis runs, the item ID or append target state may be reset or overwritten. The `+` mode stale closure fix from S365 may not account for the post-analysis state. Check `onPhotoCapture` deps and the `capturePhoto` useCallback — the item target after analysis completion may differ from the item target when `+` was tapped.
-
----
-
-#### Regular camera flow fixes (the non-RapidCapture flow)
-
-The regular camera flow is currently analyzing the first photo immediately. The correct behavior:
-
-1. Organizer takes up to 5 photos → each creates a thumbnail in a strip
-2. Each thumbnail has a Delete (retake) button
-3. No AI analysis runs during capture
-4. Organizer clicks **"Analyze"** button after all photos are taken → AI analyzes all photos at once
-5. After analysis: thumbnails are combined (or the strip is removed/collapsed — Patrick is open to either approach), the "taken, enhanced, review" status line appears and updates like RapidCapture
-6. The item is then ready to be named/tagged/priced in the review step
-7. The "up to 5 photos per item" text in the UI should be replaced with a live **"0/5"** counter that increments with each photo taken
-
-**Key constraint:** This is the same flow as RapidCapture but without the auto-advance and with an explicit Analyze button instead of debounced auto-analysis.
-
----
-
-#### Patrick's push block — S380
-
+### S380 Push Block (pending Patrick action)
 ```powershell
 cd C:\Users\desee\ClaudeProjects\FindaSale
 git add packages/frontend/components/Layout.tsx
@@ -555,6 +536,17 @@ git rm packages/frontend/pages/organizer/performance.tsx
 git add claude_docs/STATE.md
 git add claude_docs/patrick-dashboard.md
 git commit -m "S380: nav cleanup, dead link fixes, 4 sale-picker pages, gamification nav wiring, disputes tab, orphaned pages removed"
+.\push.ps1
+```
+
+### S381 Push Block (pending Patrick action)
+```powershell
+cd C:\Users\desee\ClaudeProjects\FindaSale
+git add packages/frontend/components/RapidCapture.tsx
+git add packages/frontend/pages/organizer/add-items/[saleId].tsx
+git add claude_docs/STATE.md
+git add claude_docs/patrick-dashboard.md
+git commit -m "S381: RapidCapture + button timing fix, append target ref fix, regular camera flow overhaul (Analyze button, X/5 counter, per-thumb delete)"
 .\push.ps1
 ```
 
