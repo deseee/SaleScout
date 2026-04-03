@@ -1,16 +1,32 @@
-# Patrick's Dashboard — S389 Complete (2026-04-03)
+# Patrick's Dashboard — S390 Complete (2026-04-03)
 
 ---
 
 ## Status
 
-- **Vercel:** ✅ All S389 frontend changes pushed
-- **Railway:** ✅ saleController TS fix pushed (green build)
-- **DB:** ⚠️ Migration pending — concurrent sales gate index needs deploy (see action items)
+- **Vercel:** ⚠️ S390 push pending (12 files changed, 1 new — see push block below)
+- **Railway:** ⚠️ S390 backend push pending (4 backend files)
+- **DB:** ⚠️ S389 migration still pending — concurrent sales gate index (see S389 action items)
 
 ---
 
-## What Happened This Session (S389)
+## What Happened This Session (S390)
+
+**S389 alignment doc fully implemented — all 7 recommendations shipped.**
+
+- **Hunt Pass page:** Fixed "2x XP" → "1.5x XP" everywhere. Added XP Earning Matrix (Standard vs Hunt Pass columns). Flash deals now says "6 hours early". Dashboard CTA also fixed.
+- **À la carte $9.99:** Now visible on pricing page (pay-as-you-go callout section). Also mentioned in organizer onboarding state on dashboard.
+- **Treasure Hunt XP multiplier:** Ranger earns 1.5x (38 XP), Sage 1.75x (44 XP), Grandmaster 2x (50 XP) per QR scan. Daily cap still applies.
+- **Tier restructuring:** Batch operations, link click stats, and seller verification badge now available to SIMPLE tier (were PRO-only).
+- **Organizer nav:** Added "Insights" and "Branding" direct links. PRO features are now discoverable from nav.
+- **Organizer dashboard:** Tier Progress widget shows SIMPLE → PRO upgrade pitch or PRO → TEAMS pitch based on current tier.
+- **Shopper dashboard:** Rank card now shows next-rank specific benefit. New "Share & Earn" referral card added (dismissible).
+- **Collector Passport:** Renamed from "Explorer Passport" across all 4 nav locations.
+- **Shopper Referrals page:** NEW `/shopper/referrals` — full share UI with link, share buttons (WhatsApp/SMS/Twitter/Email), and referral stats.
+
+---
+
+## What Happened Last Session (S389)
 
 **P2/P3 sprint + gamification wave + TS fix + comprehensive alignment analysis.**
 

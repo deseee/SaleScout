@@ -7,6 +7,54 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Current Work
 
+**S390 COMPLETE (2026-04-03):** S389 alignment doc implementation — all 4 open questions approved, 7 subagent dispatches across 2 parallel batches. 12 files changed, 1 new file.
+
+**S390 Summary:**
+
+Implemented all recommendations from `claude_docs/strategy/S389-comprehensive-alignment.md`. Patrick approved all 4 open questions (tier restructuring, Treasure Hunt XP multiplier, both referral + Hunt Pass improvements, à la carte on pricing page).
+
+**S390 — Batch 1 (Quick Wins):**
+- **Hunt Pass page fixed:** "2x XP" → "1.5x XP" throughout `hunt-pass.tsx`. Added full XP Earning Matrix table (Standard vs Hunt Pass columns). Flash deals clarified to "6 hours early". Loot Legend explained. Dashboard Hunt Pass CTA also fixed to 1.5x.
+- **À la carte $9.99 on pricing page:** New pay-as-you-go callout section added to `pricing.tsx` (below tier cards). Small callout added to organizer dashboard onboarding state.
+- **Treasure Hunt XP multiplier for Ranger+:** Added `getRankXpMultiplier()` to `xpService.ts`. Applied in `itemController.ts` `scanItemQr` handler. Ranger=1.5x(38 XP), Sage=1.75x(44 XP), GM=2x(50 XP). Daily cap (100 XP) still applies. Referral wiring confirmed already done from S389.
+- **Tier restructuring:** `batchOpsAllowed: true` for SIMPLE in `tierLimits.ts`. `linkClicks.ts` route downgraded PRO→SIMPLE. `TierComparisonTable.tsx` updated (batch ops, link click stats, seller badge → SIMPLE). `pricing.tsx` updated to reflect new SIMPLE features.
+
+**S390 — Batch 2 (Medium Effort):**
+- **Organizer nav reorganized:** Added "Insights" section (→`/organizer/insights`) and "Branding" section (→`/organizer/brand-kit`) to `Layout.tsx` organizer nav. Removed duplicate Brand Kit from Pro Tools. PRO-labeled tooltips intact.
+- **Organizer Tier Progress widget:** Added conditional widget to `organizer/dashboard.tsx`. SIMPLE users see PRO upgrade pitch ($29/mo), PRO users see TEAMS pitch ($79/mo), TEAMS users see nothing.
+- **Shopper dashboard improvements:** Enhanced rank card with next-rank specific benefit text (e.g., "Ranger: +15 min holds"). Added "Share & Earn" referral card (dismissible, links to `/shopper/referrals`). Both changes in `shopper/dashboard.tsx`.
+- **Collector Passport nav:** Renamed "Explorer Passport" → "Collector Passport" across all 4 nav locations in `Layout.tsx` (sidebar, mobile nav ×2) and `AvatarDropdown.tsx` (dropdown menu).
+- **Shopper Referral UI:** NEW `pages/shopper/referrals.tsx` — full referral share page with link display, WhatsApp/SMS/Twitter/Email/copy share buttons, referral stats (signups, first purchases, total XP earned). Uses existing `/referrals/my-code` and `/referrals/stats` backend endpoints.
+
+**S390 Files Changed:**
+- `packages/frontend/pages/shopper/hunt-pass.tsx` — 1.5x fix + XP matrix + flash deal timing
+- `packages/frontend/pages/shopper/dashboard.tsx` — Hunt Pass CTA 1.5x + rank card next-rank benefits + referral card
+- `packages/frontend/pages/organizer/pricing.tsx` — à la carte section + SIMPLE feature list update
+- `packages/frontend/pages/organizer/dashboard.tsx` — à la carte onboarding callout + Tier Progress widget
+- `packages/frontend/pages/shopper/referrals.tsx` — NEW
+- `packages/frontend/components/TierComparisonTable.tsx` — batch ops/link stats/seller badge → SIMPLE
+- `packages/frontend/components/Layout.tsx` — organizer nav (Insights + Branding) + Collector Passport rename (all 4 locations)
+- `packages/frontend/components/AvatarDropdown.tsx` — Collector Passport rename
+- `packages/backend/src/services/xpService.ts` — getRankXpMultiplier() function
+- `packages/backend/src/controllers/itemController.ts` — rank multiplier applied in scanItemQr
+- `packages/backend/src/constants/tierLimits.ts` — batchOpsAllowed: true for SIMPLE
+- `packages/backend/src/routes/linkClicks.ts` — requireTier downgraded PRO→SIMPLE
+
+**S390 Deferred / Next Session:**
+- QA: Hunt Pass page, pricing page à la carte section, referral page, organizer nav additions (Chrome QA)
+- Shopper rank page: add "what you unlock at each rank" explainer (referenced in dashboard "See all rank benefits" CTA)
+- Explorer's Guild onboarding card on shopper dashboard (new shopper sees "Initiate • 0 XP" with no context — add brief explainer card)
+- PRO→TEAMS solo differentiator story (Section 2.5 of alignment doc — still unaddressed)
+- Haul Posts (#88) status audit (live or not? needs verification)
+- Brand Follow (#87) status audit
+- Legendary-first access route (Phase 2, post-beta)
+- Purchase confirmation "share your haul" moment (Phase 2, post-beta)
+
+**S390 Pending Patrick Actions:**
+No schema migrations required this session. Just push the files.
+
+---
+
 **S389 COMPLETE (2026-04-03):** P2/P3 sprint + gamification wave + TS fix + comprehensive alignment analysis.
 
 **S389 Summary:**
