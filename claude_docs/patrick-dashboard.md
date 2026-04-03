@@ -1,32 +1,33 @@
-# Patrick's Dashboard — S381 Complete (2026-04-02)
+# Patrick's Dashboard — S382 Complete (2026-04-02)
 
 ---
 
 ## Status
 
-- **Vercel:** ✅ Green (pending S380+S381 push)
+- **Vercel:** ✅ Green (pending S380+S381+S382 push)
 - **Railway:** ✅ Green
 - **DB:** ✅ Migration 20260402_add_charity_donation deployed
 
 ---
 
-## What Happened This Session (S381)
+## What Happened This Session (S382)
 
-**Camera flow fixes — RapidCapture bugs + regular flow overhaul.**
+**Review & Publish page — delete + mobile UX fixes.**
 
-- **"+" button timing fixed:** Now appears immediately when thumbnail renders, no longer waits 4.5s for AI analysis
-- **"+" mode stale closure fixed:** `addingToItemIdRef` tracks append target at tap time, not at capture time — 2nd photo now correctly appends to 1st item after debounce completes
-- **Regular camera flow overhauled:** No more auto-analysis on first capture. Now: take up to 5 photos → live "X/5" counter → delete button per thumbnail → click "Analyze" → AI runs on all photos → form pre-fills
+- **Always-visible photo buttons:** X and arrow buttons in ItemPhotoManager are now always visible (opacity-80) instead of hidden until hover — no more accidentally tapping invisible controls on mobile
+- **Bulk delete:** Select items → Delete button now appears in the toolbar (red, confirms count before deleting)
+- **Per-item delete:** 🗑️ button on every item card row — tap to delete a single item without expanding
+- **Scroll-to-top on expand:** Tapping a collapsed card now scrolls its top into view — no more landing in the middle or bottom of a long card
 
-## What Happened Last Session (S380)
+## What Happened Last Session (S381)
 
-Orphaned pages audit + nav dead-link cleanup + gamification nav wiring. 4 sale-picker index pages created, 3 orphaned pages deleted, 8 new nav links added.
+Camera flow fixes — RapidCapture bugs + regular flow overhaul. "+" button timing fixed, append target stale closure fixed, regular camera now: take up to 5 photos → X/5 counter → Analyze button → AI pre-fills form.
 
 ---
 
 ## Push Required
 
-### Push 1 — S380 (nav cleanup)
+### Push 1 — S380 (nav cleanup) — STILL PENDING
 ```powershell
 cd C:\Users\desee\ClaudeProjects\FindaSale
 git add packages/frontend/components/Layout.tsx
@@ -44,22 +45,24 @@ git commit -m "S380: nav cleanup, dead link fixes, 4 sale-picker pages, gamifica
 .\push.ps1
 ```
 
-### Push 2 — S381 (camera fixes)
+### Push 2 — S381+S382 (camera fixes + review page)
 ```powershell
 cd C:\Users\desee\ClaudeProjects\FindaSale
 git add packages/frontend/components/RapidCapture.tsx
-git add packages/frontend/pages/organizer/add-items/[saleId].tsx
+git add "packages/frontend/pages/organizer/add-items/[saleId].tsx"
+git add packages/frontend/components/ItemPhotoManager.tsx
+git add "packages/frontend/pages/organizer/add-items/[saleId]/review.tsx"
 git add claude_docs/STATE.md
 git add claude_docs/patrick-dashboard.md
-git commit -m "S381: RapidCapture + button timing fix, append target ref fix, regular camera flow overhaul (Analyze button, X/5 counter, per-thumb delete)"
+git commit -m "S381+S382: camera flow overhaul, regular mode Analyze button, review page bulk/per-item delete, scroll-to-top on expand"
 .\push.ps1
 ```
 
 ---
 
-## Next Session (S382)
+## Next Session (S383)
 
-**Camera QA + smoke test.** After pushing S380+S381, run smoke test of camera flows on finda.sale. Verify: + button appears immediately, append mode assigns photos correctly, regular flow X/5 counter + Analyze button + form pre-fill. Then continue from backlog.
+Camera + Review page smoke test on finda.sale after pushing. Then continue from backlog.
 
 ---
 
@@ -78,7 +81,8 @@ git commit -m "S381: RapidCapture + button timing fix, append target ref fix, re
 
 ## Open Action Items for Patrick
 
-- [ ] **⚠️ Push S379 changes** (push block above)
+- [ ] **⚠️ Push S380 (block 1 above)**
+- [ ] **⚠️ Push S381+S382 (block 2 above)**
 - [ ] **⚠️ eBay Developer App (enables real comps for #229/#244):** Create app at https://developer.ebay.com → get `EBAY_CLIENT_ID` + `EBAY_CLIENT_SECRET` → set as Railway env vars.
 - [ ] **Trademark decision (#82):** File USPTO trademark for FindA.Sale? ~$250–400/class
 - [ ] **Trade secrets (#83):** Document proprietary algorithms + NDA review

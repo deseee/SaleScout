@@ -7,6 +7,21 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Current Work
 
+**S382 COMPLETE (2026-04-02):** Review & Publish page — delete + mobile UX fixes.
+
+**S382 Summary:**
+- **Always-visible photo buttons (mobile):** `ItemPhotoManager.tsx` — X delete button and ← → reorder arrows changed from `opacity-0 group-hover:opacity-100` to `opacity-80 hover:opacity-100` so they're always visible on touch devices. Hint text updated to "Tap × to delete, ← → to reorder".
+- **Bulk delete:** Selection toolbar in `review.tsx` — Delete button added before Clear. Confirms item count before firing `deleteMutation`. Red button, disabled while pending.
+- **Per-item delete:** 🗑️ button added to every collapsed card row's right column. `stopPropagation` so it doesn't also toggle expand. Same `deleteMutation` with single-item array.
+- **Scroll-to-top on expand:** `itemRefs` map + `handleToggleExpand` wired — collapsed row `onClick` changed from inline `setExpandedItemId` to `handleToggleExpand`. On expand, `scrollIntoView({ behavior: 'smooth', block: 'start' })` fires after 50ms so card top is always in view.
+- TypeScript check: zero errors.
+
+**S382 Files Changed:**
+- `packages/frontend/components/ItemPhotoManager.tsx` — always-visible photo action buttons
+- `packages/frontend/pages/organizer/add-items/[saleId]/review.tsx` — bulk delete, per-item delete, scroll-to-top
+
+---
+
 **S381 COMPLETE (2026-04-02):** Camera flow fixes — RapidCapture bugs + regular flow overhaul.
 
 **S381 Summary:**
@@ -15,9 +30,9 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 - **Bug 3 ("+" mode item assignment regression post-debounce):** Introduced `addingToItemIdRef` (`useRef`) to track append target item ID. Ref is set on "+" tap and read at upload time — eliminates stale closure where post-analysis state overwrote the append target. (`[saleId].tsx`)
 - **Regular camera flow overhaul:** Deferred AI analysis — no auto-analysis on capture. Added live "X/5" counter (replaces static text), per-thumbnail delete buttons, explicit "Analyze" button (triggers AI on all captured photos). Post-analysis: same "taken → enhanced → review" status flow as RapidCapture. "Done" button added to RapidCapture for rapidfire mode. (`RapidCapture.tsx`, `[saleId].tsx`)
 
-**S381 Files Changed:**
-- `packages/frontend/components/RapidCapture.tsx` — "+" button timing fix + regular mode UI (X/5 counter, delete buttons, Analyze/Done buttons)
-- `packages/frontend/pages/organizer/add-items/[saleId].tsx` — addingToItemIdRef fix + regular camera handler refactor + isAnalyzing state
+**S381 Files Changed (PUSHED):**
+- `packages/frontend/components/RapidCapture.tsx` — "+" button timing fix, regular mode: X/5 counter inline in hint, per-thumb delete buttons, unified stats line (Analyze in regular / Enhance in rapidfire), carousel guard removed so regular items show left of shutter, mode switch clears photos, onPhotoCapture only fires in rapidfire
+- `packages/frontend/pages/organizer/add-items/[saleId].tsx` — addingToItemIdRef stale closure fix, handleRegularAnalyze replaced with non-blocking rapidfire-style pipeline, processAndUploadRapidPhoto accepts additionalPhotos for multi-photo regular items
 
 **S380 COMPLETE (2026-04-02):** Orphaned pages audit + nav dead-link cleanup + gamification nav wiring.
 
