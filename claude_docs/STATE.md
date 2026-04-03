@@ -7,6 +7,62 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Current Work
 
+**S384 COMPLETE (2026-04-03):** Full orphan audit — 4 layers scanned (backend routes, frontend components, schema fields, feature conditions). Research-only session. All dispatch decisions made. S385 starts dispatching immediately.
+
+**S384 Summary:**
+- **Layer 1 — Backend routes:** Ripples and SmartFollows were false alarms (properly mounted via sub-routers). `templates.ts` is a duplicate of `messageTemplates.ts` — delete it. `treasureHuntQR.ts` routes are NOT mounted — feature is 70-75% complete (schema, controller, component, shopper page all done); mount routes in index.ts to ship.
+- **Layer 2 — Component orphans:** 35 orphaned components audited. 25 are WIRE candidates with real backends. Key finds: ActivityFeed + HypeMeter (backend complete, just needs wiring to sales/[id].tsx), FeedbackWidget (backend complete, trivial — add to _app.tsx), DisputeForm (backend complete, disputes view exists but no create button), BulkPriceModal (missing from add-items bulk flow), TeamsOnboardingWizard (Teams users get zero onboarding). LiveFeedWidget deferred (WebSocket events need verification). `Layout_current_github.tsx`, `BulkItemToolbar`, `ItemListWithBulkSelection` approved for deletion.
+- **Layer 3 — Schema fields:** 22 fields audited. `holdDurationHours` safe to delete (rank system is active, field never read/written). `arrivalRank` approved for removal (superseded by LineEntry.position). `priceBeforeMarkdown` + `markdownApplied` — backend cron writes them, frontend should show crossed-out original price. `Review.verifiedPurchase` — backend sets it, badge missing from review cards. `SaleSettlement.clientPayoutStripeTransferId/FailureReason` — controller returns them, SettlementWizard doesn't display. `Review.respondedAt` + `OrganizerReputation.shopperRating` — BUILD these (small effort, high value). `masterItemLibraryId` — DEFER.
+- **Layer 4 — Feature conditions:** Tier gates are all properly gated with upgrade CTAs (good news). FlashDeal remains the only dead condition (known from S383).
+- **S383 push block still pending Patrick action.**
+
+**S384 Files Changed:** None (research session).
+
+---
+
+**S385 DISPATCH PLAN — start immediately:**
+
+**Cleanup (approved):**
+- Delete `packages/frontend/components/Layout_current_github.tsx`
+- Delete `packages/frontend/components/BulkItemToolbar.tsx`
+- Delete `packages/frontend/components/ItemListWithBulkSelection.tsx`
+- Delete `packages/backend/src/routes/templates.ts` (duplicate of messageTemplates.ts)
+- Remove `arrivalRank` field from SaleCheckin model + migration to DROP COLUMN
+
+**Wave 1 — Wire (backend complete, just needs wiring):**
+- Mount `treasureHuntQR.ts` routes in `packages/backend/src/index.ts` (ship the feature)
+- Wire `FeedbackWidget` → `packages/frontend/pages/_app.tsx` (global floating button)
+- Wire `ActivityFeed` + `HypeMeter` → `packages/frontend/pages/sales/[id].tsx`
+- Wire `DisputeForm` → `packages/frontend/pages/shopper/history.tsx` (add "Report Issue" button per purchase)
+- Wire `BulkPriceModal` → `packages/frontend/pages/organizer/add-items/[saleId].tsx` (bulk price action in BulkActionDropdown)
+- Set `emailSentAt: new Date()` in `packages/backend/src/controllers/stripeController.ts` when confirmation email fires (1 line)
+
+**Wave 2 — Build (small, high value):**
+- `Review.respondedAt` — organizer review response feature (1 endpoint + organizer UI + display in ReviewsSection)
+- `OrganizerReputation.shopperRating` — aggregate Review.rating into reputation score calculation
+
+**Wave 3 — Wire remaining 24 WIRE components (batch by feature area):**
+Batch A (RSVP system): `SaleRSVPButton`, `RSVPBadge`, `SaleWaitlistButton` → wire to `sales/[id].tsx`
+Batch B (Shopper discovery): `SimilarItems`, `SearchSuggestions`, `AddToCalendarButton`, `LocationMap`, `SocialProofBadge` → wire to appropriate pages
+Batch C (Wishlist): `WishlistAlertForm`, `WishlistShareButton` → wire to wishlist/shopper pages
+Batch D (Organizer tools): `OrganizerHoldsPanel`, `OrganizerSaleCard`, `SalePerformanceBadge`, `ItemPriceHistoryChart`, `PremiumCTA`, `TierComparisonTable`
+Batch E (Gamification/Community): `PointsBadge`, `HaulPostCard`, `UGCPhotoSubmitButton`, `ShopperReferralCard`, `BountyModal`, `BidModal`
+Batch F (Teams): `TeamsOnboardingWizard` → trigger for new Teams-tier users
+Batch G (UX): `TooltipHelper`, `CartIcon`, `AddressAutocomplete`
+
+**S383 push block (still pending):**
+```powershell
+cd C:\Users\desee\ClaudeProjects\FindaSale
+git add packages/frontend/components/ToastContext.tsx
+git add packages/frontend/components/OrganizerOnboardingModal.tsx
+git add packages/frontend/components/AvatarDropdown.tsx
+git add packages/frontend/components/Layout.tsx
+git commit -m "fix: toast dismiss button, onboarding completion stays on dashboard, Install App in nav"
+.\push.ps1
+```
+
+---
+
 **S383 COMPLETE (2026-04-03):** Toast dismiss, onboarding fix, Install App nav, pricing audit.
 
 **S383 Summary:**

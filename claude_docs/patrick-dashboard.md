@@ -1,31 +1,43 @@
-# Patrick's Dashboard — S382 Complete (2026-04-02)
+# Patrick's Dashboard — S384 Complete (2026-04-03)
 
 ---
 
 ## Status
 
-- **Vercel:** ✅ Green (pending S380+S381+S382 push)
+- **Vercel:** ✅ Green (pending S380+S381+S382+S383 pushes)
 - **Railway:** ✅ Green
 - **DB:** ✅ Migration 20260402_add_charity_donation deployed
 
 ---
 
-## What Happened This Session (S382)
+## What Happened This Session (S384)
 
-**Review & Publish page — delete + mobile UX fixes.**
+**Full orphan audit — research only, no code changes. S385 dispatches everything.**
 
-- **Always-visible photo buttons:** X and arrow buttons in ItemPhotoManager are now always visible (opacity-80) instead of hidden until hover — no more accidentally tapping invisible controls on mobile
-- **Bulk delete:** Select items → Delete button now appears in the toolbar (red, confirms count before deleting)
-- **Per-item delete:** 🗑️ button on every item card row — tap to delete a single item without expanding
-- **Scroll-to-top on expand:** Tapping a collapsed card now scrolls its top into view — no more landing in the middle or bottom of a long card
+Scanned 4 layers of the codebase for things built but not surfaced. Found and decided on every item:
 
-## What Happened Last Session (S381)
+- **35 orphaned components:** 25 will be wired (real backends, real features). 3 deleted (approved). LiveFeedWidget deferred. Key finds: ActivityFeed, HypeMeter, FeedbackWidget, DisputeForm all have complete backends and are trivial to wire.
+- **Backend routes:** Ripples and SmartFollows were false alarms (working fine). TreasureHuntQR is 70-75% done — ship it next session (one mount line). templates.ts is a dead duplicate — delete it.
+- **22 schema fields audited:** holdDurationHours safe to delete (rank system took over). arrivalRank deleted (LineEntry.position replaced it). priceBeforeMarkdown/markdownApplied need frontend display. Review.verifiedPurchase badge missing. OrganizerReputation ignores actual reviews — fix next session.
 
-Camera flow fixes — RapidCapture bugs + regular flow overhaul. "+" button timing fixed, append target stale closure fixed, regular camera now: take up to 5 photos → X/5 counter → Analyze button → AI pre-fills form.
+## What Happened Last Session (S383)
+
+Toast dismiss button on all toasts. Onboarding modal completion stays on dashboard (was navigating away). Install App button in nav (hides when already installed). Pricing audit found FlashDeal and Reverse Auction orphans.
 
 ---
 
 ## Push Required
+
+### Push 0 — S383 (toast + onboarding + Install App) — PENDING
+```powershell
+cd C:\Users\desee\ClaudeProjects\FindaSale
+git add packages/frontend/components/ToastContext.tsx
+git add packages/frontend/components/OrganizerOnboardingModal.tsx
+git add packages/frontend/components/AvatarDropdown.tsx
+git add packages/frontend/components/Layout.tsx
+git commit -m "fix: toast dismiss button, onboarding completion stays on dashboard, Install App in nav"
+.\push.ps1
+```
 
 ### Push 1 — S380 (nav cleanup) — STILL PENDING
 ```powershell
@@ -60,9 +72,13 @@ git commit -m "S381+S382: camera flow overhaul, regular mode Analyze button, rev
 
 ---
 
-## Next Session (S383)
+## Next Session (S385)
 
-Camera + Review page smoke test on finda.sale after pushing. Then continue from backlog.
+Start dispatching immediately — no research needed, all decisions made. S384 STATE.md has the full dispatch plan.
+
+**Wave 1 (parallel dispatch):** Cleanup deletions + TreasureHuntQR route mount + FeedbackWidget + ActivityFeed/HypeMeter + DisputeForm create button + BulkPriceModal + emailSentAt 1-liner.
+**Wave 2:** Review response feature + shopperRating into reputation score.
+**Wave 3:** Wire remaining 24 WIRE components in batches by feature area.
 
 ---
 
@@ -81,6 +97,7 @@ Camera + Review page smoke test on finda.sale after pushing. Then continue from 
 
 ## Open Action Items for Patrick
 
+- [ ] **⚠️ Push S383 (block 0 above) — toast/onboarding/Install App**
 - [ ] **⚠️ Push S380 (block 1 above)**
 - [ ] **⚠️ Push S381+S382 (block 2 above)**
 - [ ] **⚠️ eBay Developer App (enables real comps for #229/#244):** Create app at https://developer.ebay.com → get `EBAY_CLIENT_ID` + `EBAY_CLIENT_SECRET` → set as Railway env vars.
