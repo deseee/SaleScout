@@ -1,6 +1,6 @@
 # ROADMAP – FindA.Sale v2
 
-**Last Updated:** 2026-04-01 (v90 — S374: #240-244 slotted into Building — Active Backlog. #240 Print-to-QR Sign Kit, #241 Organizer Brand Kit Expansion, #242 QR/Barcode Item Labels, #243 Smart Cart, #244 eBay Quick List. ## Next Up section removed from Deferred. Spec created for #244.)
+**Last Updated:** 2026-04-03 (v91 — S385/S386: Massive wiring sprint — 24 components wired to pages. Wave 2 built organizer review responses (#160/#198) + shopperRating aggregation (#71). FeedbackWidget added as #245. Notes updated on #7, #8, #32, #34, #71, #88, #158, #160, #192, #193, #197, #198, #223.)
 
 **Status:** Production MVP live at finda.sale. Beta: GO. Full build history: `claude_docs/strategy/COMPLETED_PHASES.md`.
 
@@ -95,7 +95,7 @@ Features that Patrick's human QA walkthrough confirmed are broken. Use the two-s
 |  48 | ✅ | ✅ | ✅ | ✅ | ⬜ | ✅ Chrome-verified S360 | FIXED S359+S360 | Treasure Trail Route Builder | SHO | FREE | Chrome-verified S360 (ss_5655xvb8r): GET /api/trails → 200, "Grand Rapids Saturday Run" renders name/desc/stops, Edit/Delete buttons present. S359: switched to `api` lib. S360: fixed double /api/ prefix. Ready to graduate to TESTING. | Trail pages + share token, multi-sale routing |
 |  13 | ✅ | ✅ | ✅ | 📋 | ⬜ | ⬜ FIXED S346 | FIXED S346 | TEAMS Workspace | ORG | TEAMS | Pending Chrome QA — member lookup missing relations fixed, invite error parsing fixed (error→message field) | Multi-user workspace, role management |
 | 157 | ✅ | ✅ | ✅ | 📋 | ✅ | ⬜ Chrome-verified S356 | Pickup Scheduling | BOTH | SIMPLE | Chrome-verified S356: "+ Add Pickup Slot" button (type="button") stays on page, slot form opens with 6 date/time inputs. Axios fix (S346) confirmed working. Ready to graduate to TESTING. | Organizer slots + shopper booking |
-|   7 | ✅ | ✅ | ✅ | ✅ | ✅ | ⬜ Chrome-verified S355 | Shopper Referral Rewards | SHO | FREE | Chrome-verified S355: renders at /referral-dashboard. No nav link yet (planned). API fix (S344) confirmed working. Ready to graduate to TESTING. | Referral tracking + rewards distribution |
+|   7 | ✅ | ✅ | ✅ | ✅ | ✅ | ⬜ Chrome-verified S355 | Shopper Referral Rewards | SHO | FREE | Chrome-verified S355: renders at /referral-dashboard. API fix (S344) confirmed working. S385: ShopperReferralCard wired to /shopper/reputation (replaced Coming Soon stub). Ready to graduate to TESTING. | Referral tracking + rewards distribution |
 |  37 | ✅ | ✅ | ✅ | 📋 | ✅ | ⬜ Chrome-verified S355 | Sale Reminders (Remind Me) | SHO | SIMPLE | Chrome-verified S355: fires correctly, toggles to "Cancel Reminder" state. Copy + toggle fix (S344) confirmed working. Ready to graduate to TESTING. | Sale alerts for shoppers |
 |  46 | ✅ | ✅ | ✅ | ✅ | ⬜ | ⬜ FIXED S346 | FIXED S346 | Treasure Typology Classifier | ORG | PRO | Pending Chrome QA — ANTHROPIC_API_KEY guard added to batchClassify(), dark mode badge contrast fixed in TypologyBadge.tsx | AI item classification; useTypology.ts, TypologyBadge.tsx |
 |  80 | NA | NA | ✅ | 📋 | ⬜ | ⬜ FIXED S356 | Purchase Confirmation Redesign | SHO | FREE | Pending Chrome QA — S344: /purchases/[id].tsx page. S356: userController.ts + organizer businessName + date ISO fix (was showing "From: blank", "Purchased blank"). NEEDS PUSH + Railway deploy. | MERGED WITH #174 — see #174 |
@@ -107,7 +107,7 @@ Features that Patrick's human QA walkthrough confirmed are broken. Use the two-s
 |  #  | DB | API | UI | Nav | Claude QA | Human QA | Status | Feature | Role | Tier | Needs | Notes |
 |-----|----|----|----|----|-----------|----------|--------|---------|------|------|-------|-------|
 | 222 | ✅ | ✅ | ✅ | ✅ | ⬜ | ⬜ | Shipped S351 — Pending Chrome QA | Dashboard Redesign (Org + Shopper) | BOTH | ALL | Chrome QA S352 | Organizer: 3-state layout (new/active/between), Sale Status Widget, Next Action Zone, Quick Stats, Tier Progress, 6-tool grid, OrganizerOnboardingModal wired. Shopper: state-aware hero, Rank Progress Card w/ exact per-rank XP copy, StreakWidget + permanent explainer, Hunt Pass CTA. TODOs: revenue API, visitor metrics. |
-| 223 | ✅ | ✅ | ✅ | ✅ | ⬜ | ⬜ | Shipped S351 — Pending Chrome QA | Organizer Guidance Layer (Tooltips + Explainers) | ORG | ALL | Chrome QA S352 | TooltipHelper.tsx + OrganizerOnboardingModal.tsx created. Tier inline explainers on pricing.tsx. Rank badges + Grandmaster "almost always follows through" copy on holds.tsx. reservationController now returns explorerRank on holds list. |
+| 223 | ✅ | ✅ | ✅ | ✅ | ⬜ | ⬜ | Shipped S351 — Pending Chrome QA | Organizer Guidance Layer (Tooltips + Explainers) | ORG | ALL | Chrome QA S352 | TooltipHelper.tsx + OrganizerOnboardingModal.tsx created. Tier inline explainers on pricing.tsx. Rank badges + Grandmaster "almost always follows through" copy on holds.tsx. reservationController now returns explorerRank on holds list. S386: TooltipHelper wired to pricing.tsx tier name section with SIMPLE/PRO/TEAMS explainer copy. |
 | 224 | ✅ | ✅ | ✅ | ✅ | ⬜ | ⬜ | Shipped S351 — Pending Chrome QA | Photo Capture Protocol (Camera Flow Enhancement) | ORG | SIMPLE | Chrome QA S352 | Tiered lighting system (Tier 1 silent/Tier 2 soft toast+buttons/Tier 3 hard modal); shot sequence guidance (copy after each of 5 shots); AI confidence-based copy on PreviewModal (high/medium/low); pre-capture viewfinder brightness indicator (green/yellow/red real-time). New: BrightnessIndicator.tsx. |
 | 225 | ✅ | ✅ | ✅ | NA | ⬜ | ⬜ | Shipped S352 — Pending Chrome QA | Revenue/Metrics API Endpoints | ORG | ALL | Chrome QA S352 | GET /api/organizers/stats endpoint built: revenue (lifetime/current-sale/this-month), item counts (total/available/sold/draft), active sale metrics (viewCount, holdCount). Wired into organizer dashboard State 2 Revenue Widget + Quick Stats Grid. Zero TS errors. |
 | 226 | ✅ | NA | NA | NA | NA | NA | Shipped S352 — Pending Railway migration | Pre-wire Schema Additions (Deferred Unlocks) | ORG | PRO | Patrick: deploy migration 20260330_add_item_prewire_fields to Railway | persistentInventory Boolean + masterItemLibraryId FK on Item; consignor relation wired. Migration SQL created. No API/UI — schema only. |
@@ -129,6 +129,7 @@ Features that Patrick's human QA walkthrough confirmed are broken. Use the two-s
 | 242 | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Ready to Build | QR/Barcode Item Labels | ORG | SIMPLE | Pairs with POS (#162) and #240 Print-to-QR Sign Kit. High ROI from retail-background organizer segment. | Print scannable QR/barcode labels during intake → POS scan for instant item lookup. 6-up or 10-up Avery-style print layout. Label includes item name, price, condition, QR linking to item page. Strong candidate when POS sees real usage. |
 | 243 | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Ready to Build | Smart Cart (Running Total) | SHO | SIMPLE | Requires digital pricing + QR/NFC adoption from organizers. Build after #242 QR Labels + POS established. | Shopper running total as they browse and scan items. Add-to-cart via QR scan or item page. Works only on digitally-priced items. Checkout via POS or Hold-to-Pay. Requires organizer to use digital pricing — adoption blocker pre-scale. |
 | 244 | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | Spec Complete S374 | eBay Quick List (AI-Assisted eBay Export) | ORG | SIMPLE/PRO | Spec: feature-decisions/ebay-quick-list-spec.md. Overlaps #229 (price suggestion feeds eBay price field). Phase 1 SIMPLE CSV export (free, watermarked photos). Phase 2 PRO direct API push (eBay OAuth). Phase 3 cross-platform sold sync (Phase 2 prerequisite). Revenue: EPN affiliate commission + watermark removal fee + Pirate Ship affiliate. | 3-phase build: Phase 1 — eBay CSV export (Seller Hub bulk upload, no OAuth, watermarked photos, clean photo = paid); Phase 2 — direct eBay Inventory API push with organizer OAuth + review step (PRO); Phase 3 — bidirectional sold sync (FindA.Sale sale → end eBay listing; eBay sale → mark sold on FindA.Sale). No competitor offers this. |
+| 245 | NA | NA | ✅ | NA | ⬜ | ⬜ | Shipped S385 — Pending Chrome QA | Feedback Widget (Global Floating Button) | BOTH | FREE | Chrome QA: verify widget appears for authenticated users, feedback form submits | FeedbackWidget.tsx wired globally in _app.tsx — renders as floating button for authenticated users only (FeedbackWidgetWrapper). Allows users to submit in-app feedback from any page. |
 
 
 ## TESTING — Active QA Queue
@@ -137,7 +138,7 @@ Features that Patrick's human QA walkthrough confirmed are broken. Use the two-s
 |  #  | DB | API | UI | Nav | Claude QA | Human QA | Status | Feature | Role | Tier | Needs | Notes |
 |-----|----|----|----|----|-----------|----------|--------|---------|------|------|-------|-------|
 | 176 | ✅ | ✅ | ✅ | ✅ | ✅ | ⚠️ | PARTIAL | Browse Sales (Homepage + Map) | SHO | FREE | Chrome QA verify filter pills still work after S288 fix | Homepage loads. Filter pills display. Map renders sales. Clicking sale card → detail. Walkthrough: filter pill fix applied S288 but needs re-verify. Sales near you missing. Filter pill fix applied; needs re-verify |
-|  71 | ✅ | ✅ | ✅ | ✅ | ✅ | ⚠️ | PARTIAL | Reputation Score | ORG | SIMPLE | Fix: seed data cleanup on Railway or query fix to filter null scores | S202: reputation.tsx displays 1-5 star score. Walkthrough: stray 0 visible on leaderboard (data issue). S347 added guard but root cause unresolved. 1-5 star public score + reputation.tsx frontend |
+|  71 | ✅ | ✅ | ✅ | ✅ | ✅ | ⚠️ | PARTIAL | Reputation Score | ORG | SIMPLE | Fix: seed data cleanup on Railway or query fix to filter null scores | S202: reputation.tsx displays 1-5 star score. Walkthrough: stray 0 visible on leaderboard (data issue). S347 added guard but root cause unresolved. S385: shopperRating field now aggregated live from Review.rating — triggers on review create + weekly batch job. getSimpleReputation + recalculateReputation endpoints now expose shopperRating. 1-5 star public score + reputation.tsx frontend |
 | 172 | ✅ | ✅ | ✅ | NA | ✅ | ⚠️ | PARTIAL | Stripe Connect Setup | ORG | SIMPLE | Verify: complete payout flow (connect account → make sale → money arrives in bank). Needs full e2e verification | S288: settings page + Setup Stripe Connect button confirmed working. S295: Checkout fee display fixed (double-fee bug resolved). Payout bank account linking + verification |
 | 132 | ✅ | ✅ | ✅ | NA | ✅ | ⚠️ | PARTIAL | À La Carte Single-Sale Fee ($9.99) | ORG | PAID_ADDON | Verify: purchase flow end-to-end, receipt generation, organizer sees payment. Walkthrough: payment incomplete, needs verification | S288: Stripe checkout works, fee charged correctly. Sale.purchaseModel + alaCarte + alaCarteFeePaid. Stripe checkout. AlaCartePublishModal for SIMPLE tier |
 |  27 | NA | ✅ | ✅ | 📋 | ✅ | ⚠️ | PARTIAL | Exports (CSV/JSON) | ORG | PRO | Chrome verify export files generate with correct data. Needs re-verify | S290: items.csv + sales.csv + purchases.csv download confirmed. PRO gate working. items.csv + sales.csv + purchases.csv download confirmed. PRO gate working. |
@@ -189,9 +190,9 @@ Features built but never browser-tested or Chrome test is stale (>3 sessions old
 | 154 | ✅ | ✅ | ✅ | ✅ | ⬜ | ⬜ | UNTESTED | Organizer Public Profile Page | ORG | SIMPLE | Chrome QA: verify `/organizers/[slug]` loads, sales list displays |  | 
 | 155 | ✅ | ✅ | ✅ | 📋 | ⬜ | ⬜ | UNTESTED | Password Reset Flow | ORG | SIMPLE | Chrome QA: verify email sent, reset link works, password updates |  | 
 | 156 | ✅ | ✅ | ✅ | ✅ | ⬜ | ⬜ | UNTESTED | Refund Policy Configuration | ORG | SIMPLE | Chrome QA: verify per-organizer refund window config |  | 
-| 158 | ✅ | ✅ | ✅ | NA | ⬜ | ⬜ | UNTESTED | Sale Waitlist | BOTH | SIMPLE | Chrome QA: verify shopper join, organizer broadcast | Shopper join + organizer broadcast | 
+| 158 | ✅ | ✅ | ✅ | NA | ⬜ | ⬜ | UNTESTED | Sale Waitlist | BOTH | SIMPLE | Chrome QA: verify shopper join, organizer broadcast | S385: SaleWaitlistButton + RSVPBadge + SaleRSVPButton all wired to sales/[id].tsx. RSVP system components live on sale detail. |
 | 159 | ✅ | ✅ | ✅ | NA | ⬜ | ⬜ | UNTESTED | Flash Deals | ORG | SIMPLE | Chrome QA: verify time-limited price drops, countdown timer | Time-limited price drops | 
-| 160 | ✅ | ✅ | ✅ | NA | ⬜ | ⬜ | UNTESTED | Reviews (Receive + View) | BOTH | SIMPLE | Chrome QA: verify review submit, display, organizer receives | Shopper → sale + organizer | 
+| 160 | ✅ | ✅ | ✅ | ✅ | ⬜ | ⬜ | UNTESTED | Reviews (Receive + View) | BOTH | SIMPLE | Chrome QA: verify review submit, display, organizer receives, organizer response saves + displays | S385: Organizer review response feature built — PATCH /reviews/:id/respond endpoint, /organizer/reviews management page (NEW), response form inline, responses display in ReviewsSection. Nav link added to AvatarDropdown + Layout Post Sales section. |
 | 161 | ✅ | ✅ | ✅ | 📋 | ⬜ | ⬜ | UNTESTED | Contact Form | PUB | SIMPLE | Chrome QA: verify form submit, email sent |  | 
 | 163 | ✅ | ✅ | ✅ | ✅ | ⬜ | ⬜ | UNTESTED | Payout Transparency / Earnings Dashboard | ORG | SIMPLE | Chrome QA: verify item-level fee breakdown, PDF export |  | 
 |  11 | ✅ | ✅ | ✅ | 📋 | ⬜ | ⬜ | UNTESTED | Organizer Referral (Fee Bypass) | ORG | SIMPLE | Chrome QA: verify referral code application, fee bypass |  | 
@@ -205,7 +206,7 @@ Features built but never browser-tested or Chrome test is stale (>3 sessions old
 |  77 | NA | NA | ✅ | NA | ⬜ | ⬜ | UNTESTED | Sale Published Celebration | ORG | SIMPLE | Chrome QA: verify confetti overlay, full-screen celebration UX |  | 
 |  79 | NA | NA | ✅ | NA | ⬜ | ⬜ | UNTESTED | Earnings Counter Animation | ORG | SIMPLE | Chrome QA: verify counter animation on dashboard load |  | 
 | 168 | ✅ | ✅ | ✅ | ✅ | ⬜ | ⬜ | UNTESTED | Seller Performance Dashboard | ORG | PRO | Chrome QA: verify per-sale analytics, insights load |  | 
-|   8 | ✅ | ✅ | ✅ | ✅ | ⬜ | ⬜ | UNTESTED | Batch Operations Toolkit | ORG | PRO | Chrome QA: verify bulk price/status/category/tag/photo updates |  | 
+|   8 | ✅ | ✅ | ✅ | ✅ | ⬜ | ⬜ | UNTESTED | Batch Operations Toolkit | ORG | PRO | Chrome QA: verify bulk price/status/category/tag/photo updates | S385: BulkPriceModal wired into BulkActionDropdown on add-items/[saleId].tsx. onSetPrice prop added. |
 | 170 | ✅ | ✅ | ✅ | 📋 | ⬜ | ⬜ | UNTESTED | CSV Listing Import | ORG | SIMPLE | Chrome QA: verify bulk upload, validation, items created |  | 
 | 171 | ✅ | ✅ | ✅ | 📋 | ⬜ | ⬜ | UNTESTED | Payout PDF Export | ORG | PRO | Chrome QA: verify PDF generation, content, download |  | 
 |  18 | ✅ | ✅ | ✅ | ✅ | ⬜ | ⬜ | UNTESTED | Post Performance Analytics | ORG | PRO | Chrome QA: verify UTM tracking on social template downloads |  | 
@@ -214,7 +215,7 @@ Features built but never browser-tested or Chrome test is stale (>3 sessions old
 | 27b | -— | ⬜ | ⬜ | -— | ⬜ | ⬜ | UNTESTED | Cloudinary Watermark on Photo Exports | ORG | SIMPLE | Chrome QA: verify watermark applied, brand protection visible | |
 | 27c | -— | ⬜ | ⬜ | -— | ⬜ | ⬜ | UNTESTED | CSV/JSON Listing Exports (Listing Factory) | ORG | SIMPLE | Chrome QA: verify multi-platform export formats | |
 |  33 | NA | ✅ | ✅ | NA | ⬜ | ⬜ | UNTESTED | Share Card Factory (OG Tags) | ORG | SIMPLE | Chrome QA: verify branded social previews, OG images |  | 
-|  34 | NA | ✅ | ✅ | NA | ⬜ | ⬜ | UNTESTED | Hype Meter | ORG | SIMPLE | Chrome QA: verify real-time social proof display |  | 
+|  34 | NA | ✅ | ✅ | NA | ⬜ | ⬜ | UNTESTED | Hype Meter | ORG | SIMPLE | Chrome QA: verify real-time social proof display | S385: HypeMeter component wired to sales/[id].tsx. ActivityFeed also wired. Both render on sale detail page. |
 |  63 | NA | ✅ | ✅ | NA | ⬜ | ⬜ | UNTESTED | Dark Mode + Accessibility | BOTH | FREE | Chrome QA: verify dark mode works, WCAG 2.1 AA compliant |  | 
 |  67 | NA | ✅ | ✅ | NA | ⬜ | ⬜ | UNTESTED | Social Proof Notifications | BOTH | SIMPLE | Chrome QA: verify engagement notifications (favorites, bids, holds) |  | 
 |   6 | ✅ | ✅ | ✅ | ✅ | ⬜ | ⬜ | UNTESTED | Virtual Queue / Line Management | ORG | SIMPLE | Chrome QA: verify queue UI, call next flow, SMS integration | Nav added S348 — "Virtual Queue (Soon)" placeholder in both organizer menus |
@@ -231,15 +232,15 @@ Features built but never browser-tested or Chrome test is stale (>3 sessions old
 | 186 | ✅ | ✅ | ✅ | NA | ⬜ | ⬜ | UNTESTED | QR Scan Analytics | ORG | SIMPLE | Chrome QA: verify QR scan tracking, insights |  | 
 | 187 | ✅ | ✅ | ✅ | 📋 | ⬜ | ⬜ | UNTESTED | City Pages | SHO | FREE | Chrome QA: verify `/cities` index, `/city/[slug]` pages |  | 
 | 191 | ✅ | ✅ | ✅ | NA | ⬜ | ⬜ | UNTESTED | Route Planning (Multi-Sale) | SHO | FREE | Chrome QA: verify `/api/routes` OSRM-based routing |  | 
-| 192 | ✅ | ✅ | ✅ | NA | ⬜ | ⬜ | UNTESTED | Price History Tracking | SHO | FREE | Chrome QA: verify price trends display, historical data |  | 
+| 192 | ✅ | ✅ | ✅ | NA | ⬜ | ⬜ | UNTESTED | Price History Tracking | SHO | FREE | Chrome QA: verify price trends display, historical data | S385: ItemPriceHistoryChart wired below price input on organizer/edit-item/[id].tsx. |
 |  52 | ✅ | ✅ | ✅ | ✅ | ⬜ | ⬜ | UNTESTED | Estate Sale Encyclopedia | SHO | FREE | Chrome QA: verify wiki-style knowledge base, EncyclopediaCard |  | 
 |  70 | ✅ | ✅ | ✅ | NA | ⬜ | ⬜ | UNTESTED | Live Sale Feed | SHO | SIMPLE | Chrome QA: verify Redis adapter, JWT socket auth, LiveFeedTicker |  | 
-| 193 | ✅ | ✅ | ✅ | 📋 | ⬜ | ⬜ | UNTESTED | Wishlists | SHO | FREE | Chrome QA: verify full CRUD, distinct from favorites |  | 
+| 193 | ✅ | ✅ | ✅ | 📋 | ⬜ | ⬜ | UNTESTED | Wishlists | SHO | FREE | Chrome QA: verify full CRUD, alerts, share link | S385: WishlistShareButton wired to wishlists.tsx. WishlistAlertForm wired to shopper/wishlist.tsx. |
 | 194 | ✅ | ✅ | ✅ | 📋 | ⬜ | ⬜ | UNTESTED | Saved Searches with notifyOnNew | SHO | FREE | Chrome QA: verify save search button, notification on new matches |  | 
 | 195 | ✅ | ✅ | ✅ | 📋 | ⬜ | ⬜ | UNTESTED | Shopper ↔ Organizer Messaging | BOTH | FREE | Chrome QA: verify threaded conversations, real-time updates |  | 
 | 196 | ✅ | ✅ | ✅ | NA | ⬜ | ⬜ | UNTESTED | Buying Pools | SHO | FREE | Chrome QA: verify group buying on items |  | 
-| 197 | ✅ | ✅ | ✅ | ✅ | ⬜ | ⬜ | UNTESTED | Bounties (Item Requests) | SHO | FREE | Chrome QA: verify want-ads, shopper requests work |  | 
-| 198 | ✅ | ✅ | ✅ | NA | ⬜ | ⬜ | UNTESTED | Reviews (Submit Sale / Organizer) | SHO | FREE | Chrome QA: verify review submit, organizer receives |  | 
+| 197 | ✅ | ✅ | ✅ | ✅ | ⬜ | ⬜ | UNTESTED | Bounties (Item Requests) | SHO | FREE | Chrome QA: verify want-ads, shopper requests work | S385: BountyModal wired to sales/[id].tsx. |
+| 198 | ✅ | ✅ | ✅ | ✅ | ⬜ | ⬜ | UNTESTED | Reviews (Submit Sale / Organizer) | SHO | FREE | Chrome QA: verify review submit, organizer receives, organizer can respond | S385: Organizer response via /organizer/reviews page. Nav link in AvatarDropdown + Layout. See #160 for full response feature detail. |
 | 200 | ✅ | ✅ | ✅ | 📋 | ✅ | ⬜ | Pending Chrome QA | Shopper Public Profiles | SHO | FREE | Shipped S344. profileSlug/purchasesVisible/collectorTitle schema + migration (deploy needed). GET /shoppers/:id, /shoppers/[id].tsx, settings section. |  | 
 | 201 | ✅ | ✅ | ✅ | 📋 | ⬜ | ⬜ | UNTESTED | Favorites | SHO | FREE | Chrome QA: verify item-level favorites, seller-follow (deferred post-beta per S285) |  | 
 | 202 | ✅ | ✅ | ✅ | 📋 | ⬜ | ⬜ | UNTESTED | Notification Center | SHO | FREE | Chrome QA: verify `/notifications` page, notification display |  | 
@@ -265,7 +266,7 @@ Features built but never browser-tested or Chrome test is stale (>3 sessions old
 | 218 | -— | ⬜ | ⬜ | -— | ⬜ | ⬜ | UNTESTED | Shopper Trades | SHO | FREE | Chrome QA: verify `/shopper/trades` page, trade/swap system | |
 | 219 | -— | ⬜ | ⬜ | -— | ⬜ | ⬜ | UNTESTED | Shopper Achievements | SHO | FREE | Chrome QA: verify `/shopper/achievements` page, badge display | |
 |  17 | ✅ | ✅ | ✅ | ✅ | ⬜ | ⬜ | UNTESTED | Bid Bot Detector + Fraud Score | ORG | PRO | Chrome QA: verify FraudBadge on holds page, fraud-signals.tsx |  | 
-|  32 | ✅ | ✅ | ✅ | ✅ | ⬜ | ⬜ | UNTESTED | Shopper Wishlist Alerts + Smart Follow | SHO | FREE | Chrome QA: verify category/tag/organizer alerts on new items |  | 
+|  32 | ✅ | ✅ | ✅ | ✅ | ⬜ | ⬜ | UNTESTED | Shopper Wishlist Alerts + Smart Follow | SHO | FREE | Chrome QA: verify category/tag/organizer alerts on new items | S385: WishlistAlertForm wired to shopper/wishlist.tsx. |
 |  45 | ✅ | ✅ | ✅ | ✅ | ⬜ | ⬜ | UNTESTED | Collector Passport | SHO | FREE | Chrome QA: verify specialty collection tracking, achievement path |  | 
 |  51 | ✅ | ✅ | ✅ | ✅ | ⬜ | ⬜ | UNTESTED | Sale Ripples | SHO | FREE | Chrome QA: verify social proof activity tracking, RippleIndicator |  | 
 |  54 | ✅ | ✅ | ✅ | ✅ | ⬜ | ⬜ | UNTESTED | Crowdsourced Appraisal (Base) | BOTH | FREE | Chrome QA: verify request/submit/vote appraisals |  | 
@@ -273,7 +274,7 @@ Features built but never browser-tested or Chrome test is stale (>3 sessions old
 |  73 | ✅ | ✅ | ✅ | ✅ | ⬜ | ⬜ | UNTESTED | Two-Channel Notification System | BOTH | SIMPLE | Chrome QA: verify OPERATIONAL + DISCOVERY channels, inbox tabs |  | 
 |  76 | NA | NA | ✅ | NA | ⬜ | ⬜ | UNTESTED | Skeleton Loaders | BOTH | FREE | Chrome QA: verify ghost card layouts on item/sale grids |  | 
 |  81 | NA | NA | ✅ | NA | ⬜ | ⬜ | UNTESTED | Empty State Audit + Copy Pass | BOTH | FREE | Chrome QA: verify EmptyState component across 8 pages |  | 
-|  88 | ✅ | ✅ | ✅ | ✅ | ⬜ | ⬜ | UNTESTED | Haul Post Gallery (UGC Social Proof) | SHO | FREE | Chrome QA: verify UGCPhoto extended, `/hauls` page live |  | 
+|  88 | ✅ | ✅ | ✅ | ✅ | ⬜ | ⬜ | UNTESTED | Haul Post Gallery (UGC Social Proof) | SHO | FREE | Chrome QA: verify HaulPostCard renders, photo submit works | S385: HaulPostCard + UGCPhotoSubmitButton wired to shopper/history.tsx gallery view. |
 |  91 | ✅ | ✅ | ✅ | NA | ⬜ | ⬜ | UNTESTED | Auto-Markdown (Smart Clearance) | ORG | PRO | Chrome QA: verify markdownEnabled, markdownFloor, markdownCron |  | 
 | 125 | ✅ | ✅ | ✅ | ✅ | ⬜ | ⬜ | UNTESTED | Inventory Syndication CSV Export | ORG | PRO | Chrome QA: verify PRO/TEAMS gate, export rate limiting (1/month) |  | 
 | 133 | ✅ | ✅ | ✅ | 📋 | ⬜ | ⬜ | UNTESTED | Hunt Pass Subscription Redesign | SHO | PAID_ADDON | Chrome QA: verify LEGENDARY early access gate, 1.5x XP multiplier |  | 
@@ -322,7 +323,7 @@ Infrastructure and internal systems. All code-verified. No browser QA needed.
 |  95 | Bid Rate Limiter | PLATFORM | ALL | bidRateLimiter.ts — 10 bids/60s via Redis, graceful degradation. (S280) |
 |  96 | Stripe Fee Disclosure | PLATFORM | ALL | stripeController itemized breakdown + CheckoutModal disclosure. (S280) |
 |  97 | Buyer Premium Breakdown Email | PLATFORM | ALL | breakdownHtml in stripeController — buyer premium, item photo, org name. (S280) |
-|  98 | Checkout Evidence Capture | PLATFORM | ALL | CheckoutEvidence model + auto-capture in stripeController. (S280) |
+|  98 | Checkout Evidence Capture | PLATFORM | ALL | CheckoutEvidence model + auto-capture in stripeController. (S280). S385: emailSentAt now stamped on CheckoutEvidence.updateMany when receipt email fires. |
 |  99 | Export Rate Limiting | PLATFORM | ALL | CSV/JSON exports: 1/month/account — prevents data harvesting. See anti-abuse §Vector 1 |
 | 100 | Refund Abuse Cap | PLATFORM | ALL | Refunds capped at 50% if requested <30 days post-signup. See anti-abuse §Vector 1 |
 | 101 | Multi-Account Email Prevention | PLATFORM | ALL | Hard gate: no multi-account signup with same email. See anti-abuse §Vector 4 |
