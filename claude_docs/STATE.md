@@ -7,6 +7,102 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Current Work
 
+**S385 COMPLETE (2026-04-03):** Largest single-session wiring sprint to date. 6 Wave 1+2 agents + 6 Wave 3 agents dispatched in parallel. 28 files changed, 24 components wired, 2 new features built from scratch.
+
+**S385 Summary:**
+- **Cleanup:** `arrivalRank` removed from SaleCheckin schema + migration SQL created. 4 orphaned files approved for deletion via PowerShell (Layout_current_github.tsx, BulkItemToolbar.tsx, ItemListWithBulkSelection.tsx, templates.ts).
+- **Wave 1 — Wired:** FeedbackWidget global floating button (_app.tsx). emailSentAt stamped on CheckoutEvidence when Stripe receipt fires. ActivityFeed + HypeMeter on sales/[id].tsx. DisputeForm "Report Issue" button on shopper/history.tsx. BulkPriceModal in BulkActionDropdown on add-items/[saleId].tsx.
+- **Wave 2 — Built:** Full organizer review response feature — PATCH endpoint, new /organizer/reviews management page, inline response form, responses display on public sale page. shopperRating aggregation — real-time trigger on review create + weekly batch job recalculation.
+- **Wave 3 — Wired (24 components):** sales/[id].tsx: SaleRSVPButton, RSVPBadge, SaleWaitlistButton, AddToCalendarButton, LocationMap, SocialProofBadge, SimilarItems, BountyModal. Wishlists: WishlistAlertForm, WishlistShareButton. Organizer: ItemPriceHistoryChart (edit-item), SalePerformanceBadge (dashboard), OrganizerSaleCard (sales), PremiumCTA + TierComparisonTable (pricing). Gamification: PointsBadge (shopper dashboard), HaulPostCard + UGCPhotoSubmitButton (history), ShopperReferralCard (reputation), BidModal (items/[id]). Teams: TeamsOnboardingWizard auto-triggers on dashboard for Teams-tier organizers. Nav: Reviews link added to AvatarDropdown + Layout Post Sales section.
+- **TreasureHuntQR:** Already mounted in sales.ts — was a false alarm from S384 audit.
+- **Deferred:** TooltipHelper, CartIcon, AddressAutocomplete (need more context for correct placement — S386).
+- **S383 push block still pending Patrick action.**
+
+**S385 Files Changed (push block provided):**
+- `packages/database/prisma/schema.prisma` — arrivalRank removed
+- `packages/database/prisma/migrations/20260403_remove_arrival_rank/migration.sql` — NEW
+- `packages/frontend/pages/_app.tsx` — FeedbackWidget
+- `packages/backend/src/controllers/stripeController.ts` — CheckoutEvidence.emailSentAt
+- `packages/frontend/pages/sales/[id].tsx` — 7 components wired + BountyModal
+- `packages/frontend/pages/shopper/history.tsx` — DisputeForm, HaulPostCard, UGCPhotoSubmitButton
+- `packages/frontend/pages/organizer/add-items/[saleId].tsx` — BulkPriceModal
+- `packages/frontend/components/BulkActionDropdown.tsx` — onSetPrice prop
+- `packages/backend/src/controllers/reviewController.ts` — respondToReview, getMyOrganizerReviews, shopperRating trigger
+- `packages/backend/src/routes/reviews.ts` — new me + respond routes
+- `packages/frontend/components/ReviewsSection.tsx` — organizer response display
+- `packages/frontend/pages/organizer/reviews.tsx` — NEW
+- `packages/backend/src/services/reputationService.ts` — recalculateShopperRating helper
+- `packages/backend/src/jobs/reputationJob.ts` — batch shopperRating update
+- `packages/backend/src/controllers/reputationController.ts` — expose shopperRating
+- `packages/frontend/pages/shopper/wishlist.tsx` — WishlistAlertForm
+- `packages/frontend/pages/wishlists.tsx` — WishlistShareButton
+- `packages/frontend/pages/organizer/edit-item/[id].tsx` — ItemPriceHistoryChart
+- `packages/frontend/pages/organizer/dashboard.tsx` — SalePerformanceBadge, TeamsOnboardingWizard
+- `packages/frontend/pages/organizer/sales.tsx` — OrganizerSaleCard
+- `packages/frontend/pages/organizer/pricing.tsx` — PremiumCTA, TierComparisonTable
+- `packages/frontend/pages/shopper/reputation.tsx` — ShopperReferralCard (replaced Coming Soon)
+- `packages/frontend/pages/items/[id].tsx` — BidModal
+- `packages/frontend/components/AuthContext.tsx` — teamsOnboardingComplete field
+- `packages/frontend/components/TeamsOnboardingWizard.tsx` — endpoint fix
+- `packages/backend/src/routes/users.ts` — teamsOnboardingComplete support
+- `packages/frontend/components/AvatarDropdown.tsx` — Reviews nav link
+- `packages/frontend/components/Layout.tsx` — Reviews nav link
+
+**S385 Push Block (pending Patrick action — run S383 push first, then this):**
+```powershell
+cd C:\Users\desee\ClaudeProjects\FindaSale
+git add packages/database/prisma/schema.prisma
+git add packages/database/prisma/migrations/20260403_remove_arrival_rank/migration.sql
+git add packages/frontend/pages/_app.tsx
+git add packages/backend/src/controllers/stripeController.ts
+git add "packages/frontend/pages/sales/[id].tsx"
+git add packages/frontend/pages/shopper/history.tsx
+git add "packages/frontend/pages/organizer/add-items/[saleId].tsx"
+git add packages/frontend/components/BulkActionDropdown.tsx
+git add packages/backend/src/controllers/reviewController.ts
+git add packages/backend/src/routes/reviews.ts
+git add packages/frontend/components/ReviewsSection.tsx
+git add packages/frontend/pages/organizer/reviews.tsx
+git add packages/backend/src/services/reputationService.ts
+git add packages/backend/src/jobs/reputationJob.ts
+git add packages/backend/src/controllers/reputationController.ts
+git add packages/frontend/pages/shopper/wishlist.tsx
+git add packages/frontend/pages/wishlists.tsx
+git add "packages/frontend/pages/organizer/edit-item/[id].tsx"
+git add packages/frontend/pages/organizer/dashboard.tsx
+git add packages/frontend/pages/organizer/sales.tsx
+git add packages/frontend/pages/organizer/pricing.tsx
+git add packages/frontend/pages/shopper/reputation.tsx
+git add "packages/frontend/pages/items/[id].tsx"
+git add packages/frontend/components/AuthContext.tsx
+git add packages/frontend/components/TeamsOnboardingWizard.tsx
+git add packages/backend/src/routes/users.ts
+git add packages/frontend/components/AvatarDropdown.tsx
+git add packages/frontend/components/Layout.tsx
+git add -u
+git commit -m "feat: S385 Wave 1+2+3 — 24 components wired, review responses, shopperRating, Teams onboarding, nav cleanup"
+.\push.ps1
+```
+
+**S385 Post-push schema migration (required):**
+```powershell
+cd C:\Users\desee\ClaudeProjects\FindaSale\packages\database
+$env:DATABASE_URL="postgresql://postgres:QvnUGsnsjujFVoeVyORLTusAovQkirAq@maglev.proxy.rlwy.net:13949/railway"
+npx prisma migrate deploy
+npx prisma generate
+```
+
+**S385 Orphan file deletions (PowerShell, before or after push):**
+```powershell
+cd C:\Users\desee\ClaudeProjects\FindaSale
+Remove-Item packages/frontend/components/Layout_current_github.tsx
+Remove-Item packages/frontend/components/BulkItemToolbar.tsx
+Remove-Item packages/frontend/components/ItemListWithBulkSelection.tsx
+Remove-Item packages/backend/src/routes/templates.ts
+```
+
+---
+
 **S384 COMPLETE (2026-04-03):** Full orphan audit — 4 layers scanned (backend routes, frontend components, schema fields, feature conditions). Research-only session. All dispatch decisions made. S385 starts dispatching immediately.
 
 **S384 Summary:**
@@ -609,15 +705,42 @@ Files changed S361:
 
 ---
 
-## Next Session (S384)
+## Next Session (S386)
 
-### S384 Priority 1 — Push S383 + smoke test
-After Patrick pushes S383 block, verify on finda.sale:
-- Toast × button dismisses immediately
-- New organizer onboarding modal completion stays on dashboard
-- Install App button visible in nav (desktop dropdown + mobile drawer) for non-installed users
+### S386 Priority 0 — Patrick actions required before S386 starts
+1. Push S383 block (still pending):
+   ```powershell
+   cd C:\Users\desee\ClaudeProjects\FindaSale
+   git add packages/frontend/components/ToastContext.tsx
+   git add packages/frontend/components/OrganizerOnboardingModal.tsx
+   git add packages/frontend/components/AvatarDropdown.tsx
+   git add packages/frontend/components/Layout.tsx
+   git commit -m "fix: toast dismiss button, onboarding completion stays on dashboard, Install App in nav"
+   .\push.ps1
+   ```
+2. Push S385 block (28 files — full block in S385 section above)
+3. Run schema migration after S385 push (arrivalRank removal)
+4. Run orphan file deletions via PowerShell (4 files)
 
-### S384 Priority 2 — Pricing consolidation dispatch
+### S386 Priority 1 — Smoke test S385 on finda.sale
+After Patrick pushes, verify on finda.sale:
+- FeedbackWidget floating button visible when logged in
+- Sale detail page shows HypeMeter viewer count + ActivityFeed
+- Review page at /organizer/reviews loads for Carol (user3)
+- Teams onboarding wizard triggers on dashboard for user1 (TEAMS tier)
+- Reviews nav link appears under Post Sales in both mobile + desktop nav
+
+### S386 Priority 2 — Deferred UX components
+Wire 3 components that need more context: TooltipHelper, CartIcon, AddressAutocomplete.
+Dispatch findasale-dev with explicit placement guidance.
+
+### S386 Priority 3 — Remaining S384 audit items not yet addressed
+From S384 Layer 3 schema fields:
+- `priceBeforeMarkdown` + `markdownApplied` — frontend should show crossed-out original price on item cards/detail
+- `Review.verifiedPurchase` — backend sets it, badge missing from review cards (add to ReviewsSection)
+- `SaleSettlement.clientPayoutStripeTransferId/FailureReason` — display in SettlementWizard
+
+### S386 Priority 4 — Pricing consolidation dispatch
 
 Dispatch to `findasale-dev` with this spec:
 
