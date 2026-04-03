@@ -7,6 +7,30 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Current Work
 
+**S380 COMPLETE (2026-04-02):** Orphaned pages audit + nav dead-link cleanup + gamification nav wiring.
+
+**S380 Summary:**
+- **Full pages audit:** Catalogued all 130+ frontend pages vs. nav entries. Identified 9 dead nav links, 5 mobile↔desktop parity gaps, and 20+ orphaned pages.
+- **Dead links removed from mobile nav:** Sale Map (`/organizer/map`), Analytics (`/organizer/analytics`), Item Tagger duplicate (`/organizer/item-tagger` — typology already present), Saved Items duplicate (`/shopper/saved-items` — wishlist already present).
+- **Path fixes:** `/organizer/sale-hubs` → `/organizer/hubs` in mobile nav.
+- **4 sale-picker index pages created:** `organizer/line-queue/index.tsx`, `organizer/photo-ops/index.tsx`, `organizer/promote/index.tsx`, `organizer/send-update/index.tsx` — all with auth guard, sale picker list, dark mode.
+- **New nav links added (both menus):** Bounties (In-Sale Tools), Email Digest (Pro Tools), Refer a Friend (Explore & Connect), Settings (shopper), Achievements (gamification), Explorer Leaderboard (gamification), My Trails (Explore & Connect), Loyalty Passport (gamification).
+- **Disputes tab added** to `/shopper/history` page.
+- **shopper/dashboard hauls link** → `/shopper/history?view=gallery` + relabeled "My Finds".
+- **3 orphaned pages removed:** `shopper/hauls.tsx` (replaced by history gallery), `shopper/alerts.tsx` (redirect stub), `organizer/performance.tsx` (redirect stub).
+- **Research:** Gamification pages analyzed — loot-legend stays as deep-link only (linked from hunt-pass/league); loyalty overlaps with explorer-passport (separate entry added for now, consolidation deferred).
+
+**S380 Files Changed:**
+- `packages/frontend/components/Layout.tsx` — dead link removals, path fix, 8 new links
+- `packages/frontend/components/AvatarDropdown.tsx` — 8 new links added
+- `packages/frontend/pages/organizer/line-queue/index.tsx` — NEW
+- `packages/frontend/pages/organizer/photo-ops/index.tsx` — NEW
+- `packages/frontend/pages/organizer/promote/index.tsx` — NEW
+- `packages/frontend/pages/organizer/send-update/index.tsx` — NEW
+- `packages/frontend/pages/shopper/history.tsx` — disputes tab added
+- `packages/frontend/pages/shopper/dashboard.tsx` — hauls link fixed
+- DELETED: `shopper/hauls.tsx`, `shopper/alerts.tsx`, `organizer/performance.tsx`
+
 **S379 COMPLETE (2026-04-02):** Full mobile + desktop nav overhaul — 4 rounds of changes.
 
 **S379 Summary:**
@@ -474,40 +498,63 @@ Files changed S361:
 
 ---
 
-## Next Session (S380)
+## Next Session (S381)
 
-### S380 Priority 1 — Orphaned Pages & Features Audit
+### S381 Priority 1 — Camera Flow Fixes (RapidCapture + Regular flow)
 
-**Goal:** Find every page, widget, or feature in the frontend that is NOT surfaced anywhere in the current navigation (mobile drawer or desktop dropdown) AND/OR not on the roadmap.
+Two separate camera flows need fixes. Read `packages/frontend/pages/organizer/add-items/[saleId].tsx`, `packages/frontend/components/RapidCapture.tsx`, and `packages/frontend/pages/organizer/add-items/[saleId]/review.tsx` before starting.
 
-**Starting point:** `claude_docs/frontend-pages-inventory-S294.html` — use as baseline, cross-reference against current nav state in `Layout.tsx` and `AvatarDropdown.tsx`.
+---
 
-**Method:**
-1. Glob all pages under `packages/frontend/pages/` — get the full current file list.
-2. For each page, check: (a) Is it linked from Layout.tsx mobile drawer? (b) Is it linked from AvatarDropdown.tsx desktop dropdown? (c) Is it referenced in `claude_docs/roadmap.md`?
-3. Produce a table: `| Page path | In mobile nav? | In desktop nav? | In roadmap? | Status | Proposed action |`
-4. Flag any page that answers NO to all three — these are orphans.
-5. Also flag features/widgets that exist in the codebase but have no nav entry point and no roadmap item.
+#### RapidCapture fixes
 
-**Do NOT touch code.** Present the full table to Patrick for review first.
+**Bug 1 — + button timing:**
+The `+` button currently appears delayed — it comes in with the enhanced icon and id status a second after the thumbnail appears. It should appear as soon as the thumbnail shows (as soon as the image is captured and the thumbnail renders), not waiting for AI analysis results to return.
 
-**Important context on known orphan patterns (from S377 research):**
-- `[saleId].tsx` pages (line-queue, promote, send-update, photo-ops, print-kit) 404 at base path — they need index pages, not removal. `print-kit/index.tsx` was built in S379.
-- `organizer/calendar` — TEAMS scheduling feature, not just sale dates. Research original spec before flagging.
-- `organizer/earnings` and `organizer/payouts` are SEPARATE features.
-- `organizer/item-tagger` — QR-based price tag feature, NOT AI photo tagging.
-- `shopper/reputation` — separate from organizer reputation, may have a different spec name.
-- Admin pages (items, reports, feature-flags, broadcast) — planned features, do not remove.
+**Bug 2 — AI analysis not pausing on + tap:**
+When + is tapped, the AI toast and analysis debounce should pause immediately. Currently the analysis may still fire during the + mode transition. The `hold-analysis` endpoint should cancel the debounce entirely on + tap (this was partially implemented in S365 — verify it's still wired correctly).
 
-### Patrick's Actions from S379
+**Bug 3 — + mode item assignment regression:**
+Repro steps: take 1st photo → wait for the 4.5s debounce to complete (analysis runs) → tap + → shutter changes to + icon → take 2nd photo → 2nd photo creates a new separate item instead of appending to the 1st → 3rd, 4th, etc. photos append to the 1st photo (wrong item).
+
+Root cause hypothesis: After the 4.5s debounce completes and analysis runs, the item ID or append target state may be reset or overwritten. The `+` mode stale closure fix from S365 may not account for the post-analysis state. Check `onPhotoCapture` deps and the `capturePhoto` useCallback — the item target after analysis completion may differ from the item target when `+` was tapped.
+
+---
+
+#### Regular camera flow fixes (the non-RapidCapture flow)
+
+The regular camera flow is currently analyzing the first photo immediately. The correct behavior:
+
+1. Organizer takes up to 5 photos → each creates a thumbnail in a strip
+2. Each thumbnail has a Delete (retake) button
+3. No AI analysis runs during capture
+4. Organizer clicks **"Analyze"** button after all photos are taken → AI analyzes all photos at once
+5. After analysis: thumbnails are combined (or the strip is removed/collapsed — Patrick is open to either approach), the "taken, enhanced, review" status line appears and updates like RapidCapture
+6. The item is then ready to be named/tagged/priced in the review step
+7. The "up to 5 photos per item" text in the UI should be replaced with a live **"0/5"** counter that increments with each photo taken
+
+**Key constraint:** This is the same flow as RapidCapture but without the auto-advance and with an explicit Analyze button instead of debounced auto-analysis.
+
+---
+
+#### Patrick's push block — S380
+
 ```powershell
+cd C:\Users\desee\ClaudeProjects\FindaSale
 git add packages/frontend/components/Layout.tsx
 git add packages/frontend/components/AvatarDropdown.tsx
-git add packages/frontend/pages/organizer/print-kit/index.tsx
-git add packages/frontend/pages/organizer/subscription.tsx
+git add packages/frontend/pages/organizer/line-queue/index.tsx
+git add packages/frontend/pages/organizer/photo-ops/index.tsx
+git add packages/frontend/pages/organizer/promote/index.tsx
+git add packages/frontend/pages/organizer/send-update/index.tsx
+git add packages/frontend/pages/shopper/history.tsx
+git add packages/frontend/pages/shopper/dashboard.tsx
+git rm packages/frontend/pages/shopper/hauls.tsx
+git rm packages/frontend/pages/shopper/alerts.tsx
+git rm packages/frontend/pages/organizer/performance.tsx
 git add claude_docs/STATE.md
 git add claude_docs/patrick-dashboard.md
-git commit -m "S379: full nav overhaul complete — mobile/desktop menus restructured, icons updated, Explore section expanded"
+git commit -m "S380: nav cleanup, dead link fixes, 4 sale-picker pages, gamification nav wiring, disputes tab, orphaned pages removed"
 .\push.ps1
 ```
 
@@ -517,4 +564,5 @@ git commit -m "S379: full nav overhaul complete — mobile/desktop menus restruc
 - Test accounts: user1 (TEAMS), user2 (organizer SIMPLE), user3 Carol Williams (TEAMS), user11 Karen Anderson (shopper, Hunt Pass active), user12 Leo Thomas (shopper). All passwords: password123
 - eBay comps show mock data until Patrick sets EBAY_CLIENT_ID + EBAY_CLIENT_SECRET on Railway
 - Backend route mounts: `app.use('/api/organizers', organizerRoutes)` and `app.use('/api/sales', saleRoutes)` — Print Kit signs at `/api/organizers/:saleId/signs/{type}` (plural)
+- Loyalty vs explorer-passport consolidation deferred — loyalty added to nav as separate entry for now
 

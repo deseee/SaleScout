@@ -1,4 +1,4 @@
-# Patrick's Dashboard — S379 Complete (2026-04-02)
+# Patrick's Dashboard — S380 Complete (2026-04-02)
 
 ---
 
@@ -10,34 +10,26 @@
 
 ---
 
-## What Happened This Session (S379)
+## What Happened This Session (S380)
 
-**Full mobile + desktop nav overhaul — 4 rounds of changes.**
+**Orphaned pages audit + nav dead-link cleanup + gamification nav wiring.**
 
-- Bottom nav reordered: Map → Calendar → Wishlist → Messages → Profile
-- Mobile user info block added above Admin section (name, email, rank badge, XP bar)
-- Selling Tools section removed from both menus
-- Section order: In-Sale Tools → Post Sales → Pro Tools
-- Pro Tools header is now purple in mobile to match desktop
-- Desktop My Profile + Settings moved to footer (above logout)
-- Desktop Settings uses amber gear icon matching My Profile
-- Desktop Messages link removed from dropdown (stays in top header bar)
-- Subscription link moved above Pro Tools in mobile
-- Explore & Connect in both menus now contains: Map, Calendar, Feed, Inspiration, Trending — plus existing passport/gamification links
-- Pricing added above My Profile in both menus
-- My Collection section header icon changed to Package; Wishlist icon changed to Heart
-- Dead space/border above username in mobile drawer removed
-- Duplicate In-Sale Tools section in desktop dropdown removed
-- print-kit/index.tsx created (sale picker landing page)
-- Admin guard added to subscription page (admins bypass the page silently)
+- Full audit of all 130+ frontend pages vs. nav entries — 9 dead links found and fixed
+- Removed 4 broken mobile nav links (Sale Map, Analytics, Item Tagger duplicate, Saved Items duplicate)
+- Fixed `/organizer/sale-hubs` → `/organizer/hubs` path in mobile nav
+- Created 4 sale-picker index pages: line-queue, photo-ops, promote, send-update (all had nav links but no index page)
+- Added 8 new nav links to both menus: Bounties, Email Digest, Refer a Friend, Shopper Settings, Achievements, Explorer Leaderboard, My Trails, Loyalty Passport
+- Added Disputes tab to `/shopper/history` page
+- Fixed "Hauls" quick link on shopper dashboard → now goes to `/shopper/history?view=gallery`, relabeled "My Finds"
+- Deleted 3 orphaned pages: shopper/hauls (replaced by history gallery), shopper/alerts (redirect stub), organizer/performance (redirect stub)
 
-## What Happened Last Session (S378)
+## What Happened Last Session (S379)
 
-Nav menus mirrored — mobile and desktop matched. Shopping Cart fixed. 11 coming-soon pages created.
+Full mobile + desktop nav overhaul — 4 rounds. Bottom nav reordered, Selling Tools section removed, Pro Tools purple, desktop footer links, print-kit index page, subscription admin guard.
 
 ---
 
-## Push Required — S379
+## Push Required — S380
 
 ```powershell
 git add packages/frontend/components/Layout.tsx
@@ -45,16 +37,28 @@ git add packages/frontend/components/AvatarDropdown.tsx
 git add packages/frontend/pages/organizer/print-kit/index.tsx
 git add packages/frontend/pages/organizer/subscription.tsx
 git add claude_docs/STATE.md
+git add packages/frontend/components/Layout.tsx
+git add packages/frontend/components/AvatarDropdown.tsx
+git add packages/frontend/pages/organizer/line-queue/index.tsx
+git add packages/frontend/pages/organizer/photo-ops/index.tsx
+git add packages/frontend/pages/organizer/promote/index.tsx
+git add packages/frontend/pages/organizer/send-update/index.tsx
+git add packages/frontend/pages/shopper/history.tsx
+git add packages/frontend/pages/shopper/dashboard.tsx
+git rm packages/frontend/pages/shopper/hauls.tsx
+git rm packages/frontend/pages/shopper/alerts.tsx
+git rm packages/frontend/pages/organizer/performance.tsx
+git add claude_docs/STATE.md
 git add claude_docs/patrick-dashboard.md
-git commit -m "S379: full nav overhaul complete — mobile/desktop menus restructured, icons updated, Explore section expanded"
+git commit -m "S380: nav cleanup, dead link fixes, 4 sale-picker pages, gamification nav wiring, disputes tab, orphaned pages removed"
 .\push.ps1
 ```
 
 ---
 
-## Next Session (S380)
+## Next Session (S381)
 
-**Orphaned pages & features audit.** Find every page/widget/feature that isn't surfaced in the nav or roadmap. Starting point: `claude_docs/frontend-pages-inventory-S294.html`. Session will produce a decision table — no code changes until Patrick reviews.
+**Camera flow fixes.** Two flows need work — read STATE.md Next Session for full spec. Summary: RapidCapture + button timing (show immediately on thumbnail, not after AI returns), AI pause on + tap, + mode item assignment bug (2nd photo after analysis completes creates new item instead of appending). Regular flow needs explicit Analyze button (no auto-analysis), 5-photo thumbnail strip with delete/retake, 0/5 counter replacing the "up to 5 photos" text, and post-analysis state matching RapidCapture.
 
 ---
 
