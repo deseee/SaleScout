@@ -7,6 +7,34 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Current Work
 
+**S383 COMPLETE (2026-04-03):** Toast dismiss, onboarding fix, Install App nav, pricing audit.
+
+**S383 Summary:**
+- **Toast dismiss button:** `components/ToastContext.tsx` — added `dismiss()` callback + `×` button to both standard and points toast variants. All toasts now immediately closeable instead of waiting 10s.
+- **Onboarding modal fix:** `components/OrganizerOnboardingModal.tsx` — final step CTA now calls `onDismiss()` (stays on dashboard) instead of navigating to `/organizer/create-sale`. Root cause: new organizers hit "Start my first sale" and landed on create-sale page rather than seeing the dashboard.
+- **Install App in nav:** `components/AvatarDropdown.tsx` + `components/Layout.tsx` — "📲 Install App" button added between Settings and Logout in both organizer and shopper sections (both mobile drawer and desktop dropdown). Hides when already installed (standalone mode). Android: clears dismiss timer + reloads so `beforeinstallprompt` fires. iOS: shows inline "Tap Share → Add to Home Screen" tooltip.
+- **Pricing audit:** Full map of all pricing features across app — 4 suggestion tools (AI Auto-Price, Suggest Price, eBay Comps, ValuationWidget), 4 pricing mechanics (BulkPriceModal, FlashDeal, Reverse Auction, Appraisals). Two orphaned features found: FlashDealForm imported on dashboard but `setFlashDealSaleId` never called (never renders); Reverse Auction option missing from listingType dropdown on add-items (fields exist, UI option absent).
+- **S380/S381/S382 push verification:** All three confirmed landed on GitHub.
+
+**S383 Files Changed:**
+- `packages/frontend/components/ToastContext.tsx` — dismiss button
+- `packages/frontend/components/OrganizerOnboardingModal.tsx` — completion stays on dashboard
+- `packages/frontend/components/AvatarDropdown.tsx` — Install App button
+- `packages/frontend/components/Layout.tsx` — Install App button
+
+**S383 Push Block (pending Patrick action):**
+```powershell
+cd C:\Users\desee\ClaudeProjects\FindaSale
+git add packages/frontend/components/ToastContext.tsx
+git add packages/frontend/components/OrganizerOnboardingModal.tsx
+git add packages/frontend/components/AvatarDropdown.tsx
+git add packages/frontend/components/Layout.tsx
+git commit -m "fix: toast dismiss button, onboarding completion stays on dashboard, Install App in nav"
+.\push.ps1
+```
+
+---
+
 **S382 COMPLETE (2026-04-02):** Review & Publish page — delete + mobile UX fixes.
 
 **S382 Summary:**
@@ -525,51 +553,46 @@ Files changed S361:
 
 ---
 
-## Next Session (S382)
+## Next Session (S384)
 
-### S382 Priority 1 — Camera QA + smoke test
+### S384 Priority 1 — Push S383 + smoke test
+After Patrick pushes S383 block, verify on finda.sale:
+- Toast × button dismisses immediately
+- New organizer onboarding modal completion stays on dashboard
+- Install App button visible in nav (desktop dropdown + mobile drawer) for non-installed users
 
-After Patrick pushes S380 + S381:
-1. Run smoke test on finda.sale — check RapidCapture flow (capture → + button appears immediately → + mode assigns photos correctly → AI analysis on main item).
-2. Test regular camera flow — capture 2-3 photos → verify X/5 counter → click Analyze → verify AI runs → form pre-fills.
-3. Any remaining nav items from S380 that need verification.
+### S384 Priority 2 — Pricing consolidation dispatch
 
-### S380 Push Block (pending Patrick action)
-```powershell
-cd C:\Users\desee\ClaudeProjects\FindaSale
-git add packages/frontend/components/Layout.tsx
-git add packages/frontend/components/AvatarDropdown.tsx
-git add packages/frontend/pages/organizer/line-queue/index.tsx
-git add packages/frontend/pages/organizer/photo-ops/index.tsx
-git add packages/frontend/pages/organizer/promote/index.tsx
-git add packages/frontend/pages/organizer/send-update/index.tsx
-git add packages/frontend/pages/shopper/history.tsx
-git add packages/frontend/pages/shopper/dashboard.tsx
-git rm packages/frontend/pages/shopper/hauls.tsx
-git rm packages/frontend/pages/shopper/alerts.tsx
-git rm packages/frontend/pages/organizer/performance.tsx
-git add claude_docs/STATE.md
-git add claude_docs/patrick-dashboard.md
-git commit -m "S380: nav cleanup, dead link fixes, 4 sale-picker pages, gamification nav wiring, disputes tab, orphaned pages removed"
-.\push.ps1
-```
+Dispatch to `findasale-dev` with this spec:
 
-### S381 Push Block (pending Patrick action)
-```powershell
-cd C:\Users\desee\ClaudeProjects\FindaSale
-git add packages/frontend/components/RapidCapture.tsx
-git add packages/frontend/pages/organizer/add-items/[saleId].tsx
-git add claude_docs/STATE.md
-git add claude_docs/patrick-dashboard.md
-git commit -m "S381: RapidCapture + button timing fix, append target ref fix, regular camera flow overhaul (Analyze button, X/5 counter, per-thumb delete)"
-.\push.ps1
-```
+**Goal:** Consolidate 4 price suggestion tools into a unified "Price Research" collapsible panel that appears on Add Items, Edit Item, and Review & Publish. Fix two orphaned pricing mechanics.
+
+**Panel contents (all three pages):**
+1. **AI Estimate** — if item has `estimatedValue` or `aiSuggestedPrice` from the camera AI pipeline, display it as "🤖 AI Estimate: $X" (read-only, already set, no button needed)
+2. **Suggest Price (💡)** — existing `PriceSuggestion` component. Already on Edit Item + Review & Publish. Add to Add Items.
+3. **eBay Price Comps (💰)** — existing inline code in Edit Item. Extract to reusable component or copy pattern. Add to Review & Publish + Add Items.
+4. **Platform Comps** — existing `ValuationWidget`. PRO-only gate stays. Add to Edit Item (currently missing) + Review & Publish. Already on Add Items.
+
+**Panel UX:** Collapsible `<details>` or a "Price Research ▼" toggle button. Collapsed by default on Review & Publish (busy page). Expanded by default on Edit Item (pricing-focused page). Each tool shows its source label so organizer understands what they're looking at.
+
+**Fix orphaned features (same dispatch):**
+- `add-items/[saleId].tsx` listing type `<select>`: add `<option value="REVERSE_AUCTION">Reverse Auction (daily price drop)</option>` and show the `reverseDailyDrop` + `reverseFloorPrice` + `reverseStartDate` fields conditionally when REVERSE_AUCTION is selected (fields already exist in formData, just need to be shown).
+- `organizer/dashboard.tsx`: find where Flash Deal should be triggered in the selling tools grid and wire `setFlashDealSaleId(activeSale.id)` to a "⚡ Flash Deal" button. The `FlashDealForm` modal render block likely already exists — just needs the trigger.
+
+**Files to touch:**
+- `packages/frontend/pages/organizer/add-items/[saleId].tsx`
+- `packages/frontend/pages/organizer/add-items/[saleId]/review.tsx`
+- `packages/frontend/pages/organizer/edit-item/[id].tsx`
+- `packages/frontend/pages/organizer/dashboard.tsx`
+- Possibly extract a `PriceResearchPanel.tsx` component if dev prefers
+
+**Schema preflight:** No schema changes needed. `estimatedValue`, `aiSuggestedPrice`, `reverseDailyDrop`, `reverseFloorPrice`, `reverseStartDate` all exist on Item model already.
 
 ### Standing Notes
 - All Railway env vars ✅. Migrations ✅ (20260402_add_charity_donation deployed).
 - Railway backend: https://backend-production-153c9.up.railway.app
 - Test accounts: user1 (TEAMS), user2 (organizer SIMPLE), user3 Carol Williams (TEAMS), user11 Karen Anderson (shopper, Hunt Pass active), user12 Leo Thomas (shopper). All passwords: password123
 - eBay comps show mock data until Patrick sets EBAY_CLIENT_ID + EBAY_CLIENT_SECRET on Railway
-- Backend route mounts: `app.use('/api/organizers', organizerRoutes)` and `app.use('/api/sales', saleRoutes)` — Print Kit signs at `/api/organizers/:saleId/signs/{type}` (plural)
-- Loyalty vs explorer-passport consolidation deferred — loyalty added to nav as separate entry for now
+- Backend route mounts: `app.use('/api/organizers', organizerRoutes)` and `app.use('/api/sales', saleRoutes)`
+- Loyalty vs explorer-passport consolidation deferred
 
