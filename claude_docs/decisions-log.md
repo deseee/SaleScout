@@ -5,6 +5,14 @@ Only decisions that affect future sessions — not implementation details.
 
 ---
 
+## 2026-04-04 (S392) — TEAMS Default Member Limit Reduced to 5 + Purchasable Upgrade
+
+**Status:** LOCKED
+**Made by:** Patrick
+**Rationale:** Research shows most sale teams are fewer than 5 people. TEAMS default member cap reduced from 12 to 5. Additional team member slots available as purchasable upgrade at $20/month per seat. Enterprise remains unlimited. This creates a natural upsell path: TEAMS base (5 members) → additional seats ($20/mo each) → Enterprise ($500/mo unlimited). Centralized in tierLimits.ts maxTeamMembers field.
+
+---
+
 ## 2026-04-04 (S392) — À La Carte Feature Set Defined
 
 **Status:** LOCKED
