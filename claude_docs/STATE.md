@@ -999,49 +999,28 @@ Files changed S361:
 
 ---
 
-## Next Session (S387)
+## Next Session (S392)
 
-### S387 Priority 0 — Smoke test S385+S386 on finda.sale
+### S392 Priority 0 — Smoke test S391 on finda.sale
 Verify deployed features:
-- FeedbackWidget floating button visible when logged in
-- Sale detail page shows HypeMeter viewer count + ActivityFeed, RSVP/waitlist buttons
-- /organizer/reviews loads for Carol (user3)
-- CartIcon in header shows hold count badge
-- AddressAutocomplete on create-sale address field
-- TooltipHelper on pricing tier section
+- /shopper/haul-posts feed page loads, create page works
+- /shopper/rare-finds page loads (Hunt Pass required)
+- Hunt Pass page shows Treasure Hunt Pro + Rare Finds Pass benefits
+- Shopper dashboard shows Rare Finds widget (Hunt Pass users only)
+- Haul Posts nav link present in shopper nav
 
-### S387 Priority 1 — Remaining S384 audit items not yet addressed
-From S384 Layer 3 schema fields:
-- `priceBeforeMarkdown` + `markdownApplied` — frontend should show crossed-out original price on item cards/detail
-- `Review.verifiedPurchase` — backend sets it, badge missing from review cards (add to ReviewsSection)
-- `SaleSettlement.clientPayoutStripeTransferId/FailureReason` — display in SettlementWizard
+### S392 Priority 1 — Chrome QA backlog
+Large backlog of Shipped items pending Chrome QA from S389–S391. Prioritize:
+- Hunt Pass page accuracy (1.5x, XP matrix, benefits list)
+- Referral page (/shopper/referrals)
+- Organizer nav additions (Insights, Branding)
+- Tier Progress widget on organizer dashboard
 
-### S386 Priority 4 — Pricing consolidation dispatch
-
-Dispatch to `findasale-dev` with this spec:
-
-**Goal:** Consolidate 4 price suggestion tools into a unified "Price Research" collapsible panel that appears on Add Items, Edit Item, and Review & Publish. Fix two orphaned pricing mechanics.
-
-**Panel contents (all three pages):**
-1. **AI Estimate** — if item has `estimatedValue` or `aiSuggestedPrice` from the camera AI pipeline, display it as "🤖 AI Estimate: $X" (read-only, already set, no button needed)
-2. **Suggest Price (💡)** — existing `PriceSuggestion` component. Already on Edit Item + Review & Publish. Add to Add Items.
-3. **eBay Price Comps (💰)** — existing inline code in Edit Item. Extract to reusable component or copy pattern. Add to Review & Publish + Add Items.
-4. **Platform Comps** — existing `ValuationWidget`. PRO-only gate stays. Add to Edit Item (currently missing) + Review & Publish. Already on Add Items.
-
-**Panel UX:** Collapsible `<details>` or a "Price Research ▼" toggle button. Collapsed by default on Review & Publish (busy page). Expanded by default on Edit Item (pricing-focused page). Each tool shows its source label so organizer understands what they're looking at.
-
-**Fix orphaned features (same dispatch):**
-- `add-items/[saleId].tsx` listing type `<select>`: add `<option value="REVERSE_AUCTION">Reverse Auction (daily price drop)</option>` and show the `reverseDailyDrop` + `reverseFloorPrice` + `reverseStartDate` fields conditionally when REVERSE_AUCTION is selected (fields already exist in formData, just need to be shown).
-- `organizer/dashboard.tsx`: find where Flash Deal should be triggered in the selling tools grid and wire `setFlashDealSaleId(activeSale.id)` to a "⚡ Flash Deal" button. The `FlashDealForm` modal render block likely already exists — just needs the trigger.
-
-**Files to touch:**
-- `packages/frontend/pages/organizer/add-items/[saleId].tsx`
-- `packages/frontend/pages/organizer/add-items/[saleId]/review.tsx`
-- `packages/frontend/pages/organizer/edit-item/[id].tsx`
-- `packages/frontend/pages/organizer/dashboard.tsx`
-- Possibly extract a `PriceResearchPanel.tsx` component if dev prefers
-
-**Schema preflight:** No schema changes needed. `estimatedValue`, `aiSuggestedPrice`, `reverseDailyDrop`, `reverseFloorPrice`, `reverseStartDate` all exist on Item model already.
+### S392 Priority 2 — Audit alerts (from weekly audit)
+- CRITICAL: Sale detail items buried below map
+- HIGH: Trending page images broken
+- HIGH: Inspiration Gallery images missing
+- HIGH: Feed page images blurry
 
 ### Standing Notes
 - All Railway env vars ✅. Migrations ✅ (20260402_add_charity_donation deployed).
