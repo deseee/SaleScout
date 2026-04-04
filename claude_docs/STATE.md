@@ -7,21 +7,97 @@ Historical detail: `claude_docs/COMPLETED_PHASES.md`
 
 ## Current Work
 
-**S391 COMPLETE (2026-04-03):** All 5 deferred S390b items resolved — 6 parallel agents across 2 batches, zero TS errors.
+**S393 COMPLETE (2026-04-04):** POS upgrade — 4-tile payment grid, camera QR scanner, Open Carts (shopper cart sharing), Payment QR (Stripe Payment Links), Invoice tile (holds-to-invoice), preserved Card/Cash flows.
 
-**S391 Summary:**
+**S393 Summary:**
 
-Resolved all items deferred from S390b plus Hunt Pass Option B (game-designed and implemented).
+Full POS checkout redesign. Single-screen architecture throughout. Two parallel agents (backend + frontend). Zero TS errors on both. 9 files changed, 2 new models, 1 new migration.
 
-**Batch 1 (4 agents parallel):**
-- **Condition Rating XP (WIRED):** itemController.ts updateItem now awards 3 XP when organizer sets conditionGrade for the first time. Checks PointsTransaction to prevent duplicates.
-- **Streak Milestone Triggers (WIRED):** streakService.ts recordVisit() now calls checkStreakMilestones() after updating VisitStreak. Awards 5/10/20 XP at 5/10/20-day streaks.
-- **Collector Passport Completion XP (WIRED + MIGRATION):** collectorPassportService.ts checkAndAwardPassportCompletion() fires after every passport update. Awards 50 XP when specialties + categories + keywords all non-empty. `passportCompleted` Boolean added to User model. Migration: 20260403_add_passport_completed.
-- **Haul Posts #88 (LIVE):** 3 new files created — useHaulPosts.ts hook, haul-posts.tsx feed page (grid, likes, dark mode), haul-posts/create.tsx (photo upload, caption, linked items). Layout.tsx wired with nav link. coming-soon.tsx redirects to new page.
+**New Models:**
+- `POSSession` — shopper shares cart with cashier (2h expiry, polled every 10s)
+- `POSPaymentLink` — Stripe Payment Link + base64 QR (24h expiry, polled every 3s)
 
-**Batch 2 (2 agents parallel — Hunt Pass Option B):**
-- **Treasure Hunt Pro (WIRED):** xpService.ts checkDailyXpCap raises cap from 100→150 for Hunt Pass. itemController.ts recordQrScan applies +10% bonus multiplier for Hunt Pass holders. hunt-pass.tsx benefit added.
-- **Rare Finds Pass (WIRED + NEW PAGES):** itemController.ts isItemVisibleToUser() filters Rare items 6h early, Legendary 12h early for Hunt Pass. New GET /items/rare-finds endpoint (auth + Hunt Pass required). New RareFindsFeed.tsx component on shopper dashboard (Hunt Pass only). New rare-finds.tsx full page with rarity filters. hunt-pass.tsx benefit added.
+**Architecture decisions:**
+- HoldInvoice already existed → POSInvoice eliminated (4 models → 2)
+- POSLineItem eliminated → organizer cart is React state, no server-side line items needed
+- Socket.io deferred → polling only for MVP
+- Invoice MVP → email only, Twilio deferred
+
+**Backend (posController.ts — 7 endpoints):**
+1. `POST /api/pos/sessions` — shopper shares cart
+2. `GET /api/pos/sessions?saleId=` — organizer gets linked carts
+3. `POST /api/pos/sessions/:id/pull` — organizer pulls cart (marks PULLED)
+4. `POST /api/pos/payment-links` — create Stripe Payment Link + QR
+5. `GET /api/pos/payment-links/:id` — poll status
+6. `GET /api/pos/holds?saleId=` — active holds (CONFIRMED, expiresAt>now, invoiceId=null)
+7. `POST /api/pos/holds/:reservationId/invoice` — send hold invoice via Resend
+
+**Frontend (pos.tsx — 1322 lines):**
+- 2×2 payment mode grid: Card / Cash / QR Code / Invoice
+- Camera QR scanner: jsqr + getUserMedia, continuous rAF loop, extracts itemId from `https://finda.sale/qr/items/[itemId]`
+- Open Carts banner: polls every 10s, pull-cart flow
+- Payment QR panel: generate link → display QR → poll 3s → auto-complete
+- Invoice tile: active holds list, send invoice per hold
+- All existing Card Terminal + Cash flows preserved exactly
+
+**S393 Files Changed (9 files, 2 new):**
+- `packages/database/prisma/schema.prisma` — POSSession + POSPaymentLink models + back-relations
+- `packages/database/prisma/migrations/20260404_pos_upgrade/migration.sql` — NEW
+- `packages/backend/src/controllers/posController.ts` — NEW (7 endpoints)
+- `packages/backend/src/routes/pos.ts` — NEW
+- `packages/backend/src/index.ts` — posRoutes mounted
+- `packages/backend/src/controllers/stripeController.ts` — payment_link.completed webhook
+- `packages/frontend/pages/organizer/pos.tsx` — full redesign (1322 lines)
+- `packages/frontend/components/ShopperCartDrawer.tsx` — "Share cart with cashier" button
+- `packages/frontend/package.json` — jsqr ^1.4.0 added
+
+**S393 Pending Patrick Actions:**
+1. Push: see push block provided in session
+2. Run migration:
+```powershell
+cd C:\Users\desee\ClaudeProjects\FindaSale\packages\database
+$env:DATABASE_URL="postgresql://postgres:QvnUGsnsjujFVoeVyORLTusAovQkirAq@maglev.proxy.rlwy.net:13949/railway"
+npx prisma migrate deploy
+npx prisma generate
+```
+
+**S393 QA Queue (Chrome — next session):**
+- Camera QR scanner: open POS, tap QR Code tile, grant camera, scan item QR
+- Payment QR panel: generate link, verify QR displays, complete via shopper
+- Open Carts banner: shopper shares cart from drawer, organizer sees it in POS within 10s
+- Invoice tile: active holds appear, send invoice flow completes
+- Card Terminal: verify charge flow still works end-to-end
+- Cash: verify change calculator + cashFeeBalance still work
+
+---
+
+**S392 COMPLETE (2026-04-04):** Pricing page overhaul, team member limit change, feature naming standardization, flash deal TS fix, concurrent sales gate spec.
+
+**S392 Summary:**
+
+Major pricing/tier accuracy session. Fixed Railway build blocker, overhauled pricing page with correct data, standardized feature naming (no "AI" in customer-facing copy), changed TEAMS member cap 12→5 with $20/mo upgrade path, fixed stale support FAQ pricing.
+
+**Fixes & Changes:**
+- **flashDealController.ts TS2322 fix:** `boolean | null` → `!!()` coercion on hasHuntPass. Railway build unblocked.
+- **Pricing page overhaul (pricing.tsx):** Hero copy, value prop callout section (6 boxes), all tier feature arrays rewritten with correct limits, ala carte section rewritten (500 items, 10 photos, 500 auto tags, Flip Report, Virtual Queue, 10% fee), Enterprise headline changed, 3 new FAQ questions, PremiumCTA benefits updated.
+- **TierComparisonTable.tsx rewrite:** Renamed AI tags→Auto Tags, AI valuation→Smart Pricing, Link click stats→Ripples. Fixed SIMPLE items (200), SIMPLE photos (5), TEAMS photos (Unlimited*). Added Concurrent sales row (1/3/Unlimited*), Photo to listing, Social post generator, QR codes, POS, Holds & reservations. Team members row: "5 (additional $20/mo/ea)". Checkmark alignment fixed with flex centering.
+- **Feature naming standardization (D-S392):** No "AI" in any customer-facing copy. Auto Tags, Smart Pricing, Ripples, 24/7 support assistant.
+- **TEAMS member limit 12→5 (D-S392):** tierLimits.ts maxTeamMembers=5, workspaceController.ts uses TIER_LIMITS instead of hardcoded 12, workspace.tsx updated (4 instances), error messages mention $20/mo purchasable seats.
+- **support.tsx stale pricing fix:** PRO was showing $4.99/month, TEAMS $12.99/month → corrected to $29/month and $79/month with 8% fee.
+- **S268 supersedes S251 confirmed:** Support tiers (S251) replaced by zero-human automated support stack (S268). No SLA, no phone, no calendar.
+- **À La Carte feature set defined (D-S392):** 500 items, 10 photos/item, 500 auto tags, Flip Report, Virtual Queue, 10% platform fee.
+- **Null byte corruption fixed:** Both pricing.tsx and TierComparisonTable.tsx had trailing \x00 bytes causing Vercel build failures. Stripped with perl.
+- **Concurrent sales gate spec written:** claude_docs/specs/concurrent-sales-gate-spec.md — full implementation spec for SIMPLE=1, PRO=3, TEAMS=unlimited.
+
+**S392 Files Changed (8 files):**
+- `packages/backend/src/controllers/flashDealController.ts` — TS2322 fix
+- `packages/backend/src/constants/tierLimits.ts` — maxTeamMembers field (SIMPLE=0, PRO=0, TEAMS=5, ENTERPRISE=MAX_SAFE_INTEGER)
+- `packages/backend/src/controllers/workspaceController.ts` — use TIER_LIMITS.TEAMS.maxTeamMembers instead of hardcoded 12
+- `packages/frontend/pages/organizer/pricing.tsx` — full overhaul
+- `packages/frontend/components/TierComparisonTable.tsx` — full rewrite of FEATURES array + checkmark alignment
+- `packages/frontend/pages/organizer/workspace.tsx` — team member limit 12→5 (4 instances)
+- `packages/frontend/pages/support.tsx` — stale pricing fix ($4.99→$29, $12.99→$79)
+- `claude_docs/decisions-log.md` — 4 new entries (À La Carte, S251 superseded, naming standardization, team member limit)
 
 **S391 Files Changed (16 modified, 5 new):**
 - `packages/backend/src/controllers/itemController.ts` — condition rating XP + treasure hunt pro + rare finds visibility + rare finds endpoint

@@ -1,70 +1,66 @@
-# Patrick's Dashboard — S391 Complete (2026-04-03)
+# Patrick's Dashboard — S393 Complete (2026-04-04)
 
 ---
 
 ## Status
 
-- **Vercel:** ⚠️ S391 push pending — 16 modified + 5 new files (see pushblock below)
-- **Railway:** ⚠️ S391 backend push pending (6 backend files + migration)
-- **DB:** ⚠️ New migration needed: `20260403_add_passport_completed` (adds `passportCompleted` Boolean to User)
+- **Vercel:** ⚠️ S393 push pending — 9 files (see action items below)
+- **Railway:** ⚠️ S393 backend + schema push pending — migration required
+- **DB:** ⚠️ Migration required (POSSession + POSPaymentLink tables)
 
 ---
 
-## What Happened This Session (S391)
+## What Happened This Session (S393)
 
-**All 5 deferred items from S390b resolved + Hunt Pass Option B shipped.**
+**Full POS checkout redesign — single-screen, 4 payment modes, camera QR, shopper cart sharing, Stripe Payment Links.**
 
-- **Condition Rating XP:** Organizers now earn 3 XP when they set a condition grade (S/A/B/C/D) on an item for the first time. One-time award per item.
-- **Streak Milestone Triggers:** Visit streaks now check for 5/10/20-day milestones and award 5/10/20 XP. Fires automatically when a user records a visit.
-- **Collector Passport Completion XP:** 50 XP awarded when a shopper fills in all three passport fields (specialties, categories, keywords). One-time award, tracked via new `passportCompleted` field.
-- **Haul Posts (#88) LIVE:** Two new pages — community haul feed (/shopper/haul-posts) + create page (/shopper/haul-posts/create). Grid layout, likes, dark mode, nav link added.
-- **Treasure Hunt Pro (Hunt Pass perk):** +10% XP bonus per QR scan on top of rank multiplier. Daily cap raised from 100 → 150 for Hunt Pass subscribers.
-- **Rare Finds Pass (Hunt Pass perk):** Rare items visible 6h early, Legendary 12h early to Hunt Pass holders. New /shopper/rare-finds page with rarity filters. Dashboard widget shows latest rare finds for subscribers.
+- **4-tile payment grid:** Card / Cash / QR Code / Invoice — clean selection for a first-time cashier
+- **Camera QR scanner:** Tap QR Code tile → camera opens → scan item QR → auto-adds to cart. Continuous scan for multi-item workflow.
+- **Open Carts:** Shoppers can share their localStorage cart with the cashier via a "Share cart with cashier" button. Organizer sees a banner in POS and can pull the cart in one tap.
+- **Payment QR (Stripe Payment Links):** Generate a unique Stripe Payment Link → QR displayed → shopper scans and pays on their phone → POS auto-completes on webhook.
+- **Invoice tile:** Shows all active holds (CONFIRMED, not yet invoiced). Cashier can send an invoice email per hold.
+- **Card Terminal + Cash preserved:** All existing Stripe Terminal + cash payment flows are unchanged. Change calculator and cashFeeBalance still work.
+- **Schema:** 2 new Prisma models (POSSession, POSPaymentLink) + migration file.
 
 ---
 
-## What Happened Last Session (S390/S390b)
+## What Happened Last Session (S392)
 
-S389 alignment doc fully implemented — Hunt Pass copy fixes, à la carte pricing, tier restructuring, organizer nav/dashboard improvements, referral UI page, share moments, Hunt Pass cosmetics, Brand Follow wiring.
+Pricing page overhaul, team member limit 12→5, feature naming standardization (no "AI"), Railway build fix, TEAMS member cap + $20/mo upgrade messaging, support FAQ pricing fix.
 
 ---
 
 ## Patrick Action Items
 
+**First — push everything:**
+
 ```powershell
-# STEP 1: Push all files
 cd C:\Users\desee\ClaudeProjects\FindaSale
-git add packages/backend/src/controllers/itemController.ts
-git add packages/backend/src/services/xpService.ts
-git add packages/backend/src/services/streakService.ts
-git add packages/backend/src/services/collectorPassportService.ts
-git add packages/backend/src/routes/items.ts
 git add packages/database/prisma/schema.prisma
-git add packages/database/prisma/migrations/20260403_add_passport_completed/migration.sql
-git add packages/frontend/pages/shopper/hunt-pass.tsx
-git add packages/frontend/pages/shopper/dashboard.tsx
-git add packages/frontend/pages/shopper/haul-posts.tsx
-git add packages/frontend/pages/shopper/haul-posts/create.tsx
-git add packages/frontend/pages/shopper/rare-finds.tsx
-git add packages/frontend/hooks/useHaulPosts.ts
-git add packages/frontend/components/RareFindsFeed.tsx
-git add packages/frontend/components/Layout.tsx
-git add packages/frontend/pages/haul/coming-soon.tsx
+git add packages/database/prisma/migrations/20260404_pos_upgrade/migration.sql
+git add packages/backend/src/controllers/posController.ts
+git add packages/backend/src/routes/pos.ts
+git add packages/backend/src/index.ts
+git add packages/backend/src/controllers/stripeController.ts
+git add packages/frontend/pages/organizer/pos.tsx
+git add packages/frontend/components/ShopperCartDrawer.tsx
+git add packages/frontend/package.json
 git add claude_docs/STATE.md
 git add claude_docs/patrick-dashboard.md
-git commit -m "S391: condition rating XP, streak milestones, passport completion, haul posts, Hunt Pass Option B (Treasure Hunt Pro + Rare Finds Pass)"
+git commit -m "S393: POS upgrade — QR checkout, Open Carts, Payment QR, Invoice tile, camera QR scanner"
 .\push.ps1
 ```
 
+**Then — run the migration:**
+
 ```powershell
-# STEP 2: Run migration (after push deploys)
 cd C:\Users\desee\ClaudeProjects\FindaSale\packages\database
 $env:DATABASE_URL="postgresql://postgres:QvnUGsnsjujFVoeVyORLTusAovQkirAq@maglev.proxy.rlwy.net:13949/railway"
 npx prisma migrate deploy
 npx prisma generate
 ```
 
-Other open items:
+**Other open items:**
 - [ ] **⚠️ eBay Developer App:** Create app at https://developer.ebay.com → get `EBAY_CLIENT_ID` + `EBAY_CLIENT_SECRET` → set as Railway env vars
 - [ ] **⚠️ Set `MAILERLITE_SHOPPERS_GROUP_ID=182012431062533831` on Railway**
 - [ ] **⚠️ Verify `RESEND_API_KEY` and `RESEND_FROM_EMAIL` on Railway**
@@ -84,8 +80,9 @@ Full report: `claude_docs/audits/weekly-audit-2026-04-02.md`
 
 ---
 
-## Next Session (S392)
+## Next Session (S394)
 
-- Chrome QA: Haul Posts feed + create page, Rare Finds page, treasure hunt pro XP
-- Smoke test all S391 changes on finda.sale after deploy
-- Continue from roadmap — next deferred items or bug fixes from audit alerts
+- Chrome QA: POS redesign (camera scan, QR payment, Open Carts, Invoice tile, Card/Cash preserved)
+- Chrome QA: S392 pricing page on finda.sale
+- $20/mo purchasable team member seat: Stripe product setup needed
+- Concurrent sales gate: implement from spec at `claude_docs/specs/concurrent-sales-gate-spec.md`
