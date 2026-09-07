@@ -29,13 +29,16 @@ const PrivacyPage = () => {
             <h3 className="text-lg font-semibold text-warm-700 dark:text-warm-300 mb-2">Account Information</h3>
             <p className="text-warm-700 dark:text-warm-300 leading-relaxed mb-4">
               When you register, we collect your name, email address, and password (stored as a one-way hash). Organizers
-              additionally provide business name, phone number, and payout information required by Stripe Connect.
+              additionally provide business name, phone number, and payout information required by their connected
+              payment processor (currently Stripe Connect or Square, depending on which processor the Organizer
+              uses).
             </p>
 
             <h3 className="text-lg font-semibold text-warm-700 dark:text-warm-300 mb-2">Transaction Information</h3>
             <p className="text-warm-700 dark:text-warm-300 leading-relaxed mb-4">
               We record purchase history, bid history, and payout records. Payment card details are never stored on our
-              servers. They are transmitted directly to Stripe and handled under their PCI-compliant infrastructure.
+              servers. They are transmitted directly to the applicable payment processor (Stripe or Square) and
+              handled under that processor's own PCI-compliant infrastructure.
             </p>
 
             <h3 className="text-lg font-semibold text-warm-700 dark:text-warm-300 mb-2">Location Information</h3>
@@ -92,8 +95,14 @@ const PrivacyPage = () => {
             </p>
             <ul className="list-disc list-inside text-warm-700 dark:text-warm-300 space-y-2">
               <li>
-                <strong>Stripe:</strong> Payment information is shared with Stripe to process transactions. Stripe may
-                collect additional information during Stripe Connect onboarding per their own Privacy Policy.
+                <strong>Stripe:</strong> For Organizers and transactions connected to Stripe, payment information is
+                shared with Stripe to process transactions. Stripe may collect additional information during Stripe
+                Connect onboarding per their own Privacy Policy.
+              </li>
+              <li>
+                <strong>Square:</strong> For Organizers and transactions connected to Square, payment information is
+                shared with Square, Inc. to process transactions and payouts. Square may collect additional
+                information during account verification per its own Privacy Notice.
               </li>
               <li>
                 <strong>Cloudinary:</strong> Item photos are stored and served via Cloudinary's CDN.
@@ -183,8 +192,9 @@ const PrivacyPage = () => {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold text-warm-800 dark:text-warm-200 mb-4">8. Third-Party Links &amp; Affiliate Disclosure</h2>
             <p className="text-warm-700 dark:text-warm-300 leading-relaxed mb-4">
-              The Platform may contain links to third-party websites (e.g., Stripe's dashboard). We are not responsible
-              for the privacy practices of those sites and encourage you to review their privacy policies.
+              The Platform may contain links to third-party websites (e.g., your connected payment processor's
+              dashboard, such as Stripe or Square). We are not responsible for the privacy practices of those sites
+              and encourage you to review their privacy policies.
             </p>
             <p className="text-warm-700 dark:text-warm-300 leading-relaxed">
               FindA.Sale participates in the eBay Partner Network (EPN), an affiliate advertising program. Item detail

@@ -1,5 +1,6 @@
 import { prisma } from '../lib/prisma';
 import { getStripe } from '../utils/stripe';
+import { resolveVendorBoothSquareAccessToken, cancelSquareBoothCartLeg } from './squareVendorBoothCartService'; // vendor-booth-cart-checkout dispatch (2026-09-07)
 
 const stripe = () => getStripe();
 const isTerminalSimulated = () => process.env.STRIPE_TERMINAL_SIMULATED === 'true';
@@ -55,10 +56,23 @@ export async function releasePendingCartHold(cart: { id: string; status: string 
   const cancelledLegIds: string[] = [];
   for (const leg of legs) {
     try {
-      if (isTerminalSimulated() && leg.rail === 'TERMINAL') {
-        await stripe().paymentIntents.cancel(leg.stripePaymentIntentId);
+      if (leg.processor === 'SQUARE') {
+        // Square migration, vendor-booth-cart-checkout dispatch (2026-09-07): resolve THIS
+        // booth's own Square access token (mirrors the Stripe branch's per-leg
+        // { stripeAccount: leg.stripeAccountId } scoping -- Square's equivalent is scoping
+        // the entire client to that booth's own OAuth token, see
+        // squareVendorBoothCartService.ts's file header for the full contrast).
+        const booth = await prisma.vendorBooth.findUnique({
+          where: { id: leg.vendorBoothId },
+          select: { id: true, squareAccountId: true, squareOnboarded: true },
+        });
+        if (!booth) throw new Error(`[releasePendingCartHold] Booth ${leg.vendorBoothId} not found for Square leg ${leg.id}`);
+        const boothAccessToken = await resolveVendorBoothSquareAccessToken(booth);
+        await cancelSquareBoothCartLeg(boothAccessToken, leg.squarePaymentId!);
+      } else if (isTerminalSimulated() && leg.rail === 'TERMINAL') {
+        await stripe().paymentIntents.cancel(leg.stripePaymentIntentId!);
       } else {
-        await stripe().paymentIntents.cancel(leg.stripePaymentIntentId, {}, { stripeAccount: leg.stripeAccountId });
+        await stripe().paymentIntents.cancel(leg.stripePaymentIntentId!, {}, { stripeAccount: leg.stripeAccountId });
       }
       await prisma.boothCartLeg.update({ where: { id: leg.id }, data: { status: 'CANCELED' } });
       cancelledLegIds.push(leg.id);

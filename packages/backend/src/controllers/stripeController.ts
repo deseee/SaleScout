@@ -42,6 +42,7 @@ import { sellItemUnits, InsufficientStockError } from '../services/itemStockServ
 import { syncMarketplaceStock } from '../services/marketplaceStockSyncService'; // ADR-087 Phase 4: revise-on-partial eBay quantity sync
 import { sendConsignorItemSold } from '../services/consignorEmailService'; // Feature #309: Consignor email notifications
 import { executeVerifiedRefund, RefundError, sendRefundConfirmationEmail, disputeClawbackEnabled } from '../services/refundService'; // P1 fix (2026-07-29): shared refund execution (see refundService.ts) + dispute-triggered refund confirmation. applyFirstMonthRefundCap/logRefundProcessing no longer used here — see the cap-removal comment at this file's createRefund call site.
+import { executeVerifiedSquareRefund } from '../services/squareRefundService'; // Square migration Wave 1 #4 (2026-09-07): one added branch at this file's createRefund call site below routes SQUARE-processor purchases through the Square-side choke point instead of Stripe's.
 import { transactionalEmailService } from '../lib/transactionalEmailService';
 import { assertCheckoutAllowed, assertGuestCheckoutAllowed, recordConfirmedSignal, CheckoutGuardError } from '../services/checkoutGuard'; // S1072 Finding #4: collusion/wash-trade guard
 import { assertSaleCanAcceptPayment } from '../services/paymentEligibilityService'; // 2026-08-27 carding incident: shared Connect/sale-status/velocity gate
@@ -4179,7 +4180,16 @@ export const createRefund = async (req: AuthRequest, res: Response) => {
     // Stripe path instead of only updating a status string. Moved, not rewritten: this
     // endpoint's behavior for existing callers is unchanged.
     try {
-      await executeVerifiedRefund(purchaseId, refundAmount, initiatedBy);
+      // Square migration Wave 1 #4 (2026-09-07): one added branch -- purchase.processor
+      // ('STRIPE' | 'SQUARE', schema.prisma default 'STRIPE') decides which choke point this
+      // refund routes through. Both throw the SAME RefundError class (see
+      // squareRefundService.ts's file comment for why), so the catch block below needs no
+      // change to handle either processor.
+      if (purchase.processor === 'SQUARE') {
+        await executeVerifiedSquareRefund(purchaseId, refundAmount, initiatedBy);
+      } else {
+        await executeVerifiedRefund(purchaseId, refundAmount, initiatedBy);
+      }
     } catch (refundErr) {
       if (refundErr instanceof RefundError) {
         return res.status(refundErr.statusCode).json({ message: refundErr.message, ...(refundErr.details || {}) });

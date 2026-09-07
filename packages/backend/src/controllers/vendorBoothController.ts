@@ -3,6 +3,13 @@ import { AuthRequest } from '../middleware/auth';
 import { prisma } from '../lib/prisma';
 import { Decimal } from '@prisma/client/runtime/library';
 import { createConnectAccount, createOnboardingLink, getAccountStatus } from '../services/stripeConnectService';
+// Square migration (2026-09-07, Wave 1 #2): vendor-booth-operator's Square-side onboarding.
+// buildSquareAuthorizeUrl/resolveExistingSquareIdentityForUser mirror the existing Stripe
+// reuse-resolution pattern below (see startVendorBoothStripeOnboarding) -- the actual OAuth
+// code exchange for a booth is handled by squareConnectController.ts's shared
+// handleSquareConnectCallback (Square's OAuth app has one fixed redirect URL for all four
+// owner types, so the callback is centralized there rather than duplicated per controller).
+import { buildSquareAuthorizeUrl, resolveExistingSquareIdentityForUser } from '../services/squareConnectService';
 import { getStripe } from '../utils/stripe';
 // Single source of truth for the platform's cut. The vendor-facing fee disclosure
 // below MUST derive from this, using the same hub-owner tier the money path
@@ -1135,5 +1142,83 @@ export const listHubVendorBoothFeeCharges = async (req: AuthRequest, res: Respon
   } catch (error) {
     console.error('[listHubVendorBoothFeeCharges] Error:', error);
     return res.status(500).json({ error: 'Failed to list hub booth fee charges' });
+  }
+};
+
+
+/**
+ * POST /api/vendor-booth/:vendorBoothId/square/onboard
+ * Auth: booth owner only (req.user.id === VendorBooth.userId).
+ *
+ * Square-side design for the SAME reuse-resolution problem startVendorBoothStripeOnboarding
+ * solves above (ADR-021): never force a real business through onboarding a second time if
+ * the claiming user already has a working identity as an Organizer. NOT a silent port of
+ * the Stripe logic -- Square's OAuth model has no live cross-account status check available
+ * without that Organizer's own persisted access token (see squareConnectService.ts's
+ * schema-gap note), so this can only trust the last-known CACHED squareOnboarded flag, not
+ * a live re-verify the way the Stripe version does via getAccountStatus(). Also, unlike
+ * Stripe, nothing is "created" server-side here before redirecting -- Square's authorize URL
+ * IS the entire "create or link an account" step; the booth's squareAccountId is set later,
+ * in squareConnectController.ts's shared OAuth callback, once the merchant actually
+ * completes consent on Square's side.
+ */
+export const startVendorBoothSquareOnboarding = async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user) return res.status(401).json({ error: 'Authentication required' });
+    const { vendorBoothId } = req.params;
+
+    const booth = await prisma.vendorBooth.findUnique({ where: { id: vendorBoothId } });
+    if (!booth || booth.deletedAt) return res.status(404).json({ error: 'Booth not found' });
+    if (booth.userId !== req.user.id) return res.status(403).json({ error: 'You do not operate this booth' });
+
+    if (booth.squareAccountId && booth.squareOnboarded) {
+      return res.status(200).json({ alreadyOnboarded: true, squareAccountId: booth.squareAccountId });
+    }
+
+    // Reuse-resolution: does the claiming user already have a working Square identity as an
+    // Organizer? If so, copy it over directly -- no second OAuth grant needed. Cached-only,
+    // see the function-level comment above for why.
+    if (!booth.squareAccountId) {
+      const existing = await resolveExistingSquareIdentityForUser(booth.userId!);
+      if (existing?.squareOnboarded) {
+        await prisma.vendorBooth.update({
+          where: { id: booth.id },
+          data: { squareAccountId: existing.squareMerchantId, squareOnboarded: true },
+        });
+        return res.status(200).json({ linkedExistingAccount: true, squareOnboarded: true });
+      }
+    }
+
+    const { url } = buildSquareAuthorizeUrl('VENDOR_BOOTH', booth.id);
+    return res.status(200).json({ onboardingUrl: url, alreadyOnboarded: false });
+  } catch (error) {
+    console.error('[startVendorBoothSquareOnboarding] Error:', error);
+    return res.status(500).json({ error: 'Failed to start Square onboarding' });
+  }
+};
+
+/**
+ * GET /api/vendor-booth/:vendorBoothId/square/status
+ * Auth: booth owner only. Cached-read only (no live Square API call) -- see
+ * startVendorBoothSquareOnboarding's comment on why this dispatch cannot live-verify
+ * against Square the way getVendorBoothStripeStatus does against Stripe.
+ */
+export const getVendorBoothSquareStatus = async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user) return res.status(401).json({ error: 'Authentication required' });
+    const { vendorBoothId } = req.params;
+
+    const booth = await prisma.vendorBooth.findUnique({ where: { id: vendorBoothId } });
+    if (!booth || booth.deletedAt) return res.status(404).json({ error: 'Booth not found' });
+    if (booth.userId !== req.user.id) return res.status(403).json({ error: 'You do not operate this booth' });
+
+    return res.status(200).json({
+      squareAccountId: booth.squareAccountId,
+      squareOnboarded: booth.squareOnboarded,
+      payoutsFlaggedForReview: booth.payoutsFlaggedForReview,
+    });
+  } catch (error) {
+    console.error('[getVendorBoothSquareStatus] Error:', error);
+    return res.status(500).json({ error: 'Failed to get booth Square status' });
   }
 };

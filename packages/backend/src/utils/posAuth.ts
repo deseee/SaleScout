@@ -41,6 +41,12 @@ export type ResolvedPosActor = {
   stripeConnectId: string | null;
   subscriptionTier: string | null;
   referralDiscountExpiry: Date | null;
+  // Square migration Wave 1 #3 (2026-09-07): additive fields so POS call sites can branch
+  // on processor without a second round-trip. requireStripe below now means "require at
+  // least one connected payment processor" -- see that check's own comment.
+  squareOnboarded: boolean;
+  squareMerchantId: string | null;
+  squareLocationId: string | null;
   actorKind: 'ORGANIZER' | 'TEAM_MEMBER';
   actingUserId: string; // req.user.id — who is actually standing at the register
   teamMemberId?: string; // set only when actorKind === 'TEAM_MEMBER'
@@ -53,8 +59,12 @@ export type ResolvedPosActor = {
 };
 
 const NO_ACCESS_MESSAGE = 'Organizer access required';
+// Square migration Wave 1 #3 (2026-09-07): message text is now processor-neutral since the
+// gate below accepts EITHER a connected Stripe account OR a connected Square account, not
+// Stripe specifically. Constant name kept as-is (STRIPE_NOT_CONNECTED_MESSAGE) to minimize
+// diff noise across this file's few internal call sites -- content is what matters.
 const STRIPE_NOT_CONNECTED_MESSAGE =
-  'Stripe account not connected. Complete Stripe onboarding in Settings before using POS.';
+  'No payment account connected. Complete Stripe or Square onboarding in Settings before using POS.';
 
 export async function resolveOrganizerOrTeamMember(
   req: AuthRequest,
@@ -74,7 +84,16 @@ export async function resolveOrganizerOrTeamMember(
   if (hasOrganizerRole) {
     const organizer = await prisma.organizer.findUnique({
       where: { userId: actingUserId },
-      select: { id: true, userId: true, stripeConnectId: true, referralDiscountExpiry: true, subscriptionTier: true },
+      select: {
+        id: true,
+        userId: true,
+        stripeConnectId: true,
+        referralDiscountExpiry: true,
+        subscriptionTier: true,
+        squareOnboarded: true,
+        squareMerchantId: true,
+        squareLocationId: true,
+      },
     });
 
     if (!organizer) {
@@ -82,7 +101,13 @@ export async function resolveOrganizerOrTeamMember(
       return null;
     }
 
-    if (requireStripe && !organizer.stripeConnectId) {
+    // Square migration Wave 1 #3 (2026-09-07): a Square-onboarded-only organizer (no
+    // Stripe account) must not be turned away here -- this check now requires EITHER
+    // processor to be connected, never Stripe specifically. Individual money-moving call
+    // sites (e.g. posPaymentController.createPaymentRequest) still enforce the SPECIFIC
+    // processor the request actually asked for via stripePosPaymentAdapter/
+    // squarePosPaymentAdapter's own live preflight checks further downstream.
+    if (requireStripe && !organizer.stripeConnectId && !organizer.squareOnboarded) {
       res.status(400).json({ message: STRIPE_NOT_CONNECTED_MESSAGE });
       return null;
     }
@@ -93,6 +118,9 @@ export async function resolveOrganizerOrTeamMember(
       stripeConnectId: organizer.stripeConnectId,
       subscriptionTier: organizer.subscriptionTier,
       referralDiscountExpiry: organizer.referralDiscountExpiry,
+      squareOnboarded: organizer.squareOnboarded,
+      squareMerchantId: organizer.squareMerchantId,
+      squareLocationId: organizer.squareLocationId,
       actorKind: 'ORGANIZER',
       actingUserId,
     };
@@ -125,6 +153,9 @@ export async function resolveOrganizerOrTeamMember(
               stripeConnectId: true,
               referralDiscountExpiry: true,
               subscriptionTier: true,
+              squareOnboarded: true,
+              squareMerchantId: true,
+              squareLocationId: true,
             },
           },
         },
@@ -140,7 +171,7 @@ export async function resolveOrganizerOrTeamMember(
     return null;
   }
 
-  if (requireStripe && !organizer.stripeConnectId) {
+  if (requireStripe && !organizer.stripeConnectId && !organizer.squareOnboarded) {
     res.status(400).json({ message: STRIPE_NOT_CONNECTED_MESSAGE });
     return null;
   }
@@ -151,6 +182,9 @@ export async function resolveOrganizerOrTeamMember(
     stripeConnectId: organizer.stripeConnectId,
     subscriptionTier: organizer.subscriptionTier,
     referralDiscountExpiry: organizer.referralDiscountExpiry,
+    squareOnboarded: organizer.squareOnboarded,
+    squareMerchantId: organizer.squareMerchantId,
+    squareLocationId: organizer.squareLocationId,
     actorKind: 'TEAM_MEMBER',
     actingUserId,
     teamMemberId: member.teamMember.id,

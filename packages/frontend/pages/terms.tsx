@@ -78,11 +78,18 @@ const TermsPage = () => {
               <strong>Organizer Indemnification:</strong> Organizers agree to indemnify and hold FindA.Sale harmless from any claims, losses, damages, or legal costs arising from disputes over consignment relationships, including claims by consignors that items were sold without proper authorization.
             </p>
             <p className="text-warm-700 dark:text-warm-300 leading-relaxed mb-3">
-              <strong>Payouts:</strong> Organizers receive proceeds via Stripe Connect Express after the platform fee is
-              deducted. Payouts are subject to Stripe's standard processing timelines and{' '}
+              <strong>Payouts:</strong> Organizers receive proceeds via the payment processor connected to their
+              account &mdash; currently Stripe (through Stripe Connect Express) or Square, depending on which
+              processor the Organizer has set up. Payouts are subject to that processor's own standard processing
+              timelines and account agreement, including, as applicable, Stripe's{' '}
               <a href="https://stripe.com/legal/connect-account" target="_blank" rel="noopener noreferrer" className="text-amber-600 hover:underline">
-                Stripe Connected Account Agreement
-              </a>. Instant payouts, where enabled, are subject to Stripe's instant payout policies.
+                Connected Account Agreement
+              </a>{' '}
+              or Square's{' '}
+              <a href="https://squareup.com/us/en/legal/general/ua" target="_blank" rel="noopener noreferrer" className="text-amber-600 hover:underline">
+                General Terms of Service
+              </a>. Instant payouts, where enabled, are subject to the applicable processor's own instant payout
+              policies.
             </p>
             <p className="text-warm-700 dark:text-warm-300 leading-relaxed mb-3">
               <strong>Fulfillment and Cancellation Obligations:</strong> Organizers may cancel a sale before any
@@ -120,17 +127,18 @@ const TermsPage = () => {
             </p>
             <p className="text-warm-700 dark:text-warm-300 leading-relaxed mb-3">
               <strong>Disputes and Refunds:</strong> Purchases on FindA.Sale are made directly with the Organizer, and
-              payment is processed on the Organizer&apos;s own Stripe account. If you believe a listing is
+              payment is processed through the payment processor connected to the Organizer&apos;s account
+              (currently Stripe or Square). If you believe a listing is
               fraudulent, the item is significantly misdescribed, or the Organizer failed to deliver, you must
               report the issue to{' '}
               <a href="mailto:support@finda.sale" className="text-amber-600 hover:underline">support@finda.sale</a>{' '}
               <strong>within 14 days of your purchase</strong>. Include a description of the issue, photos if
               available, and your order confirmation. FindA.Sale will relay your report to the Organizer and
               require a response within the timeframe in Section 13. Refunds are issued by the Organizer directly
-              through their own Stripe account. If the Organizer does not respond or does not resolve the issue,
-              FindA.Sale may suspend the Organizer&apos;s account, and you may dispute the charge directly with
-              your card issuer or with Stripe. FindA.Sale does not issue refunds itself and does not control the
-              outcome of a card-issuer dispute.
+              through their connected payment processor account. If the Organizer does not respond or does not
+              resolve the issue, FindA.Sale may suspend the Organizer&apos;s account, and you may dispute the
+              charge directly with your card issuer or with the applicable payment processor. FindA.Sale does not
+              issue refunds itself and does not control the outcome of a card-issuer dispute.
             </p>
             <p className="text-warm-700 dark:text-warm-300 leading-relaxed mb-3">
               <strong>Contact Support:</strong> Submit disputes via email to{' '}
@@ -167,7 +175,8 @@ const TermsPage = () => {
               winning bidder is charged the bid amount only.
             </p>
             <p className="text-warm-700 dark:text-warm-300 leading-relaxed">
-              Fees are exclusive of any Stripe payment processing fees, which are charged separately per Stripe's
+              Fees are exclusive of any payment processing fees charged by the applicable third-party payment
+              processor (currently Stripe or Square), which are billed separately per that processor's own
               standard rates. We reserve the right to modify our fee structure with 30 days' notice to Organizers.
             </p>
           </section>
@@ -175,16 +184,26 @@ const TermsPage = () => {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold text-warm-800 dark:text-warm-200 mb-4">7. Payment Processing</h2>
             <p className="text-warm-700 dark:text-warm-300 leading-relaxed">
-              Payments are processed by Stripe, Inc. By making or receiving a payment on FindA.Sale you agree to
-              Stripe's{' '}
+              FindA.Sale uses one or more third-party payment processors to process payments and payouts on the
+              Platform &mdash; currently Stripe, Inc. and Square, Inc. The specific processor used for a given
+              transaction depends on how the Organizer&apos;s account is set up. By making or receiving a payment
+              on FindA.Sale, you agree to the terms of the processor actually used for your transaction,
+              including, as applicable, Stripe's{' '}
               <a href="https://stripe.com/legal/ssa" target="_blank" rel="noopener noreferrer" className="text-amber-600 hover:underline">
                 Services Agreement
               </a>{' '}
               and{' '}
               <a href="https://stripe.com/privacy" target="_blank" rel="noopener noreferrer" className="text-amber-600 hover:underline">
                 Privacy Policy
-              </a>. FindA.Sale does not store full payment card information. Payment data is handled exclusively by Stripe's
-              PCI-compliant infrastructure.
+              </a>, or Square's{' '}
+              <a href="https://squareup.com/us/en/legal/general/ua" target="_blank" rel="noopener noreferrer" className="text-amber-600 hover:underline">
+                General Terms of Service
+              </a>{' '}
+              and{' '}
+              <a href="https://squareup.com/us/en/legal/general/privacy" target="_blank" rel="noopener noreferrer" className="text-amber-600 hover:underline">
+                Privacy Notice
+              </a>. FindA.Sale does not store full payment card information. Payment data is handled exclusively by
+              the applicable processor's own PCI-compliant infrastructure.
             </p>
           </section>
 
@@ -275,7 +294,8 @@ const TermsPage = () => {
               <a href="mailto:support@finda.sale" className="text-amber-600 hover:underline">support@finda.sale</a>{' '}
               within 48 hours of the transaction. FindA.Sale will notify the Organizer and require a response
               within 7 business days per Section 13. Because the Organizer is the merchant of record on the
-              transaction, any refund is issued by the Organizer directly through their Stripe account. FindA.Sale
+              transaction, any refund is issued by the Organizer directly through their connected payment
+              processor account (Stripe or Square, whichever is connected). FindA.Sale
               does not hold or control the funds and cannot issue a refund on the Organizer&apos;s behalf. If the
               Organizer confirms fraud or material misrepresentation and does not resolve it, FindA.Sale may
               suspend the Organizer&apos;s account. Buyers who file chargebacks with their card issuer before
@@ -287,31 +307,42 @@ const TermsPage = () => {
             <h2 className="text-2xl font-semibold text-warm-800 dark:text-warm-200 mb-4">14b. Chargebacks</h2>
             <p className="text-warm-700 dark:text-warm-300 leading-relaxed mb-3">
               If a buyer disputes a charge with their card issuer, the dispute is filed directly against the
-              Organizer&apos;s own Stripe account, and the Organizer bears any resulting chargeback fees (typically
-              $15 USD per dispute) and is responsible for responding to the dispute directly through their Stripe
-              Dashboard within Stripe&apos;s deadlines. FindA.Sale does not absorb chargeback costs and does not
-              manage or respond to disputes on the Organizer&apos;s behalf. Organizers who maintain chargeback
-              rates exceeding 0.5% may have their accounts reviewed or suspended.
+              Organizer&apos;s connected payment processor account (Stripe or Square, whichever processed the
+              transaction), and the Organizer bears any resulting chargeback or dispute fee. The fee amount is set
+              by the applicable payment processor, not by FindA.Sale, and will be disclosed to the Organizer
+              through that processor&apos;s own terms and dashboard rather than a fixed amount stated here. The
+              Organizer is responsible for responding to the dispute directly through the applicable
+              processor&apos;s dashboard within that processor&apos;s deadlines. FindA.Sale does not absorb
+              chargeback costs and does not manage or respond to disputes on the Organizer&apos;s behalf.
+              Organizers who maintain chargeback rates exceeding 0.5% may have their accounts reviewed or
+              suspended.
             </p>
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-warm-800 dark:text-warm-200 mb-4">14c. Stripe Identity Verification</h2>
+            <h2 className="text-2xl font-semibold text-warm-800 dark:text-warm-200 mb-4">14c. Identity Verification</h2>
             <p className="text-warm-700 dark:text-warm-300 leading-relaxed mb-3">
-              Before receiving payouts, organizers must complete Stripe&apos;s identity verification process as part
-              of Stripe Connect onboarding. FindA.Sale does not control Stripe&apos;s KYC decisions. Payouts are
-              subject to{' '}
+              Before receiving payouts, organizers must complete the identity verification (KYC) process required
+              by whichever payment processor their account uses &mdash; Stripe Connect onboarding for
+              Stripe-connected accounts, or Square&apos;s own account verification process for Square-connected
+              accounts. FindA.Sale does not control either processor&apos;s KYC decisions. Payouts are subject to
+              the applicable processor&apos;s own terms of service &mdash; Stripe&apos;s{' '}
               <a href="https://stripe.com/legal/connect-account" target="_blank" rel="noopener noreferrer" className="text-amber-600 hover:underline">
-                Stripe&apos;s terms of service
+                Connected Account Agreement
               </a>{' '}
-              and may be withheld by Stripe for any reason consistent with their policies.
+              or Square&apos;s{' '}
+              <a href="https://squareup.com/us/en/legal/general/ua" target="_blank" rel="noopener noreferrer" className="text-amber-600 hover:underline">
+                General Terms of Service
+              </a>{' '}
+              &mdash; and may be withheld by that processor for any reason consistent with its own policies.
             </p>
           </section>
 
           <section className="mb-8">
             <h2 className="text-2xl font-semibold text-warm-800 dark:text-warm-200 mb-4">14d. Tax Reporting (1099-K)</h2>
             <p className="text-warm-700 dark:text-warm-300 leading-relaxed mb-3">
-              Organizers who receive payments through FindA.Sale may receive IRS Form 1099-K from Stripe if their
+              Organizers who receive payments through FindA.Sale may receive IRS Form 1099-K from the applicable
+              payment processor (Stripe or Square, whichever processed the Organizer&apos;s transactions) if those
               transactions meet applicable reporting thresholds. Organizers are solely responsible for all federal,
               state, and local income tax reporting and payment obligations. FindA.Sale does not provide tax advice.
             </p>

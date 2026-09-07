@@ -5,6 +5,7 @@ import { useAuth } from '../../../components/AuthContext';
 import { useToast } from '../../../components/ToastContext';
 import { usePOSPaymentRequest } from '../../../hooks/usePOSPaymentRequest';
 import { PaymentRequestForm } from '../../../components/PaymentRequestForm';
+import { SquarePaymentRequestForm } from '../../../components/SquarePaymentRequestForm'; // Square migration Wave 1 #3 (2026-09-07)
 import api from '../../../lib/api';
 
 interface CountdownState {
@@ -61,13 +62,17 @@ export default function PaymentRequestPage() {
     }
   }, [status, router, showToast]);
 
-  // Auto-show payment form when status is ACCEPTED (handles page reload or direct link navigation)
+  // Auto-show payment form when status is ACCEPTED (handles page reload or direct link
+  // navigation). Square migration Wave 1 #3 (2026-09-07): a SQUARE row never has a
+  // clientSecret (Square has no equivalent object) -- gate on processor === 'SQUARE'
+  // instead for that case, so this effect isn't Stripe-only.
   useEffect(() => {
     const accepted = status === 'ACCEPTED' || request?.status === 'ACCEPTED';
-    if (accepted && request?.clientSecret) {
+    const ready = !!request?.clientSecret || request?.processor === 'SQUARE';
+    if (accepted && ready) {
       setShowPaymentForm(true);
     }
-  }, [status, request?.status, request?.clientSecret]);
+  }, [status, request?.status, request?.clientSecret, request?.processor]);
 
   const handleAccept = async () => {
     if (!requestId) return;
@@ -102,19 +107,29 @@ export default function PaymentRequestPage() {
     }
   };
 
-  const handlePaymentSuccess = async (paymentIntentId: string) => {
-    // Call confirm endpoint to finalize payment server-side
+  // Square migration Wave 1 #3 (2026-09-07): accepts either a Stripe paymentIntentId
+  // (confirmCardPayment succeeded) or a Square sourceId (card.tokenize() succeeded) --
+  // which one is sent is decided by which form rendered, keyed off request.processor
+  // below. The confirm endpoint itself branches on the SAME field.
+  const handlePaymentSuccess = async (paymentIntentIdOrSourceId: string) => {
     if (requestId) {
       try {
-        const response = await api.post(
-          `/pos/payment-request/${requestId}/confirm`,
-          { paymentIntentId }
-        );
+        const body =
+          request?.processor === 'SQUARE'
+            ? { sourceId: paymentIntentIdOrSourceId }
+            : { paymentIntentId: paymentIntentIdOrSourceId };
+        const response = await api.post(`/pos/payment-request/${requestId}/confirm`, body);
         if (response.data?.success) {
           showToast('Payment successful! Redirecting...', 'success');
           setTimeout(() => {
             router.push('/shopper/history?view=receipts&paid=1');
           }, 1500);
+        } else if (response.data?.processing) {
+          // Square-only case: card authorized but not captured in this request/response
+          // cycle (see squarePosPaymentAdapter.ts's captured:false path). Do not redirect
+          // as if paid -- the shopper stays on this page so the socket/poll-driven status
+          // update can still resolve it once the organizer/admin retries.
+          showToast(response.data.message || 'Your payment is still processing...', 'info');
         }
       } catch (err: any) {
         // Log error but still redirect — webhook fallback may catch it
@@ -266,7 +281,19 @@ export default function PaymentRequestPage() {
           </div>
 
           {/* Payment Form or Action Buttons */}
-          {showPaymentForm && request.clientSecret && (
+          {showPaymentForm && request.processor === 'SQUARE' && (
+            <div className="mb-6">
+              <SquarePaymentRequestForm
+                requestId={request.id}
+                totalAmountCents={request.isSplitPayment && request.cardAmountCents ? request.cardAmountCents : request.totalAmountCents}
+                squareLocationId={request.organizerSquareLocationId}
+                onSuccess={handlePaymentSuccess}
+                onError={handlePaymentError}
+                isProcessing={isPaid}
+              />
+            </div>
+          )}
+          {showPaymentForm && request.processor !== 'SQUARE' && request.clientSecret && (
             <div className="mb-6">
               <PaymentRequestForm
                 requestId={request.id}

@@ -19,6 +19,9 @@ export interface POSPaymentRequestData {
   stripePaymentIntentId: string | null;
   clientSecret: string | null;
   organizerStripeAccountId: string | null;
+  // Square migration Wave 1 #3 (2026-09-07)
+  processor: 'STRIPE' | 'SQUARE';
+  organizerSquareLocationId: string | null;
   createdAt: string;
   acceptedAt: string | null;
   paidAt: string | null;

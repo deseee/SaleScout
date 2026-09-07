@@ -23,6 +23,11 @@ export const getMyReceipts = async (req: AuthRequest, res: Response) => {
         amount: true,
         createdAt: true,
         stripePaymentIntentId: true,
+        // Square migration Wave 1 #1 (Checkout, 2026-09-07): needed to group a Square
+        // multi-item cart purchase into one receipt card -- see getBasePIId's comment
+        // below for why the Stripe-only PI-suffix-stripping trick doesn't apply to Square.
+        processor: true,
+        squarePaymentId: true,
         boothCartTransactionId: true,
         sale: {
           select: {
@@ -65,17 +70,35 @@ export const getMyReceipts = async (req: AuthRequest, res: Response) => {
       return piId;
     };
 
+    // Square migration Wave 1 #1 (Checkout, 2026-09-07): squarePaymentController.ts's
+    // createSquareCartPayment creates one Purchase row PER ITEM but they all share the
+    // SAME real squarePaymentId verbatim (no "{piId}_{itemId}" composite the way the
+    // Stripe POS path uses -- Square's Purchase.squarePaymentId is unique only in
+    // combination with itemId, see migration 20260907010000_square_migration_wave0_schema,
+    // so no suffix-stripping trick is needed or correct here). getBasePIId would return a
+    // Square payment id UNCHANGED (it never matches the cuid-suffix or '_misc' pattern),
+    // which already happens to group correctly by accident for single-item Square
+    // purchases -- but WITHOUT this branch, a routing bug elsewhere could silently key a
+    // group on a stripePaymentIntentId value for a Square row that also happens to be
+    // null, colliding two unrelated Square carts. Keying explicitly on
+    // (processor, squarePaymentId) removes any doubt and makes a Square multi-item cart
+    // purchase group correctly instead of silently receipting as N separate single-item
+    // receipts (the bug this fix closes).
+    const getSquareGroupKey = (p: (typeof purchases)[number]): string | null =>
+      p.processor === 'SQUARE' && p.squarePaymentId ? `square:${p.squarePaymentId}` : null;
+
     // ADR-020: booth-cart purchases now each carry a REAL, distinct per-booth
     // PaymentIntent id (no more shared "{cartPiId}_{itemId}" composite to strip),
     // so grouping by stripePaymentIntentId alone would split one cart into N
     // separate receipt cards (one per vendor booth actually charged) — technically
     // accurate to the N separate statement charges, but the receipt UI still wants
     // ONE card per cart/checkout moment. Group by boothCartTransactionId FIRST when
-    // present (spans every booth in that cart); fall back to the existing
-    // PI-suffix-stripping grouping for everything else, unchanged.
+    // present (spans every booth in that cart); then the Square cart key (if this is a
+    // Square row); fall back to the existing Stripe PI-suffix-stripping grouping for
+    // everything else, unchanged.
     const transactionGroups = new Map<string, typeof purchases>();
     for (const p of purchases) {
-      const key = p.boothCartTransactionId ?? getBasePIId(p.stripePaymentIntentId) ?? p.id;
+      const key = p.boothCartTransactionId ?? getSquareGroupKey(p) ?? getBasePIId(p.stripePaymentIntentId) ?? p.id;
       const group = transactionGroups.get(key) ?? [];
       group.push(p);
       transactionGroups.set(key, group);

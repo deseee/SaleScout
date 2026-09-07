@@ -3,7 +3,6 @@ import { Prisma } from '@prisma/client';
 import * as Sentry from '@sentry/node';
 import { AuthRequest } from '../middleware/auth';
 import { prisma } from '../lib/prisma';
-import { getStripe } from '../utils/stripe';
 import { getIO } from '../lib/socket';
 import { createNotification } from '../lib/notificationService';
 import { awardXp, applyHuntPassMultiplier, XP_AWARDS } from '../services/xpService';
@@ -15,13 +14,13 @@ import { sellItemUnits, InsufficientStockError } from '../services/itemStockServ
 import { syncMarketplaceStock } from '../services/marketplaceStockSyncService'; // ADR-087 Phase 4: revise-on-partial eBay quantity sync
 import { resolveOrganizerOrTeamMember } from '../utils/posAuth'; // S1183 Fix 1: TEAM_MEMBER fallback for non-venue POS
 import { assertCheckoutAllowed, CheckoutGuardError } from '../services/checkoutGuard'; // S1072 Finding #4 gap fix: POS payment-request self-dealing guard
-import { getAccountStatus } from '../services/stripeConnectService'; // Direct-charges migration (2026-08-08): live capability preflight
 import { snapshotForCommissionOnly, getPlatformFeeRate } from '../utils/feeCalculator'; // Purchase fee snapshot (2026-08-17); getPlatformFeeRate: split-payment commission fix (2026-08-22)
 import { resolveCashCommissionRate, cashCommissionOn, accrueCashFeeBalance } from '../services/cashFeeService'; // Split-payment cash-half commission accrual (2026-08-22) -- same mechanism terminalController/reservationController use
 import { resolvePosDiscount } from '../services/posDiscountService';
 import { isPayoutFlaggedForReview } from '../services/connectAccountGuard'; // S1198 (2026-09-06): bank-fingerprint collusion hold, Organizer POS wiring
+import * as stripePos from '../services/stripePosPaymentAdapter'; // Square migration Wave 1 #3 (2026-09-07): Stripe POS logic extracted verbatim, zero behavior change
+import * as squarePos from '../services/squarePosPaymentAdapter'; // Square migration Wave 1 #3 (2026-09-07): phone-based Square POS adapter -- charge creation moved to accept/confirm time, see file header
 
-const stripe = () => getStripe();
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -71,6 +70,7 @@ export const createPaymentRequest = async (req: AuthRequest, res: Response) => {
       discountType,
       discountValue,
       discountReasonNote,
+      processor = 'STRIPE', // Square migration Wave 1 #3 (2026-09-07)
     } = req.body as {
       shopperUserId?: string;
       saleId?: string;
@@ -84,6 +84,8 @@ export const createPaymentRequest = async (req: AuthRequest, res: Response) => {
       discountType?: string;
       discountValue?: number;
       discountReasonNote?: string;
+      // Square migration Wave 1 #3 (2026-09-07): client-supplied, server-validated below.
+      processor?: 'STRIPE' | 'SQUARE';
     };
 
     // Validation
@@ -98,6 +100,18 @@ export const createPaymentRequest = async (req: AuthRequest, res: Response) => {
     }
     if (typeof totalAmountCents !== 'number' || totalAmountCents <= 0) {
       return res.status(400).json({ message: 'totalAmountCents must be > 0' });
+    }
+
+    // Square migration Wave 1 #3 (2026-09-07): processor selection is client-supplied
+    // (mirrors the existing isSplitPayment/discountType client-driven flags already on
+    // this endpoint) because the cross-surface shouldRouteToSquare(organizerId) DB-backed
+    // routing helper described in the Wave 1 scoping doc is explicitly deferred until
+    // AFTER every Square charge path exists -- building it now for a single surface would
+    // be premature. Server-side authorization still gates the actual charge below via
+    // stripePos/squarePos preflightAccountStatus -- the client can REQUEST 'SQUARE' but
+    // cannot bypass onboarding state.
+    if (processor !== 'STRIPE' && processor !== 'SQUARE') {
+      return res.status(400).json({ message: "processor must be 'STRIPE' or 'SQUARE'" });
     }
 
     // Validate split payment amounts if split is enabled
@@ -290,6 +304,7 @@ export const createPaymentRequest = async (req: AuthRequest, res: Response) => {
             data: {
               organizerId: organizer.id,
               organizerUserId: organizerUserId,
+              processor,
               shopperUserId,
               saleId,
               itemIds: items.map((i) => i.id), // use only available items (SOLD filtered out above)
@@ -347,82 +362,79 @@ export const createPaymentRequest = async (req: AuthRequest, res: Response) => {
       return res.status(403).json({ message: 'Your payments are on hold pending admin review. Contact support@finda.sale for details.' });
     }
 
-    // Direct-charges migration (2026-08-08): live capability preflight. resolveOrganizerOrTeamMember
-    // only confirms organizer.stripeConnectId is non-null (a cached DB presence check) --
-    // never that Stripe currently reports the account as charge-capable (a DB-cache vs
-    // live-Stripe discrepancy was confirmed for at least one real organizer this session).
-    // Never authorize a real charge against an account Stripe itself doesn't currently
-    // report as charge-capable.
-    try {
-      const liveStatus = await getAccountStatus(organizer.stripeConnectId!);
-      if (!liveStatus.chargesEnabled) {
+    // Square migration Wave 1 #3 (2026-09-07): account-status preflight + payment
+    // creation branch by processor. STRIPE keeps the exact live-capability check +
+    // PaymentIntent creation this project already relies on (Direct-charges migration,
+    // 2026-08-08), unchanged in both logic and timing. SQUARE has no equivalent
+    // "create now, confirm later" object -- charge creation is deferred entirely to
+    // confirmPaymentRequest, once the shopper's device has tokenized a card via the Web
+    // Payments SDK (see squarePosPaymentAdapter.ts file header for the full researched
+    // rationale, including the confirmed 7-day delayed-capture hold window).
+    let stripePaymentIntentId: string | null = null;
+    let stripeClientSecret: string | null = null;
+
+    if (processor === 'STRIPE') {
+      const preflight = await stripePos.preflightAccountStatus({ stripeConnectId: organizer.stripeConnectId ?? null });
+      if (!preflight.ok) {
         await prisma.pOSPaymentRequest
           .update({ where: { id: posRequest.id }, data: { status: 'CANCELLED', declineReason: 'PAYMENT_FAILED' } })
-          .catch((releaseErr) => console.error('[pos-payment] Failed to release placeholder after preflight failure:', releaseErr));
-        return res.status(400).json({ message: "This organizer's Stripe account cannot currently accept charges. Please check Stripe onboarding status." });
+          .catch((releaseErr) => console.error('[pos-payment] Failed to release placeholder after Stripe preflight failure:', releaseErr));
+        return res.status(preflight.status).json({ message: preflight.message });
       }
-    } catch (statusErr) {
-      console.error('[pos-payment] getAccountStatus preflight failed:', statusErr);
-      await prisma.pOSPaymentRequest
-        .update({ where: { id: posRequest.id }, data: { status: 'CANCELLED', declineReason: 'PAYMENT_FAILED' } })
-        .catch((releaseErr) => console.error('[pos-payment] Failed to release placeholder after preflight error:', releaseErr));
-      return res.status(502).json({ message: "Could not verify the organizer's payment account status. Please try again." });
-    }
 
-    // Create Stripe Payment Intent (for card amount only) now that the placeholder row
-    // exists -- idempotencyKey is keyed to the claimed row id so a retry against the SAME
-    // placeholder (e.g. a lost response on our side) can't create a second PaymentIntent.
-    let paymentIntent;
-    try {
-      paymentIntent = await stripe().paymentIntents.create(
-        {
-          amount: splitCardAmountCents, // Card amount only (not total if split)
-          currency: 'usd',
-          payment_method_types: ['card'],
-          application_fee_amount: platformFeeCents, // 10% of card amount
-          metadata: {
-            requestId: posRequest.id,
-            organizerId: organizer.id,
-            organizerUserId: organizerUserId,
-            shopperId: shopperUserId,
-            saleId,
-            source: 'pos_payment_request',
-            isSplitPayment: isSplitPayment ? 'true' : 'false',
-          },
-        },
-        {
-          stripeAccount: organizer.stripeConnectId!,
-          idempotencyKey: `pos-payment-request-${posRequest.id}`,
-        }
-      );
-    } catch (err: any) {
-      console.error('[pos-payment] Failed to create Stripe Payment Intent:', err);
-      // Release the placeholder so it doesn't permanently block this shopper/sale pair
-      // via the dedup check above.
-      await prisma.pOSPaymentRequest
-        .update({
+      // Create Stripe Payment Intent (for card amount only) now that the placeholder row
+      // exists -- idempotencyKey is keyed to the claimed row id so a retry against the SAME
+      // placeholder (e.g. a lost response on our side) can't create a second PaymentIntent.
+      const created = await stripePos.createPayment({
+        cardAmountCents: splitCardAmountCents!,
+        platformFeeCents,
+        posRequestId: posRequest.id,
+        organizerId: organizer.id,
+        organizerUserId,
+        shopperUserId,
+        saleId,
+        isSplitPayment,
+        stripeConnectId: organizer.stripeConnectId!,
+      });
+      if (!created.ok) {
+        await prisma.pOSPaymentRequest
+          .update({ where: { id: posRequest.id }, data: { status: 'CANCELLED', declineReason: 'PAYMENT_FAILED' } })
+          .catch((releaseErr) => console.error('[pos-payment] Failed to release placeholder after Stripe error:', releaseErr));
+        return res.status(created.status).json({ message: created.message, error: created.message });
+      }
+
+      stripePaymentIntentId = created.paymentIntentId;
+      stripeClientSecret = created.clientSecret;
+
+      // Backfill the PaymentIntent onto the now-created row.
+      try {
+        posRequest = await prisma.pOSPaymentRequest.update({
           where: { id: posRequest.id },
-          data: { status: 'CANCELLED', declineReason: 'PAYMENT_FAILED' },
-        })
-        .catch((releaseErr) => console.error('[pos-payment] Failed to release placeholder after Stripe error:', releaseErr));
-      return res.status(500).json({
-        message: 'Failed to create payment intent',
-        error: err.message,
+          data: {
+            stripePaymentIntentId,
+            clientSecret: stripeClientSecret,
+          },
+        });
+      } catch (err: any) {
+        console.error('[pos-payment] Failed to backfill PaymentIntent onto POSPaymentRequest:', err);
+        return res.status(500).json({ message: 'Failed to create payment request' });
+      }
+    } else {
+      // SQUARE: preflight only -- confirms the organizer's Square account is fully
+      // connected and its location is live-reported ACTIVE. No Square Payment object
+      // exists yet; that is created at confirm time once a real card token exists.
+      const preflight = await squarePos.preflightAccountStatus({
+        id: organizer.id,
+        squareOnboarded: organizer.squareOnboarded,
+        squareMerchantId: organizer.squareMerchantId,
+        squareLocationId: organizer.squareLocationId,
       });
-    }
-
-    // Backfill the PaymentIntent onto the now-created row.
-    try {
-      posRequest = await prisma.pOSPaymentRequest.update({
-        where: { id: posRequest.id },
-        data: {
-          stripePaymentIntentId: paymentIntent.id,
-          clientSecret: paymentIntent.client_secret!,
-        },
-      });
-    } catch (err: any) {
-      console.error('[pos-payment] Failed to backfill PaymentIntent onto POSPaymentRequest:', err);
-      return res.status(500).json({ message: 'Failed to create payment request' });
+      if (!preflight.ok) {
+        await prisma.pOSPaymentRequest
+          .update({ where: { id: posRequest.id }, data: { status: 'CANCELLED', declineReason: 'PAYMENT_FAILED' } })
+          .catch((releaseErr) => console.error('[pos-payment] Failed to release placeholder after Square preflight failure:', releaseErr));
+        return res.status(preflight.status).json({ message: preflight.message });
+      }
     }
 
     // Emit socket event to shopper
@@ -440,7 +452,9 @@ export const createPaymentRequest = async (req: AuthRequest, res: Response) => {
         displayAmount: `$${(totalAmountCents / 100).toFixed(2)}`,
         expiresAt: expiresAt.toISOString(),
         expiresIn: expiresInSeconds,
-        stripePaymentIntentSecret: paymentIntent.client_secret,
+        processor,
+        stripePaymentIntentSecret: stripeClientSecret ?? undefined,
+        squareLocationId: processor === 'SQUARE' ? organizer.squareLocationId ?? undefined : undefined,
         deepLink: `/shopper/pay-request/${posRequest.id}`,
         isSplitPayment,
         cashAmountCents: isSplitPayment ? splitCashAmountCents : undefined,
@@ -479,8 +493,13 @@ export const createPaymentRequest = async (req: AuthRequest, res: Response) => {
       cardDisplayAmount: isSplitPayment ? `$${(splitCardAmountCents! / 100).toFixed(2)}` : undefined,
       displayAmount: `$${(totalAmountCents / 100).toFixed(2)}`,
       expiresAt: expiresAt.toISOString(),
-      stripePaymentIntentId: paymentIntent.id,
-      stripePaymentIntentSecret: paymentIntent.client_secret,
+      processor,
+      stripePaymentIntentId: stripePaymentIntentId ?? undefined,
+      stripePaymentIntentSecret: stripeClientSecret ?? undefined,
+      // Square migration Wave 1 #3 (2026-09-07): frontend needs this to init the Web
+      // Payments SDK (payments(applicationId, locationId)) -- applicationId itself is a
+      // static NEXT_PUBLIC_ env var, not organizer-specific, so it is not sent here.
+      squareLocationId: processor === 'SQUARE' ? organizer.squareLocationId ?? undefined : undefined,
     });
   } catch (err: any) {
     console.error('[pos-payment] createPaymentRequest error:', err);
@@ -522,9 +541,11 @@ export const getPaymentRequest = async (req: AuthRequest, res: Response) => {
     }
 
     // Fetch the Organizer record to get stripeConnectId (needed for frontend Stripe Elements)
+    // Square migration Wave 1 #3 (2026-09-07): also fetch squareLocationId, needed by the
+    // frontend to init the Web Payments SDK for SQUARE-processor rows.
     const organizerRecord = await prisma.organizer.findUnique({
       where: { id: request.organizerId },
-      select: { stripeConnectId: true },
+      select: { stripeConnectId: true, squareLocationId: true },
     });
 
     // Fetch item names when itemIds are present
@@ -560,6 +581,9 @@ export const getPaymentRequest = async (req: AuthRequest, res: Response) => {
       stripePaymentIntentId: request.stripePaymentIntentId,
       clientSecret: request.clientSecret,
       organizerStripeAccountId: organizerRecord?.stripeConnectId || null,
+      // Square migration Wave 1 #3 (2026-09-07)
+      processor: request.processor,
+      organizerSquareLocationId: organizerRecord?.squareLocationId || null,
       createdAt: request.createdAt.toISOString(),
       acceptedAt: request.acceptedAt?.toISOString() || null,
       paidAt: request.paidAt?.toISOString() || null,
@@ -969,12 +993,13 @@ export const confirmPaymentRequest = async (req: AuthRequest, res: Response) => 
     if (!req.user) return res.status(401).json({ message: 'Authentication required' });
 
     const { requestId } = req.params;
-    const { paymentIntentId } = req.body as { paymentIntentId?: string };
+    // Square migration Wave 1 #3 (2026-09-07): sourceId is the Web Payments SDK card
+    // token, submitted instead of paymentIntentId when posRequest.processor === 'SQUARE'.
+    // Which field is actually required depends on the row's OWN processor (checked below,
+    // once posRequest is loaded) -- not guessable from the request body alone.
+    const { paymentIntentId, sourceId } = req.body as { paymentIntentId?: string; sourceId?: string };
 
     if (!requestId) return res.status(400).json({ message: 'requestId is required' });
-    if (!paymentIntentId || typeof paymentIntentId !== 'string') {
-      return res.status(400).json({ message: 'paymentIntentId is required' });
-    }
 
     // Lookup POSPaymentRequest
     const posRequest = await prisma.pOSPaymentRequest.findUnique({
@@ -1009,57 +1034,163 @@ export const confirmPaymentRequest = async (req: AuthRequest, res: Response) => 
       });
     }
 
+    // Square migration Wave 1 #3 (2026-09-07): body-field requirement depends on this
+    // specific row's processor, not a global assumption.
+    if (posRequest.processor === 'SQUARE') {
+      if (!sourceId || typeof sourceId !== 'string') {
+        return res.status(400).json({ message: 'sourceId is required' });
+      }
+    } else {
+      if (!paymentIntentId || typeof paymentIntentId !== 'string') {
+        return res.status(400).json({ message: 'paymentIntentId is required' });
+      }
+    }
+
     // Fetch Organizer profile to get stripeConnectId (stripeConnectId lives on Organizer, not User)
     const organizerProfile = await prisma.organizer.findUnique({
       where: { userId: posRequest.organizerUserId },
       // id/subscriptionTier/referralDiscountExpiry added (2026-08-22) so the split-payment
       // cash-half commission accrual below can resolve the rate without a second round-trip.
-      select: { id: true, stripeConnectId: true, subscriptionTier: true, referralDiscountExpiry: true },
-    });
-    if (!organizerProfile?.stripeConnectId) {
-      return res.status(400).json({ message: 'Organizer Stripe account not configured' });
-    }
-
-    // Get Stripe instance
-    let paymentIntent;
-    try {
-      // Retrieve PaymentIntent from Stripe (on the connected account)
-      paymentIntent = await stripe().paymentIntents.retrieve(paymentIntentId, {}, {
-        stripeAccount: organizerProfile.stripeConnectId,
-      });
-    } catch (err: any) {
-      console.error('[pos-payment] Failed to retrieve PaymentIntent:', err);
-      return res.status(400).json({
-        message: 'Could not verify payment with Stripe',
-        error: err.message,
-      });
-    }
-
-    // Verify PaymentIntent succeeded
-    if (paymentIntent.status !== 'succeeded') {
-      return res.status(400).json({
-        message: `Payment intent status is ${paymentIntent.status}, expected succeeded`,
-      });
-    }
-
-    // Verify metadata matches
-    if (
-      paymentIntent.metadata?.source !== 'pos_payment_request' ||
-      paymentIntent.metadata?.requestId !== requestId
-    ) {
-      return res.status(400).json({
-        message: 'Payment intent does not match this payment request',
-      });
-    }
-
-    // Mark POS request as PAID
-    await prisma.pOSPaymentRequest.update({
-      where: { id: requestId },
-      data: {
-        status: 'PAID',
-        paidAt: new Date(),
+      // squareOnboarded/squareMerchantId/squareLocationId added (2026-09-07, Square
+      // migration Wave 1 #3) so the SQUARE branch below can preflight + charge without a
+      // second round-trip either.
+      select: {
+        id: true,
+        stripeConnectId: true,
+        subscriptionTier: true,
+        referralDiscountExpiry: true,
+        squareOnboarded: true,
+        squareMerchantId: true,
+        squareLocationId: true,
       },
     });
+    if (posRequest.processor === 'SQUARE') {
+      if (!organizerProfile?.squareOnboarded || !organizerProfile.squareMerchantId || !organizerProfile.squareLocationId) {
+        return res.status(400).json({ message: 'Organizer Square account not configured' });
+      }
+    } else if (!organizerProfile?.stripeConnectId) {
+      return res.status(400).json({ message: 'Organizer Stripe account not configured' });
+    }
+    // Belt-and-suspenders TS-narrowing guard (both branches above already return on falsy
+    // organizerProfile fields, which implies organizerProfile is non-null -- this makes
+    // that explicit for the compiler too, so every `organizerProfile.x` reference below is
+    // safe without individual non-null assertions scattered through the function).
+    if (!organizerProfile) {
+      return res.status(400).json({ message: 'Organizer account not configured' });
+    }
+
+    // Square migration Wave 1 #3 (2026-09-07): retrieve/confirm + status check branch by
+    // processor. STRIPE keeps the exact retrieve-and-verify logic this project already
+    // relies on, unchanged. SQUARE creates (or, on a retry, re-fetches) the actual Square
+    // Payment HERE -- this is the "accept-time" charge-creation moment the Wave 1 scoping
+    // doc calls for, since Square requires a real card token that only exists once the
+    // shopper's device has tokenized it via the Web Payments SDK.
+    let externalPaymentId: string;
+
+    if (posRequest.processor === 'SQUARE') {
+      const preflight = await squarePos.preflightAccountStatus({
+        id: organizerProfile.id,
+        squareOnboarded: organizerProfile.squareOnboarded,
+        squareMerchantId: organizerProfile.squareMerchantId,
+        squareLocationId: organizerProfile.squareLocationId,
+      });
+      if (!preflight.ok) {
+        return res.status(preflight.status).json({ message: preflight.message });
+      }
+
+      const result = await squarePos.createAndCapturePayment({
+        organizer: {
+          id: organizerProfile.id,
+          squareOnboarded: organizerProfile.squareOnboarded,
+          squareMerchantId: organizerProfile.squareMerchantId,
+          squareLocationId: organizerProfile.squareLocationId,
+        },
+        accessToken: preflight.accessToken,
+        sourceId: sourceId!,
+        amountCents: posRequest.cardAmountCents ?? posRequest.totalAmountCents,
+        appFeeCents: posRequest.platformFeeCents,
+        posRequestId: posRequest.id,
+        existingSquarePaymentId: posRequest.squarePaymentId,
+      });
+
+      if (!result.ok) {
+        return res.status(result.status).json({ message: result.message, error: result.message });
+      }
+
+      // Persist the Square paymentId regardless of captured state -- a held (captured:
+      // false) authorization must not be lost if the shopper's client retries: the next
+      // confirm attempt will find this id via existingSquarePaymentId above and complete
+      // it rather than re-authorizing the card a second time.
+      await prisma.pOSPaymentRequest
+        .update({ where: { id: requestId }, data: { squarePaymentId: result.paymentId } })
+        .catch((err) => console.error('[pos-payment] Failed to persist squarePaymentId:', err));
+
+      if (!result.captured) {
+        // KNOWN GAP (see squarePosPaymentAdapter.ts file header): no reconciliation job
+        // built this session. The authorization is safely held (Square's own confirmed
+        // 7-day default for card-not-present delayed capture) -- surfaced to Sentry for
+        // manual follow-up rather than silently told to the shopper as success.
+        try {
+          Sentry.captureMessage(
+            `[pos-payment] Square CompletePayment did not capture immediately -- requestId=${requestId} squarePaymentId=${result.paymentId}. Authorization held (Square default 7-day window); needs manual retry/reconciliation.`,
+            'warning'
+          );
+        } catch {
+          // Sentry may not be initialized -- silently continue
+        }
+        return res.status(202).json({
+          success: false,
+          processing: true,
+          message: 'Your payment is still processing. Please wait a moment and check your receipts, or ask the organizer to try again.',
+        });
+      }
+
+      externalPaymentId = result.paymentId;
+
+      // Mark POS request as PAID
+      await prisma.pOSPaymentRequest.update({
+        where: { id: requestId },
+        data: { status: 'PAID', paidAt: new Date() },
+      });
+    } else {
+      const result = await stripePos.retrieveAndVerifyPayment({
+        paymentIntentId: paymentIntentId!,
+        stripeConnectId: organizerProfile.stripeConnectId!,
+        posRequestId: requestId,
+      });
+
+      if (!result.ok) {
+        return res.status(result.status).json({ message: result.message, error: result.message });
+      }
+
+      externalPaymentId = result.externalPaymentId;
+
+      // Mark POS request as PAID
+      await prisma.pOSPaymentRequest.update({
+        where: { id: requestId },
+        data: { status: 'PAID', paidAt: new Date() },
+      });
+    }
+
+    // Square migration Wave 1 #3 (2026-09-07): per-item and misc Purchase rows below need
+    // processor-shaped fields. For SQUARE, Wave 0's schema comment + the checkout
+    // dispatch's own precedent (squarePaymentController.ts) store the RAW Square payment
+    // id on EVERY item row -- uniqueness for a multi-item cart is enforced by the
+    // (squarePaymentId, itemId) compound partial-unique index, NOT a per-item string
+    // suffix the way the legacy stripePaymentIntentId column uses. chargeType/
+    // stripeAccountId are deliberately left unset for SQUARE rows -- those are
+    // Stripe-specific concepts refundService.ts's DIRECT/DESTINATION routing depends on,
+    // and Square POS refunds are not yet built (Wave 1 #4) -- setting a value here would
+    // mislead that future code, not help it.
+    const buildProcessorPurchaseFields = (itemId: string | null): Record<string, any> =>
+      posRequest.processor === 'SQUARE'
+        ? { processor: 'SQUARE' as const, squarePaymentId: externalPaymentId }
+        : {
+            // PI ID is @unique — use per-item suffix to allow multiple items per PI
+            stripePaymentIntentId: itemId ? `${externalPaymentId}_${itemId}` : externalPaymentId,
+            chargeType: 'DIRECT' as const,
+            stripeAccountId: organizerProfile.stripeConnectId,
+          };
 
     // Cash-half commission accrual (P2 fix, 2026-08-22): the cash leg of a split tender is
     // never touched by Stripe -- nothing charged it any commission before this fix, at any
@@ -1115,21 +1246,20 @@ export const confirmPaymentRequest = async (req: AuthRequest, res: Response) => 
             // record. Inventing one to fill the column would be a guess. Must match the
             // idempotent webhook backstop in stripeController.ts exactly.
             ...snapshotForCommissionOnly(posRequest.platformFeeCents / 100, null),
-            // PI ID is @unique — use per-item suffix to allow multiple items per PI
-            stripePaymentIntentId: `${paymentIntent.id}_${item.id}`,
+            // findasale-hacker fix (2026-08-09, Direct-charges adversarial pass), STRIPE
+            // rows only: this PaymentIntent was created above via paymentIntents.create(...,
+            // { stripeAccount: organizerProfile.stripeConnectId }) -- it is UNCONDITIONALLY
+            // a genuine Direct charge on the organizer's own connected account (this flow
+            // predates the Direct-charges migration/allowlist and was never gated by
+            // shouldUseDirectCharge). Leaving chargeType at its schema default ('DESTINATION')
+            // would mislabel every POS Payment Request Purchase row, which breaks
+            // refundService.ts's refund-call routing (it would omit { stripeAccount },
+            // calling refunds.create against a PaymentIntent that only exists on the
+            // connected account -- refund fails outright). See buildProcessorPurchaseFields
+            // above for the SQUARE-row shape (2026-09-07, Square migration Wave 1 #3).
+            ...buildProcessorPurchaseFields(item.id),
             source: 'POS',
             status: 'PAID',
-            // findasale-hacker fix (2026-08-09, Direct-charges adversarial pass): this
-            // PaymentIntent was created above via paymentIntents.create(..., { stripeAccount:
-            // organizerProfile.stripeConnectId }) -- it is UNCONDITIONALLY a genuine Direct
-            // charge on the organizer's own connected account (this flow predates the
-            // Direct-charges migration/allowlist and was never gated by shouldUseDirectCharge).
-            // Leaving chargeType at its schema default ('DESTINATION') would mislabel every
-            // POS Payment Request Purchase row, which breaks refundService.ts's refund-call
-            // routing (it would omit { stripeAccount }, calling refunds.create against a
-            // PaymentIntent that only exists on the connected account -- refund fails outright).
-            chargeType: 'DIRECT',
-            stripeAccountId: organizerProfile.stripeConnectId,
           },
         });
 
@@ -1184,7 +1314,7 @@ export const confirmPaymentRequest = async (req: AuthRequest, res: Response) => 
         // this catch (stock-decrement failure, DB blip, etc.) still gets the full P0
         // console.error + Sentry treatment from the 2026-08-08 fix this replaces in part.
         if (err?.code === 'P2002') {
-          console.warn(`[pos-payment] Duplicate confirm for item ${item.id} (paymentIntent ${paymentIntent.id}) -- Purchase already exists from an earlier attempt, skipping.`);
+          console.warn(`[pos-payment] Duplicate confirm for item ${item.id} (externalPaymentId ${externalPaymentId}) -- Purchase already exists from an earlier attempt, skipping.`);
         } else {
           // P0 fix (2026-08-08, Terminal readiness audit): this is the same failure class
           // already fixed with a Sentry alert in stripeController.ts's POS-payment-request
@@ -1205,7 +1335,8 @@ export const confirmPaymentRequest = async (req: AuthRequest, res: Response) => 
                 itemId: item.id,
                 organizerUserId: posRequest.organizerUserId,
                 shopperUserId: posRequest.shopperUserId,
-                stripePaymentIntentId: paymentIntent.id,
+                processor: posRequest.processor,
+                externalPaymentId,
               },
             });
           } catch {
@@ -1232,13 +1363,19 @@ export const confirmPaymentRequest = async (req: AuthRequest, res: Response) => 
             platformFeeAmount: posRequest.platformFeeCents / 100,
             // FEE SNAPSHOT (2026-08-17): see the item loop above for why the rate is null.
             ...snapshotForCommissionOnly(posRequest.platformFeeCents / 100, null),
-            stripePaymentIntentId: items.length === 0 ? paymentIntent.id : `${paymentIntent.id}_misc`,
+            // findasale-hacker fix (2026-08-09), STRIPE rows only: same genuine-Direct-charge
+            // mislabeling gap as the item-Purchase loop above -- see that comment for the
+            // full rationale. SQUARE rows use the raw squarePaymentId (itemId is null here,
+            // so no per-item suffix/uniqueness concern applies).
+            ...(posRequest.processor === 'SQUARE'
+              ? { processor: 'SQUARE' as const, squarePaymentId: externalPaymentId }
+              : {
+                  stripePaymentIntentId: items.length === 0 ? externalPaymentId : `${externalPaymentId}_misc`,
+                  chargeType: 'DIRECT' as const,
+                  stripeAccountId: organizerProfile.stripeConnectId,
+                }),
             source: 'POS',
             status: 'PAID',
-            // findasale-hacker fix (2026-08-09): same genuine-Direct-charge mislabeling gap
-            // as the item-Purchase loop above -- see that comment for the full rationale.
-            chargeType: 'DIRECT',
-            stripeAccountId: organizerProfile.stripeConnectId,
           },
         });
       } catch (err: any) {

@@ -352,18 +352,18 @@ const nextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://www.googletagmanager.com",
-              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com",
-              "font-src 'self' https://fonts.gstatic.com https://unpkg.com",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://www.googletagmanager.com https://web.squarecdn.com https://sandbox.web.squarecdn.com",
+              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com https://web.squarecdn.com https://sandbox.web.squarecdn.com",
+              "font-src 'self' https://fonts.gstatic.com https://unpkg.com https://square-fonts-production-f.squarecdn.com https://d1g145x70srn7h.cloudfront.net",
               // raw.githubusercontent.com: Leaflet colored marker icons (green/amber/gray/orange)
               // These are used in SaleMapInner.tsx for status-based pin coloring.
               // Blocked by CSP → all pins invisible. Must be alongside unpkg.com (default icons).
               // api.qrserver.com: SaleQRCode component fetches QR images and downloads via fetch().
               // Missing from img-src → blank QR on dashboard. Missing from connect-src → download fails.
               "img-src 'self' data: blob: https://res.cloudinary.com https://*.cloudinary.com https://picsum.photos https://images.unsplash.com https://*.tile.openstreetmap.org https://tile.openstreetmap.org https://maps.googleapis.com https://unpkg.com https://raw.githubusercontent.com https://api.qrserver.com https://i.ebayimg.com https://picturescdn.estatesales.net https://findasale-image-proxy.findasale.workers.dev https://www.googletagmanager.com https://www.google-analytics.com", // 2026-09-05 weekly audit M1: GA4/GTM measurement-pixel requests were blocked, throwing a CSP console error on every single page load (script-src/connect-src already allowed these domains, img-src did not)
-              `connect-src 'self' https://api.stripe.com https://m.stripe.network https://terminal-simulator.stripe.com wss://terminal-simulator.stripe.com wss://ws.stripe.com https://nominatim.openstreetmap.org https://*.tile.openstreetmap.org https://tile.openstreetmap.org https://maps.googleapis.com https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com https://raw.githubusercontent.com https://res.cloudinary.com https://*.cloudinary.com http://localhost:5000 ${apiOrigin} ${wsOrigin} https://o4508108217778176.ingest.us.sentry.io https://api.qrserver.com https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com`,
+              `connect-src 'self' https://api.stripe.com https://m.stripe.network https://terminal-simulator.stripe.com wss://terminal-simulator.stripe.com wss://ws.stripe.com https://nominatim.openstreetmap.org https://*.tile.openstreetmap.org https://tile.openstreetmap.org https://maps.googleapis.com https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com https://raw.githubusercontent.com https://res.cloudinary.com https://*.cloudinary.com http://localhost:5000 ${apiOrigin} ${wsOrigin} https://o4508108217778176.ingest.us.sentry.io https://api.qrserver.com https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://web.squarecdn.com https://sandbox.web.squarecdn.com https://pci-connect.squareup.com https://pci-connect.squareupsandbox.com`,
               // S486: 'self' added so /video can embed /organizer-video-ad.html in same-origin iframe
-              "frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://m.stripe.network",
+              "frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://m.stripe.network https://web.squarecdn.com https://sandbox.web.squarecdn.com",
               "worker-src 'self' blob:",
               "manifest-src 'self'",
             ].join('; '),

@@ -13,6 +13,8 @@ import {
   listMyVendorBooths,
   startVendorBoothStripeOnboarding,
   getVendorBoothStripeStatus,
+  startVendorBoothSquareOnboarding,
+  getVendorBoothSquareStatus,
   getVendorBoothPayouts,
   startVendorBoothFeeBillingSetup,
   confirmVendorBoothFeeBillingSetup,
@@ -34,6 +36,9 @@ import {
   authorizeBoothCartTerminalLeg,
   createBoothCartQrSetupIntent,
   authorizeBoothCartQrLegs,
+  postBoothCartSquareToken,
+  getBoothCartSquareTokenStatus,
+  authorizeBoothCartSquareLegs,
   captureBoothCart,
   captureBoothCartCash,
   cancelBoothCart,
@@ -84,6 +89,11 @@ router.post('/api/vendor-booth/:boothToken/claim', authenticate, claimVendorBoot
 // Booth owner only (req.user.id === VendorBooth.userId, enforced in controller)
 router.post('/api/vendor-booth/:vendorBoothId/stripe/onboard', authenticate, startVendorBoothStripeOnboarding);
 router.get('/api/vendor-booth/:vendorBoothId/stripe/status', authenticate, getVendorBoothStripeStatus);
+// Square migration (2026-09-07, Wave 1 #2): same booth-owner-only auth model as the
+// Stripe routes immediately above. Actual OAuth code exchange happens at the shared
+// POST /api/square-connect/callback endpoint (squareConnectController.ts), not here.
+router.post('/api/vendor-booth/:vendorBoothId/square/onboard', authenticate, startVendorBoothSquareOnboarding);
+router.get('/api/vendor-booth/:vendorBoothId/square/status', authenticate, getVendorBoothSquareStatus);
 router.get('/api/vendor-booth/:vendorBoothId/payouts', authenticate, getVendorBoothPayouts);
 
 // ADR-090 Phase 4 (S-hubs-followup): vendor payment-method collection for recurring
@@ -168,6 +178,15 @@ router.post('/api/organizer/hubs/:hubId/cart/:cartTransactionId/terminal/connect
 router.post('/api/organizer/hubs/:hubId/cart/:cartTransactionId/terminal/authorize', optionalAuthenticate, requireBoothTokenOrTeamMember(), authorizeBoothCartTerminalLeg);
 router.post('/api/organizer/hubs/:hubId/cart/:cartTransactionId/qr/setup-intent', optionalAuthenticate, requireBoothTokenOrTeamMember(), createBoothCartQrSetupIntent);
 router.post('/api/organizer/hubs/:hubId/cart/:cartTransactionId/qr/authorize', optionalAuthenticate, requireBoothTokenOrTeamMember(), authorizeBoothCartQrLegs);
+
+// Square QR/in-app rail (vendor-booth-cart-checkout dispatch, 2026-09-07). /square/token is
+// deliberately NOT gated by requireBoothTokenOrTeamMember() -- it is called by the SHOPPER's
+// own phone page, which has no cashier/booth session at all (see postBoothCartSquareToken's
+// own doc comment for the trust-model rationale). The other two ARE register/cashier calls.
+router.post('/api/organizer/hubs/:hubId/cart/:cartTransactionId/square/token', optionalAuthenticate, postBoothCartSquareToken);
+router.get('/api/organizer/hubs/:hubId/cart/:cartTransactionId/square/token-status', optionalAuthenticate, requireBoothTokenOrTeamMember(), getBoothCartSquareTokenStatus);
+router.post('/api/organizer/hubs/:hubId/cart/:cartTransactionId/square/authorize', optionalAuthenticate, requireBoothTokenOrTeamMember(), authorizeBoothCartSquareLegs);
+
 router.post('/api/organizer/hubs/:hubId/cart/:cartTransactionId/capture', optionalAuthenticate, requireBoothTokenOrTeamMember(), captureBoothCart);
 // Cash rail (2026-07-31, Patrick-approved): no authorize step, no PaymentIntent -- goes
 // straight from "cashier has the cash in hand" to CAPTURED. Same auth model as every

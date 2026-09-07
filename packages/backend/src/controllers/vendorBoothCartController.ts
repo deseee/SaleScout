@@ -18,6 +18,14 @@ import { releasePendingCartHold } from '../services/vendorBoothCartLifecycleServ
 import { Decimal } from '@prisma/client/runtime/library';
 import { getAccountStatus } from '../services/stripeConnectService'; // Direct-charges migration (2026-08-08): live capability preflight
 import { isPayoutFlaggedForReview } from '../services/connectAccountGuard'; // S1198 (2026-09-06): bank-fingerprint collusion hold, VendorBooth wiring
+import {
+  resolveVendorBoothSquareAccessToken,
+  SquareBoothOnboardingIncompleteError,
+  createSquareSharedCardForCart,
+  authorizeSquareBoothCartLeg,
+  getSquareBoothCartLegStatus,
+  completeSquareBoothCartLeg,
+} from '../services/squareVendorBoothCartService'; // vendor-booth-cart-checkout dispatch (2026-09-07) -- Square-side sibling, see that file's header comment for the researched design
 
 const stripe = () => getStripe();
 
@@ -166,6 +174,26 @@ export async function transferHubOwnerShareForLeg(legId: string): Promise<void> 
   // than merely true-by-convention if a future caller (reconciliation script, new feature)
   // ever passes a cash leg's id here.
   if (leg.rail === 'CASH') return;
+  // Square migration, vendor-booth-cart-checkout dispatch (2026-09-07): RESEARCHED, not
+  // guessed -- Square has NO platform-initiated Transfer-between-connected-merchants
+  // primitive (confirmed via Square's own Collect Application Fees + Payouts API docs, see
+  // squareVendorBoothCartService.ts's file-header comment for the full evidence trail).
+  // app_fee_money already took the platform's own cut (including the hub-owner's share) at
+  // authorize time -- it just cannot be REDIRECTED to the hub owner's own separate Square
+  // account the way a Stripe Transfer can. The owed amount stays in
+  // leg.hubOwnerShareAmount (already persisted identically to the Stripe path) for a FUTURE
+  // settlement-sweep mechanism to pick up (VendorBoothPayout.processor/squareTransferId were
+  // added as additive schema by this dispatch for exactly that future mechanism) -- NOT
+  // built this dispatch, explicitly flagged rather than silently dropped. No Stripe API call
+  // is ever reachable for a SQUARE leg past this point.
+  if (leg.processor === 'SQUARE') {
+    console.log(
+      `[transferHubOwnerShareForLeg] Leg ${legId} is a SQUARE leg with hubOwnerShareAmount=${leg.hubOwnerShareAmount} -- ` +
+        'no live Transfer attempted (Square has no merchant-to-merchant Transfer primitive). ' +
+        'Amount remains accrued/unsettled pending a future settlement-sweep mechanism (not yet built).'
+    );
+    return;
+  }
 
   const hubOwnerOrganizer = leg.vendorBooth.hub.organizer;
   if (!hubOwnerOrganizer.stripeConnectId) {
@@ -1422,6 +1450,271 @@ export const authorizeBoothCartQrLegs = async (req: BoothAuthRequest, res: Respo
   }
 };
 
+// ============================================================================
+// Square QR/in-app rail (vendor-booth-cart-checkout dispatch, 2026-09-07)
+// ============================================================================
+// Square has no server-hosted session object the register can poll directly the way
+// Stripe's SetupIntent+clientSecret works (see BoothCartTransaction.squarePendingSourceId's
+// own schema comment for the full rationale) -- the shopper's OWN phone page tokenizes the
+// card client-side via the Web Payments SDK, then POSTs the resulting one-time sourceId to
+// postBoothCartSquareToken below. The register polls getBoothCartSquareTokenStatus, then
+// calls authorizeBoothCartSquareLegs once ready. Three-endpoint shape replaces Stripe's
+// two-endpoint (setup-intent + qr/authorize) shape because of this session-object gap.
+
+/**
+ * POST /api/organizer/hubs/:hubId/cart/:cartTransactionId/square/token
+ * Body: { sourceId }
+ * Called by the SHOPPER's own phone page (no booth/team-member auth -- the shopper has no
+ * cashier credentials). Scoped by hubId + cartTransactionId + cart.status === 'IN_PROGRESS',
+ * the same trust model the existing Stripe QR flow already relies on (a SetupIntent
+ * clientSecret embedded in a URL is exactly this same "unguessable id in the URL is the
+ * credential" posture -- not a weaker security boundary than what already shipped).
+ * Overwrites any previous pending token for this cart (last write wins) -- mirrors Stripe's
+ * own "no idempotency check, cashier retries on failure" simplicity for this rail.
+ */
+export const postBoothCartSquareToken = async (req: AuthRequest, res: Response) => {
+  try {
+    const { hubId, cartTransactionId } = req.params;
+    const { sourceId } = req.body as { sourceId?: string };
+    if (!sourceId) return res.status(400).json({ error: 'sourceId is required' });
+
+    const cart = await prisma.boothCartTransaction.findFirst({ where: { id: cartTransactionId, hubId } });
+    if (!cart) return res.status(404).json({ error: 'Cart not found' });
+    if (cart.status !== 'IN_PROGRESS') {
+      return res.status(409).json({ error: `Cart is not ready for card entry (status: ${cart.status})` });
+    }
+
+    await prisma.boothCartTransaction.update({
+      where: { id: cart.id },
+      data: { squarePendingSourceId: sourceId, squarePendingSourceIdSetAt: new Date() },
+    });
+
+    return res.status(200).json({ ok: true });
+  } catch (error) {
+    console.error('[postBoothCartSquareToken] Error:', error);
+    return res.status(500).json({ error: 'Failed to record card token' });
+  }
+};
+
+/**
+ * GET /api/organizer/hubs/:hubId/cart/:cartTransactionId/square/token-status
+ * Register-side poll (booth/team-member auth) -- mirrors the existing venueQrStatus 'waiting'
+ * poll shape in pos.tsx, Square-flavored. Never returns the raw sourceId itself (not needed
+ * by the polling caller, and keeps the token off the wire an extra time before it's consumed).
+ */
+export const getBoothCartSquareTokenStatus = async (req: BoothAuthRequest, res: Response) => {
+  try {
+    const { hubId, cartTransactionId } = req.params;
+    if (!req.boothAuth) return res.status(401).json({ error: 'Booth/team authentication required' });
+    const cart = await prisma.boothCartTransaction.findFirst({ where: { id: cartTransactionId, hubId } });
+    if (!cart) return res.status(404).json({ error: 'Cart not found' });
+    if (!callerOwnsCart(req.boothAuth, cart)) return res.status(403).json({ error: CART_NOT_YOURS_ERROR });
+    return res.status(200).json({ ready: !!cart.squarePendingSourceId });
+  } catch (error) {
+    console.error('[getBoothCartSquareTokenStatus] Error:', error);
+    return res.status(500).json({ error: 'Failed to check card token status' });
+  }
+};
+
+/**
+ * POST /api/organizer/hubs/:hubId/cart/:cartTransactionId/square/authorize
+ * Body: none -- reads the pending sourceId from the DB (NOT the request body), so the
+ * cashier's own request can never supply/override the shopper's card token (mirrors the
+ * Stripe QR rail's own posture: the register never sees or asserts the raw PaymentMethod,
+ * only a server-verified clientSecret's resulting confirmation).
+ *
+ * RESEARCHED SHARED-CARD DESIGN -- see squareVendorBoothCartService.ts's file-header comment
+ * for the full evidence trail (Square's Cards API "Shared Card on File" mechanism). Creates
+ * the shared card ONCE in FindA.Sale's own platform Square account, then authorizes one
+ * real-time Square Payment PER represented booth, each scoped to that booth's own OAuth
+ * access token -- same per-booth-is-its-own-merchant-of-record shape as the Stripe QR rail's
+ * authorizeBoothCartQrLegs, same whole-cart-fail-and-cancel-already-created-legs policy on
+ * any per-booth failure.
+ */
+export const authorizeBoothCartSquareLegs = async (req: BoothAuthRequest, res: Response) => {
+  try {
+    const { hubId, cartTransactionId } = req.params;
+    if (!req.boothAuth) return res.status(401).json({ error: 'Booth/team authentication required' });
+
+    const cart = await prisma.boothCartTransaction.findFirst({ where: { id: cartTransactionId, hubId } });
+    if (!cart) return res.status(404).json({ error: 'Cart not found' });
+    if (!callerOwnsCart(req.boothAuth, cart)) return res.status(403).json({ error: CART_NOT_YOURS_ERROR });
+    if (cart.status !== 'IN_PROGRESS') {
+      return res.status(409).json({ error: `Cart is not ready for Square authorization (status: ${cart.status})` });
+    }
+    if (!cart.squarePendingSourceId) {
+      return res.status(400).json({ error: 'No card has been entered for this cart yet' });
+    }
+
+    // Atomic claim-and-clear -- same conditional-updateMany CAS idiom this file already uses
+    // elsewhere (beginCartCheckout's PENDING->IN_PROGRESS, captureBoothCart's capture lock):
+    // only one concurrent /square/authorize call can consume a given pending sourceId. A
+    // losing racer sees squarePendingSourceId already null and 400s cleanly rather than
+    // double-spending the same single-use token against Square twice.
+    const claimedSourceId = cart.squarePendingSourceId;
+    const claim = await prisma.boothCartTransaction.updateMany({
+      where: { id: cart.id, squarePendingSourceId: claimedSourceId },
+      data: { squarePendingSourceId: null, squarePendingSourceIdSetAt: null },
+    });
+    if (claim.count !== 1) {
+      return res.status(409).json({ error: 'This card token was already used by a concurrent request' });
+    }
+
+    let sharedCardId: string;
+    try {
+      const shared = await createSquareSharedCardForCart({ cartTransactionId: cart.id, sourceId: claimedSourceId });
+      sharedCardId = shared.sharedCardId;
+    } catch (err: any) {
+      console.error('[authorizeBoothCartSquareLegs] Failed to create shared card on file:', err);
+      return res.status(400).json({ error: 'Could not save the card for checkout. Please try again.' });
+    }
+
+    const booths = await prisma.vendorBooth.findMany({
+      where: { id: { in: cart.boothsRepresented } },
+      include: { hub: { select: { organizer: { select: { subscriptionTier: true, stripeConnectId: true, stripeOnboarded: true, stripeAccountType: true } } } } },
+    });
+    const alreadyLegged = await prisma.boothCartLeg.findMany({
+      where: { cartTransactionId: cart.id, status: { in: ['PENDING', 'REQUIRES_CAPTURE', 'CAPTURED'] } },
+      select: { vendorBoothId: true },
+    });
+    const alreadyLeggedIds = new Set(alreadyLegged.map((l) => l.vendorBoothId));
+    const boothsToCharge = booths.filter((b) => !alreadyLeggedIds.has(b.id));
+
+    const createdLegs: Array<{ legId: string; vendorBoothId: string; squareAccessToken: string; squarePaymentId: string }> = [];
+    let failure: { vendorBoothId: string; vendorName: string; message: string } | null = null;
+
+    for (const booth of boothsToCharge) {
+      if (!booth.squareOnboarded || !booth.squareAccountId) {
+        const message = booth.isHubOwnerBooth
+          ? 'Complete your Square account connection in Settings to sell your own items through this register'
+          : `Booth "${booth.vendorName}" has not completed Square onboarding`;
+        failure = { vendorBoothId: booth.id, vendorName: booth.vendorName, message };
+        break;
+      }
+
+      // S1198-equivalent guard (2026-09-06 Stripe precedent, ported unconditionally here --
+      // same checkoutGuard.ts-adjacent posture as the Terminal/Stripe-QR rails above).
+      if (await isPayoutFlaggedForReview('VENDOR_BOOTH', booth.id)) {
+        failure = {
+          vendorBoothId: booth.id,
+          vendorName: booth.vendorName,
+          message: `Booth "${booth.vendorName}"'s payments are on hold pending admin review. Contact support@finda.sale for details.`,
+        };
+        break;
+      }
+
+      let boothAccessToken: string;
+      try {
+        boothAccessToken = await resolveVendorBoothSquareAccessToken(booth);
+      } catch (tokenErr) {
+        if (tokenErr instanceof SquareBoothOnboardingIncompleteError) {
+          failure = { vendorBoothId: booth.id, vendorName: booth.vendorName, message: `Booth "${booth.vendorName}"'s Square account is not fully connected.` };
+        } else {
+          console.error(`[authorizeBoothCartSquareLegs] resolveVendorBoothSquareAccessToken failed for booth ${booth.id}:`, tokenErr);
+          failure = { vendorBoothId: booth.id, vendorName: booth.vendorName, message: "Could not verify the booth's Square account. Please try again." };
+        }
+        break;
+      }
+
+      const items = await resolveBoothLegItems(cart.id, cart.boothsRepresented, booth.id);
+      const amountCents = Math.round(items.reduce((sum, i) => sum + (i.price || 0), 0) * 100);
+      if (amountCents < 50) {
+        failure = { vendorBoothId: booth.id, vendorName: booth.vendorName, message: `Booth "${booth.vendorName}"'s subtotal must be at least $0.50` };
+        break;
+      }
+
+      // ADR-090 Phase 2 fee split -- reused unchanged (processor-agnostic math, only the
+      // downstream charge mechanism differs between Stripe and Square). skipReadinessGate
+      // stays false: a Square leg with a revenue-share owed still needs the hub owner
+      // onboarded (Stripe today, since transferHubOwnerShareForLeg no-ops for Square legs --
+      // the amount only ever gets PAID via the same manual settlement system either way, so
+      // gating on Stripe onboarding here is deliberately unchanged from the existing rail's
+      // behavior, not a new requirement invented for Square).
+      const feeSplit = await computeLegFeeSplit({
+        amountCents,
+        revenueSharePercent: booth.revenueSharePercent,
+        hubOwnerOrganizer: booth.hub.organizer,
+      });
+      if (feeSplit.blocked) {
+        failure = { vendorBoothId: booth.id, vendorName: booth.vendorName, message: feeSplit.reason };
+        break;
+      }
+
+      const claimKey = `claim_square_${cart.id}_${booth.id}`;
+      let claimedLeg;
+      try {
+        claimedLeg = await prisma.boothCartLeg.create({
+          data: {
+            cartTransactionId: cart.id,
+            vendorBoothId: booth.id,
+            stripeAccountId: '', // no Stripe account for a SQUARE leg -- column stays non-null legacy-shaped, empty string is this file's existing convention for "not applicable" (see the cash-leg rows above)
+            processor: 'SQUARE',
+            stripePaymentIntentId: null,
+            squarePaymentId: claimKey, // temporary claim placeholder, same CAS idiom as the Stripe rails' claim_ prefix -- overwritten with the real Square payment id below
+            amountCents,
+            rail: 'QR',
+            status: 'PENDING',
+            hubOwnerShareAmount: feeSplit.hubOwnerShareCents > 0 ? new Decimal(feeSplit.hubOwnerShareCents / 100) : null,
+            platformFeeCents: feeSplit.applicationFeeAmountCents - feeSplit.hubOwnerShareCents,
+          },
+        });
+      } catch (claimErr: any) {
+        if (claimErr?.code === 'P2002') {
+          continue;
+        }
+        throw claimErr;
+      }
+
+      const authResult = await authorizeSquareBoothCartLeg({
+        boothAccessToken,
+        sharedCardId,
+        amountCents,
+        appFeeCents: feeSplit.applicationFeeAmountCents,
+        cartTransactionId: cart.id,
+        vendorBoothId: booth.id,
+        hubId,
+        squareLocationId: booth.squareLocationId ?? null,
+      });
+
+      if (!authResult.ok) {
+        await prisma.boothCartLeg.delete({ where: { id: claimedLeg.id } }).catch((delErr) =>
+          console.error(`[authorizeBoothCartSquareLegs] Failed to release claim leg ${claimedLeg.id} after Square error:`, delErr)
+        );
+        failure = { vendorBoothId: booth.id, vendorName: booth.vendorName, message: authResult.message };
+        break;
+      }
+
+      const leg = await prisma.boothCartLeg.update({
+        where: { id: claimedLeg.id },
+        data: {
+          squarePaymentId: authResult.paymentId,
+          status: authResult.status === 'APPROVED' ? 'REQUIRES_CAPTURE' : 'PENDING',
+        },
+      });
+      createdLegs.push({ legId: leg.id, vendorBoothId: booth.id, squareAccessToken: boothAccessToken, squarePaymentId: authResult.paymentId });
+    }
+
+    if (failure) {
+      // Whole-cart-fail: cancel every leg this call just created (free -- none are captured
+      // yet), matching the Stripe QR rail's identical cancel policy.
+      for (const created of createdLegs) {
+        try {
+          await cancelSquareBoothCartLeg(created.squareAccessToken, created.squarePaymentId);
+        } catch (cancelErr) {
+          console.error(`[authorizeBoothCartSquareLegs] Failed to cancel leg ${created.legId} during whole-cart-fail:`, cancelErr);
+        }
+        await prisma.boothCartLeg.update({ where: { id: created.legId }, data: { status: 'CANCELED' } }).catch(() => {});
+      }
+      return res.status(402).json({ error: failure.message, vendorBoothId: failure.vendorBoothId, vendorName: failure.vendorName });
+    }
+
+    return res.status(200).json({ legs: createdLegs.map(({ legId, vendorBoothId }) => ({ legId, vendorBoothId })) });
+  } catch (error) {
+    console.error('[authorizeBoothCartSquareLegs] Error:', error);
+    return res.status(500).json({ error: 'Failed to authorize Square checkout legs' });
+  }
+};
+
 /**
  * Shared finalize step for a cart whose legs have already reached a captured state,
  * regardless of HOW they got there -- a real Stripe capture (captureBoothCart, TERMINAL
@@ -1447,8 +1740,18 @@ async function finalizeCapturedLegs(
   // findasale-hacker fix (2026-08-09, Direct-charges adversarial pass): widened to include
   // rail + stripeAccountId, both already present on every real BoothCartLeg row passed in by
   // both callers -- needed to correctly label the Purchase rows created below (see comment
-  // at the purchase.create call).
-  legs: Array<{ id: string; vendorBoothId: string; stripePaymentIntentId: string; rail: string; stripeAccountId: string | null }>
+  // at the purchase.create call). Widened again (2026-09-07, vendor-booth-cart-checkout
+  // dispatch) to include processor + squarePaymentId -- both already present on every real
+  // BoothCartLeg row (Wave 0.5 schema), needed to branch the Purchase.create call below.
+  legs: Array<{
+    id: string;
+    vendorBoothId: string;
+    stripePaymentIntentId: string | null;
+    squarePaymentId: string | null;
+    processor: string;
+    rail: string;
+    stripeAccountId: string | null;
+  }>
 ): Promise<string[]> {
   // Finalize: create Purchase rows (real per-booth PaymentIntent id, or the cash_...
   // placeholder for a cash leg -- stripePaymentIntentId is @unique and non-null either
@@ -1470,21 +1773,34 @@ async function finalizeCapturedLegs(
         // stripeAccountId pair, so this fix is a correctness/audit-trail fix (stops the
         // dispute-closed handler's chargeType/inference mismatch Sentry alert from firing on
         // every real booth-cart dispute) rather than a liability-routing fix.
-        const legIsRealDirectCharge = leg.rail !== 'CASH' && !!leg.stripeAccountId;
+        const legIsRealDirectCharge = leg.rail !== 'CASH' && leg.processor !== 'SQUARE' && !!leg.stripeAccountId;
+        const isSquareLeg = leg.processor === 'SQUARE';
         // NO FEE SNAPSHOT, DELIBERATELY (2026-08-17): this row carries no platformFeeAmount at
         // all — booth-cart economics are settled per booth leg (ADR-020/ADR-090), not through
         // Purchase. There is no fee here to decompose, so the snapshot stays NULL.
+        //
+        // Square branch (2026-09-07, vendor-booth-cart-checkout dispatch): stripePaymentIntentId
+        // stays null and squarePaymentId carries the real Square payment id instead --
+        // chargeType (a Stripe Destination/Direct-charge-model concept, ADR-115) is left at its
+        // schema default for a Square row; it is never read for a booth-cart purchase regardless
+        // of processor (refundService.ts's isBoothCartPurchase branch always short-circuits past
+        // the chargeType checks -- confirmed by direct read this dispatch).
         const purchase = await prisma.purchase.create({
           data: {
             userId: null, // walk-in POS: no server-derived shopper identity exists (P0 fix, 2026-07-28)
             itemId: item.id,
             amount: item.price || 0,
-            stripePaymentIntentId: leg.stripePaymentIntentId,
+            processor: isSquareLeg ? 'SQUARE' : 'STRIPE',
+            ...(isSquareLeg
+              ? { squarePaymentId: leg.squarePaymentId }
+              : {
+                  stripePaymentIntentId: leg.stripePaymentIntentId,
+                  chargeType: legIsRealDirectCharge ? 'DIRECT' : 'DESTINATION',
+                  ...(legIsRealDirectCharge ? { stripeAccountId: leg.stripeAccountId! } : {}),
+                }),
             source: 'POS',
             status: 'PAID',
             boothCartTransactionId: cart.id,
-            chargeType: legIsRealDirectCharge ? 'DIRECT' : 'DESTINATION',
-            ...(legIsRealDirectCharge ? { stripeAccountId: leg.stripeAccountId! } : {}),
           },
         });
         purchaseIds.push(purchase.id);
@@ -1658,14 +1974,45 @@ export const captureBoothCart = async (req: BoothAuthRequest, res: Response) => 
     // never a partial capture. A leg still 'PENDING' here means its tap hasn't
     // succeeded yet (cashier called authorize but the physical tap didn't complete).
     const notReady: string[] = [];
+    // Booth Square-token cache for this request -- resolved at most once per booth even
+    // though a leg is re-verified here AND captured in the loop below (avoids two token
+    // resolves per Square leg per capture attempt).
+    const squareBoothTokenCache = new Map<string, string>();
+    async function resolveCachedSquareBoothToken(vendorBoothId: string): Promise<string> {
+      const cached = squareBoothTokenCache.get(vendorBoothId);
+      if (cached) return cached;
+      const booth = await prisma.vendorBooth.findUnique({
+        where: { id: vendorBoothId },
+        select: { id: true, squareAccountId: true, squareOnboarded: true },
+      });
+      if (!booth) throw new SquareBoothOnboardingIncompleteError(vendorBoothId);
+      const token = await resolveVendorBoothSquareAccessToken(booth);
+      squareBoothTokenCache.set(vendorBoothId, token);
+      return token;
+    }
     for (const leg of legs) {
+      if (leg.processor === 'SQUARE') {
+        // Square migration, vendor-booth-cart-checkout dispatch (2026-09-07): mirrors the
+        // Stripe branch's live re-verification (never trust the DB-cached leg.status alone),
+        // using getSquareBoothCartLegStatus/completeSquareBoothCartLeg's shared token-resolve
+        // helper above instead of the Stripe `{ stripeAccount }` per-call option.
+        try {
+          const boothAccessToken = await resolveCachedSquareBoothToken(leg.vendorBoothId);
+          const status = await getSquareBoothCartLegStatus(boothAccessToken, leg.squarePaymentId!);
+          if (status !== 'APPROVED') notReady.push(leg.vendorBoothId);
+        } catch (err) {
+          console.error(`[captureBoothCart] Failed to retrieve Square leg ${leg.id} for re-verification:`, err);
+          notReady.push(leg.vendorBoothId);
+        }
+        continue;
+      }
       if (isTerminalSimulated() && leg.rail === 'TERMINAL') {
         // Simulated readers auto-succeed; trust the recorded status.
         if (leg.status !== 'REQUIRES_CAPTURE') notReady.push(leg.vendorBoothId);
         continue;
       }
       try {
-        const pi = await stripe().paymentIntents.retrieve(leg.stripePaymentIntentId, { stripeAccount: leg.stripeAccountId });
+        const pi = await stripe().paymentIntents.retrieve(leg.stripePaymentIntentId!, { stripeAccount: leg.stripeAccountId });
         if (pi.status !== 'requires_capture') notReady.push(leg.vendorBoothId);
       } catch (err) {
         console.error(`[captureBoothCart] Failed to retrieve leg ${leg.id} for re-verification:`, err);
@@ -1687,10 +2034,16 @@ export const captureBoothCart = async (req: BoothAuthRequest, res: Response) => 
     const captureFailed: Array<{ vendorBoothId: string; message: string }> = [];
     for (const leg of legs) {
       try {
-        if (isTerminalSimulated() && leg.rail === 'TERMINAL') {
-          await stripe().paymentIntents.capture(leg.stripePaymentIntentId);
+        if (leg.processor === 'SQUARE') {
+          // Square migration, vendor-booth-cart-checkout dispatch (2026-09-07): CompletePayment
+          // (capture) via the SAME booth-token-resolve helper the re-verify loop above just
+          // used (cached, so no second token resolve for a leg re-verified this same request).
+          const boothAccessToken = await resolveCachedSquareBoothToken(leg.vendorBoothId);
+          await completeSquareBoothCartLeg(boothAccessToken, leg.squarePaymentId!);
+        } else if (isTerminalSimulated() && leg.rail === 'TERMINAL') {
+          await stripe().paymentIntents.capture(leg.stripePaymentIntentId!);
         } else {
-          await stripe().paymentIntents.capture(leg.stripePaymentIntentId, {}, { stripeAccount: leg.stripeAccountId });
+          await stripe().paymentIntents.capture(leg.stripePaymentIntentId!, {}, { stripeAccount: leg.stripeAccountId });
         }
         await prisma.boothCartLeg.update({ where: { id: leg.id }, data: { status: 'CAPTURED' } });
         captured.push(leg);
@@ -1854,8 +2207,8 @@ export const captureBoothCartCash = async (req: BoothAuthRequest, res: Response)
     }
     const changeCents = cashReceivedCents - totalCents;
 
-    // findasale-hacker fix (2026-08-09): widened to include rail + stripeAccountId so this array's type stays compatible with finalizeCapturedLegs' widened parameter type below -- the actual pushed objects (real BoothCartLeg rows from prisma.boothCartLeg.create) always had both fields already, this only fixes the local type annotation.
-    const legs: Array<{ id: string; vendorBoothId: string; stripePaymentIntentId: string; hubOwnerShareAmount: any; rail: string; stripeAccountId: string | null }> = [];
+    // findasale-hacker fix (2026-08-09): widened to include rail + stripeAccountId so this array's type stays compatible with finalizeCapturedLegs' widened parameter type below -- the actual pushed objects (real BoothCartLeg rows from prisma.boothCartLeg.create) always had both fields already, this only fixes the local type annotation. Widened again (2026-09-07, vendor-booth-cart-checkout dispatch) for processor/squarePaymentId -- a cash leg is always processor:'STRIPE' (schema default, unchanged by this dispatch) and squarePaymentId:null, this too only fixes the local type annotation to match finalizeCapturedLegs' now-wider parameter type.
+    const legs: Array<{ id: string; vendorBoothId: string; stripePaymentIntentId: string | null; squarePaymentId: string | null; processor: string; hubOwnerShareAmount: any; rail: string; stripeAccountId: string | null }> = [];
     for (const { booth, amountCents } of boothAmounts) {
       // Cash-only variant: computes platformFeeCents/hubOwnerShareCents for reporting
       // WITHOUT blocking on the hub owner's Stripe onboarding readiness -- see

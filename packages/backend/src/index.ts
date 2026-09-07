@@ -71,6 +71,9 @@ import favoriteRoutes from './routes/favorites';
 import userRoutes from './routes/users';
 import stripeRoutes from './routes/stripe';
 import stripeConnectRoutes from './routes/stripeConnect';
+import squareConnectRoutes from './routes/squareConnect'; // Square migration (2026-09-07, Wave 1 #2): Connect-equivalent onboarding
+import squarePaymentRoutes from './routes/squarePayment'; // Square migration Wave 1 #1 (Checkout, 2026-09-07)
+import squareRoutes from './routes/square';           // Square migration Wave 1 #5: webhooks
 import notificationRoutes from './routes/notifications';
 import affiliateRoutes from './routes/affiliate';
 import lineRoutes from './routes/lines';
@@ -531,6 +534,7 @@ const contactLimiter = rateLimit({
 // handleEbayAccountDeletion and handleEbayNotification ignore req.body, so raw buffer is fine.
 app.use('/api/stripe/webhook', express.raw({ type: 'application/json' }));
 app.use('/api/billing/webhook', express.raw({ type: 'application/json' }));
+app.use('/api/square/webhook', express.raw({ type: 'application/json' })); // Square migration Wave 1 #5: HMAC signature check needs the exact raw body
 app.use('/api/ebay/account-deletion', express.raw({ type: '*/*' }));
 app.use('/api/ebay/notifications', express.raw({ type: '*/*' }));
 // Resend webhook: svix signature verification needs the raw body, so capture it
@@ -681,6 +685,9 @@ app.use('/api/favorites', favoriteRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/stripe', stripeRoutes);
 app.use('/api/stripe-connect', stripeConnectRoutes);
+app.use('/api/square-connect', squareConnectRoutes);
+app.use('/api/square-payment', squarePaymentRoutes); // Square migration Wave 1 #1 (Checkout, 2026-09-07) -- separate mount point, never shares a prefix with /api/stripe
+app.use('/api/square', squareRoutes);                   // Square migration Wave 1 #5: webhooks
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/affiliate', affiliateRoutes);
 app.use('/api/lines', lineRoutes);

@@ -337,6 +337,17 @@ model Organizer {
   squareMerchantId                String?
   squareOnboarded                 Boolean                        @default(false)
   squareLocationId                String? // Square requires a location, not just a merchant id -- no Stripe field to mirror here
+  // Square OAuth token storage (2026-09-07, Wave 0.5 -- closes the schema gap flagged by
+  // Wave 1 #1 checkout/#2 onboarding/#3 POS/#4 refunds, all of which stubbed a resolve-token
+  // seam that threw until this landed). Option 1 chosen over a shared SquareAccountToken
+  // table: continues Wave 0's own established convention of per-owner-model Square columns
+  // (squareMerchantId/squareOnboarded/squareLocationId above) rather than introducing a new
+  // ownerType/ownerId-keyed table -- see squarePaymentService.ts's resolveOrganizerSquareAccessToken
+  // header comment for the full option comparison. Encrypted at rest via utils/tokenCrypto.ts
+  // (enc:v1:<iv>:<tag>:<ciphertext>), mirroring MarketplaceAccount.accessToken's precedent.
+  squareAccessTokenEncrypted       String?
+  squareRefreshTokenEncrypted      String?
+  squareTokenExpiresAt             DateTime?
   removeWatermarkEnabled          Boolean                        @default(false) // PRO: remove FindA.Sale watermark from exports
   // Feature #603 (2026-08-05): platform-wide default best-offer thresholds. Suggested
   // pre-fill for the per-item eBay best-offer PERCENTAGE fields on the edit-item form
@@ -5122,6 +5133,11 @@ model Consignor {
   // Square migration (2026-09-07, Wave 0): mirrors stripeAccountId/stripeOnboarded.
   squareAccountId         String?
   squareOnboarded         Boolean            @default(false)
+  // Square OAuth token storage (2026-09-07, Wave 0.5) -- mirrors Organizer's own fields
+  // immediately above in this file; see that model's comment for full rationale.
+  squareAccessTokenEncrypted  String?
+  squareRefreshTokenEncrypted String?
+  squareTokenExpiresAt        DateTime?
   items             Item[]             @relation("ConsignorItems")
   payouts           ConsignorPayout[]
   createdAt         DateTime           @default(now())
@@ -6233,6 +6249,13 @@ model VendorBooth {
   // square-replaces-stripe-architecture-and-scoping-2026-09-07.md).
   squareAccountId         String?
   squareOnboarded         Boolean @default(false)
+  // Square OAuth token storage (2026-09-07, Wave 0.5) -- mirrors Organizer's own fields;
+  // see that model's comment for full rationale. NOTE: this is onboarding-IDENTITY-scoped
+  // token storage only -- BoothCartLeg (actual booth-cart-checkout money movement) is a
+  // separate surface, still not built for Square (see BoothCartLeg's own comment below).
+  squareAccessTokenEncrypted  String?
+  squareRefreshTokenEncrypted String?
+  squareTokenExpiresAt        DateTime?
 
   // ADR-090 Phase 4 (pre-wire only, 2026-07-20): platform-account Stripe Customer +
   // PaymentMethod for the vendor, so the flat boothFee can be charged off-session on a
@@ -6344,6 +6367,23 @@ model BoothCartTransaction {
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
 
+  // Square migration, vendor-booth-cart-checkout dispatch (2026-09-07). Square's Web Payments
+  // SDK tokenizes a card entirely CLIENT-SIDE on whatever device the shopper is using -- unlike
+  // Stripe's SetupIntent + clientSecret (a server-issued session object the REGISTER can poll
+  // directly against Stripe itself, see BoothCartTransaction.stripePaymentIntentId's QR-rail
+  // sibling flow in vendorBoothCartController.ts), there is no processor-hosted session object
+  // for the register to poll. The shopper's own phone page (pages/pay-square/[cartId].tsx)
+  // tokenizes the card, then relays the resulting one-time sourceId back here via a scoped,
+  // unauthenticated-but-cart-id-and-status-gated endpoint (POST .../square/token) -- the
+  // register then picks it up via its own polling endpoint (GET .../square/token-status) and
+  // immediately clears it once consumed by authorizeBoothCartSquareLegs. This column is a
+  // SHORT-LIVED relay slot, not a durable record: never read after authorizeBoothCartSquareLegs
+  // consumes it, and squarePendingSourceIdSetAt lets the register-side polling UI expire a
+  // stale/abandoned QR session client-side (mirrors the existing venueQrStatus 'waiting' timeout
+  // pattern in pos.tsx) without needing a cron sweep for this transient field.
+  squarePendingSourceId      String?
+  squarePendingSourceIdSetAt DateTime?
+
   purchases Purchase[]
   legs      BoothCartLeg[]
   // Items currently RESERVED against this cart (2026-07-28 cart-scope fix) -- the back
@@ -6372,7 +6412,27 @@ model BoothCartLeg {
   vendorBoothId         String
   vendorBooth           VendorBooth          @relation("VendorBoothCartLegs", fields: [vendorBoothId], references: [id], onDelete: Restrict) // S1178 Bug 3: Restrict, not Cascade -- a booth with sales history can no longer be hard-deleted; see ADR-booth-deletion-ledger-restrict-S1178.md
   stripeAccountId       String // the booth's OWN connected account — the Direct-charge merchant of record for this leg
-  stripePaymentIntentId String               @unique
+  // Square migration Wave 0.5 (2026-09-07) -- Option A, per claude_docs/feature-notes/
+  // square-replaces-stripe-architecture-and-scoping-2026-09-07.md ("Vendor-Booth-Cart-Checkout
+  // Scoping Pass" section). stripePaymentIntentId is now NULLABLE so a future SQUARE-processor
+  // leg can omit it entirely; processor discriminates which ID column is authoritative;
+  // squarePaymentId is the Square-side sibling column. INVARIANT, enforced by a real DB CHECK
+  // constraint in this migration (Prisma's schema DSL cannot express a CHECK constraint, same
+  // limitation already noted on VendorBooth.isHubOwnerBooth's partial-unique-index comment above
+  // -- the hand-written migration SQL is authoritative, not expressible here): once a leg's
+  // status leaves 'PENDING', exactly one of stripePaymentIntentId/squarePaymentId must be set.
+  // EXISTING STRIPE-PATH SEMANTICS ARE UNCHANGED -- do not reinterpret: stripePaymentIntentId
+  // still triple-duties as (a) a real Stripe PaymentIntent id, (b) the pre-authorization
+  // concurrency-claim token `claim_${cart.id}_${vendorBoothId}` (leans on the @unique constraint
+  // as a compare-and-swap lock, written PRE-authorization while status is still PENDING -- which
+  // is exactly why the CHECK above exempts PENDING rows), and (c) the CASH-leg marker
+  // `cash_<uuid>` (checked via .startsWith('cash_') in refundService.ts). A future Square-side
+  // booth-cart-checkout dispatch owns designing squarePaymentId's own claim/cash-marker
+  // equivalents, if any -- not resolved here; this is a schema-only change, no Stripe-path
+  // controller/service logic in vendorBoothCartController.ts/refundService.ts is touched.
+  processor             String               @default("STRIPE") // 'STRIPE' | 'SQUARE'
+  stripePaymentIntentId String?              @unique
+  squarePaymentId       String?              @unique
   amountCents           Int
   rail                  String // 'TERMINAL' | 'QR'
   status                String               @default("PENDING") // PENDING|REQUIRES_CAPTURE|CAPTURED|CANCELED|FAILED
@@ -6441,6 +6501,7 @@ model BoothCartLeg {
   @@index([cartTransactionId])
   @@index([vendorBoothId])
   @@index([stripePaymentIntentId])
+  @@index([squarePaymentId])
   @@index([status])
   @@index([stripeTransferId])
   @@index([hubOwnerTransferFailedAt])
@@ -6488,6 +6549,20 @@ model VendorBoothPayout {
   failureReason String?
   createdAt     DateTime  @default(now())
 
+  // Square migration, vendor-booth-cart-checkout dispatch (2026-09-07): additive discriminator
+  // + sibling id column, per the scoping pass's correction ("VendorBoothPayout.stripeTransferId
+  // is already nullable and can receive the exact same additive processor/square* columns every
+  // other Wave 0 model got, with no design decision needed"). NOT yet written by any Square code
+  // path this dispatch built -- see this dispatch's handoff: Square has no merchant-to-merchant
+  // Transfer primitive, so transferHubOwnerShareForLeg no-ops for SQUARE legs rather than ever
+  // populating stripeTransferId's Square sibling here. This column exists so a FUTURE settlement-
+  // sweep mechanism (explicitly flagged as NOT built this dispatch) has somewhere to record a
+  // manual/batch Square payout once that reconciliation tooling is built, without a second
+  // migration. method's existing free-text values (CASH|CHECK|VENMO|ACH|OTHER) already cover a
+  // manual Square-era payout with no schema change needed there.
+  processor        String  @default("STRIPE") // 'STRIPE' | 'SQUARE'
+  squareTransferId String?
+
   @@index([vendorBoothId])
   @@index([settlementBatchId])
   @@index([stripeTransferId])
@@ -6523,6 +6598,16 @@ model VendorBoothFeeCharge {
   createdAt             DateTime    @default(now())
   updatedAt             DateTime    @updatedAt
 
+  // Square migration, vendor-booth-cart-checkout dispatch (2026-09-07): additive discriminator
+  // + sibling id columns, per the scoping pass's correction -- this model stays DORMANT in
+  // production today (confirmed by the scoping pass: no live booth has vendorStripeCustomerId/
+  // vendorPaymentMethodId populated yet) and this dispatch does NOT build any Square-side logic
+  // for it -- added purely so a future dispatch that DOES build vendor-payment-method billing
+  // for Square doesn't need its own migration for this half of the change.
+  processor        String  @default("STRIPE") // 'STRIPE' | 'SQUARE'
+  squarePaymentId  String? @unique
+  squareTransferId String?
+
   // One charge per booth per period -- the cron's own idempotent claim, independent of the
   // Stripe-level idempotencyKey used on the actual charge/transfer calls.
   @@unique([vendorBoothId, periodStart, periodEnd])
@@ -6530,6 +6615,7 @@ model VendorBoothFeeCharge {
   @@index([hubId])
   @@index([status])
   @@index([stripeTransferId])
+  @@index([squarePaymentId])
 }
 
 

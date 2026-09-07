@@ -10,6 +10,7 @@ import { emailService } from '../lib/emailService';
 import { createNotification } from '../lib/notificationService';
 import { MAX_REMOVAL_SKIP_ATTEMPTS } from './extensionController';
 import { executeVerifiedRefund, RefundError } from '../services/refundService';
+import { executeVerifiedSquareRefund } from '../services/squareRefundService'; // Square migration Wave 1 #4 (2026-09-07): one added branch in bulkRefundPurchases below routes SQUARE-processor purchases through the Square-side choke point.
 import { suppressionService } from '../services/suppressionService';
 
 // BUG #2: role display helper — the scalar `user.role` (deprecated) can drift out of
@@ -2486,7 +2487,7 @@ export const bulkRefundPurchases = async (req: AuthRequest, res: Response) => {
       try {
         const purchase = await prisma.purchase.findUnique({
           where: { id: purchaseId },
-          select: { amount: true, itemId: true },
+          select: { amount: true, itemId: true, processor: true },
         });
         if (!purchase) {
           results.push({ purchaseId, success: false, error: 'Purchase not found' });
@@ -2495,7 +2496,12 @@ export const bulkRefundPurchases = async (req: AuthRequest, res: Response) => {
 
         // 'reason' now comes from the caller (validated above) instead of being hardcoded --
         // see the fix note above the reason resolution block.
-        const result = await executeVerifiedRefund(purchaseId, purchase.amount, 'admin', reason);
+        // Square migration Wave 1 #4 (2026-09-07): one added branch -- purchase.processor
+        // decides which choke point this refund routes through. Both throw the same
+        // RefundError class (see squareRefundService.ts), so the catch block below is unchanged.
+        const result = purchase.processor === 'SQUARE'
+          ? await executeVerifiedSquareRefund(purchaseId, purchase.amount, 'admin', reason)
+          : await executeVerifiedRefund(purchaseId, purchase.amount, 'admin', reason);
         // BUG FIX 2026-08-28 (P0, live-DB-confirmed): executeVerifiedRefund deliberately does NOT
         // reset Item.status itself -- refundService.ts's own comment says that happens in "each
         // caller...right after this function returns", matching stripeController.ts's createRefund

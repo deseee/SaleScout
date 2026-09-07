@@ -2,6 +2,7 @@ import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import { prisma } from '../lib/prisma';
 import { executeVerifiedRefund, RefundError, sendRefundConfirmationEmail } from '../services/refundService'; // P1 fix (2026-07-29): dispute-triggered refunds now actually call Stripe via the shared executeVerifiedRefund path. applyFirstMonthRefundCap/logRefundProcessing no longer used here — see the cap-removal comment below.
+import { executeVerifiedSquareRefund } from '../services/squareRefundService'; // Square migration Wave 1 #4 (2026-09-07): one added branch below routes SQUARE-processor purchases through the Square-side choke point.
 import { createNotification } from '../lib/notificationService'; // Notification audit fix (2026-08-04): same shape/signature already used project-wide (see stripeController.ts) -- no new architecture, just new call sites in this file.
 
 // POST /api/disputes — authenticated buyer creates dispute
@@ -300,7 +301,12 @@ export const updateDisputeStatus = async (req: AuthRequest, res: Response) => {
         // path (user.role !== 'ADMIN' already 403'd above) — always 'dispute', not 'admin', so
         // getRefundHistory (payoutController.ts) can tell a dispute-triggered refund apart from
         // a direct admin refund via createRefund.
-        const { refundedAmount, purchase: refundedPurchase } = await executeVerifiedRefund(purchase.id, finalRefundAmount, 'dispute');
+        // Square migration Wave 1 #4 (2026-09-07): one added branch -- purchase.processor
+        // decides which choke point this refund routes through. Both throw the same
+        // RefundError class (see squareRefundService.ts), so the catch block below is unchanged.
+        const { refundedAmount, purchase: refundedPurchase } = purchase.processor === 'SQUARE'
+          ? await executeVerifiedSquareRefund(purchase.id, finalRefundAmount, 'dispute')
+          : await executeVerifiedRefund(purchase.id, finalRefundAmount, 'dispute');
         actualRefundedAmount = refundedAmount;
         refundedItemId = refundedPurchase.itemId;
         refundConfirmationParams = {
