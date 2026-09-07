@@ -2619,6 +2619,112 @@ export const markItemSoldOffPlatform = async (req: AuthRequest, res: Response) =
 };
 
 /**
+ * POST /api/items/:id/undo-sold-off-platform
+ *
+ * Undo Off-Platform Sale (BYOR) -- 2026-09-07, added same-day after Patrick correctly
+ * pointed out that once an item was marked "Sold -- outside FindA.Sale", there was
+ * NO way to undo it anywhere in the app. Root cause investigated, not assumed: the
+ * generic bulk-status endpoint (routes/items.ts POST /bulk, statusSafeMatrix) hard-
+ * blocks any transition FROM 'SOLD' for every sale type -- by design, since a normal
+ * Stripe-processed sale's "undo" path is a real refund (stripeController.createRefund /
+ * disputeController.updateDisputeStatus / adminController.bulkRefundPurchases all
+ * correctly reset Item.status to AVAILABLE as part of refunding the linked Purchase).
+ * BYOR sales have NO Purchase record at all -- that is the entire point of the feature,
+ * FindA.Sale never processes the payment -- so there was nothing for a refund flow to
+ * hook into, and the item was permanently stuck SOLD. This endpoint is BYOR's own
+ * undo path, scoped tightly so it can never be used to reverse a real paid sale:
+ *
+ * - Ownership check identical to markItemSoldOffPlatform.
+ * - Only fires when item.status === 'SOLD' AND item.lastSoldVia === 'OFF_PLATFORM_MANUAL'
+ *   -- an item sold via Stripe checkout, POS, eBay, etc. has a different lastSoldVia
+ *   value (or a real Purchase row) and this endpoint refuses it outright, directing
+ *   the organizer to the real refund flow instead.
+ * - Only fires when the OffPlatformSale row has NOT yet been invoiced (invoiceId is
+ *   null) -- billing/invoicing isn't built yet so this is always true today, but the
+ *   guard is here now so a future invoiced sale can't be silently un-billed by this
+ *   endpoint once byorFeeCalculator.ts ships.
+ * - Reverts Item.status to AVAILABLE and clears lastSoldVia, and DELETES the
+ *   OffPlatformSale row (safe -- nothing references it yet) so the organizer's own
+ *   off-platform-sales log and this-period usage count both correct themselves
+ *   immediately, in one transaction.
+ * - Deliberately does NOT attempt to re-list the item on eBay/Shopify/Facebook --
+ *   undoing a manual "mark sold" should not silently recreate a closed listing on an
+ *   external marketplace on the organizer's behalf. If they want it back on those
+ *   channels, they re-list manually, same as any other AVAILABLE item.
+ */
+export const undoItemSoldOffPlatform = async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user?.id) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    const hasOrganizerRole = req.user.roles?.includes('ORGANIZER') || req.user.role === 'ORGANIZER';
+    if (!hasOrganizerRole) {
+      return res.status(403).json({ message: 'Access denied. Organizer access required.' });
+    }
+
+    const { id } = req.params;
+
+    const item = await prisma.item.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        status: true,
+        lastSoldVia: true,
+        sale: {
+          select: {
+            organizer: { select: { userId: true } },
+          },
+        },
+      },
+    });
+
+    if (!item || !item.sale) {
+      return res.status(404).json({ message: 'Item not found' });
+    }
+    if (item.sale.organizer.userId !== req.user.id) {
+      return res.status(403).json({ message: 'Access denied. Not your item.' });
+    }
+
+    if (item.status !== 'SOLD' || item.lastSoldVia !== 'OFF_PLATFORM_MANUAL') {
+      return res.status(409).json({
+        message:
+          'This item was not marked sold off-platform, so it cannot be undone here. ' +
+          'If it was sold through FindA.Sale checkout, POS, or a marketplace, use a refund instead.',
+      });
+    }
+
+    const offPlatformSale = await prisma.offPlatformSale.findFirst({
+      where: { itemId: id },
+      orderBy: { createdAt: 'desc' },
+      select: { id: true, invoiceId: true },
+    });
+
+    if (offPlatformSale?.invoiceId) {
+      return res.status(409).json({
+        message: 'This sale has already been included in a bill and cannot be undone here. Contact support.',
+      });
+    }
+
+    const updatedItem = await prisma.$transaction(async (tx) => {
+      const updated = await tx.item.update({
+        where: { id },
+        data: { status: 'AVAILABLE', lastSoldVia: null },
+        select: { id: true, status: true },
+      });
+      if (offPlatformSale) {
+        await tx.offPlatformSale.delete({ where: { id: offPlatformSale.id } });
+      }
+      return updated;
+    });
+
+    res.json({ ok: true, item: updatedItem });
+  } catch (error) {
+    console.error('Error undoing off-platform sale:', error);
+    res.status(500).json({ message: 'Server error while undoing this off-platform sale' });
+  }
+};
+
+/**
  * POST /api/items/:id/description/append
  *
  * Item Description Authoring Contract (architect-locked 2026-05-12).

@@ -14,8 +14,9 @@ import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useAuth } from '../../components/AuthContext';
+import { useToast } from '../../components/ToastContext';
 import Skeleton from '../../components/Skeleton';
-import { useOffPlatformSalesLog, OffPlatformSaleLogEntry } from '../../hooks/useOffPlatformSales';
+import { useOffPlatformSalesLog, useUndoOffPlatformSale, OffPlatformSaleLogEntry } from '../../hooks/useOffPlatformSales';
 
 function formatCurrency(amount: string | number | null | undefined): string | null {
   if (amount === null || amount === undefined || amount === '') return null;
@@ -42,6 +43,27 @@ const OffPlatformSalesPage = () => {
   }, []);
 
   const { data: entries = [], isLoading: logLoading, isError, refetch } = useOffPlatformSalesLog();
+  const { showToast } = useToast();
+  const undoMutation = useUndoOffPlatformSale();
+  const [undoingId, setUndoingId] = useState<string | null>(null);
+
+  const handleUndo = (entry: OffPlatformSaleLogEntry) => {
+    const label = entry.item?.title || 'this item';
+    if (!window.confirm(`Undo marking "${label}" sold off-platform? It will go back to Available.`)) {
+      return;
+    }
+    setUndoingId(entry.id);
+    undoMutation.mutate(entry.itemId, {
+      onSuccess: () => {
+        showToast('Reverted to Available', 'success');
+        setUndoingId(null);
+      },
+      onError: (error: any) => {
+        showToast(error.response?.data?.message || 'Could not undo this sale', 'error');
+        setUndoingId(null);
+      },
+    });
+  };
 
   // Auth guard -- after all hooks
   if (!authLoading && (!user || !user.roles?.includes('ORGANIZER'))) {
@@ -133,6 +155,13 @@ const OffPlatformSalesPage = () => {
                         <p className="text-xs text-warm-500 dark:text-warm-400">reported amount</p>
                       </div>
                     )}
+                    <button
+                      onClick={() => handleUndo(entry)}
+                      disabled={undoingId === entry.id}
+                      className="flex-shrink-0 text-sm font-semibold text-red-700 dark:text-red-300 hover:text-red-800 dark:hover:text-red-200 disabled:opacity-50 underline underline-offset-2"
+                    >
+                      {undoingId === entry.id ? 'Undoing...' : 'Undo'}
+                    </button>
                   </div>
                 );
               })}

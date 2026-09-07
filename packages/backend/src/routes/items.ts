@@ -8,6 +8,7 @@ import {
   createItem,
   updateItem,
   markItemSoldOffPlatform,
+  undoItemSoldOffPlatform,
   appendDescription,
   deleteItem,
   getBids,
@@ -824,6 +825,7 @@ router.get('/', getItemsBySaleId);
 router.post('/', authenticate, uploadImages.array('images', 5), createItem);
 router.put('/:id', authenticate, updateItem);
 router.post('/:id/mark-sold-off-platform', authenticate, markItemSoldOffPlatform); // BYOR (2026-09-06): mark a plain AVAILABLE item sold using the organizer's own payment method
+router.post('/:id/undo-sold-off-platform', authenticate, undoItemSoldOffPlatform); // BYOR (2026-09-07): undo a mark-sold-off-platform action, scoped to un-invoiced OFF_PLATFORM_MANUAL items only
 // Item Description Authoring Contract (2026-05-12): voice + auto append with merge
 router.post('/:id/description/append', authenticate, appendDescription);
 router.delete('/:id', authenticate, deleteItem);

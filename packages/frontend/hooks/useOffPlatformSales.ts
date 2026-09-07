@@ -143,6 +143,28 @@ export interface OffPlatformSaleLogEntry {
   createdAt: string;
 }
 
+/**
+ * Undo a mark-sold-off-platform action (2026-09-07). Backend scopes this tightly --
+ * only fires on an item that is SOLD via lastSoldVia === 'OFF_PLATFORM_MANUAL' and
+ * whose OffPlatformSale row is not yet invoiced. Reverts Item.status to AVAILABLE and
+ * removes the row from this log. See itemController.ts's undoItemSoldOffPlatform for
+ * the full rationale -- this is BYOR's own undo path since BYOR sales have no Purchase
+ * record for the existing refund-based undo flow to key off.
+ */
+export function useUndoOffPlatformSale() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (itemId: string) => {
+      const response = await api.post(`/items/${itemId}/undo-sold-off-platform`);
+      return response.data as { ok: boolean; item: { id: string; status: string } };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['off-platform-sales-log'] });
+      queryClient.invalidateQueries({ queryKey: ['off-platform-usage'] });
+    },
+  });
+}
+
 export interface OffPlatformSalesLogPage {
   items: OffPlatformSaleLogEntry[];
   page: number;
