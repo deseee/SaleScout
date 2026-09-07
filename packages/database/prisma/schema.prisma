@@ -331,6 +331,12 @@ model Organizer {
   // Organizer + hub-owner roles) so this is a human-review flag, not a hard gate.
   payoutsFlaggedForReview         Boolean                        @default(false)
   payoutsFlaggedReason            String? // Set by connectAccountGuard.ts; human-readable, never includes raw bank details
+  // Square migration (2026-09-07, Wave 0): mirrors stripeConnectId/stripeOnboarded.
+  // Square's OAuth model has no Express/Standard split and no accountLinks-style two-step
+  // (Connect-onboarding dispatch, Wave 1 #2, owns the actual onboarding flow).
+  squareMerchantId                String?
+  squareOnboarded                 Boolean                        @default(false)
+  squareLocationId                String? // Square requires a location, not just a merchant id -- no Stripe field to mirror here
   removeWatermarkEnabled          Boolean                        @default(false) // PRO: remove FindA.Sale watermark from exports
   // Feature #603 (2026-08-05): platform-wide default best-offer thresholds. Suggested
   // pre-fill for the per-item eBay best-offer PERCENTAGE fields on the edit-item form
@@ -1673,6 +1679,12 @@ model Purchase {
   saleId                 String?
   sale                   Sale?                 @relation(fields: [saleId], references: [id], onDelete: SetNull)
   stripePaymentIntentId  String? // Not unique — one PI may have multiple Purchase rows (multi-item cart)
+  // Square migration (2026-09-07, Wave 0 schema prereq): plain-string discriminator,
+  // matches this model's own chargeType/discountType convention -- no Prisma enum.
+  processor               String                @default("STRIPE") // 'STRIPE' | 'SQUARE'
+  squarePaymentId         String? // Square Payment.id -- not unique alone, same multi-item-cart
+  // reasoning as stripePaymentIntentId; needs the same compound partial-unique-index
+  // treatment (see migration 20260907_square_migration_wave0_schema) once real rows exist.
   affiliateLinkId        String?
   affiliateLink          AffiliateLink?        @relation(fields: [affiliateLinkId], references: [id], onDelete: SetNull)
   // Vendor Booth Payments (2026-07-07): roaming multi-booth cart attribution.
@@ -2132,6 +2144,11 @@ model HoldInvoice {
   sale Sale @relation(fields: [saleId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   stripeSessionId       String?          @unique // Stripe Checkout session ID
   stripePaymentIntentId String?          @unique // Stripe payment intent ID
+  // Square migration (2026-09-07, Wave 0): no Square equivalent to stripeSessionId exists
+  // (checkout scoping found Square has no hosted-checkout-session primitive) -- only a
+  // payment-id equivalent is needed here.
+  processor              String           @default("STRIPE") // 'STRIPE' | 'SQUARE'
+  squarePaymentId        String?          @unique // Square Payment.id
   status                InvoiceStatus    @default(PENDING)
   totalAmount           Int // in cents
   platformFeeAmount     Int // in cents (deducted from organizer payout)
@@ -3462,6 +3479,14 @@ model ConnectBankFingerprint {
   // The Stripe Connect account (acct_...) this external account belongs to.
   stripeAccountId String
 
+  // Square migration (2026-09-07, Wave 0): additive only -- stripeAccountId stays required
+  // and untouched (no breaking change). A Square-sourced flagged row populates
+  // squareAccountId instead; whether the @@unique below needs to incorporate processor/
+  // squareAccountId to catch a Stripe+Square collusion pair is an OPEN DESIGN QUESTION
+  // left to the Connect-onboarding dispatch (Wave 1 #2) -- not resolved here.
+  processor       String  @default("STRIPE") // 'STRIPE' | 'SQUARE'
+  squareAccountId String?
+
   // Stripe's own bank-account fingerprint -- stable across different Stripe Connect
   // accounts that share the identical real-world bank account + routing number. This is
   // the actual collusion signal; everything else on this row is context for admin review.
@@ -4462,6 +4487,10 @@ model ClientPayout {
   method            String // STRIPE_CONNECT|MANUAL
   stripeTransferId  String?        @unique
   stripeAccountId   String?
+  // Square migration (2026-09-07, Wave 0): mirrors the stripeTransferId/stripeAccountId pair.
+  processor         String         @default("STRIPE") // 'STRIPE' | 'SQUARE'
+  squareTransferId  String?        @unique
+  squareAccountId   String?
   bankAccountLast4  String?
   bankRoutingNumber String?
   failureReason     String?
@@ -4605,6 +4634,11 @@ model POSPaymentRequest {
   stripeFeeEstimate     Int?
   stripePaymentIntentId String?   @unique
   clientSecret          String?   @db.VarChar(255)
+  // Square migration (2026-09-07, Wave 0): phone-based payment-request equivalent.
+  processor              String    @default("STRIPE") // 'STRIPE' | 'SQUARE'
+  squarePaymentId        String?   @unique // Square Payment.id -- populated at ACCEPT time (card tokenized on shopper device), not at request-creation
+  squareSourceId         String? // transient Web Payments SDK token, cleared once squarePaymentId is set
+  squareLocationId       String? // Square merchant location -- rough analog of Stripe's stripeConnectId account-scoping
   status                String    @default("PENDING") // PENDING | ACCEPTED | PAID | DECLINED | EXPIRED | CANCELLED
   expiresAt             DateTime
   requestedAt           DateTime  @default(now())
@@ -5085,6 +5119,9 @@ model Consignor {
   // VendorBooth are separate tables with no shared base).
   payoutsFlaggedForReview Boolean            @default(false)
   payoutsFlaggedReason    String? // Set by connectAccountGuard.ts
+  // Square migration (2026-09-07, Wave 0): mirrors stripeAccountId/stripeOnboarded.
+  squareAccountId         String?
+  squareOnboarded         Boolean            @default(false)
   items             Item[]             @relation("ConsignorItems")
   payouts           ConsignorPayout[]
   createdAt         DateTime           @default(now())
@@ -5111,6 +5148,9 @@ model ConsignorPayout {
   createdAt         DateTime                  @default(now())
   // Stripe Connect ACH: transfer object ID (DB column already exists via add_stripe_connect_ach migration — schema drift reconciled S-NEW)
   stripeTransferId  String?
+  // Square migration (2026-09-07, Wave 0): mirrors stripeTransferId.
+  processor         String                    @default("STRIPE") // 'STRIPE' | 'SQUARE'
+  squareTransferId  String?
   // #239 Multi-Consignor Settlement: batch membership + per-payout status
   settlementBatchId String?
   settlementBatch   ConsignorSettlementBatch? @relation(fields: [settlementBatchId], references: [id], onDelete: SetNull)
@@ -6185,6 +6225,14 @@ model VendorBooth {
   // for full rationale.
   payoutsFlaggedForReview Boolean @default(false)
   payoutsFlaggedReason    String? // Set by connectAccountGuard.ts
+  // Square migration (2026-09-07, Wave 0): mirrors stripeAccountId/stripeOnboarded.
+  // Scope note: this is ONBOARDING identity only. BoothCartLeg/VendorBoothPayout/
+  // VendorBoothFeeCharge (actual booth-cart-checkout money movement) are deliberately
+  // NOT touched by this migration -- vendor-booth-cart checkout was never scoped as its
+  // own Square surface and is being scoped separately (see claude_docs/feature-notes/
+  // square-replaces-stripe-architecture-and-scoping-2026-09-07.md).
+  squareAccountId         String?
+  squareOnboarded         Boolean @default(false)
 
   // ADR-090 Phase 4 (pre-wire only, 2026-07-20): platform-account Stripe Customer +
   // PaymentMethod for the vendor, so the flat boothFee can be charged off-session on a
