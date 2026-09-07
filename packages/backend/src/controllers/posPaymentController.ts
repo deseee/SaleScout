@@ -328,6 +328,25 @@ export const createPaymentRequest = async (req: AuthRequest, res: Response) => {
       });
     }
 
+    // S1198 (2026-09-06): bank-fingerprint collusion hold. Checked FIRST -- before the
+    // live getAccountStatus preflight below -- consistent with the other 3 fixes of this
+    // shape (terminalController.ts, vendorBoothCartController.ts TERMINAL+QR), all of
+    // which check this cheap DB flag before spending a live Stripe API round-trip.
+    // REORDERED 2026-09-07: originally placed after the preflight in this file only: an
+    // inconsistency caught during live QA of this exact fix (a real connected account
+    // happened to be independently Stripe-rejected for an unrelated reason, and the
+    // fraud-hold check never got a chance to fire since the preflight failed first) --
+    // no functional difference when the account IS chargeable, but firing this first is
+    // both cheaper (skips a live Stripe call for an already-known-flagged account) and
+    // consistent with every sibling fix. Releases the placeholder the same way every
+    // other pre-charge failure path in this function already does.
+    if (await isPayoutFlaggedForReview('ORGANIZER', organizer.id)) {
+      await prisma.pOSPaymentRequest
+        .update({ where: { id: posRequest.id }, data: { status: 'CANCELLED', declineReason: 'PAYMENT_FAILED' } })
+        .catch((releaseErr) => console.error('[pos-payment] Failed to release placeholder after fraud-hold check:', releaseErr));
+      return res.status(403).json({ message: 'Your payments are on hold pending admin review. Contact support@finda.sale for details.' });
+    }
+
     // Direct-charges migration (2026-08-08): live capability preflight. resolveOrganizerOrTeamMember
     // only confirms organizer.stripeConnectId is non-null (a cached DB presence check) --
     // never that Stripe currently reports the account as charge-capable (a DB-cache vs
@@ -348,17 +367,6 @@ export const createPaymentRequest = async (req: AuthRequest, res: Response) => {
         .update({ where: { id: posRequest.id }, data: { status: 'CANCELLED', declineReason: 'PAYMENT_FAILED' } })
         .catch((releaseErr) => console.error('[pos-payment] Failed to release placeholder after preflight error:', releaseErr));
       return res.status(502).json({ message: "Could not verify the organizer's payment account status. Please try again." });
-    }
-
-    // S1198 (2026-09-06): bank-fingerprint collusion hold. Checked unconditionally,
-    // mirrors payConsignor's 403 (stripeConnectController.ts) and the VendorBooth/
-    // terminalController fixes of the same shape. Releases the placeholder the same
-    // way every other pre-charge failure path in this function already does.
-    if (await isPayoutFlaggedForReview('ORGANIZER', organizer.id)) {
-      await prisma.pOSPaymentRequest
-        .update({ where: { id: posRequest.id }, data: { status: 'CANCELLED', declineReason: 'PAYMENT_FAILED' } })
-        .catch((releaseErr) => console.error('[pos-payment] Failed to release placeholder after fraud-hold check:', releaseErr));
-      return res.status(403).json({ message: 'Your payments are on hold pending admin review. Contact support@finda.sale for details.' });
     }
 
     // Create Stripe Payment Intent (for card amount only) now that the placeholder row
