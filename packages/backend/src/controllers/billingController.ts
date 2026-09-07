@@ -645,3 +645,155 @@ function getTierFromPriceId(priceId: string | null): SubscriptionTier {
   if (priceId === teamsMonthly || priceId === teamsAnnual) return 'TEAMS' as SubscriptionTier;
   return 'SIMPLE';
 }
+
+// ---------------------------------------------------------------------------
+// Bring-Your-Own-Rails (BYOR, 2026-09-06) -- opt-in/consent + usage-visibility endpoints.
+// Deliberately ZERO Stripe calls in this section: no `stripe.*` reference, no invoiceItems,
+// no touching organizer.stripeCustomerId for a charge. Scope note (2026-09-06 dispatch): only
+// steps 1-4 of the architect's build order are built here (schema, mark-sold endpoint,
+// opt-in/consent, read endpoints). byorFeeCalculator.ts / byorInvoicingCron.ts / the real
+// invoice-webhook extension (step 5, which DOES need Stripe) are a separate, later dispatch
+// pending Patrick's fee-amount decision -- see claude_docs/feature-notes/
+// bring-your-own-rails-architecture-and-scoping-2026-09-06.md. No PlatformInvoice row is ever
+// created by this file yet.
+// ---------------------------------------------------------------------------
+
+/**
+ * POST /api/billing/off-platform-sales/opt-in
+ * Body: { enabled: boolean }
+ *
+ * Toggles Organizer.offPlatformSalesEnabled. Turning it ON requires and stamps consent
+ * (RoleConsent.offPlatformSalesConsentedAt) -- turning it OFF just pauses the feature and never
+ * clears that historical consent timestamp (matches how every other *AcceptedAt field on
+ * RoleConsent behaves elsewhere in this codebase: an acceptance timestamp is a historical fact,
+ * never nulled out again).
+ *
+ * Builds the ORGANIZER UserRoleSubscription -> RoleConsent chain from scratch on first use --
+ * findasale-dev scoping correction #3 (2026-09-06) confirmed RoleConsent.paymentMethodAcceptedAt
+ * (the field originally cited as "the idiom to copy") has zero call sites anywhere in the
+ * backend, and separately confirmed (via grep across the whole backend) there is no existing
+ * write path anywhere that creates a UserRoleSubscription row for an organizer who predates it --
+ * authController.ts's registration-time consent write only creates RoleConsent
+ * `if (orgRoleSubscription)` already exists and silently no-ops otherwise. This endpoint is the
+ * only writer of this chain for BYOR and must not assume either row already exists.
+ */
+export const optInOffPlatformSales = async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user?.id) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    const hasOrganizerRole = req.user.roles?.includes('ORGANIZER') || req.user.role === 'ORGANIZER';
+    if (!hasOrganizerRole) {
+      return res.status(403).json({ message: 'Access denied. Organizer access required.' });
+    }
+
+    const { enabled } = req.body as { enabled?: unknown };
+    if (typeof enabled !== 'boolean') {
+      return res.status(400).json({ message: 'enabled (boolean) is required.' });
+    }
+
+    const organizer = await prisma.organizer.findUnique({
+      where: { userId: req.user.id },
+      select: { id: true },
+    });
+    if (!organizer) {
+      return res.status(404).json({ message: 'Organizer profile not found' });
+    }
+
+    let consentedAt: Date | null = null;
+
+    if (enabled) {
+      let roleSubscription = await prisma.userRoleSubscription.findFirst({
+        where: { userId: req.user.id, role: 'ORGANIZER' },
+        select: { id: true },
+      });
+      if (!roleSubscription) {
+        roleSubscription = await prisma.userRoleSubscription.create({
+          data: { userId: req.user.id, role: 'ORGANIZER' },
+          select: { id: true },
+        });
+      }
+
+      consentedAt = new Date();
+      await prisma.roleConsent.upsert({
+        where: { subscriptionId: roleSubscription.id },
+        create: {
+          subscriptionId: roleSubscription.id,
+          role: 'ORGANIZER',
+          offPlatformSalesConsentedAt: consentedAt,
+        },
+        update: {
+          offPlatformSalesConsentedAt: consentedAt,
+        },
+      });
+    } else {
+      const roleSubscription = await prisma.userRoleSubscription.findFirst({
+        where: { userId: req.user.id, role: 'ORGANIZER' },
+        select: { consentRecord: { select: { offPlatformSalesConsentedAt: true } } },
+      });
+      consentedAt = roleSubscription?.consentRecord?.offPlatformSalesConsentedAt ?? null;
+    }
+
+    const updated = await prisma.organizer.update({
+      where: { id: organizer.id },
+      data: { offPlatformSalesEnabled: enabled },
+      select: { offPlatformSalesEnabled: true },
+    });
+
+    res.json({
+      ok: true,
+      offPlatformSalesEnabled: updated.offPlatformSalesEnabled,
+      offPlatformSalesConsentedAt: consentedAt ? consentedAt.toISOString() : null,
+    });
+  } catch (error) {
+    console.error('[Billing] off-platform-sales opt-in error:', error);
+    res.status(500).json({ message: 'Server error while updating off-platform sales setting' });
+  }
+};
+
+/**
+ * GET /api/billing/off-platform-usage
+ *
+ * Current-billing-period off-platform-sale usage for the logged-in organizer. Fee amount is
+ * NOT computed here -- Patrick's flat/tiered/hybrid pricing decision (ADR-121 Open Decision
+ * #13) hasn't been made yet, so this deliberately returns amountCents: null and
+ * pricingNotYetSet: true rather than guessing a number. byorFeeCalculator.ts (a later
+ * dispatch) is what turns itemCount into a real amountCents.
+ */
+export const getOffPlatformUsage = async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user?.id) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    const hasOrganizerRole = req.user.roles?.includes('ORGANIZER') || req.user.role === 'ORGANIZER';
+    if (!hasOrganizerRole) {
+      return res.status(403).json({ message: 'Access denied. Organizer access required.' });
+    }
+
+    const organizer = await prisma.organizer.findUnique({
+      where: { userId: req.user.id },
+      select: { id: true, offPlatformSalesEnabled: true },
+    });
+    if (!organizer) {
+      return res.status(404).json({ message: 'Organizer profile not found' });
+    }
+
+    const now = new Date();
+    const billingPeriodKey = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}`;
+
+    const itemCount = await prisma.offPlatformSale.count({
+      where: { organizerId: organizer.id, billingPeriodKey },
+    });
+
+    res.json({
+      offPlatformSalesEnabled: organizer.offPlatformSalesEnabled,
+      billingPeriodKey,
+      itemCount,
+      amountCents: null,
+      pricingNotYetSet: true,
+    });
+  } catch (error) {
+    console.error('[Billing] off-platform-usage error:', error);
+    res.status(500).json({ message: 'Server error while fetching off-platform sales usage' });
+  }
+};

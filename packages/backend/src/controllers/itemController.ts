@@ -2417,6 +2417,208 @@ export const updateItem = async (req: AuthRequest, res: Response) => {
 };
 
 /**
+ * POST /api/items/:id/mark-sold-off-platform
+ *
+ * Bring-Your-Own-Rails (BYOR, 2026-09-06). Organizer marks a plain AVAILABLE item sold using
+ * their own payment method outside FindA.Sale entirely (their own Stripe/Square/Venmo/cash).
+ * FindA.Sale never sees or touches the real transaction -- zero Stripe calls anywhere in this
+ * function. Records an OffPlatformSale row for later flat-fee billing.
+ *
+ * Scope note (2026-09-06 dispatch): this builds steps 1-4 of the architect's build order only
+ * (schema, this endpoint, opt-in/consent, read endpoints). byorFeeCalculator.ts,
+ * byorInvoicingCron.ts, and the billingController.ts invoice-webhook extension (step 5) are a
+ * separate, later dispatch pending Patrick's fee-amount decision -- PlatformInvoice rows are
+ * never created by this code path. See claude_docs/feature-notes/
+ * bring-your-own-rails-architecture-and-scoping-2026-09-06.md.
+ *
+ * v1 restriction (findasale-dev scoping correction #6, 2026-09-06): commitItemSale() and
+ * itemStockService.sellItemUnits()/stockSold are two entirely separate mechanisms --
+ * commitItemSale() never touches stockSold. A future multi-unit BYOR needs to call
+ * sellItemUnits() instead of just relaxing the stockTotal<=1 check below -- do not "simplify"
+ * this away.
+ */
+export const markItemSoldOffPlatform = async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user?.id) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    const hasOrganizerRole = req.user.roles?.includes('ORGANIZER') || req.user.role === 'ORGANIZER';
+    if (!hasOrganizerRole) {
+      return res.status(403).json({ message: 'Access denied. Organizer access required.' });
+    }
+
+    const { id } = req.params;
+    const { quantity, reportedAmount, paymentMethodNote, buyerNameNote, buyerEmailNote } = req.body as {
+      quantity?: unknown;
+      reportedAmount?: unknown;
+      paymentMethodNote?: unknown;
+      buyerNameNote?: unknown;
+      buyerEmailNote?: unknown;
+    };
+
+    const item = await prisma.item.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        status: true,
+        stockTotal: true,
+        saleId: true,
+        sale: {
+          select: {
+            id: true,
+            organizerId: true,
+            organizer: { select: { userId: true, offPlatformSalesEnabled: true } },
+          },
+        },
+      },
+    });
+
+    if (!item || !item.sale) {
+      return res.status(404).json({ message: 'Item not found' });
+    }
+    if (item.sale.organizer.userId !== req.user.id) {
+      return res.status(403).json({ message: 'Access denied. Not your item.' });
+    }
+
+    const stockTotal = item.stockTotal ?? 1;
+    if (stockTotal > 1) {
+      return res.status(400).json({
+        message: 'Marking an item sold off-platform is only supported for single-unit items right now.',
+      });
+    }
+    if (item.status !== 'AVAILABLE') {
+      return res.status(409).json({
+        message: `This item is not available to mark sold (current status: ${item.status}).`,
+      });
+    }
+
+    const organizer = item.sale.organizer;
+    if (!organizer.offPlatformSalesEnabled) {
+      return res.status(403).json({
+        message: 'Off-platform sales are not enabled for this account. Enable it in Billing settings first.',
+      });
+    }
+
+    // Consent chain built from scratch (findasale-dev scoping correction #3, 2026-09-06):
+    // RoleConsent.paymentMethodAcceptedAt has zero call sites anywhere in the backend and is
+    // NOT a working reference to copy -- confirmed there is also no existing write path
+    // anywhere that creates a UserRoleSubscription row for an organizer who predates it
+    // (authController.ts's registration-time consent write silently no-ops via
+    // `if (orgRoleSubscription)` when none exists). The opt-in endpoint below is the only
+    // writer of this chain; this read must not assume either row exists.
+    const roleSubscription = await prisma.userRoleSubscription.findFirst({
+      where: { userId: req.user.id, role: 'ORGANIZER' },
+      select: { consentRecord: { select: { offPlatformSalesConsentedAt: true } } },
+    });
+    if (!roleSubscription?.consentRecord?.offPlatformSalesConsentedAt) {
+      return res.status(403).json({
+        message: 'Off-platform sales consent has not been recorded for this account. Enable it in Billing settings first.',
+      });
+    }
+
+    let quantityInt = 1;
+    if (quantity !== undefined) {
+      const parsed = parseInt(String(quantity), 10);
+      if (!Number.isFinite(parsed) || parsed < 1) {
+        return res.status(400).json({ message: 'quantity must be a positive integer.' });
+      }
+      quantityInt = parsed;
+    }
+
+    let reportedAmountValue: number | null = null;
+    if (reportedAmount !== undefined && reportedAmount !== null && reportedAmount !== '') {
+      const parsed = parseFloat(String(reportedAmount));
+      if (!Number.isFinite(parsed) || parsed < 0) {
+        return res.status(400).json({ message: 'reportedAmount must be a non-negative number.' });
+      }
+      reportedAmountValue = parsed;
+    }
+
+    let updatedItem;
+    try {
+      // ADR-098 atomic guard -- same commitItemSale() used by every other sale-completing
+      // transition in this codebase (see itemSaleGuard.ts). Throws ItemAlreadyCommittedError
+      // if the item was not in an allowed prior state (someone else already sold it, e.g. a
+      // concurrent POS/checkout sale won the race), caught below -> 409.
+      updatedItem = await commitItemSale(id, 'SOLD', ['AVAILABLE']);
+    } catch (err: any) {
+      if (err instanceof ItemAlreadyCommittedError) {
+        return res.status(409).json({
+          message: `Couldn't mark this item sold: ${err.message}. Refresh the page to see its current status.`,
+        });
+      }
+      throw err;
+    }
+
+    const now = new Date();
+    const billingPeriodKey = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}`;
+
+    const offPlatformSale = await prisma.offPlatformSale.create({
+      data: {
+        itemId: id,
+        saleId: item.sale.id,
+        organizerId: item.sale.organizerId,
+        markedByUserId: req.user.id,
+        quantity: quantityInt,
+        reportedAmount: reportedAmountValue,
+        paymentMethodNote: paymentMethodNote != null ? String(paymentMethodNote).slice(0, 500) : null,
+        buyerNameNote: buyerNameNote != null ? String(buyerNameNote).slice(0, 200) : null,
+        buyerEmailNote: buyerEmailNote != null ? String(buyerEmailNote).slice(0, 200) : null,
+        billingPeriodKey,
+      },
+    });
+
+    await prisma.item.update({ where: { id }, data: { lastSoldVia: 'OFF_PLATFORM_MANUAL' } });
+
+    // Cross-channel delisting cascade (verified 2026-09-06, findasale-dev scoping correction #1
+    // on Patrick's own direction to verify rather than trust the doc's phrasing -- read both
+    // files cited below before relying on this):
+    //
+    // extensionController.ts's getPendingRemovals (~line 806-812) polls
+    // `prisma.item.findMany({ where: { sale: { organizerId, deletedAt: null }, status: 'SOLD' } })`
+    // -- purely keyed on Item.status === 'SOLD' scoped to the organizer, with ZERO dependency on
+    // which code path set that status. It is the poll target the browser extension uses for
+    // every extension-tracked marketplace (Facebook Marketplace, Grailed, Mercari, Poshmark,
+    // Discogs, Reverb, etc. -- anything with a MarketplaceListingJob row), so those channels
+    // self-heal automatically once commitItemSale() above flips the item to SOLD. NO explicit
+    // call needed for them here.
+    //
+    // eBay and Shopify are official-API integrations (not extension-based), so they DO need an
+    // explicit synchronous withdraw call -- confirmed by reading both markItemSoldOnFacebook
+    // (extensionController.ts:1203-1239) and routes/internal.ts's mark-item-sold-elsewhere
+    // (:1175-1212), which both call commitItemSale() then fire endEbayListingIfExists() +
+    // markShopifyItemSold() fire-and-forget. This mirrors that exact pattern.
+    //
+    // notifyFacebookExportedItemSold is ALSO included here (a correction beyond the 2-call
+    // minimum): facebookNudgeService.ts:17 unconditionally calls
+    // enqueueMarketplaceRemoveJobIfPosted() -- a REAL removal-job enqueue for the ADR-083
+    // in-house Marketplace Poster (Playwright, dedicated FindA.Sale-owned accounts),
+    // independent of the FB-export nudge check below it, "on every one of the 11 existing
+    // sold-trigger call sites" per its own comment. Skipping it here would silently reopen
+    // that exact gap for off-platform sales. itemController.ts's own updateItem() SOLD path
+    // (~line 2096-2130) calls all three of these together for the same reason.
+    notifyFacebookExportedItemSold(id).catch((err: any) =>
+      console.warn(`[FB Nudge] mark-sold-off-platform failed for item ${id}:`, err.message)
+    );
+    endEbayListingIfExists(id).catch((err: any) =>
+      console.warn(`[eBay] withdraw-on-SOLD (off-platform) failed for item ${id}:`, err.message)
+    );
+    markShopifyItemSold(id).catch((err: any) =>
+      console.warn(`[Shopify] mark-sold-on-SOLD (off-platform) failed for item ${id}:`, err.message)
+    );
+
+    res.json({
+      ok: true,
+      item: { id: updatedItem.id, status: updatedItem.status, lastSoldVia: 'OFF_PLATFORM_MANUAL' },
+      offPlatformSale,
+    });
+  } catch (error) {
+    console.error('Error marking item sold off-platform:', error);
+    res.status(500).json({ message: 'Server error while marking item sold off-platform' });
+  }
+};
+
+/**
  * POST /api/items/:id/description/append
  *
  * Item Description Authoring Contract (architect-locked 2026-05-12).

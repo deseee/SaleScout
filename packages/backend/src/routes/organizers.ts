@@ -1036,6 +1036,63 @@ router.post('/admin/claim-requests/:id/reject', authenticate, async (req: AuthRe
   }
 });
 
+// GET /api/organizers/off-platform-sales -- Bring-Your-Own-Rails (BYOR, 2026-09-06). The
+// organizer's own paginated log of items marked sold off-platform. Registered here (a static
+// path, NOT under /me) rather than under a new singular /api/organizer/* prefix -- matches this
+// codebase's existing plural /api/organizers mount (findasale-dev scoping correction #4,
+// 2026-09-06). MUST be registered before the generic `/:id` route below -- Express matches
+// routes in registration order, so a static path declared after `/:id` would be swallowed by it
+// (that route treats any single path segment as an id/slug lookup with no early bailout for
+// known static routes).
+router.get('/off-platform-sales', authenticate, async (req: AuthRequest, res: Response) => {
+  try {
+    const hasOrganizerRole = req.user?.roles?.includes('ORGANIZER') || req.user?.role === 'ORGANIZER';
+    if (!req.user || !hasOrganizerRole) {
+      return res.status(403).json({ message: 'Organizer access required.' });
+    }
+
+    const organizer = await prisma.organizer.findUnique({
+      where: { userId: req.user.id },
+      select: { id: true },
+    });
+    if (!organizer) {
+      return res.status(404).json({ message: 'Organizer not found' });
+    }
+
+    const page = Math.max(parseInt(req.query.page as string, 10) || 1, 1);
+    const limit = Math.min(Math.max(parseInt(req.query.limit as string, 10) || 25, 1), 100);
+
+    const [items, total] = await Promise.all([
+      prisma.offPlatformSale.findMany({
+        where: { organizerId: organizer.id },
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+        select: {
+          id: true,
+          itemId: true,
+          saleId: true,
+          quantity: true,
+          reportedAmount: true,
+          paymentMethodNote: true,
+          buyerNameNote: true,
+          buyerEmailNote: true,
+          billingPeriodKey: true,
+          invoiceId: true,
+          createdAt: true,
+          item: { select: { id: true, title: true, photoUrls: true } },
+        },
+      }),
+      prisma.offPlatformSale.count({ where: { organizerId: organizer.id } }),
+    ]);
+
+    res.json({ items, page, limit, total, totalPages: Math.ceil(total / limit) || 1 });
+  } catch (error) {
+    console.error('Error fetching off-platform sales log:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // Public: get organizer profile + their upcoming/active sales + badges + reputation
 // Supports lookup by ID (CUID) or by customStorefrontSlug (user-friendly slug)
 // P1 Security: Strip PII (phone, address) from unauthenticated responses

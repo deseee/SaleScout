@@ -9,6 +9,8 @@ import {
   handleStripeWebhook,
   getDowngradePreview,
   confirmDowngrade,
+  optInOffPlatformSales,
+  getOffPlatformUsage,
 } from '../controllers/billingController';
 
 const router = Router();
@@ -20,6 +22,11 @@ router.post('/cancel', authenticate, cancelSubscription);
 router.post('/portal', authenticate, paymentLimiter, createBillingPortal);
 router.get('/downgrade-preview', authenticate, getDowngradePreview);
 router.post('/downgrade-confirm', authenticate, confirmDowngrade);
+
+// Bring-Your-Own-Rails (BYOR, 2026-09-06) -- opt-in/consent + usage visibility. Zero Stripe
+// calls in either handler (see billingController.ts's BYOR section comment).
+router.post('/off-platform-sales/opt-in', authenticate, optInOffPlatformSales);
+router.get('/off-platform-usage', authenticate, getOffPlatformUsage);
 
 // Webhook (no auth — signature verified in controller)
 // NOTE: Raw body middleware must be applied in index.ts BEFORE json parser for this route

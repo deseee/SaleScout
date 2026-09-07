@@ -54,7 +54,8 @@ import BulkPhotoModal from '../../../components/BulkPhotoModal';
 import BulkTagModal from '../../../components/BulkTagModal';
 import BulkActionDropdown from '../../../components/BulkActionDropdown';
 import BulkCategoryModal from '../../../components/BulkCategoryModal';
-import BulkStatusModal from '../../../components/BulkStatusModal';
+import BulkStatusModal, { OffPlatformFields } from '../../../components/BulkStatusModal';
+import { useOffPlatformUsage, markItemSoldOffPlatform, MarkSoldOffPlatformPayload } from '../../../hooks/useOffPlatformSales';
 import BulkPriceModal from '../../../components/BulkPriceModal';
 import BulkOperationErrorModal from '../../../components/BulkOperationErrorModal';
 import ValuationWidget from '../../../components/ValuationWidget';
@@ -634,6 +635,11 @@ const AddItemsDetailPage = () => {
     itemCount?: number;
   } | null>(null);
 
+  // BYOR (2026-09-06): off-platform sales opt-in status, read once here and passed down
+  // into BulkStatusModal so the "Sold -- outside FindA.Sale" option knows whether to show
+  // the confirmation fields or the "turn it on in Settings" explanation.
+  const { usage: offPlatformUsage } = useOffPlatformUsage();
+
   // CRITICAL: All hooks must be called unconditionally at top of component (before any early returns)
   // React hooks rule: call hooks in the same order on every render
   const { data: sale, isLoading: saleLoading } = useQuery({
@@ -1170,6 +1176,64 @@ const AddItemsDetailPage = () => {
       operation: 'status',
       value: status,
     });
+  };
+
+  // BYOR (2026-09-06): "Sold -- outside FindA.Sale" doesn't go through the generic bulk
+  // status endpoint (it isn't a real Item.status value and needs ownership/opt-in/consent
+  // checks the bulk endpoint doesn't do). It calls the dedicated single-item endpoint once
+  // per selected item instead -- v1 is single-item by design (stockTotal<=1), so looping
+  // here is the whole "bulk" story for this action.
+  const handleApplyOffPlatform = async (fields: OffPlatformFields) => {
+    const itemIds = Array.from(selectedItems);
+    const payload: MarkSoldOffPlatformPayload = {};
+    if (fields.reportedAmount) {
+      const parsed = parseFloat(fields.reportedAmount);
+      if (!Number.isNaN(parsed)) payload.reportedAmount = parsed;
+    }
+    if (fields.paymentMethodNote) payload.paymentMethodNote = fields.paymentMethodNote;
+    if (fields.buyerNameNote) payload.buyerNameNote = fields.buyerNameNote;
+    if (fields.buyerEmailNote) payload.buyerEmailNote = fields.buyerEmailNote;
+
+    inMutationFlight.current = true;
+    const succeeded: string[] = [];
+    const failed: Array<{ itemId: string; reason: string }> = [];
+
+    for (const itemId of itemIds) {
+      try {
+        await markItemSoldOffPlatform(itemId, payload);
+        succeeded.push(itemId);
+      } catch (err: any) {
+        failed.push({
+          itemId,
+          reason: err?.response?.data?.message || 'Could not mark this item sold off-platform',
+        });
+      }
+    }
+    inMutationFlight.current = false;
+
+    queryClient.invalidateQueries({ queryKey: ['items', saleId] });
+    queryClient.invalidateQueries({ queryKey: ['off-platform-usage'] });
+    setSelectedItems(new Set());
+
+    if (succeeded.length > 0) {
+      showToast(`Marked ${succeeded.length} item${succeeded.length !== 1 ? 's' : ''} sold off-platform`, 'success');
+    }
+
+    if (failed.length > 0) {
+      setBulkErrorData({
+        title: succeeded.length > 0 ? 'Some items could not be marked sold' : 'Could not mark items sold off-platform',
+        message: `${failed.length} item${failed.length !== 1 ? 's' : ''} could not be marked sold off-platform.`,
+        errors: failed,
+        itemCount: failed.length,
+      });
+      setBulkErrorModalOpen(true);
+    }
+
+    if (succeeded.length === 0) {
+      // Nothing succeeded -- throw so BulkStatusModal shows an inline error and stays open
+      // (mirrors the existing bulkUpdateMutation onError behavior for an all-fail response).
+      throw new Error(failed[0]?.reason || 'Failed to mark items sold off-platform');
+    }
   };
 
   const handleBulkPrice = async (priceType: 'fixed' | 'discount', value: number) => {
@@ -3452,6 +3516,8 @@ const AddItemsDetailPage = () => {
         onClose={() => setBulkStatusModalOpen(false)}
         onApply={handleBulkStatus}
         loading={bulkUpdateMutation.isPending}
+        offPlatformEnabled={offPlatformUsage.enabled}
+        onApplyOffPlatform={handleApplyOffPlatform}
       />
 
       <BulkPriceModal

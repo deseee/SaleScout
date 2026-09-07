@@ -271,6 +271,8 @@ model User {
   adminImpersonationsReceived  AdminImpersonationLog[] @relation("AdminImpersonationsReceived")
   // Curio (2026-08-28): resale-value scanner -- a user's scan history (Finds collection)
   curioScans                    CurioScan[]
+  // Bring-Your-Own-Rails (BYOR, 2026-09-06): items this user (as organizer) marked sold off-platform
+  offPlatformSalesMarked        OffPlatformSale[]
 
   @@unique([oauthProvider, oauthId]) // Prevent duplicate OAuth accounts
   @@index([guildXp])
@@ -543,6 +545,16 @@ model Organizer {
   // S696: Canada launch — null = US assumed
   country                  String?
   province                 String?
+
+  // Bring-Your-Own-Rails (BYOR, 2026-09-06): organizer marks an item sold off-platform (their own
+  // Stripe/Square/Venmo/cash), FindA.Sale bills a separate flat fee instead of taking a % commission.
+  // Additive-only, zero intersection with Stripe Connect. See claude_docs/feature-notes/
+  // bring-your-own-rails-architecture-and-scoping-2026-09-06.md. Invoicing (byorFeeCalculator.ts /
+  // byorInvoicingCron.ts) is a later dispatch pending Patrick's fee decision -- PlatformInvoice rows
+  // are not created by anything yet.
+  offPlatformSalesEnabled  Boolean            @default(false)
+  offPlatformSales         OffPlatformSale[]
+  platformInvoices         PlatformInvoice[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -858,6 +870,11 @@ model RoleConsent {
   businessVerificationAcceptedAt DateTime? // ORGANIZER only
   paymentMethodAcceptedAt        DateTime? // ORGANIZER only
   marketingOptInAt               DateTime? // SHOPPER only
+  // Bring-Your-Own-Rails (BYOR, 2026-09-06): ORGANIZER only -- consent to mark items sold
+  // off-platform and be billed a separate flat fee for it. Built fresh -- paymentMethodAcceptedAt
+  // above has zero call sites anywhere in the backend and is NOT a working reference to copy
+  // (confirmed by findasale-dev scoping pass, 2026-09-06).
+  offPlatformSalesConsentedAt    DateTime? // ORGANIZER only
 
   // Marketing email opt-out per role
   emailOptOut Boolean @default(false)
@@ -866,6 +883,66 @@ model RoleConsent {
   updatedAt DateTime @updatedAt
 
   @@index([subscriptionId])
+}
+
+// Bring-Your-Own-Rails (BYOR, 2026-09-06) -- organizer keeps using their own payment method
+// (their own Stripe/Square/Venmo/cash) outside FindA.Sale, marks the item sold in-app, and
+// FindA.Sale bills a separate flat/tiered fee (never a % of the real sale, which FindA.Sale
+// never sees). Fully additive, zero intersection with Stripe Connect. See
+// claude_docs/feature-notes/bring-your-own-rails-architecture-and-scoping-2026-09-06.md for
+// the full design. One row per off-platform sale event.
+model OffPlatformSale {
+  id                String            @id @default(cuid())
+  itemId            String
+  item              Item              @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  saleId            String
+  sale              Sale              @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  organizerId       String            // denormalized from sale.organizerId, same idiom as Item.organizerId
+  organizer         Organizer         @relation(fields: [organizerId], references: [id], onDelete: Cascade)
+  markedByUserId    String
+  markedByUser      User              @relation(fields: [markedByUserId], references: [id], onDelete: Restrict)
+  quantity          Int               @default(1)
+  reportedAmount    Decimal?          @db.Decimal(10, 2) // organizer's own bookkeeping only -- NEVER used in FindA.Sale billing math
+  paymentMethodNote String?
+  buyerNameNote     String?
+  buyerEmailNote    String?
+  billingPeriodKey  String            // "YYYY-MM", immutable snapshot at creation
+  invoiceId         String?
+  invoice           PlatformInvoice?  @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  createdAt         DateTime          @default(now())
+
+  @@index([organizerId, billingPeriodKey])
+  @@index([itemId])
+  @@index([saleId])
+  @@index([invoiceId])
+}
+
+// Bring-Your-Own-Rails (BYOR, 2026-09-06) -- one invoice per organizer per billing period for
+// off-platform-sale fees. Table built now (schema-complete) even though nothing writes to it
+// yet: byorFeeCalculator.ts / byorInvoicingCron.ts / the billingController.ts webhook extension
+// are a later dispatch, pending Patrick's fee-amount decision -- see the feature-notes doc.
+model PlatformInvoice {
+  id                  String            @id @default(cuid())
+  organizerId         String
+  organizer           Organizer         @relation(fields: [organizerId], references: [id], onDelete: Cascade)
+  kind                String            // 'BYOR_FEE' -- plain string discriminator, room for a future 2nd fee type with no migration
+  billingPeriodKey    String
+  pricingModel        String            // 'FLAT' | 'TIERED' | 'HYBRID_PCT' -- snapshot of which mode produced amountCents
+  itemCount           Int
+  reportedGrossAmount Decimal?          @db.Decimal(10, 2) // visibility only, never the billing basis unless HYBRID_PCT is turned on later
+  amountCents         Int               // computed by byorFeeCalculator.ts, not derived in schema
+  status              String            @default("PENDING") // PENDING | INVOICED | PAID | FAILED | VOID
+  stripeInvoiceItemId String?
+  stripeInvoiceId     String?
+  failureReason       String?
+  events              OffPlatformSale[]
+  createdAt           DateTime          @default(now())
+  invoicedAt          DateTime?
+  paidAt              DateTime?
+
+  @@unique([organizerId, billingPeriodKey, kind]) // idempotency: never double-bill one organizer for one period
+  @@index([status])
+  @@index([billingPeriodKey])
 }
 
 model Sale {
@@ -916,6 +993,7 @@ model Sale {
   affiliateLinks              AffiliateLink[]
   lineEntries                 LineEntry[]
   purchases                   Purchase[]
+  offPlatformSales            OffPlatformSale[] // Bring-Your-Own-Rails (BYOR, 2026-09-06)
   reviews                     Review[]
   conversations               Conversation[]
   bounties                    MissingListingBounty[]
@@ -1213,6 +1291,7 @@ model Item {
   bids                            Bid[]
   maxBids                         MaxBidByUser[] // ADR-013 Phase 2: Proxy bidding
   purchases                       Purchase[]
+  offPlatformSales                OffPlatformSale[] // Bring-Your-Own-Rails (BYOR, 2026-09-06)
   favorites                       Favorite[]
   reservation                     ItemReservation?
   bountyFulfillments              MissingListingBounty[]

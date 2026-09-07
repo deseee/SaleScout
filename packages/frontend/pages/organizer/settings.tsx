@@ -17,6 +17,7 @@ import { useFeedbackSurvey } from '../../hooks/useFeedbackSurvey';
 import { useTheme } from '../../hooks/useTheme';
 import { urlBase64ToUint8Array } from '../../hooks/usePushSubscription';
 import { useOrganizerTier } from '../../hooks/useOrganizerTier';
+import { useOffPlatformUsage, useOffPlatformOptIn } from '../../hooks/useOffPlatformSales';
 import { useNetworkQuality } from '../../hooks/useNetworkQuality';
 import Tooltip from '../../components/Tooltip';
 import ThemeToggle from '../../components/ThemeToggle';
@@ -37,6 +38,9 @@ const OrganizerSettingsPage = () => {
   const { showToast } = useToast();
   const { showSurvey } = useFeedbackSurvey();
   const { tier, isPro } = useOrganizerTier();
+  // BYOR (2026-09-06): Off-Platform Sales opt-in status + usage for the Subscription tab section below.
+  const { usage: offPlatformUsage, isLoading: offPlatformUsageLoading } = useOffPlatformUsage();
+  const offPlatformOptIn = useOffPlatformOptIn();
   const { isLowBandwidth, networkType, toggleLowBandwidth } = useNetworkQuality();
   const [activeTab, setActiveTab] = useState<'payments' | 'notifications' | 'profile' | 'subscription' | 'appearance' | 'verification' | 'security' | 'help' | 'ebay' | 'reverb' | 'discogs' | 'website'>('payments');
   const [businessName, setBusinessName] = useState(user?.businessName || '');
@@ -918,6 +922,59 @@ const OrganizerSettingsPage = () => {
                   >
                     Manage Subscription
                   </Link>
+                )}
+              </div>
+
+              {/* Off-Platform Sales (Bring-Your-Own-Rails) -- 2026-09-06.
+                  Lives on Subscription rather than Payments: this is a FindA.Sale platform
+                  fee billed through the same non-Connect Stripe billing client that runs
+                  SIMPLE/PRO/TEAMS, not a payout/Connect setting. */}
+              <div className="card p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <h2 className="text-xl font-semibold text-warm-900 dark:text-gray-100">Off-Platform Sales</h2>
+                  <Tooltip content="Mark an item sold when a shopper pays you directly -- cash, Venmo, your own card reader -- instead of through FindA.Sale checkout." position="right" />
+                </div>
+                <p className="text-warm-600 dark:text-gray-400 mb-4">
+                  Sometimes a shopper pays you directly instead of through FindA.Sale -- cash at the sale, Venmo, your own card reader. Off-Platform Sales lets you mark that item sold in FindA.Sale anyway, so your inventory stays accurate. FindA.Sale never sees or processes that payment; instead, we bill you a separate flat fee for items marked sold this way.
+                </p>
+                <p className="text-sm text-warm-500 dark:text-gray-500 mb-4">
+                  Pricing details coming soon &mdash; we&apos;ll show the fee here before it applies to any sale.
+                </p>
+                {offPlatformUsageLoading ? (
+                  <div className="h-10 w-48 bg-warm-100 dark:bg-gray-700 rounded-lg animate-pulse" />
+                ) : offPlatformUsage.enabled ? (
+                  <div className="flex flex-wrap items-center gap-2 text-green-600 dark:text-green-400 font-semibold">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    Off-Platform Sales is on
+                    {offPlatformUsage.itemCount > 0 && (
+                      <span className="text-sm font-normal text-warm-600 dark:text-gray-400">
+                        &middot; {offPlatformUsage.itemCount} item{offPlatformUsage.itemCount !== 1 ? 's' : ''} this period
+                      </span>
+                    )}
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => offPlatformOptIn.mutate(true, {
+                      onSuccess: () => showToast('Off-Platform Sales turned on', 'success'),
+                      onError: (error: any) => showToast(error.response?.data?.message || 'Failed to turn on Off-Platform Sales', 'error'),
+                    })}
+                    disabled={offPlatformOptIn.isPending}
+                    className="bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-6 rounded-lg disabled:opacity-50"
+                  >
+                    {offPlatformOptIn.isPending ? 'Turning on...' : 'Turn On Off-Platform Sales'}
+                  </button>
+                )}
+                {!offPlatformUsageLoading && offPlatformUsage.enabled && (
+                  <div className="mt-4">
+                    <Link
+                      href="/organizer/off-platform-sales"
+                      className="text-sm font-semibold text-amber-700 dark:text-amber-400 hover:underline"
+                    >
+                      View your off-platform sales log &rarr;
+                    </Link>
+                  </div>
                 )}
               </div>
             </div>
