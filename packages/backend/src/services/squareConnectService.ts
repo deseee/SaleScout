@@ -176,8 +176,7 @@ export const decodeSquareOAuthState = (state: string): SquareOAuthState | null =
 
 /**
  * Scope list is deliberately a little broader than THIS dispatch strictly needs
- * (MERCHANT_PROFILE_READ + BANK_ACCOUNTS_READ cover onboarding/fraud-guard; ORDERS_*/
- * PAYMENTS_* are for the checkout dispatch, #1) -- Square requires re-authorization to
+ * (MERCHANT_PROFILE_READ + BANK_ACCOUNTS_READ cover onboarding/fraud-guard; ORDERS_* and PAYMENTS_* are for the checkout dispatch, #1) -- Square requires re-authorization to
  * ADD scope later, and forcing every onboarded merchant through a second OAuth grant once
  * checkout ships would be a real UX regression. Judgment call, flagged for revisit if the
  * checkout dispatch's actual scope needs differ from this guess.
