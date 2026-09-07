@@ -210,6 +210,31 @@ const SQUARE_OAUTH_SCOPES = [
   'PAYMENTS_WRITE_SHARED_ONFILE',
   'CUSTOMERS_WRITE',
   'CUSTOMERS_READ',
+  // Added 2026-09-07 (ADR-123, hub-owner-share settlement dispatch, same day as the
+  // SHARED_ONFILE addition immediately above -- same caveat applies): required so a
+  // Square CreatePayment call can carry `app_fee_allocations` naming the hub owner's
+  // OWN connected location as a second recipient alongside the platform's own cut
+  // (Square's "Distribute fees to multiple parties" mechanism -- see
+  // squareVendorBoothCartService.ts's authorizeSquareBoothCartLeg for the call site).
+  // Square's own docs: "Your application must hold the PAYMENTS_WRITE_ADDITIONAL_RECIPIENTS
+  // permission for every location in the allocations list -- not only for the seller
+  // whose payment is being taken. If any allocation's location is owned by a separate
+  // Square account, that account must grant the permission via the OAuth flow." This
+  // means BOTH the booth (seller) AND the hub owner (additional recipient) need this
+  // scope on their own OAuth grant. FLAGGED, not silently assumed safe (ADR-123 §9):
+  // whether this requires a separate Square App Marketplace review beyond the OAuth
+  // scope grant itself was NOT confirmed -- same open question already flagged for
+  // PAYMENTS_WRITE_SHARED_ONFILE above.
+  // RE-CONSENT CAVEAT: a booth or hub owner who completed Square onboarding BEFORE this
+  // scope was added will NOT have granted PAYMENTS_WRITE_ADDITIONAL_RECIPIENTS and must
+  // re-run OAuth consent before their squareLocationId is a legal allocation target --
+  // existing squareOnboarded=true rows are NOT retroactively re-scoped by this change
+  // alone (same caveat, same reason, as the SHARED_ONFILE addition immediately above).
+  // vendorBoothCartController.ts's computeLegFeeSplit SQUARE readiness gate only checks
+  // squareOnboarded/squareLocationId (the schema has no per-scope tracking column) -- it
+  // CANNOT distinguish a hub owner who onboarded pre- vs post-this-scope. This gap is
+  // flagged, not silently assumed away: see computeLegFeeSplit's own comment.
+  'PAYMENTS_WRITE_ADDITIONAL_RECIPIENTS',
 ].join(' ');
 
 export const buildSquareAuthorizeUrl = (

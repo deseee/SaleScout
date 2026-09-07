@@ -32,6 +32,10 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete }) => {
 
   // Step 3 - Stripe
   const [stripeConnected, setStripeConnected] = useState(false);
+  // Step 3 - Square (parallel processor option, additive alongside Stripe -- Patrick
+  // decided 2026-09-07 Stripe stays available, not replaced. See
+  // claude_docs/feature-notes/square-connect-ux-entry-points-and-flows-2026-09-07.md)
+  const [squareConnecting, setSquareConnecting] = useState(false);
 
   // Step 4 - Create Sale
   const [saleCreated, setSaleCreated] = useState(false);
@@ -114,6 +118,27 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete }) => {
         error.response?.data?.message || 'Failed to initiate Stripe Connect',
         'error'
       );
+    }
+  };
+
+  const handleConnectSquare = async () => {
+    setSquareConnecting(true);
+    try {
+      const response = await api.post('/square-connect/organizer/onboard');
+      if (response.data.onboardingUrl) {
+        window.location.href = response.data.onboardingUrl;
+        return;
+      }
+      if (response.data.alreadyOnboarded) {
+        showToast('Square is already connected', 'success');
+      }
+    } catch (error: any) {
+      showToast(
+        error.response?.data?.message || "We couldn't start connecting Square. Please try again.",
+        'error'
+      );
+    } finally {
+      setSquareConnecting(false);
     }
   };
 
@@ -343,7 +368,8 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete }) => {
                   Step 3: Get Paid
                 </h2>
                 <p className="text-warm-600 dark:text-warm-400">
-                  Set up payouts to receive money from your sales. You'll need a Stripe account.
+                  Set up payouts to receive money from your sales. Connect with Stripe or Square --
+                  whichever you already use, or whichever you'd rather set up.
                 </p>
               </div>
 
@@ -356,18 +382,27 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onComplete }) => {
                 </ul>
               </div>
 
-              <div className="flex gap-3 pt-4">
+              <div className="flex flex-col gap-3 pt-4">
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <button
+                    onClick={handleConnectStripe}
+                    className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition-colors"
+                  >
+                    Connect Stripe
+                  </button>
+                  <button
+                    onClick={handleConnectSquare}
+                    disabled={squareConnecting}
+                    className="flex-1 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-lg transition-colors disabled:opacity-50"
+                  >
+                    {squareConnecting ? 'Connecting…' : 'Connect Square'}
+                  </button>
+                </div>
                 <button
                   onClick={handleSkipToStep4}
-                  className="flex-1 px-4 py-2 border border-warm-300 dark:border-gray-600 text-warm-700 dark:text-warm-300 font-medium rounded-lg hover:bg-warm-50 dark:hover:bg-gray-700 transition-colors"
+                  className="px-4 py-2 border border-warm-300 dark:border-gray-600 text-warm-700 dark:text-warm-300 font-medium rounded-lg hover:bg-warm-50 dark:hover:bg-gray-700 transition-colors"
                 >
                   Skip for Now
-                </button>
-                <button
-                  onClick={handleConnectStripe}
-                  className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition-colors"
-                >
-                  Connect Stripe
                 </button>
               </div>
             </div>

@@ -23,11 +23,30 @@ interface HubOwnerStripeStatus {
   payoutsEnabled?: boolean;
 }
 
+// Square hub-owner status (GET /api/square-connect/hub-owner/status). Deliberately does NOT
+// carry needsStandardUpgrade -- that's a Stripe-account-type-migration concept (ADR-023) with
+// no Square equivalent (confirmed via direct read of squareConnectController.ts's
+// getHubOwnerSquareStatus -- its response is only these three fields, no
+// payoutsFlaggedForReview either, unlike the organizer/consignor Square status endpoints).
+interface HubOwnerSquareStatus {
+  onboarded: boolean;
+  needsAccount: boolean;
+  squareMerchantId: string | null;
+}
+
 const HubOwnerStripeOnboarding: React.FC = () => {
   const [status, setStatus] = useState<HubOwnerStripeStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Square: parallel processor option alongside Stripe above (additive, Patrick decided
+  // 2026-09-07 Stripe stays available -- not a replacement). Own status/loading/error state,
+  // independent of the Stripe banner's -- neither banner's visibility depends on the other.
+  const [squareStatus, setSquareStatus] = useState<HubOwnerSquareStatus | null>(null);
+  const [squareLoading, setSquareLoading] = useState(true);
+  const [squareStarting, setSquareStarting] = useState(false);
+  const [squareError, setSquareError] = useState<string | null>(null);
 
   const fetchStatus = async () => {
     try {
@@ -46,8 +65,26 @@ const HubOwnerStripeOnboarding: React.FC = () => {
     }
   };
 
+  const fetchSquareStatus = async () => {
+    try {
+      setSquareLoading(true);
+      setSquareError(null);
+      const response = await api.get('/square-connect/hub-owner/status');
+      setSquareStatus(response.data);
+    } catch (err: any) {
+      // 404 here just means "you don't own a hub" -- not an error worth surfacing.
+      if (err?.response?.status !== 404) {
+        setSquareError(err?.response?.data?.message || 'Failed to load Square status');
+      }
+      setSquareStatus(null);
+    } finally {
+      setSquareLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchStatus();
+    fetchSquareStatus();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -71,30 +108,79 @@ const HubOwnerStripeOnboarding: React.FC = () => {
     }
   };
 
-  if (loading || !status) return null; // no hub owned, or still loading -- render nothing
-  if (status.onboarded) return null; // fully connected -- nothing to prompt
+  const handleConnectSquare = async () => {
+    try {
+      setSquareStarting(true);
+      setSquareError(null);
+      const response = await api.post('/square-connect/hub-owner/onboard');
+      if (response.data?.onboardingUrl) {
+        window.open(response.data.onboardingUrl, '_blank');
+        setTimeout(fetchSquareStatus, 3000);
+      } else if (response.data?.alreadyOnboarded) {
+        fetchSquareStatus();
+      }
+    } catch (err: any) {
+      setSquareError(err?.response?.data?.message || "We couldn't start connecting Square. Please try again.");
+    } finally {
+      setSquareStarting(false);
+    }
+  };
+
+  // Each banner is gated purely on its OWN status -- Square's presence/absence never hides or
+  // depends on Stripe's, and vice versa. Both stay visible in parallel until each is
+  // independently connected, per Patrick's 2026-09-07 direction that Stripe is not replaced.
+  const showStripeBanner = !loading && !!status && !status.onboarded;
+  const showSquareBanner = !squareLoading && !!squareStatus && !squareStatus.onboarded;
+
+  if (!showStripeBanner && !showSquareBanner) return null;
 
   return (
-    <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4 mb-6">
-      <p className="text-amber-800 dark:text-amber-300 font-semibold mb-1">
-        Connect Stripe to receive hub owner payouts
-      </p>
-      <p className="text-amber-700 dark:text-amber-400 text-sm mb-3">
-        {status.needsStandardUpgrade && !status.needsAccount
-          ? "Your existing Stripe account needs to be upgraded before it can receive booth revenue-share or booth-fee payouts."
-          : "Booths with a revenue-share agreement can't check out until you connect Stripe to receive your cut."}
-      </p>
-      {error && (
-        <p className="text-xs text-red-600 dark:text-red-400 mb-2">{error}</p>
+    <>
+      {showStripeBanner && (
+        <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4 mb-6">
+          <p className="text-amber-800 dark:text-amber-300 font-semibold mb-1">
+            Connect Stripe to receive hub owner payouts
+          </p>
+          <p className="text-amber-700 dark:text-amber-400 text-sm mb-3">
+            {status!.needsStandardUpgrade && !status!.needsAccount
+              ? "Your existing Stripe account needs to be upgraded before it can receive booth revenue-share or booth-fee payouts."
+              : "Booths with a revenue-share agreement can't check out until you connect Stripe to receive your cut."}
+          </p>
+          {error && (
+            <p className="text-xs text-red-600 dark:text-red-400 mb-2">{error}</p>
+          )}
+          <button
+            onClick={handleConnect}
+            disabled={starting}
+            className="bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-4 rounded-lg transition-colors disabled:opacity-50"
+          >
+            {starting ? 'Starting...' : 'Connect Stripe'}
+          </button>
+        </div>
       )}
-      <button
-        onClick={handleConnect}
-        disabled={starting}
-        className="bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-4 rounded-lg transition-colors disabled:opacity-50"
-      >
-        {starting ? 'Starting...' : 'Connect Stripe'}
-      </button>
-    </div>
+
+      {showSquareBanner && (
+        <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4 mb-6">
+          <p className="text-amber-800 dark:text-amber-300 font-semibold mb-1">
+            Connect Square to receive hub owner payouts
+          </p>
+          <p className="text-amber-700 dark:text-amber-400 text-sm mb-3">
+            Booths with a revenue-share agreement can't check out until you connect Square to
+            receive your cut.
+          </p>
+          {squareError && (
+            <p className="text-xs text-red-600 dark:text-red-400 mb-2">{squareError}</p>
+          )}
+          <button
+            onClick={handleConnectSquare}
+            disabled={squareStarting}
+            className="bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-4 rounded-lg transition-colors disabled:opacity-50"
+          >
+            {squareStarting ? 'Starting...' : 'Connect Square'}
+          </button>
+        </div>
+      )}
+    </>
   );
 };
 

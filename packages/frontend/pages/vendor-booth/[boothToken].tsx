@@ -87,6 +87,26 @@ interface StripePayoutStatus {
  */
 type PayoutSetupState = 'loading' | 'notStarted' | 'incomplete' | 'ready' | 'unknown';
 
+/**
+ * Square status for this booth, from GET /vendor-booth/:id/square/status
+ * (vendorBoothController.ts getVendorBoothSquareStatus). Cache-only -- confirmed via direct
+ * read of that controller's own comment: unlike the Stripe status endpoint above, there is no
+ * live re-verify against Square on every poll. This is a parallel, additive processor option
+ * alongside Stripe (Patrick decided 2026-09-07 Stripe stays available, not replaced).
+ */
+interface SquarePayoutStatus {
+  squareAccountId: string | null;
+  squareOnboarded: boolean;
+  payoutsFlaggedForReview: boolean;
+}
+
+/**
+ * Same shape as PayoutSetupState above, but derived from the cache-only Square status --
+ * there is no live re-verify, so 'incomplete' here just means "an account exists but Square
+ * hasn't reported it as onboarded yet," not a fresh charges/payouts-enabled check.
+ */
+type SquarePayoutSetupState = 'loading' | 'notStarted' | 'incomplete' | 'ready' | 'unknown';
+
 const VendorBoothTokenPage: React.FC = () => {
   const router = useRouter();
   const { boothToken } = router.query;
@@ -107,6 +127,12 @@ const VendorBoothTokenPage: React.FC = () => {
   const [payoutCheckFailed, setPayoutCheckFailed] = useState(false);
   const [recheckingPayouts, setRecheckingPayouts] = useState(false);
   const [feeBillingFailed, setFeeBillingFailed] = useState(false);
+
+  // Square: parallel processor option alongside Stripe above (additive, Patrick decided
+  // 2026-09-07 Stripe stays available -- not a replacement).
+  const [squareStatus, setSquareStatus] = useState<SquarePayoutStatus | null>(null);
+  const [squarePayoutSetup, setSquarePayoutSetup] = useState<SquarePayoutSetupState>('loading');
+  const [squareOnboarding, setSquareOnboarding] = useState(false);
 
   // charges_enabled and payouts_enabled are NOT the same thing. A Stripe account can be
   // allowed to take card payments while Stripe still refuses to pay the money out (bank
@@ -133,6 +159,24 @@ const VendorBoothTokenPage: React.FC = () => {
       console.error('Error checking Stripe payout status:', error);
       setPayoutCheckFailed(true);
       setPayoutSetup(storedOnboarded ? 'ready' : 'notStarted');
+    }
+  };
+
+  // Cache-only -- no live re-verify against Square (see SquarePayoutStatus's comment above).
+  const deriveSquarePayoutSetup = (s: SquarePayoutStatus): SquarePayoutSetupState => {
+    if (!s.squareAccountId) return 'notStarted';
+    if (!s.squareOnboarded) return 'incomplete';
+    return 'ready';
+  };
+
+  const refreshSquareStatus = async (boothId: string) => {
+    try {
+      const response = await api.get(`/vendor-booth/${boothId}/square/status`);
+      setSquareStatus(response.data);
+      setSquarePayoutSetup(deriveSquarePayoutSetup(response.data));
+    } catch (error: any) {
+      console.error('Error checking Square payout status:', error);
+      setSquarePayoutSetup('unknown');
     }
   };
 
@@ -184,6 +228,9 @@ const VendorBoothTokenPage: React.FC = () => {
           // Not awaited on purpose: it has its own try/catch, and the payout state must
           // still resolve even if the /payouts or fee-billing calls below fail.
           refreshStripeStatus(match.id, match.stripeOnboarded);
+          // Same reasoning as above -- Square status is independent of Stripe's and must
+          // resolve on its own even if the Stripe call, /payouts, or fee-billing calls fail.
+          refreshSquareStatus(match.id);
           const payoutResponse = await api.get(`/vendor-booth/${match.id}/payouts`);
           setPayoutInfo(payoutResponse.data);
           // Own try/catch: if this fails, feeBillingStatus stays null, and null is the
@@ -203,10 +250,14 @@ const VendorBoothTokenPage: React.FC = () => {
           }
         } else {
           setPayoutSetup('unknown');
+          setSquarePayoutSetup('unknown');
         }
       } catch (error: any) {
         console.error('Error loading vendor booth details:', error);
-        if (!matchFound) setPayoutSetup('unknown');
+        if (!matchFound) {
+          setPayoutSetup('unknown');
+          setSquarePayoutSetup('unknown');
+        }
       }
     };
     loadMyBooth();
@@ -257,6 +308,43 @@ const VendorBoothTokenPage: React.FC = () => {
       console.error('Error starting onboarding:', error);
       showToast(error.response?.data?.error || 'Failed to start Stripe onboarding', 'error');
       setOnboarding(false);
+    }
+  };
+
+  const handleStartSquareOnboarding = async () => {
+    if (!myBoothId) return;
+    setSquareOnboarding(true);
+    try {
+      const response = await api.post(`/vendor-booth/${myBoothId}/square/onboard`, {});
+      // Same reuse-resolution as Stripe's linkedExistingAccount above, Square's version --
+      // see startVendorBoothSquareOnboarding's own comment (vendorBoothController.ts): if the
+      // claiming user already has a working Square identity as an Organizer, the backend
+      // copies it over directly instead of sending them through OAuth a second time.
+      if (response.data.linkedExistingAccount) {
+        showToast('Linked to your existing Square account. You can start taking payments.', 'success');
+        setSquareOnboarding(false);
+        refreshSquareStatus(myBoothId);
+        return;
+      }
+      if (response.data.alreadyOnboarded) {
+        setSquareOnboarding(false);
+        refreshSquareStatus(myBoothId);
+        return;
+      }
+      // Open in a new tab and poll for the result instead of a same-tab redirect. Square has
+      // one fixed OAuth callback URL with no per-request return_url the way Stripe's
+      // accountLinks have, and that callback's REDIRECT_TARGET map has no entry for
+      // VENDOR_BOOTH -- it falls through to "close this tab and return to your booth" copy
+      // that assumes a new tab, not this tab, left for the callback. A same-tab redirect here
+      // would strand the vendor with no way back to this exact booth page (see
+      // square-oauth-callback.tsx's own REDIRECT_TARGET map and this page's spec notes).
+      window.open(response.data.onboardingUrl, '_blank');
+      window.setTimeout(() => refreshSquareStatus(myBoothId), 3000);
+      setSquareOnboarding(false);
+    } catch (error: any) {
+      console.error('Error starting Square onboarding:', error);
+      showToast(error.response?.data?.error || "We couldn't start connecting Square. Please try again.", 'error');
+      setSquareOnboarding(false);
     }
   };
 
@@ -531,6 +619,68 @@ const VendorBoothTokenPage: React.FC = () => {
                         : payoutSetup === 'incomplete'
                         ? 'Finish Payout Setup (Stripe)'
                         : 'Set Up Payouts (Stripe)'}
+                    </button>
+                  </div>
+                )}
+
+                {/* Square payout setup -- a parallel option alongside Stripe above, not a
+                    replacement. Stripe stays fully available (Patrick decided 2026-09-07);
+                    this lets a vendor connect Square instead if they'd rather. Square's status
+                    here is cache-only (no live re-verify), so unlike Stripe's "ready" state
+                    above, there is no "Check again" button -- there is nothing new for it to
+                    check (see getVendorBoothSquareStatus's own comment). */}
+                {squarePayoutSetup === 'loading' ? (
+                  <p className="text-sm text-warm-500 dark:text-warm-400 mt-4">
+                    Checking your Square payout setup...
+                  </p>
+                ) : squarePayoutSetup === 'unknown' ? null : squarePayoutSetup === 'ready' ? (
+                  <div className="mt-4 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                    <p className="text-sm font-bold text-green-800 dark:text-green-300">
+                      Square payouts are set up
+                    </p>
+                    <p className="text-sm text-green-700 dark:text-green-400 mt-1">
+                      Card payments at your booth can go to your Square account. There is nothing
+                      else for you to do.
+                    </p>
+                    {squareStatus?.payoutsFlaggedForReview && (
+                      <div className="mt-3 rounded-lg border border-blue-200 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/20 p-3">
+                        <p className="text-xs text-blue-800 dark:text-blue-200">
+                          As a routine precaution, our team is taking a quick look at this account
+                          before payouts begin. You'll be notified as soon as that's done — no
+                          action is needed from you.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="mt-4">
+                    {squarePayoutSetup === 'incomplete' ? (
+                      <div className="mb-3 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-300 dark:border-amber-800 rounded-lg">
+                        <p className="text-sm font-bold text-amber-900 dark:text-amber-300">
+                          Your Square setup is not finished
+                        </p>
+                        <p className="text-sm text-amber-800 dark:text-amber-400 mt-1">
+                          Your Square account setup isn't fully finished on Square's side yet. You
+                          may need to complete a few more steps in Square before payouts can go
+                          through.
+                        </p>
+                      </div>
+                    ) : (
+                      <p className="text-sm text-warm-600 dark:text-warm-400 mb-3">
+                        You can also set up payouts through Square instead of Stripe. Card
+                        payments at your booth can go there once this is done.
+                      </p>
+                    )}
+                    <button
+                      onClick={handleStartSquareOnboarding}
+                      disabled={squareOnboarding || !myBoothId}
+                      className="w-full bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white font-bold py-3 px-4 rounded-lg transition-colors"
+                    >
+                      {squareOnboarding
+                        ? 'Connecting…'
+                        : squarePayoutSetup === 'incomplete'
+                        ? 'Finish Payout Setup (Square)'
+                        : 'Set Up Payouts (Square)'}
                     </button>
                   </div>
                 )}

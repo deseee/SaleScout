@@ -94,6 +94,15 @@ const OrganizerSettingsPage = () => {
   const [isSavingHours, setIsSavingHours] = useState(false);
   const [isConnectingStripe, setIsConnectingStripe] = useState(false);
   const [stripeConnected, setStripeConnected] = useState(false);
+  // Square: parallel processor option alongside Stripe (additive, Patrick decided 2026-09-07
+  // Stripe stays available -- not a replacement). See
+  // claude_docs/feature-notes/square-connect-ux-entry-points-and-flows-2026-09-07.md
+  const [isConnectingSquare, setIsConnectingSquare] = useState(false);
+  const [squareStatus, setSquareStatus] = useState<{
+    squareMerchantId: string | null;
+    squareOnboarded: boolean;
+    payoutsFlaggedForReview: boolean;
+  } | null>(null);
   const [foundingOrgBadge, setFoundingOrgBadge] = useState(false);
   const [isConnectingEbay, setIsConnectingEbay] = useState(false);
   const [syncingEbayPolicies, setSyncingEbayPolicies] = useState(false);
@@ -556,6 +565,20 @@ const OrganizerSettingsPage = () => {
       } catch (error) {
         console.error('Failed to fetch organizer data:', error);
       }
+      // Square status: own try/catch, separate endpoint from /organizers/me -- a failure here
+      // must not block the rest of the Payments tab or any other tab's data from loading.
+      try {
+        const squareRes = await api.get('/square-connect/organizer/status');
+        if (squareRes.data) {
+          setSquareStatus({
+            squareMerchantId: squareRes.data.squareMerchantId ?? null,
+            squareOnboarded: !!squareRes.data.squareOnboarded,
+            payoutsFlaggedForReview: !!squareRes.data.payoutsFlaggedForReview,
+          });
+        }
+      } catch (error) {
+        console.error('Failed to fetch Square status:', error);
+      }
     };
 
     if (user?.id) {
@@ -644,6 +667,31 @@ const OrganizerSettingsPage = () => {
       showToast(error.response?.data?.message || 'Failed to connect Stripe', 'error');
     } finally {
       setIsConnectingStripe(false);
+    }
+  };
+
+  const handleSquareConnect = async () => {
+    setIsConnectingSquare(true);
+    try {
+      const { data } = await api.post('/square-connect/organizer/onboard');
+      if (data?.onboardingUrl) {
+        window.location.href = data.onboardingUrl;
+        return;
+      }
+      if (data?.alreadyOnboarded) {
+        setSquareStatus((prev) => ({
+          squareMerchantId: data.squareMerchantId ?? prev?.squareMerchantId ?? null,
+          squareOnboarded: true,
+          payoutsFlaggedForReview: prev?.payoutsFlaggedForReview || false,
+        }));
+        showToast('Square is already connected', 'success');
+      } else {
+        showToast("We couldn't start connecting Square. Please try again.", 'error');
+      }
+    } catch (error: any) {
+      showToast(error.response?.data?.message || "We couldn't start connecting Square. Please try again.", 'error');
+    } finally {
+      setIsConnectingSquare(false);
     }
   };
 
@@ -885,6 +933,64 @@ const OrganizerSettingsPage = () => {
                 )}
               </div>
 
+              {/* Square Connect -- parallel processor option alongside Stripe above. Additive
+                  only: Stripe stays fully available (Patrick decided 2026-09-07), this is a
+                  second, equally-styled choice, not a replacement. */}
+              <div className="card p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <h2 className="text-xl font-semibold text-warm-900 dark:text-gray-100">Square Payments</h2>
+                  <Tooltip content="Connect Square to receive payouts. Your tier determines the platform fee: SIMPLE 10%, PRO/TEAMS 8%. Payouts are deposited on a weekly schedule." position="right" />
+                </div>
+                <p className="text-warm-600 dark:text-gray-400 mb-6">
+                  Connect your Square account to receive payouts from your sales -- an alternative
+                  to Stripe above. You only need one to get paid.
+                </p>
+                {squareStatus?.squareMerchantId ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-4 flex-wrap">
+                      <div className="flex items-center gap-2 text-green-600 dark:text-green-400 font-semibold">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        Square Connected
+                      </div>
+                      <a
+                        href="https://squareup.com/dashboard"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="bg-warm-100 dark:bg-gray-700 hover:bg-warm-200 dark:hover:bg-gray-600 text-warm-900 dark:text-gray-100 font-semibold py-2 px-4 rounded-lg text-sm inline-block"
+                      >
+                        Manage in Square
+                      </a>
+                    </div>
+                    {!squareStatus.squareOnboarded && (
+                      <div className="rounded-lg border border-amber-200 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 p-3">
+                        <p className="text-xs text-amber-800 dark:text-amber-200">
+                          Your Square account setup isn't fully finished on Square's side yet. You may
+                          need to complete a few more steps in Square before payouts can go through.
+                        </p>
+                      </div>
+                    )}
+                    {squareStatus.payoutsFlaggedForReview && (
+                      <div className="rounded-lg border border-blue-200 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/20 p-3">
+                        <p className="text-xs text-blue-800 dark:text-blue-200">
+                          As a routine precaution, our team is taking a quick look at this account
+                          before payouts begin. You'll be notified as soon as that's done — no action
+                          is needed from you.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <button
+                    onClick={handleSquareConnect}
+                    disabled={isConnectingSquare}
+                    className="bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-6 rounded-lg disabled:opacity-50"
+                  >
+                    {isConnectingSquare ? 'Connecting…' : 'Connect Square'}
+                  </button>
+                )}
+              </div>
 
             </div>
           )}

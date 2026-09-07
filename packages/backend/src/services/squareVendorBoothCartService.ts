@@ -52,23 +52,24 @@ import { refreshSquareAccessToken } from './squareConnectService'; // no circula
  * platform move money from one connected merchant's account to a DIFFERENT connected
  * merchant's account, mirroring Stripe's `transfers.create({ destination })`):
  * ============================================================================
- * NO. Confirmed via Square's own docs (Collect Application Fees guide,
- * developer.squareup.com/docs/payments-api/take-payments-and-collect-fees) and the Payouts
- * API (developer.squareup.com/docs/payouts-api/overview): `app_fee_money` lets the PLATFORM
- * take its OWN cut from a payment processed on a connected merchant's account, and a Payout
- * only ever moves a merchant's OWN balance to THEIR OWN linked bank account -- there is no
- * Square primitive for the platform to redirect a slice of Merchant A's payment to Merchant
- * B's account. This is a real architectural gap versus Stripe's Connect Transfers, not a
- * missing scope or an unresearched corner. Consequence: `transferHubOwnerShareForLeg` in
- * vendorBoothCartController.ts (edited by this dispatch) NO-OPS for SQUARE legs -- the hub
- * owner's computed share (BoothCartLeg.hubOwnerShareAmount, already persisted identically to
- * the Stripe path) is NEVER auto-transferred for a Square leg. It sits as an accrued-but-
- * unsettled amount for a FUTURE settlement-sweep mechanism (querying captured SQUARE legs'
- * hubOwnerShareAmount into VendorBoothPayout/VendorBoothSettlementBatch, the existing manual
- * settlement system -- this dispatch added VendorBoothPayout.processor/squareTransferId as
- * additive schema so that future mechanism has somewhere to record the result, but does NOT
- * build the sweep itself -- explicitly flagged, not silently dropped, see this dispatch's
- * handoff item 6).
+ * NO live Transfer-between-merchants primitive exists (confirmed via Square's own Payouts
+ * API docs: a Payout only ever moves a merchant's OWN balance to THEIR OWN linked bank
+ * account). BUT this is now RESOLVED, not an open gap -- see ADR-123
+ * (claude_docs/architecture/ADR-123-square-hub-owner-share-settlement-app-fee-allocations.md),
+ * implemented same day as this comment was updated. Square's `app_fee_allocations` field
+ * (Collect Application Fees guide, "Distribute fees to multiple parties" section) lets a
+ * SINGLE CreatePayment call route part of the application fee to the platform's own
+ * location AND part to a SEPARATE, independently-connected merchant's own location, up to
+ * 3 parties total (seller + 2 allocation recipients) -- this is the real, current (2026)
+ * Square equivalent of Stripe's Transfer, just at charge time instead of post-capture.
+ * `authorizeSquareBoothCartLeg` below now branches to `appFeeAllocations` whenever a
+ * nonzero hub-owner share applies (see `resolveSquareAppFeeParams`), so the hub owner's
+ * cut lands in their own Square account atomically with the booth's own charge --
+ * `transferHubOwnerShareForLeg` in vendorBoothCartController.ts no longer has anything to
+ * do for a newly-authorized SQUARE leg (its SQUARE branch is now legacy/fallback-only, see
+ * that function's own comment and ADR-123 §3.3 for the narrow bounded cases that can still
+ * leave a leg unsettled: legs captured before this shipped, or a rare authorize-time
+ * allocation failure).
  */
 
 export class SquareBoothOnboardingIncompleteError extends Error {
@@ -194,12 +195,22 @@ export interface SquareBoothLegAuthorizeParams {
   vendorBoothId: string;
   hubId: string;
   squareLocationId?: string | null;
+  // ADR-123: portion of appFeeCents owed to the hub owner via app_fee_allocations, and
+  // the hub owner's own connected Square location to allocate it to. Both undefined/0/
+  // null on the common no-revenue-share leg (unchanged behavior from before this ADR).
+  hubOwnerShareCents?: number;
+  hubOwnerSquareLocationId?: string | null;
 }
 
 export interface SquareBoothLegAuthorizeSuccess {
   ok: true;
   paymentId: string;
   status: string;
+  // ADR-123: true when this payment's app fee was split via appFeeAllocations (i.e. a
+  // hub-owner share was allocated in this SAME CreatePayment call) -- the caller uses
+  // this to set BoothCartLeg.hubOwnerShareSettledAt at authorize time instead of relying
+  // on the (now Square-unreachable) post-capture transferHubOwnerShareForLeg path.
+  hubOwnerShareSettledViaAllocation: boolean;
 }
 export interface SquareBoothLegAuthorizeFailure {
   ok: false;
@@ -209,6 +220,72 @@ export interface SquareBoothLegAuthorizeFailure {
 export type SquareBoothLegAuthorizeResult = SquareBoothLegAuthorizeSuccess | SquareBoothLegAuthorizeFailure;
 
 const DECLINE_MESSAGE = 'Your card was declined. Please check your card details or try a different card.';
+
+/**
+ * ADR-123 §5 item 2 (Architect's recommendation): a plain env var read, not a live
+ * client.locations.list() call on every authorize -- the platform's own Square location
+ * essentially never changes, so paying a live-API-call cost on every booth-cart leg
+ * authorize would be waste for no real benefit. Patrick sets this once, read from the
+ * Square Developer Console's own Locations page for FindA.Sale's platform application.
+ */
+function getPlatformSquareLocationId(): string {
+  const locationId = process.env.SQUARE_PLATFORM_LOCATION_ID;
+  if (!locationId) {
+    throw new Error(
+      '[squareVendorBoothCartService] SQUARE_PLATFORM_LOCATION_ID is not set. Patrick must look up ' +
+        "FindA.Sale's platform Square location id (Developer Console -> Locations) and set it as an " +
+        'env var on the Railway backend service before any hub-owner-revenue-share Square leg can ' +
+        'authorize (ADR-123).'
+    );
+  }
+  return locationId;
+}
+
+/**
+ * ADR-123 §3.1: builds the appFeeMoney/appFeeAllocations branch of a booth-cart leg's
+ * CreatePayment call. Single-recipient appFeeMoney is used when no hub-owner share
+ * applies (hubOwnerShareCents undefined/0 -- the common no-split case, unchanged from
+ * before this ADR). appFeeAllocations is used when a hub-owner share IS owed, splitting
+ * the SAME total appFeeCents between the platform's own location and the hub owner's own
+ * connected Square location, in the SAME CreatePayment call -- this is what makes the
+ * payment land in the hub owner's account atomically with the booth's own charge (see
+ * this file's header comment for the full researched rationale).
+ *
+ * Throws (rather than silently falling back to appFeeMoney and dropping the hub owner's
+ * cut) if hubOwnerShareCents > 0 but no hubOwnerSquareLocationId was provided --
+ * vendorBoothCartController.ts's computeLegFeeSplit SQUARE readiness gate (ADR-123 §3.2)
+ * already blocks checkout before this function should ever be reached in that state, so
+ * this is a programmer/config-error guard, not a normal runtime condition. Per ADR-123
+ * §3.3 #2: an authorize-time allocation failure should fail the WHOLE leg, never silently
+ * downgrade to a booth-only charge with an unpaid hub-owner accrual.
+ */
+function resolveSquareAppFeeParams(params: {
+  appFeeCents: number;
+  hubOwnerShareCents?: number;
+  hubOwnerSquareLocationId?: string | null;
+}):
+  | { appFeeMoney: ReturnType<typeof toSquareMoney> }
+  | { appFeeAllocations: Array<{ locationId: string; amountMoney: ReturnType<typeof toSquareMoney> }> } {
+  const hubOwnerShareCents = params.hubOwnerShareCents ?? 0;
+  if (hubOwnerShareCents <= 0) {
+    return { appFeeMoney: toSquareMoney(params.appFeeCents) };
+  }
+  if (!params.hubOwnerSquareLocationId) {
+    throw new Error(
+      '[squareVendorBoothCartService] resolveSquareAppFeeParams: hubOwnerShareCents > 0 but no ' +
+        "hubOwnerSquareLocationId was provided -- this should be unreachable (computeLegFeeSplit's " +
+        'SQUARE readiness gate should have blocked checkout first). Failing the leg rather than ' +
+        "silently dropping the hub owner's cut (ADR-123 \u00a73.3)."
+    );
+  }
+  const platformFeeCents = params.appFeeCents - hubOwnerShareCents;
+  return {
+    appFeeAllocations: [
+      { locationId: getPlatformSquareLocationId(), amountMoney: toSquareMoney(platformFeeCents) },
+      { locationId: params.hubOwnerSquareLocationId, amountMoney: toSquareMoney(hubOwnerShareCents) },
+    ],
+  };
+}
 
 /**
  * Step 3+4 of the Shared Card on File walkthrough, per booth: create (or find) a Customer
@@ -247,7 +324,7 @@ export async function authorizeSquareBoothCartLeg(
       sourceId: params.sharedCardId,
       customerId: boothCustomerId,
       amountMoney: toSquareMoney(params.amountCents),
-      ...(params.appFeeCents > 0 ? { appFeeMoney: toSquareMoney(params.appFeeCents) } : {}),
+      ...(params.appFeeCents > 0 ? resolveSquareAppFeeParams(params) : {}),
       ...(params.squareLocationId ? { locationId: params.squareLocationId } : {}),
       // Delayed capture -- see squarePosPaymentAdapter.ts's file-header for the researched
       // hold-window rationale this dispatch reuses unchanged (7-day card-not-present window).
@@ -259,7 +336,12 @@ export async function authorizeSquareBoothCartLeg(
     if (!payment?.id) {
       return { ok: false, code: 'NO_PAYMENT_IN_RESPONSE', message: DECLINE_MESSAGE };
     }
-    return { ok: true, paymentId: payment.id, status: payment.status ?? 'UNKNOWN' };
+    return {
+      ok: true,
+      paymentId: payment.id,
+      status: payment.status ?? 'UNKNOWN',
+      hubOwnerShareSettledViaAllocation: (params.hubOwnerShareCents ?? 0) > 0,
+    };
   } catch (err) {
     if (err instanceof SquareError) {
       const first = (err as any).errors?.[0];
@@ -294,10 +376,19 @@ export async function cancelSquareBoothCartLeg(boothAccessToken: string, payment
  * Refunds a captured booth-cart leg's Square payment, scoped to the BOOTH's own access
  * token (not the organizer's -- a booth-cart leg's merchant of record is the booth's own
  * connected account, same Direct-charge-equivalent model the Stripe path already uses).
- * Deliberately does NOT attempt any hub-owner-share reversal -- see this file's header
- * comment: Square has no Transfer-between-merchants primitive, so no live Transfer was ever
- * made for a Square leg's hub-owner share in the first place, meaning there is nothing to
- * reverse here (unlike the Stripe path's settleHubOwnerReversalForLeg call).
+ *
+ * ADR-123 §3.1/§5 item 4: for a leg whose payment used `appFeeAllocations` (a hub-owner
+ * share was allocated at authorize time), this deliberately does NOT pass its own
+ * `app_fee_allocations` on the refund. Square's Refund API is natively allocation-aware
+ * and defaults to a PROPORTIONAL refund across the original payment's allocation set when
+ * the refund omits its own -- Architect's explicit recommendation (not left undecided):
+ * simpler than computing an exact custom split, matches what the Stripe path's
+ * settleHubOwnerReversalForLeg effectively also does today (best-effort proportional
+ * clawback via the owed/done cents watermark), and needs zero new state here. This
+ * replaces the ENTIRE hubOwnerReversalOwedCents/hubOwnerReversalDoneCents race-closing
+ * mechanism the Stripe path needs (§1) -- there is no analogous race to close for Square,
+ * because there is no separate async Transfer step for a refund to race against; the
+ * allocation-aware refund is a single atomic Square operation.
  */
 export async function refundVendorBoothSquarePayment(
   boothAccessToken: string,

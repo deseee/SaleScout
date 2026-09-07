@@ -91,11 +91,20 @@ const CART_NOT_YOURS_ERROR = 'This cart belongs to another cashier';
 async function computeLegFeeSplit(params: {
   amountCents: number;
   revenueSharePercent: number;
+  // ADR-123 §3.2: which processor this leg charges on, so the readiness gate below
+  // checks the RIGHT onboarding status. Defaults to 'STRIPE' so every call site that
+  // predates this ADR (and never set this) keeps its exact existing behavior unchanged.
+  processor?: 'STRIPE' | 'SQUARE';
   hubOwnerOrganizer: {
     subscriptionTier: string | null;
     stripeConnectId: string | null;
     stripeOnboarded: boolean;
     stripeAccountType: string | null;
+    // ADR-123 §3.2: only read when processor === 'SQUARE'. Optional (not required on
+    // every caller's select) so pre-ADR-123 call sites that only ever charge Stripe
+    // don't need a schema-unrelated field just to satisfy this type.
+    squareOnboarded?: boolean;
+    squareLocationId?: string | null;
   } | null;
   // CASH ONLY (2026-07-31). A cash leg never touches Stripe at all -- not the booth's
   // own connected account (no PaymentIntent is ever created for it) and not the hub
@@ -111,7 +120,7 @@ async function computeLegFeeSplit(params: {
   | { blocked: false; applicationFeeAmountCents: number; hubOwnerShareCents: number }
   | { blocked: true; reason: string }
 > {
-  const { amountCents, revenueSharePercent, hubOwnerOrganizer, skipReadinessGate } = params;
+  const { amountCents, revenueSharePercent, hubOwnerOrganizer, skipReadinessGate, processor } = params;
   // as any: mirrors the existing cast terminalController.ts already uses at this
   // exact call site (Prisma's generated SubscriptionTier enum vs. feeCalculator.ts's
   // plain string-literal-union SubscriptionTier type are structurally distinct types).
@@ -125,17 +134,36 @@ async function computeLegFeeSplit(params: {
   }
 
   if (!skipReadinessGate) {
+    // ADR-123 §3.2: symmetric SQUARE branch, mirrors the Stripe gate exactly (same
+    // function, new branch) -- a hub owner who has never completed Square onboarding
+    // cannot have a Square-rail sale with a revenue-share cut happen in their hub at all,
+    // exactly the same guarantee the Stripe path already gives.
+    //
+    // KNOWN GAP, flagged not silently assumed away (ADR-123 §5 item 1 / §9): squareOnboarded
+    // is a single cached boolean with no per-scope tracking column. A hub owner who
+    // completed Square onboarding BEFORE the PAYMENTS_WRITE_ADDITIONAL_RECIPIENTS scope was
+    // added (squareConnectService.ts SQUARE_OAUTH_SCOPES) will still read squareOnboarded ===
+    // true here even though their existing OAuth grant does NOT include that scope --
+    // Square would reject the allocation at authorize time (see resolveSquareAppFeeParams /
+    // ADR-123 §3.3's "fail the whole leg" behavior for what happens then), not this gate.
+    // The ADR does not specify a way to distinguish pre- vs post-scope onboarding from
+    // existing schema alone; this is flagged here and in this dispatch's Handoff Contract
+    // rather than guessed at.
     const hubOwnerReady =
-      !!hubOwnerOrganizer &&
-      hubOwnerOrganizer.stripeAccountType === 'standard' &&
-      hubOwnerOrganizer.stripeOnboarded &&
-      !!hubOwnerOrganizer.stripeConnectId;
+      processor === 'SQUARE'
+        ? !!hubOwnerOrganizer && !!hubOwnerOrganizer.squareOnboarded && !!hubOwnerOrganizer.squareLocationId
+        : !!hubOwnerOrganizer &&
+          hubOwnerOrganizer.stripeAccountType === 'standard' &&
+          hubOwnerOrganizer.stripeOnboarded &&
+          !!hubOwnerOrganizer.stripeConnectId;
 
     if (!hubOwnerReady) {
       return {
         blocked: true,
         reason:
-          "This hub's owner has not completed Stripe onboarding yet. Checkout is unavailable for booths with a revenue-share agreement until they do.",
+          processor === 'SQUARE'
+            ? "This hub's owner has not completed Square onboarding yet. Checkout is unavailable for booths with a revenue-share agreement until they do."
+            : "This hub's owner has not completed Stripe onboarding yet. Checkout is unavailable for booths with a revenue-share agreement until they do.",
       };
     }
   }
@@ -175,23 +203,29 @@ export async function transferHubOwnerShareForLeg(legId: string): Promise<void> 
   // than merely true-by-convention if a future caller (reconciliation script, new feature)
   // ever passes a cash leg's id here.
   if (leg.rail === 'CASH') return;
-  // Square migration, vendor-booth-cart-checkout dispatch (2026-09-07): RESEARCHED, not
-  // guessed -- Square has NO platform-initiated Transfer-between-connected-merchants
-  // primitive (confirmed via Square's own Collect Application Fees + Payouts API docs, see
-  // squareVendorBoothCartService.ts's file-header comment for the full evidence trail).
-  // app_fee_money already took the platform's own cut (including the hub-owner's share) at
-  // authorize time -- it just cannot be REDIRECTED to the hub owner's own separate Square
-  // account the way a Stripe Transfer can. The owed amount stays in
-  // leg.hubOwnerShareAmount (already persisted identically to the Stripe path) for a FUTURE
-  // settlement-sweep mechanism to pick up (VendorBoothPayout.processor/squareTransferId were
-  // added as additive schema by this dispatch for exactly that future mechanism) -- NOT
-  // built this dispatch, explicitly flagged rather than silently dropped. No Stripe API call
-  // is ever reachable for a SQUARE leg past this point.
+  // ADR-123 (2026-09-07, hub-owner-share settlement dispatch) SUPERSEDES the note this
+  // comment used to carry: as of this dispatch, a NEW SQUARE leg's hub-owner share is
+  // settled REAL-TIME via app_fee_allocations at authorize time (see
+  // authorizeBoothCartSquareLegs -> authorizeSquareBoothCartLeg's resolveSquareAppFeeParams
+  // in squareVendorBoothCartService.ts, and BoothCartLeg.hubOwnerShareSettledAt, set the
+  // moment that allocation succeeds). This function is called post-CAPTURE, so for any
+  // newly-authorized SQUARE leg it is now UNREACHABLE with real work to do -- the guard
+  // below still exists (Square genuinely has no merchant-to-merchant Transfer primitive, so
+  // a `stripe().transfers.create` call must never be reachable for a SQUARE leg) but only
+  // matters for ADR-123 §3.3's narrow, bounded fallback bucket: a leg captured BEFORE this
+  // ADR shipped (hubOwnerShareAmount set, hubOwnerShareSettledAt null, no allocation was
+  // ever made) or the rare case where an authorize-time allocation failed and the whole leg
+  // authorization was correctly failed instead of silently downgrading to a booth-only
+  // charge. Those bounded cases are resolved manually via the HubOwnerShareManualPayout
+  // flow (vendorBoothSettlementController.ts's recordHubOwnerShareManualPayout), reconciled
+  // via the query documented on BoothCartLeg.hubOwnerShareSettledAt in schema.prisma -- NOT
+  // by a recurring cron/sweep (ADR-123 §3.3 explicitly rejects a periodic sweep).
   if (leg.processor === 'SQUARE') {
     console.log(
       `[transferHubOwnerShareForLeg] Leg ${legId} is a SQUARE leg with hubOwnerShareAmount=${leg.hubOwnerShareAmount} -- ` +
-        'no live Transfer attempted (Square has no merchant-to-merchant Transfer primitive). ' +
-        'Amount remains accrued/unsettled pending a future settlement-sweep mechanism (not yet built).'
+        'no live Transfer attempted (Square has no merchant-to-merchant Transfer primitive). If this leg ' +
+        'predates ADR-123 or its authorize-time allocation failed, it falls into the bounded manual-payout ' +
+        'reconciliation bucket (ADR-123 §3.3/§4) rather than being auto-settled here.'
     );
     return;
   }
@@ -986,7 +1020,7 @@ export const authorizeBoothCartTerminalLeg = async (req: BoothAuthRequest, res: 
 
     const booth = await prisma.vendorBooth.findFirst({
       where: { id: vendorBoothId, hubId },
-      include: { hub: { select: { organizer: { select: { subscriptionTier: true, stripeConnectId: true, stripeOnboarded: true, stripeAccountType: true } } } } },
+      include: { hub: { select: { organizer: { select: { subscriptionTier: true, stripeConnectId: true, stripeOnboarded: true, stripeAccountType: true, squareOnboarded: true, squareLocationId: true } } } } },
     });
     if (!booth) return res.status(404).json({ error: 'Booth not found' });
 
@@ -1046,6 +1080,7 @@ export const authorizeBoothCartTerminalLeg = async (req: BoothAuthRequest, res: 
     const feeSplit = await computeLegFeeSplit({
       amountCents,
       revenueSharePercent: booth.revenueSharePercent,
+      processor: 'STRIPE',
       hubOwnerOrganizer: booth.hub.organizer,
     });
     if (feeSplit.blocked) {
@@ -1267,7 +1302,7 @@ export const authorizeBoothCartQrLegs = async (req: BoothAuthRequest, res: Respo
 
     const booths = await prisma.vendorBooth.findMany({
       where: { id: { in: cart.boothsRepresented } },
-      include: { hub: { select: { organizer: { select: { subscriptionTier: true, stripeConnectId: true, stripeOnboarded: true, stripeAccountType: true } } } } },
+      include: { hub: { select: { organizer: { select: { subscriptionTier: true, stripeConnectId: true, stripeOnboarded: true, stripeAccountType: true, squareOnboarded: true, squareLocationId: true } } } } },
     });
     const alreadyLegged = await prisma.boothCartLeg.findMany({
       where: { cartTransactionId: cart.id, status: { in: ['PENDING', 'REQUIRES_CAPTURE', 'CAPTURED'] } },
@@ -1337,6 +1372,7 @@ export const authorizeBoothCartQrLegs = async (req: BoothAuthRequest, res: Respo
       const feeSplit = await computeLegFeeSplit({
         amountCents,
         revenueSharePercent: booth.revenueSharePercent,
+        processor: 'STRIPE',
         hubOwnerOrganizer: booth.hub.organizer,
       });
       if (feeSplit.blocked) {
@@ -1572,7 +1608,7 @@ export const authorizeBoothCartSquareLegs = async (req: BoothAuthRequest, res: R
 
     const booths = await prisma.vendorBooth.findMany({
       where: { id: { in: cart.boothsRepresented } },
-      include: { hub: { select: { organizer: { select: { subscriptionTier: true, stripeConnectId: true, stripeOnboarded: true, stripeAccountType: true } } } } },
+      include: { hub: { select: { organizer: { select: { subscriptionTier: true, stripeConnectId: true, stripeOnboarded: true, stripeAccountType: true, squareOnboarded: true, squareLocationId: true } } } } },
     });
     const alreadyLegged = await prisma.boothCartLeg.findMany({
       where: { cartTransactionId: cart.id, status: { in: ['PENDING', 'REQUIRES_CAPTURE', 'CAPTURED'] } },
@@ -1624,16 +1660,17 @@ export const authorizeBoothCartSquareLegs = async (req: BoothAuthRequest, res: R
         break;
       }
 
-      // ADR-090 Phase 2 fee split -- reused unchanged (processor-agnostic math, only the
-      // downstream charge mechanism differs between Stripe and Square). skipReadinessGate
-      // stays false: a Square leg with a revenue-share owed still needs the hub owner
-      // onboarded (Stripe today, since transferHubOwnerShareForLeg no-ops for Square legs --
-      // the amount only ever gets PAID via the same manual settlement system either way, so
-      // gating on Stripe onboarding here is deliberately unchanged from the existing rail's
-      // behavior, not a new requirement invented for Square).
+      // ADR-123 §3.2: SQUARE readiness gate now checks the hub owner's OWN Square
+      // onboarding status (squareOnboarded/squareLocationId), not Stripe's -- a Square-rail
+      // sale with a revenue share owed is blocked here until the hub owner has their own
+      // Square account connected, exactly mirroring the Stripe gate's guarantee. Once
+      // gated, the actual settlement is now REAL-TIME (app_fee_allocations at authorize
+      // time, see authorizeSquareBoothCartLeg below) -- superseding the older comment here
+      // that said this only fed a future manual settlement system.
       const feeSplit = await computeLegFeeSplit({
         amountCents,
         revenueSharePercent: booth.revenueSharePercent,
+        processor: 'SQUARE',
         hubOwnerOrganizer: booth.hub.organizer,
       });
       if (feeSplit.blocked) {
@@ -1679,6 +1716,14 @@ export const authorizeBoothCartSquareLegs = async (req: BoothAuthRequest, res: R
         // is optional and Square's CreatePayment falls back to the merchant's default location
         // when omitted, so this is correctly left unset rather than reading a nonexistent field.
         squareLocationId: null,
+        // ADR-123 §3.1: when this leg owes the hub owner a revenue-share cut, route it via
+        // app_fee_allocations to the hub owner's OWN connected Square location (already
+        // confirmed present + onboarded by computeLegFeeSplit's SQUARE readiness gate above
+        // -- this should never be null here when hubOwnerShareCents > 0, and
+        // resolveSquareAppFeeParams throws loudly rather than silently dropping the cut if it
+        // somehow is).
+        hubOwnerShareCents: feeSplit.hubOwnerShareCents,
+        hubOwnerSquareLocationId: booth.hub.organizer.squareLocationId,
       });
 
       if (!authResult.ok) {
@@ -1689,11 +1734,19 @@ export const authorizeBoothCartSquareLegs = async (req: BoothAuthRequest, res: R
         break;
       }
 
+      // ADR-123 §4/§5 item 4: hubOwnerShareSettledAt records "this leg's hub-owner share
+      // was already paid, atomically, as part of this SAME Square payment" -- the Square-path
+      // sibling of the Stripe path's real stripeTransferId, but recording a FACT rather than a
+      // separate transfer object's id (there is no separate transfer id for Square's real-time
+      // allocation path). Only set when the payment actually carried an allocation
+      // (hubOwnerShareSettledViaAllocation) -- a leg with no revenue share owed correctly
+      // stays null here, same as it stays null on hubOwnerShareAmount.
       const leg = await prisma.boothCartLeg.update({
         where: { id: claimedLeg.id },
         data: {
           squarePaymentId: authResult.paymentId,
           status: authResult.status === 'APPROVED' ? 'REQUIRES_CAPTURE' : 'PENDING',
+          hubOwnerShareSettledAt: authResult.hubOwnerShareSettledViaAllocation ? new Date() : null,
         },
       });
       createdLegs.push({ legId: leg.id, vendorBoothId: booth.id, squareAccessToken: boothAccessToken, squarePaymentId: authResult.paymentId });
@@ -2183,7 +2236,7 @@ export const captureBoothCartCash = async (req: BoothAuthRequest, res: Response)
 
     const booths = await prisma.vendorBooth.findMany({
       where: { id: { in: cart.boothsRepresented } },
-      include: { hub: { select: { organizer: { select: { subscriptionTier: true, stripeConnectId: true, stripeOnboarded: true, stripeAccountType: true } } } } },
+      include: { hub: { select: { organizer: { select: { subscriptionTier: true, stripeConnectId: true, stripeOnboarded: true, stripeAccountType: true, squareOnboarded: true, squareLocationId: true } } } } },
     });
 
     // Resolve every represented booth's items + amount BEFORE validating the cash
@@ -2221,6 +2274,7 @@ export const captureBoothCartCash = async (req: BoothAuthRequest, res: Response)
       const feeSplit = await computeLegFeeSplit({
         amountCents,
         revenueSharePercent: booth.revenueSharePercent,
+        processor: 'STRIPE', // irrelevant here (skipReadinessGate below), set for consistency/clarity only
         hubOwnerOrganizer: booth.hub.organizer,
         skipReadinessGate: true,
       });

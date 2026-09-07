@@ -24,6 +24,15 @@ const ACHPayoutsPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const { consignorId, success, refresh } = router.query;
 
+  // Square: parallel processor option alongside Stripe (additive, Patrick decided 2026-09-07
+  // Stripe stays available -- not a replacement). Keyed by consignorId since this page lists
+  // many consignors at once. See
+  // claude_docs/feature-notes/square-connect-ux-entry-points-and-flows-2026-09-07.md
+  const [squareStatuses, setSquareStatuses] = useState<
+    Record<string, { squareAccountId: string | null; squareOnboarded: boolean; payoutsFlaggedForReview: boolean }>
+  >({});
+  const [squareInviting, setSquareInviting] = useState<Record<string, boolean>>({});
+
   useEffect(() => {
     // If returning from Stripe, update that consignor's status
     if (consignorId && (success || refresh)) {
@@ -33,6 +42,37 @@ const ACHPayoutsPage: React.FC = () => {
     // Load all consignors for workspace
     loadConsignors();
   }, []);
+
+  // Square's OAuth callback is a single fixed URL with no return-to-origin mechanism for this
+  // page (see square-oauth-callback.tsx's REDIRECT_TARGET map), so this page can't rely on a
+  // same-tab redirect back here the way handleReturnFromStripe above does. Instead, fetch every
+  // listed consignor's Square status directly whenever the consignor list changes -- this both
+  // seeds the initial badges and re-syncs after the poll in handleInviteToSquare fires.
+  useEffect(() => {
+    consignors.forEach((c) => {
+      void refreshSquareStatus(c.consignorId);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [consignors]);
+
+  const refreshSquareStatus = async (cId: string) => {
+    try {
+      const response = await fetch(`/api/square-connect/consignor/${cId}/status`);
+      if (!response.ok) return;
+      const data = await response.json();
+      setSquareStatuses((prev) => ({
+        ...prev,
+        [cId]: {
+          squareAccountId: data.squareAccountId ?? null,
+          squareOnboarded: !!data.squareOnboarded,
+          payoutsFlaggedForReview: !!data.payoutsFlaggedForReview,
+        },
+      }));
+    } catch (err) {
+      // Best-effort -- the badge just won't update until the next successful poll or reload.
+      console.error('Error checking consignor Square status:', err);
+    }
+  };
 
   const handleReturnFromStripe = async (cId: string) => {
     try {
@@ -79,6 +119,41 @@ const ACHPayoutsPage: React.FC = () => {
     }
   };
 
+  const handleInviteToSquare = async (cId: string) => {
+    setSquareInviting((prev) => ({ ...prev, [cId]: true }));
+    try {
+      const response = await fetch(`/api/square-connect/consignor/${cId}/onboard`, {
+        method: 'POST',
+      });
+      if (!response.ok) throw new Error('Failed to generate Square onboarding link');
+      const data = await response.json();
+
+      if (data.alreadyOnboarded) {
+        setSquareStatuses((prev) => ({
+          ...prev,
+          [cId]: {
+            squareAccountId: data.squareAccountId ?? prev[cId]?.squareAccountId ?? null,
+            squareOnboarded: true,
+            payoutsFlaggedForReview: prev[cId]?.payoutsFlaggedForReview || false,
+          },
+        }));
+        return;
+      }
+
+      if (data.onboardingUrl) {
+        // Open in a new tab and poll for the result -- Square has one fixed OAuth redirect URL
+        // (unlike Stripe's per-request return_url), so this tab can't wait for a same-tab
+        // redirect back. Same pattern as HubOwnerStripeOnboarding.tsx's Square-equivalent poll.
+        window.open(data.onboardingUrl, '_blank');
+        window.setTimeout(() => refreshSquareStatus(cId), 3000);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to invite consignor to Square');
+    } finally {
+      setSquareInviting((prev) => ({ ...prev, [cId]: false }));
+    }
+  };
+
   // Show loading state while tier is being determined
   if (tierLoading) {
     return (
@@ -98,7 +173,7 @@ const ACHPayoutsPage: React.FC = () => {
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4">
           <div className="max-w-2xl mx-auto">
             <div className="mb-8">
-              <Link href="/organizer/settlement">
+              <Link href="/organizer/payouts">
                 <a className="text-blue-600 hover:text-blue-700 text-sm mb-4 inline-block">
                   ← Back to Settlement Hub
                 </a>
@@ -141,7 +216,7 @@ const ACHPayoutsPage: React.FC = () => {
         <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="mb-8">
-            <Link href="/organizer/settlement">
+            <Link href="/organizer/payouts">
               <a className="text-blue-600 hover:text-blue-700 text-sm mb-4 inline-block">
                 ← Back to Settlement Hub
               </a>
@@ -170,7 +245,7 @@ const ACHPayoutsPage: React.FC = () => {
           {consignors.length === 0 ? (
             <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-12 text-center">
               <p className="text-gray-600 dark:text-gray-400 mb-4">No consignors yet.</p>
-              <Link href="/organizer/settlement">
+              <Link href="/organizer/payouts">
                 <a className="text-blue-600 hover:text-blue-700">Go to Settlement Hub</a>
               </Link>
             </div>
@@ -179,34 +254,72 @@ const ACHPayoutsPage: React.FC = () => {
               {consignors.map((consignor) => (
                 <div
                   key={consignor.consignorId}
-                  className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 flex items-center justify-between"
+                  className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 flex flex-col sm:flex-row sm:items-start justify-between gap-4"
                 >
                   <div>
                     <h3 className="font-semibold text-gray-900 dark:text-gray-100">{consignor.name}</h3>
                     {consignor.email && (
                       <p className="text-sm text-gray-600 dark:text-gray-400">{consignor.email}</p>
                     )}
-                    <div className="mt-2">
+                    <div className="mt-2 flex flex-wrap gap-2">
                       {consignor.stripeOnboarded ? (
                         <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                          ✓ Ready to Receive Payouts
+                          ✓ Ready to Receive Payouts (Stripe)
                         </span>
                       ) : (
                         <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
-                          ⚠ Pending Onboarding
+                          ⚠ Pending Onboarding (Stripe)
                         </span>
                       )}
+                      {squareStatuses[consignor.consignorId]?.squareOnboarded ? (
+                        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                          ✓ Ready to Receive Payouts (Square)
+                        </span>
+                      ) : squareStatuses[consignor.consignorId]?.squareAccountId ? (
+                        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
+                          ⚠ Pending Onboarding (Square)
+                        </span>
+                      ) : null}
                     </div>
+                    {squareStatuses[consignor.consignorId]?.squareAccountId &&
+                      !squareStatuses[consignor.consignorId]?.squareOnboarded && (
+                        <div className="mt-2 rounded-lg border border-amber-200 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 p-3 max-w-md">
+                          <p className="text-xs text-amber-800 dark:text-amber-200">
+                            Their Square account setup isn't fully finished on Square's side yet. They
+                            may need to complete a few more steps in Square before payouts can go
+                            through.
+                          </p>
+                        </div>
+                      )}
+                    {squareStatuses[consignor.consignorId]?.payoutsFlaggedForReview && (
+                      <div className="mt-2 rounded-lg border border-blue-200 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/20 p-3 max-w-md">
+                        <p className="text-xs text-blue-800 dark:text-blue-200">
+                          As a routine precaution, our team is taking a quick look at this account
+                          before payouts begin. No action is needed.
+                        </p>
+                      </div>
+                    )}
                   </div>
 
-                  {!consignor.stripeOnboarded && (
-                    <button
-                      onClick={() => handleInviteToACH(consignor.consignorId)}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-                    >
-                      Set Up Payouts
-                    </button>
-                  )}
+                  <div className="flex flex-col sm:flex-row gap-2 shrink-0">
+                    {!consignor.stripeOnboarded && (
+                      <button
+                        onClick={() => handleInviteToACH(consignor.consignorId)}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                      >
+                        Set Up Payouts (Stripe)
+                      </button>
+                    )}
+                    {!squareStatuses[consignor.consignorId]?.squareOnboarded && (
+                      <button
+                        onClick={() => handleInviteToSquare(consignor.consignorId)}
+                        disabled={!!squareInviting[consignor.consignorId]}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+                      >
+                        {squareInviting[consignor.consignorId] ? 'Connecting…' : 'Set Up Payouts (Square)'}
+                      </button>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>

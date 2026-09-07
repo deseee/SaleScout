@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { authenticate, optionalAuthenticate } from '../middleware/auth';
+import { authenticate, optionalAuthenticate, requireAdmin } from '../middleware/auth';
 import { requireTier } from '../middleware/requireTier';
 import { requireBoothTokenOrTeamMember } from '../middleware/requireBoothAuth';
 import {
@@ -52,6 +52,8 @@ import {
   approveVendorBoothSettlementBatch,
   retryPendingVendorBoothPayouts,
   recordManualVendorBoothPayout,
+  recordHubOwnerShareManualPayout,
+  listUnsettledHubOwnerShareLegs,
 } from '../controllers/vendorBoothSettlementController';
 
 const router = Router();
@@ -205,5 +207,13 @@ router.get('/api/organizer/hubs/:hubId/settlement/batches/:batchId', authenticat
 router.post('/api/organizer/hubs/:hubId/settlement/batches/:batchId/approve', authenticate, requireTier('TEAMS'), approveVendorBoothSettlementBatch);
 router.post('/api/organizer/hubs/:hubId/settlement/batches/:batchId/retry-pending', authenticate, requireTier('TEAMS'), retryPendingVendorBoothPayouts);
 router.patch('/api/organizer/hubs/:hubId/settlement/payouts/:payoutId', authenticate, requireTier('TEAMS'), recordManualVendorBoothPayout);
+
+// --- Hub-owner-share Square manual-payout fallback (ADR-123, 2026-09-07) ---
+// ADMIN-ONLY (safe default per ADR-123 §8 -- Patrick has not yet confirmed whether this
+// should be hub-owner self-service instead; see recordHubOwnerShareManualPayout's own
+// doc-comment). Deliberately NOT gated by requireTier -- an admin acts regardless of the
+// hub owner's own subscription tier.
+router.get('/api/organizer/hubs/:hubId/hub-owner-share/unsettled', authenticate, requireAdmin, listUnsettledHubOwnerShareLegs);
+router.post('/api/organizer/hubs/:hubId/hub-owner-share/manual-payout', authenticate, requireAdmin, recordHubOwnerShareManualPayout);
 
 export default router;

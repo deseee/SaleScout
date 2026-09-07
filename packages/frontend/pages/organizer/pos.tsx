@@ -86,7 +86,7 @@ interface CartItem {
 
 type ReaderStatus = 'idle' | 'connecting' | 'connected' | 'disconnected' | 'error';
 type PaymentStatus = 'idle' | 'creating' | 'waiting_for_card' | 'processing' | 'success' | 'error' | 'cancelled';
-type PaymentMode = 'card' | 'manual_card' | 'cash' | 'qr' | 'invoice' | 'phone' | 'venmo' | 'zelle';
+type PaymentMode = 'card' | 'manual_card' | 'cash' | 'qr' | 'square_qr' | 'invoice' | 'phone' | 'venmo' | 'zelle';
 type NumpadMode = 'price';
 
 // 2026-08-24 (Patrick decision, corrected after initial mix-up with cash/card split-tender --
@@ -431,6 +431,17 @@ export default function POSPage() {
   const [venueQrClientSecret, setVenueQrClientSecret] = useState('');
   const [venueQrSetupIntentId, setVenueQrSetupIntentId] = useState('');
   const [venueQrUrl, setVenueQrUrl] = useState('');
+
+  // ─── Venue mode: Square QR rail (vendor-booth-cart-checkout dispatch, 2026-09-07) ──
+  // Square has no server-hosted session object to poll the way Stripe's SetupIntent does
+  // (see vendorBoothCartController.ts's "Square QR/in-app rail" header comment for the full
+  // rationale) -- the shopper's own phone page (pages/pay-square/[cartId].tsx) tokenizes the
+  // card directly and POSTs the resulting sourceId itself, so the register never needs an
+  // upfront "start" call the way handleVenueGenerateQr does for Stripe. Same generate ->
+  // display -> poll -> finish shape as the Stripe QR rail above, reusing venueCapturing /
+  // venueCaptureFailed / cancelVenueCart for the shared finishing step.
+  const [venueSquareStatus, setVenueSquareStatus] = useState<'idle' | 'waiting' | 'confirmed'>('idle');
+  const [venueSquareUrl, setVenueSquareUrl] = useState('');
 
   // Stripe Terminal SDK ref
   const terminalRef = useRef<any>(null);
@@ -1623,6 +1634,97 @@ export default function POSPage() {
     finishVenueQrCheckout();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [venueQrStatus]);
+
+  // ─── Venue mode: Square QR checkout (vendor-booth-cart-checkout dispatch, 2026-09-07) ──
+  // Mirrors handleVenueGenerateQr/finishVenueQrCheckout above exactly in shape; only the
+  // underlying rail differs (see the state comment above for why there's no upfront POST).
+  const handleVenueGenerateSquareQr = useCallback(() => {
+    if (!venueCart || !cart.length) return;
+    setErrorMessage('');
+    setVenueCheckoutFailure(null);
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
+    setVenueSquareUrl(`${origin}/pay-square/${encodeURIComponent(venueCart.id)}?hub=${encodeURIComponent(venueHubId || '')}&amount=${cartTotal.toFixed(2)}`);
+    setVenueSquareStatus('waiting');
+  }, [venueHubId, venueCart, cart.length, cartTotal]);
+
+  const handleVenueSquareReset = useCallback(() => {
+    setVenueSquareStatus('idle');
+    setVenueSquareUrl('');
+  }, []);
+
+  // Once the shopper's phone submits the card token (detected by the poll below),
+  // authorize a Square Payment per represented booth (authorizeBoothCartSquareLegs)
+  // and capture through the SAME shared /capture endpoint the Terminal and Stripe QR
+  // rails use -- whole-cart-fail on any error, same policy as those rails.
+  const finishVenueSquareCheckout = useCallback(async () => {
+    if (!venueCart) return;
+    setVenueCapturing(true);
+    setVenueCheckoutFailure(null);
+    try {
+      await api.post(
+        `/organizer/hubs/${venueHubId}/cart/${venueCart.id}/square/authorize`,
+        {},
+        venueBoothToken ? { headers: { 'X-Booth-Token': venueBoothToken } } : undefined
+      );
+      await api.post(
+        `/organizer/hubs/${venueHubId}/cart/${venueCart.id}/capture`,
+        {},
+        venueBoothToken ? { headers: { 'X-Booth-Token': venueBoothToken } } : undefined
+      );
+      setSuccessMessage(`✅ Venue sale of $${cartTotal.toFixed(2)} accepted via Square QR.`);
+      setPaymentStatus('success');
+      clearCart();
+      setVenueCart(null);
+      // Cart-on-load UX trap fix (2026-09-06): no auto-start effect left to reset a guard
+      // ref for -- the next sale's cart is created lazily on the next add-item call.
+    } catch (err: any) {
+      console.error('[pos] Venue Square QR finish failed:', err);
+      await cancelVenueCart();
+      setPaymentStatus('error');
+      setVenueCheckoutFailure(
+        `${err?.response?.data?.error || err?.response?.data?.message || err?.message || 'The Square payment could not be finished.'} This cart is closing.`
+      );
+    } finally {
+      setVenueCapturing(false);
+      handleVenueSquareReset();
+    }
+  }, [venueHubId, venueCart, cartTotal, cancelVenueCart, venueBoothToken, handleVenueSquareReset]);
+
+  // Poll the register-side status endpoint (getBoothCartSquareTokenStatus) for the
+  // shopper's card token -- same 3s interval the Stripe QR rail's own poll uses,
+  // Square-flavored (no clientSecret to ask a processor SDK directly, so this asks our
+  // own backend instead).
+  useEffect(() => {
+    if (venueSquareStatus !== 'waiting' || !venueCart) return;
+    let cancelled = false;
+    const interval = setInterval(async () => {
+      try {
+        const res = await api.get<{ ready: boolean }>(
+          `/organizer/hubs/${venueHubId}/cart/${venueCart.id}/square/token-status`,
+          venueBoothToken ? { headers: { 'X-Booth-Token': venueBoothToken } } : undefined
+        );
+        if (cancelled) return;
+        if (res.data?.ready) {
+          clearInterval(interval);
+          setVenueSquareStatus('confirmed');
+        }
+      } catch (err) {
+        console.error('[pos] Venue Square QR poll error:', err);
+      }
+    }, 3000);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [venueSquareStatus, venueCart, venueHubId, venueBoothToken]);
+
+  // Fire the authorize+capture sequence exactly once, the instant the poll above
+  // detects the shopper finished on their phone.
+  useEffect(() => {
+    if (venueSquareStatus !== 'confirmed') return;
+    finishVenueSquareCheckout();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [venueSquareStatus]);
 
   const quickAddMisc = (amount: number) => {
     const label = amount < 1
@@ -3313,7 +3415,7 @@ export default function POSPage() {
                   SAME paymentMode state the non-venue flow below uses, just restricted
                   to 'card' | 'cash' here -- venue mode has no reader/QR/invoice/venmo
                   yet, only the tap-per-vendor card flow and cash. */}
-              <div className="grid grid-cols-3 gap-2 mb-3">
+              <div className="grid grid-cols-2 gap-2 mb-3">
                 <button
                   onClick={() => setPaymentMode('card')}
                   // Cart-on-load UX trap fix (2026-09-06): was disabled={!venueCart}, which
@@ -3362,6 +3464,19 @@ export default function POSPage() {
                   }`}
                 >
                   <span>📲</span><span className="text-xs">QR. Scan to pay</span>
+                </button>
+                <button
+                  onClick={() => setPaymentMode('square_qr')}
+                  disabled={cart.length === 0}
+                  className={`py-3 rounded-xl font-semibold transition flex flex-col items-center justify-center gap-1 ${
+                    paymentMode === 'square_qr'
+                      ? 'bg-sage-700 text-white'
+                      : cart.length === 0
+                      ? 'bg-warm-100 text-warm-300 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600'
+                      : 'bg-warm-200 text-warm-700 hover:bg-warm-300 dark:bg-gray-700 dark:text-warm-200 dark:hover:bg-gray-600'
+                  }`}
+                >
+                  <span>📲</span><span className="text-xs">Square. Scan to pay</span>
                 </button>
               </div>
               {venueCheckoutFailure && (
@@ -3479,6 +3594,52 @@ export default function POSPage() {
                     </div>
                   )}
                   {(venueQrStatus === 'confirmed' || venueCapturing) && (
+                    <button disabled className="w-full py-4 rounded-xl font-semibold bg-sage-700 text-white opacity-70">
+                      Finishing sale…
+                    </button>
+                  )}
+                </>
+              ) : paymentMode === 'square_qr' ? (
+                <>
+                  {/* Register-side Square QR display -- mirrors the Stripe QR rail
+                      above exactly (same generate/display/poll shape, same QRCode
+                      component, same button styling); only the underlying rail
+                      differs. No upfront POST call is needed to "start" here --
+                      unlike Stripe's clientSecret, the shopper's own phone page
+                      tokenizes the card directly and POSTs the result itself, so
+                      the register can show the QR immediately. */}
+                  {venueSquareStatus === 'idle' && (
+                    <button
+                      onClick={handleVenueGenerateSquareQr}
+                      disabled={!venueCart || cart.length === 0}
+                      className="w-full py-4 rounded-xl font-semibold transition bg-sage-700 text-white hover:bg-sage-800 disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      📲 Generate Square QR to pay ${cartTotal.toFixed(2)}
+                    </button>
+                  )}
+                  {venueSquareStatus === 'waiting' && venueSquareUrl && (
+                    <div className="p-4 rounded-xl bg-white dark:bg-gray-800 border border-warm-200 dark:border-gray-700 space-y-3">
+                      <p className="text-xs text-warm-600 dark:text-warm-400 text-center">
+                        Total: ${cartTotal.toFixed(2)}
+                      </p>
+                      <div className="flex justify-center bg-white p-3 rounded-lg">
+                        <QRCode value={venueSquareUrl} size={200} />
+                      </div>
+                      <p className="text-center text-xs text-warm-600 dark:text-warm-400">
+                        Have the shopper scan this QR with their phone camera and enter their card there.
+                      </p>
+                      <p className="text-center text-sm text-warm-600 dark:text-warm-400">
+                        ⏳ Waiting for payment…
+                      </p>
+                      <button
+                        onClick={handleVenueSquareReset}
+                        className="w-full py-2 rounded-lg border border-warm-300 dark:border-gray-600 text-warm-600 dark:text-warm-400 text-sm hover:bg-warm-50 dark:hover:bg-gray-700 transition"
+                      >
+                        Cancel &amp; Regenerate
+                      </button>
+                    </div>
+                  )}
+                  {(venueSquareStatus === 'confirmed' || venueCapturing) && (
                     <button disabled className="w-full py-4 rounded-xl font-semibold bg-sage-700 text-white opacity-70">
                       Finishing sale…
                     </button>

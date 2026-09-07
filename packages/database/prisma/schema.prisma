@@ -3564,6 +3564,7 @@ model SaleHub {
   vendorBooths      VendorBooth[]                @relation("VendorBooths")
   cartTransactions  BoothCartTransaction[]       @relation("HubCartTransactions")
   settlementBatches VendorBoothSettlementBatch[] @relation("HubSettlementBatches")
+  hubOwnerShareManualPayouts HubOwnerShareManualPayout[] @relation("HubHubOwnerSharePayouts")
 
   @@index([organizerId])
   @@index([lat, lng])
@@ -6498,6 +6499,26 @@ model BoothCartLeg {
   platformFeeCents     Int?
   vendorSaleNotifiedAt DateTime?
 
+  // ADR-123 (2026-09-07, hub-owner-share settlement / app_fee_allocations dispatch):
+  // Square-path sibling of the Stripe path's real stripeTransferId. Set the moment a
+  // SQUARE leg's app_fee_allocations call to the hub owner succeeds -- records a FACT
+  // ("this leg's hub-owner share was paid atomically with its own payment"), not a
+  // separate transfer object's id, since Square's real-time allocation has no separate
+  // transfer id to store (deliberately no squareTransferId column added here for that
+  // reason -- see ADR-123 §4). NULL + hubOwnerShareAmount set + processor='SQUARE' is
+  // exactly the reconciliation query for the bounded manual-payout fallback bucket
+  // (ADR-123 §3.3/§4):
+  //   SELECT * FROM "BoothCartLeg"
+  //   WHERE "processor" = 'SQUARE' AND "hubOwnerShareAmount" IS NOT NULL
+  //     AND "hubOwnerShareSettledAt" IS NULL AND "hubOwnerShareManualPayoutId" IS NULL;
+  hubOwnerShareSettledAt DateTime?
+  // Set once this leg is included in a manual, out-of-band HubOwnerShareManualPayout
+  // (check/ACH/Venmo/cash) closing out its unpaid hubOwnerShareAmount -- the narrow,
+  // bounded fallback path for legacy pre-ADR-123 legs or a rare authorize-time
+  // allocation failure, NOT a recurring sweep (ADR-123 §3.3 explicitly rejects a cron).
+  hubOwnerShareManualPayoutId String?
+  hubOwnerShareManualPayout   HubOwnerShareManualPayout? @relation("HubOwnerShareManualPayoutLegs", fields: [hubOwnerShareManualPayoutId], references: [id])
+
   @@index([cartTransactionId])
   @@index([vendorBoothId])
   @@index([stripePaymentIntentId])
@@ -6505,6 +6526,8 @@ model BoothCartLeg {
   @@index([status])
   @@index([stripeTransferId])
   @@index([hubOwnerTransferFailedAt])
+  @@index([hubOwnerShareSettledAt])
+  @@index([hubOwnerShareManualPayoutId])
 }
 
 model VendorBoothSettlementBatch {
@@ -6566,6 +6589,41 @@ model VendorBoothPayout {
   @@index([vendorBoothId])
   @@index([settlementBatchId])
   @@index([stripeTransferId])
+}
+
+// ADR-123 (2026-09-07, hub-owner-share settlement / app_fee_allocations dispatch):
+// organizer-scoped (hub-owner-scoped), NOT vendor-booth-scoped -- deliberately NOT a
+// VendorBoothPayout row. See ADR-123 §7 for the full two-reason rationale this dispatch
+// is required to preserve verbatim, not relitigate:
+//   1. Wrong grain -- VendorBoothPayout is one row per vendorBoothId (money the platform
+//      owes ONE VENDOR). A hub-owner-share settlement is the opposite direction and a
+//      different grain: money owed to the HUB OWNER, aggregated across potentially many
+//      booths' many legs.
+//   2. Contradicts a locked invariant -- vendorBoothSettlementController.ts documents
+//      VendorBoothPayout.revenueShareOwed as permanently pinned to 0 (ADR-090 Phase 3):
+//      that batch system is now read-only reconciliation, zero money movement, on
+//      purpose. Writing a real hub-owner-share payout through it would contradict that
+//      invariant and conflate two conceptually distinct money flows this codebase has
+//      always kept separate.
+// Bounded, manual, NOT a recurring cron (ADR-123 §3.3) -- closes out BoothCartLeg rows
+// whose hub-owner share was never settled via real-time app_fee_allocations (pre-ADR-123
+// legacy legs, or a rare authorize-time allocation failure). method reuses the same
+// free-text vocabulary VendorBoothPayout.method already established.
+model HubOwnerShareManualPayout {
+  id              String   @id @default(cuid())
+  hubId           String
+  hub             SaleHub  @relation("HubHubOwnerSharePayouts", fields: [hubId], references: [id], onDelete: Cascade)
+  organizerId     String   // the hub owner being paid -- denormalized off hub.organizerId for query convenience, matches VendorBoothPayout's own precedent of storing what it needs directly
+  amountCents     Int      // sum of the legs this payout closes out
+  method          String   // CASH|CHECK|VENMO|ACH|OTHER -- same free-text vocabulary as VendorBoothPayout.method
+  notes           String?
+  paidAt          DateTime @default(now())
+  createdByUserId String   // actor≠target audit trail -- who recorded this (Patrick or the organizer's own team member), per CLAUDE.md Security-QA Gate precedent
+  legs            BoothCartLeg[] @relation("HubOwnerShareManualPayoutLegs") // the legs this payout closes -- see BoothCartLeg.hubOwnerShareManualPayoutId FK above
+  createdAt       DateTime @default(now())
+
+  @@index([hubId])
+  @@index([organizerId])
 }
 
 // ADR-090 Phase 4: one row per booth per billing period for the flat, sale-independent

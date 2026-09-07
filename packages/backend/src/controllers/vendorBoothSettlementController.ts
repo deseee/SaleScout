@@ -492,3 +492,162 @@ export const recordManualVendorBoothPayout = async (req: AuthRequest, res: Respo
     return res.status(500).json({ error: 'Failed to record manual payout' });
   }
 };
+
+/**
+ * ADR-123 §5 items 6-7 (hub-owner-share settlement, 2026-09-07): the bounded manual-payout
+ * fallback path for a SQUARE booth-cart leg whose hub-owner share was never settled via
+ * real-time app_fee_allocations -- either a pre-ADR-123 legacy leg, or a rare
+ * authorize-time allocation failure (ADR-123 §3.3). Deliberately NOT a recurring cron/sweep
+ * -- volume is bounded by construction (the checkout-time readiness gate in
+ * vendorBoothCartController.ts's computeLegFeeSplit means a hub owner who never onboards to
+ * Square never accrues an unpaid share in the first place).
+ *
+ * SAFE-DEFAULT DECISION (flagged, not silently assumed -- ADR-123 §8 leaves this to
+ * Patrick): who may trigger this is a genuine business-policy call ADR-123 itself declines
+ * to make (hub-owner self-service vs admin-only). This dispatch implements the SIMPLER,
+ * more conservative default -- ADMIN-ONLY (`requireAdmin`, wired in routes/vendorBooth.ts)
+ * -- since this bucket is rare and money-moving, and each instance is worth a real look
+ * before Patrick decides whether to loosen it to organizer self-service later (matching
+ * recordManualVendorBoothPayout's existing organizer-JWT-scoped precedent).
+ *
+ * NO-IDOR / NO-MASS-ASSIGNMENT (CLAUDE.md §9 Security-QA Gate): legIds is caller-supplied,
+ * but the eligible-leg query below is fully server-derived -- it re-filters by hubId,
+ * processor='SQUARE', a real unpaid hubOwnerShareAmount, not already settled, and not
+ * already claimed by another manual payout. amountCents is summed from the SERVER's own
+ * hubOwnerShareAmount column, never accepted from the request body, so a caller can never
+ * inflate/deflate what gets recorded as paid.
+ */
+export const recordHubOwnerShareManualPayout = async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user) return res.status(401).json({ error: 'Authentication required' });
+    const { hubId } = req.params;
+    const { legIds, method, notes, paidAt } = req.body as {
+      legIds?: string[];
+      method?: string;
+      notes?: string;
+      paidAt?: string;
+    };
+
+    if (!Array.isArray(legIds) || legIds.length === 0) {
+      return res.status(400).json({ error: 'legIds is required and must be a non-empty array' });
+    }
+    const ALLOWED_METHODS = ['CASH', 'CHECK', 'VENMO', 'ACH', 'OTHER'];
+    if (!method || !ALLOWED_METHODS.includes(method)) {
+      return res.status(400).json({ error: `method is required and must be one of ${ALLOWED_METHODS.join(', ')}` });
+    }
+
+    const hub = await prisma.saleHub.findUnique({ where: { id: hubId }, select: { id: true, organizerId: true } });
+    if (!hub) return res.status(404).json({ error: 'Hub not found' });
+
+    // Server-derived eligibility -- see the doc-comment above. Never trusts legIds blindly.
+    const legs = await prisma.boothCartLeg.findMany({
+      where: {
+        id: { in: legIds },
+        processor: 'SQUARE',
+        hubOwnerShareAmount: { not: null },
+        hubOwnerShareSettledAt: null,
+        hubOwnerShareManualPayoutId: null,
+        vendorBooth: { hubId },
+      },
+      select: { id: true, hubOwnerShareAmount: true },
+    });
+
+    if (legs.length === 0) {
+      return res.status(400).json({ error: 'No eligible unsettled Square hub-owner-share legs found for this hub with the given legIds' });
+    }
+    if (legs.length !== legIds.length) {
+      return res.status(400).json({
+        error: 'One or more legIds are not eligible for a manual payout right now (already settled, already claimed by another payout, wrong hub, or not an unsettled Square leg with a revenue share owed)',
+        eligibleLegIds: legs.map((l) => l.id),
+      });
+    }
+
+    const amountCents = legs.reduce((sum, l) => sum + Math.round(Number(l.hubOwnerShareAmount) * 100), 0);
+
+    const payout = await prisma.$transaction(async (tx) => {
+      const created = await tx.hubOwnerShareManualPayout.create({
+        data: {
+          hubId,
+          organizerId: hub.organizerId,
+          amountCents,
+          method,
+          notes: notes || null,
+          paidAt: paidAt ? new Date(paidAt) : new Date(),
+          createdByUserId: req.user!.id,
+        },
+      });
+      await tx.boothCartLeg.updateMany({
+        where: { id: { in: legs.map((l) => l.id) } },
+        data: { hubOwnerShareManualPayoutId: created.id },
+      });
+      return created;
+    });
+
+    return res.status(201).json({
+      id: payout.id,
+      hubId: payout.hubId,
+      organizerId: payout.organizerId,
+      amountCents: payout.amountCents,
+      method: payout.method,
+      notes: payout.notes,
+      paidAt: payout.paidAt,
+      createdByUserId: payout.createdByUserId,
+      legIds: legs.map((l) => l.id),
+    });
+  } catch (error) {
+    console.error('[recordHubOwnerShareManualPayout] Error:', error);
+    return res.status(500).json({ error: 'Failed to record hub-owner-share manual payout' });
+  }
+};
+
+/**
+ * ADR-123 §5 item 7: read surface listing this hub's currently-unsettled SQUARE
+ * hub-owner-share legs -- the exact query documented on BoothCartLeg.hubOwnerShareSettledAt
+ * in schema.prisma. No cron populates this -- it is a live query, run on demand.
+ */
+export const listUnsettledHubOwnerShareLegs = async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user) return res.status(401).json({ error: 'Authentication required' });
+    const { hubId } = req.params;
+
+    const hub = await prisma.saleHub.findUnique({ where: { id: hubId }, select: { id: true } });
+    if (!hub) return res.status(404).json({ error: 'Hub not found' });
+
+    const legs = await prisma.boothCartLeg.findMany({
+      where: {
+        processor: 'SQUARE',
+        hubOwnerShareAmount: { not: null },
+        hubOwnerShareSettledAt: null,
+        hubOwnerShareManualPayoutId: null,
+        vendorBooth: { hubId },
+      },
+      select: {
+        id: true,
+        vendorBoothId: true,
+        cartTransactionId: true,
+        amountCents: true,
+        hubOwnerShareAmount: true,
+        createdAt: true,
+      },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    const totalUnsettledCents = legs.reduce((sum, l) => sum + Math.round(Number(l.hubOwnerShareAmount) * 100), 0);
+
+    return res.status(200).json({
+      hubId,
+      legs: legs.map((l) => ({
+        legId: l.id,
+        vendorBoothId: l.vendorBoothId,
+        cartTransactionId: l.cartTransactionId,
+        amountCents: l.amountCents,
+        hubOwnerShareCents: Math.round(Number(l.hubOwnerShareAmount) * 100),
+        createdAt: l.createdAt,
+      })),
+      totalUnsettledCents,
+    });
+  } catch (error) {
+    console.error('[listUnsettledHubOwnerShareLegs] Error:', error);
+    return res.status(500).json({ error: 'Failed to list unsettled hub-owner-share legs' });
+  }
+};
