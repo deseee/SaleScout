@@ -77,7 +77,7 @@ export const initiateSquareOrganizerOnboarding = async (req: AuthRequest, res: R
       return res.json({ alreadyOnboarded: true, squareMerchantId: organizer.squareMerchantId });
     }
 
-    const { url } = buildSquareAuthorizeUrl('ORGANIZER', organizer.id);
+    const { url } = buildSquareAuthorizeUrl('ORGANIZER', organizer.id, userId);
     return res.json({ onboardingUrl: url, alreadyOnboarded: false });
   } catch (error) {
     console.error('initiateSquareOrganizerOnboarding error:', error);
@@ -129,7 +129,7 @@ export const initiateConsignorSquareOnboarding = async (req: AuthRequest, res: R
       return res.json({ alreadyOnboarded: true, squareAccountId: consignor.squareAccountId });
     }
 
-    const { url } = buildSquareAuthorizeUrl('CONSIGNOR', consignor.id);
+    const { url } = buildSquareAuthorizeUrl('CONSIGNOR', consignor.id, userId);
     return res.json({ onboardingUrl: url, alreadyOnboarded: false });
   } catch (error) {
     console.error('initiateConsignorSquareOnboarding error:', error);
@@ -191,7 +191,7 @@ export const initiateHubOwnerSquareOnboarding = async (req: AuthRequest, res: Re
     // Same underlying Square identity as the organizer's own onboarding above -- state
     // carries ownerType 'ORGANIZER', not a separate hub-owner type, exactly mirroring
     // ADR-090 SS1's "no second Connect identity per organizer" decision.
-    const { url } = buildSquareAuthorizeUrl('ORGANIZER', organizer.id);
+    const { url } = buildSquareAuthorizeUrl('ORGANIZER', organizer.id, userId);
     return res.json({ onboardingUrl: url, alreadyOnboarded: false });
   } catch (error) {
     console.error('initiateHubOwnerSquareOnboarding error:', error);
@@ -214,12 +214,19 @@ export const initiateHubOwnerSquareOnboarding = async (req: AuthRequest, res: Re
  * lands the browser on a FIXED frontend URL (registered once in the Developer Dashboard);
  * that frontend page is expected to make an AUTHENTICATED call to this endpoint (normal
  * Authorization header, same as every other endpoint here) rather than this endpoint trying
- * to infer identity from `state` alone. `state` is decoded only to determine WHICH owner
- * row to act on -- authorization that the requesting user is ALLOWED to act on that owner
- * row is enforced explicitly below, per branch, identical in spirit to every other
- * ownership check in this file (never trust `state` as an authorization assertion by
- * itself -- it is client-supplied and unsigned, see squareConnectService.ts's comment on
- * why that is an acceptable, deliberate choice here).
+ * to infer identity from `state` alone.
+ *
+ * CORRECTED 2026-09-07 (findasale-hacker fix-and-reverify pass -- CRITICAL finding, FIXED
+ * this pass): the paragraph this replaced claimed `state` was "client-supplied and
+ * unsigned" and that trusting only the ownerId-ownership check below was "an acceptable,
+ * deliberate choice." That was WRONG and exploitable -- an unsigned, replayable `state`
+ * let an attacker forge/replay a state naming a REAL victim's ownerId, complete Square's
+ * OAuth consent with their OWN Square account, then trick the logged-in victim into
+ * submitting that code+state (classic OAuth login-CSRF / state-fixation). `state` is now
+ * HMAC-signed AND bound to the initiating user's id (see SquareOAuthState.userId's doc
+ * comment and this function's `decoded.userId !== userId` check below) -- BOTH that check
+ * AND the per-branch ownerId-ownership check below are required; neither alone is
+ * sufficient.
  */
 export const handleSquareConnectCallback = async (req: AuthRequest, res: Response) => {
   try {
@@ -231,6 +238,19 @@ export const handleSquareConnectCallback = async (req: AuthRequest, res: Respons
 
     const decoded = decodeSquareOAuthState(state);
     if (!decoded) return res.status(400).json({ message: 'Invalid or malformed state.' });
+
+    // SECURITY FIX (2026-09-07, findasale-hacker fix-and-reverify pass -- CRITICAL finding,
+    // FIXED this pass): state must have been ISSUED to this exact authenticated user, not
+    // merely reference an ownerId this user happens to own. Without this check, an attacker
+    // could forge (state used to be unsigned) or replay a validly-signed state naming a REAL
+    // victim's ownerId, complete Square's OAuth consent with their OWN Square account, then
+    // trick the logged-in victim into submitting that code+state -- the victim's session
+    // would pass the ownerId-ownership check below and silently bind the ATTACKER's Square
+    // account onto the VICTIM's row. See SquareOAuthState.userId's doc comment
+    // (squareConnectService.ts) for the full attack trace.
+    if (decoded.userId !== userId) {
+      return res.status(403).json({ message: 'This Square connection link was not issued to your account. Please start the connection again.' });
+    }
 
     const ownerType: SquareOnboardingOwnerType = decoded.ownerType;
     const ownerId = decoded.ownerId;

@@ -1189,7 +1189,7 @@ export const startVendorBoothSquareOnboarding = async (req: AuthRequest, res: Re
       }
     }
 
-    const { url } = buildSquareAuthorizeUrl('VENDOR_BOOTH', booth.id);
+    const { url } = buildSquareAuthorizeUrl('VENDOR_BOOTH', booth.id, req.user.id);
     return res.status(200).json({ onboardingUrl: url, alreadyOnboarded: false });
   } catch (error) {
     console.error('[startVendorBoothSquareOnboarding] Error:', error);

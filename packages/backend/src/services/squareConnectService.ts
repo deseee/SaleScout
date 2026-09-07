@@ -1,4 +1,5 @@
 import { SquareClient, SquareEnvironment } from 'square';
+import { createHmac, timingSafeEqual } from 'crypto';
 import * as Sentry from '@sentry/node';
 import { prisma } from '../lib/prisma';
 import { createNotification } from './notificationService';
@@ -141,42 +142,94 @@ export type SquareOnboardingOwnerType = ConnectOwnerType; // 'ORGANIZER' | 'CONS
 export interface SquareOAuthState {
   ownerType: SquareOnboardingOwnerType;
   ownerId: string;
+  // SECURITY FIX (findasale-hacker fix-and-reverify pass, 2026-09-07): the user who
+  // INITIATED this OAuth flow, embedded in the SIGNED payload. handleSquareConnectCallback
+  // requires this to equal the CURRENTLY authenticated caller (req.user.id) -- this is the
+  // real CSRF/state-fixation defense. The old ownerId-belongs-to-userId check alone was NOT
+  // sufficient: state was unsigned, so an attacker could forge a state blob naming a REAL
+  // victim's ownerId, complete Square's OAuth consent with their OWN Square account, then
+  // trick the victim (already logged into FindA.Sale) into visiting
+  // /square-oauth-callback?code=<attacker's code>&state=<forged state>. The victim's own
+  // authenticated session would have passed the old ownerId-ownership check and silently
+  // bound the ATTACKER's Square account (and all its future charges/app_fee_allocations)
+  // onto the VICTIM's organizer/consignor/booth row -- a full account-linkage hijack via
+  // classic OAuth login-CSRF. See encodeSquareOAuthState/decodeSquareOAuthState below and
+  // handleSquareConnectCallback's userId-match check for the fix.
+  userId: string;
   nonce: string;
   ts: number;
 }
 
 /**
- * `state` here is a routing + light CSRF-hygiene carrier, NOT the security boundary --
- * the security boundary is handleSquareConnectCallback's own ownership check (identical
- * posture to every other onboarding endpoint in this codebase: authenticate() gates the
- * request, then an explicit "does req.user actually own this row" check gates the action).
- * OAuth's own spec treats `state` as a client-side CSRF check the CALLER verifies, not a
- * server-signed identity assertion -- so this is deliberately NOT HMAC-signed. It only
- * needs to survive a round trip through Square's redirect unmodified.
+ * SECURITY FIX (2026-09-07, findasale-hacker fix-and-reverify pass): `state` IS now a real
+ * security boundary -- HMAC-signed with a key derived from JWT_SECRET (domain-separated via
+ * HMAC-of-a-constant, so a leak of this derived key can never be replayed to forge a login
+ * JWT) and bound to the initiating user's id. The comment this replaced claimed `state` was
+ * "deliberately NOT HMAC-signed" because "the security boundary is
+ * handleSquareConnectCallback's own ownership check" -- that reasoning was WRONG (see
+ * SquareOAuthState.userId's doc comment for the exact attack it missed). Signing + binding
+ * to userId closes it: a forged state fails signature verification, and even a
+ * validly-signed state replayed under a DIFFERENT user's session fails the userId-match
+ * check in handleSquareConnectCallback.
  */
-export const encodeSquareOAuthState = (ownerType: SquareOnboardingOwnerType, ownerId: string): string => {
+const SQUARE_OAUTH_STATE_MAX_AGE_MS = 15 * 60 * 1000; // 15 min -- generous for a real onboarding flow, bounds a stolen-URL replay window
+
+function getSquareStateSigningKey(): Buffer {
+  const jwtSecret = process.env.JWT_SECRET;
+  if (!jwtSecret) {
+    throw new Error('[squareConnectService] JWT_SECRET is not set -- required to sign/verify Square OAuth state.');
+  }
+  // Derived, domain-separated key -- never sign/verify Square OAuth state with the raw JWT
+  // secret directly, so a compromise of this derived key alone can't be used to forge a login JWT.
+  return createHmac('sha256', jwtSecret).update('square-oauth-state-v1').digest();
+}
+
+function signSquareStatePayload(payloadJson: string): string {
+  return createHmac('sha256', getSquareStateSigningKey()).update(payloadJson).digest('base64url');
+}
+
+export const encodeSquareOAuthState = (
+  ownerType: SquareOnboardingOwnerType,
+  ownerId: string,
+  userId: string
+): string => {
   const payload: SquareOAuthState = {
     ownerType,
     ownerId,
+    userId,
     nonce: Math.random().toString(36).slice(2) + Date.now().toString(36),
     ts: Date.now(),
   };
-  return Buffer.from(JSON.stringify(payload), 'utf8').toString('base64url');
+  const payloadJson = JSON.stringify(payload);
+  const signature = signSquareStatePayload(payloadJson);
+  return Buffer.from(JSON.stringify({ p: payloadJson, s: signature }), 'utf8').toString('base64url');
 };
 
 export const decodeSquareOAuthState = (state: string): SquareOAuthState | null => {
   try {
-    const parsed = JSON.parse(Buffer.from(state, 'base64url').toString('utf8'));
+    const envelope = JSON.parse(Buffer.from(state, 'base64url').toString('utf8'));
+    if (!envelope || typeof envelope.p !== 'string' || typeof envelope.s !== 'string') return null;
+
+    const expectedSignature = signSquareStatePayload(envelope.p);
+    const provided = Buffer.from(envelope.s, 'utf8');
+    const expected = Buffer.from(expectedSignature, 'utf8');
+    if (provided.length !== expected.length || !timingSafeEqual(provided, expected)) {
+      return null; // tampered or forged -- never trust an unsigned/mis-signed state
+    }
+
+    const parsed = JSON.parse(envelope.p);
     if (
       !parsed ||
       typeof parsed.ownerType !== 'string' ||
       typeof parsed.ownerId !== 'string' ||
+      typeof parsed.userId !== 'string' ||
       typeof parsed.nonce !== 'string' ||
       typeof parsed.ts !== 'number'
     ) {
       return null;
     }
     if (!['ORGANIZER', 'CONSIGNOR', 'VENDOR_BOOTH'].includes(parsed.ownerType)) return null;
+    if (Date.now() - parsed.ts > SQUARE_OAUTH_STATE_MAX_AGE_MS) return null; // expired -- bounds a stolen-URL replay window
     return parsed as SquareOAuthState;
   } catch {
     return null;
@@ -239,7 +292,8 @@ const SQUARE_OAUTH_SCOPES = [
 
 export const buildSquareAuthorizeUrl = (
   ownerType: SquareOnboardingOwnerType,
-  ownerId: string
+  ownerId: string,
+  userId: string
 ): { url: string; state: string } => {
   const clientId = process.env.SQUARE_APPLICATION_ID;
   if (!clientId) {
@@ -251,7 +305,10 @@ export const buildSquareAuthorizeUrl = (
         'redirect_uri the way some OAuth providers do -- it is fixed per application).'
     );
   }
-  const state = encodeSquareOAuthState(ownerType, ownerId);
+  // SECURITY FIX (2026-09-07, findasale-hacker pass): state is now bound to the initiating
+  // user (see SquareOAuthState.userId's doc comment) -- every caller of this function must
+  // pass the CURRENTLY authenticated req.user.id, never a different/omitted value.
+  const state = encodeSquareOAuthState(ownerType, ownerId, userId);
   const params = new URLSearchParams({
     client_id: clientId,
     scope: SQUARE_OAUTH_SCOPES,
