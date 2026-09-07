@@ -314,14 +314,10 @@ export async function executeVerifiedSquareRefund(
       const client = getSquareClientForToken(accessToken);
       const refundReasonText = reason ? mapReasonToSquareText(reason) : undefined;
 
-      // NOTE (TypeScript NOT locally verified -- see handoff item 7): `client.refunds.create`
-      // is inferred from the Square Node SDK v45 (Fern-generated TypeScript SDK) README's own
-      // examples (`client.payments.create(...)`, `client.disputes.createEvidenceFile(...)`)
-      // -- the same resource.verb naming convention applied to the refunds resource. The
-      // refunds.ts source file itself could not be fetched this session to confirm the exact
-      // method name byte-for-byte; CI (ci-typecheck.yml) is the real gate per this dispatch's
-      // instructions, and this call site is the first place a wrong method name would surface.
-      await client.refunds.create({
+      // CONFIRMED 2026-09-07 (CI type error, this session): fetched refunds/client/Client.ts
+      // directly from the Square Node SDK source (github.com/square/square-nodejs-sdk) -- the
+      // real method is `refundPayment`, not `create`. Same request shape already used below.
+      await client.refunds.refundPayment({
         idempotencyKey: `square-refund-${purchase.id}`,
         paymentId: purchase.squarePaymentId,
         amountMoney: {

@@ -23,6 +23,7 @@ import {
   SquareBoothOnboardingIncompleteError,
   createSquareSharedCardForCart,
   authorizeSquareBoothCartLeg,
+  cancelSquareBoothCartLeg,
   getSquareBoothCartLegStatus,
   completeSquareBoothCartLeg,
 } from '../services/squareVendorBoothCartService'; // vendor-booth-cart-checkout dispatch (2026-09-07) -- Square-side sibling, see that file's header comment for the researched design
@@ -1673,7 +1674,11 @@ export const authorizeBoothCartSquareLegs = async (req: BoothAuthRequest, res: R
         cartTransactionId: cart.id,
         vendorBoothId: booth.id,
         hubId,
-        squareLocationId: booth.squareLocationId ?? null,
+        // FIXED 2026-09-07 (CI type error, this session): VendorBooth has no squareLocationId
+        // column (only Organizer/POSPaymentRequest do) -- authorizeSquareBoothCartLeg's own param
+        // is optional and Square's CreatePayment falls back to the merchant's default location
+        // when omitted, so this is correctly left unset rather than reading a nonexistent field.
+        squareLocationId: null,
       });
 
       if (!authResult.ok) {

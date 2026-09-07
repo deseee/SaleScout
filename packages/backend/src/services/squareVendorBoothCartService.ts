@@ -306,10 +306,14 @@ export async function refundVendorBoothSquarePayment(
   reason?: string
 ): Promise<void> {
   const client = getSquareClientForMerchant(boothAccessToken);
-  await client.refunds.create({
+  // CONFIRMED 2026-09-07 (CI type error, this session): real method is `refundPayment`, not
+  // `create` -- verified directly against the Square Node SDK's refunds/client/Client.ts source.
+  // The `as any` cast is no longer needed now that the method name (and therefore the real
+  // parameter types) matches.
+  await client.refunds.refundPayment({
     idempotencyKey: buildSquareIdempotencyKey(['boothlegrefund', paymentId, String(refundAmountCents)]),
     paymentId,
     amountMoney: toSquareMoney(refundAmountCents),
     ...(reason ? { reason } : {}),
-  } as any);
+  });
 }

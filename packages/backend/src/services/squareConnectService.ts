@@ -1,5 +1,4 @@
 import { SquareClient, SquareEnvironment } from 'square';
-import { OAuthClient } from 'square/oAuth';
 import * as Sentry from '@sentry/node';
 import { prisma } from '../lib/prisma';
 import { createNotification } from './notificationService';
@@ -105,11 +104,21 @@ const squareOAuthBaseUrl = (): string =>
     ? 'https://connect.squareup.com'
     : 'https://connect.squareupsandbox.com';
 
-let oauthClientSingleton: OAuthClient | null = null;
-/** Platform-level OAuth client -- no per-merchant token, used only for Stage 3 (ObtainToken). */
-const getSquareOAuthClient = (): OAuthClient => {
+let oauthClientSingleton: SquareClient | null = null;
+/**
+ * Platform-level client -- no per-merchant token, used only for the OAuth token exchange
+ * (client.oAuth.obtainToken/revokeToken). FIXED 2026-09-07 (CI syntax/type errors, this
+ * session): the original `import { OAuthClient } from 'square/oAuth'` subpath import does
+ * not type-resolve under this project's tsconfig (`module: commonjs`, no explicit
+ * moduleResolution -- Square's own README notes subpath exports need node16/nodenext/bundler
+ * resolution). Verified against the actual SDK source + reference.md this session: OAuth is
+ * exposed as a namespace on a normally-constructed SquareClient (`client.oAuth.obtainToken`),
+ * not a separately-instantiated OAuthClient -- same pattern as every other resource
+ * (client.payments, client.refunds, etc).
+ */
+const getSquareOAuthClient = (): SquareClient => {
   if (!oauthClientSingleton) {
-    oauthClientSingleton = new OAuthClient({ environment: getSquareEnvironment() });
+    oauthClientSingleton = new SquareClient({ environment: getSquareEnvironment() });
   }
   return oauthClientSingleton;
 };
@@ -253,7 +262,7 @@ export const exchangeSquareAuthorizationCode = async (code: string): Promise<Squ
   if (!clientId || !clientSecret) {
     throw new Error('[squareConnectService] SQUARE_APPLICATION_ID/SQUARE_APPLICATION_SECRET not set.');
   }
-  const response = await getSquareOAuthClient().obtainToken({
+  const response = await getSquareOAuthClient().oAuth.obtainToken({
     clientId,
     clientSecret,
     code,
@@ -281,7 +290,7 @@ export const refreshSquareAccessToken = async (refreshToken: string): Promise<Sq
   if (!clientId || !clientSecret) {
     throw new Error('[squareConnectService] SQUARE_APPLICATION_ID/SQUARE_APPLICATION_SECRET not set.');
   }
-  const response = await getSquareOAuthClient().obtainToken({
+  const response = await getSquareOAuthClient().oAuth.obtainToken({
     clientId,
     clientSecret,
     refreshToken,
