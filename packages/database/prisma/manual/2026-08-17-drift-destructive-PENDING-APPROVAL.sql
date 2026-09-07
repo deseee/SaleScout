@@ -115,3 +115,48 @@ DROP INDEX IF EXISTS "idx_Organizer_cashFeeBalance_updatedAt";
 -- anywhere in packages/ (grep-verified 2026-08-17 -- only the two migration files match).
 -- Alternative to dropping: declare the model in schema.prisma. Dropping is cleaner.
 -- DROP TABLE IF EXISTS "OrganizerClaimEmail";
+
+
+-- -------------------------------------------------------------------------------------
+-- ITEM D6 -- TrailCheckIn.photoId + FK. Orphaned since the TrailPhoto/checkInId redesign.
+-- Recommend APPROVE. Added 2026-09-07 (ADR-122).
+-- -------------------------------------------------------------------------------------
+-- schema.prisma:3663 carries an explicit comment: "photoId removed -- photos are queried
+-- via TrailPhoto.checkInId" -- confirming this was an intentional design change that was
+-- never migrated out of production. Live-verified 2026-09-07: column is nullable text,
+-- 0 of 0 rows have a non-null value. Zero data loss.
+--
+-- Direction: SCHEMA WINS.
+ALTER TABLE "TrailCheckIn" DROP CONSTRAINT IF EXISTS "TrailCheckIn_photoId_fkey";
+ALTER TABLE "TrailCheckIn" DROP COLUMN IF EXISTS "photoId";
+
+
+-- -------------------------------------------------------------------------------------
+-- ITEM D7 -- WorkspaceMember.staffMemberId. Orphaned column. Recommend APPROVE.
+-- Added 2026-09-07 (ADR-122).
+-- -------------------------------------------------------------------------------------
+-- Not declared anywhere in schema.prisma (the only staffMemberId field in the current
+-- schema belongs to the unrelated WorkspaceSalesActivity model). Live-verified 2026-09-07:
+-- nullable text, 0 non-null rows. Likely a leftover from the 2026-04-12 Staff->Team rename
+-- (20260412000001_rename_staff_to_member) that never touched WorkspaceMember itself.
+--
+-- Direction: SCHEMA WINS.
+ALTER TABLE "WorkspaceMember" DROP COLUMN IF EXISTS "staffMemberId";
+
+
+-- -------------------------------------------------------------------------------------
+-- NOTE D8 -- StaffMember*->TeamMember* constraint/index name drift. NOT a ready-to-run
+-- item. Added 2026-09-07 (ADR-122), see ADR-122 for full evidence.
+-- -------------------------------------------------------------------------------------
+-- Migration 20260412000001_rename_staff_to_member correctly renamed the StaffMember/
+-- StaffAvailability/StaffPerformance tables (and their FK columns) to TeamMember/
+-- TeamMemberAvailability/TeamMemberPerformance -- but Postgres does not auto-rename
+-- constraint/index/pkey identifiers on ALTER TABLE RENAME. Production still carries names
+-- like "StaffMember_pkey" and "WorkspaceLeaderboardEntry_staffMemberId_fkey" attached to the
+-- correctly-renamed tables/columns. Confirmed 2026-09-07: no table literally named
+-- "StaffMember" exists in production; only TeamMember/TeamMemberAvailability/
+-- TeamMemberPerformance do. This is cosmetic constraint-name drift only -- same false-alarm
+-- class as the SaleSubscriber _unique->_key rename ADR-108 already caught (ADR-108 line 30).
+-- Zero data risk either direction. No statements written -- rename these to the current
+-- Prisma-convention names only when a migration already touches these tables for another
+-- reason; not worth a dedicated pass.
