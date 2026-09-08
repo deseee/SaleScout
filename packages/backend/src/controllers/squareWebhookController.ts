@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { WebhooksHelper } from 'square';
 import { prisma } from '../lib/prisma';
 import { createNotification } from '../lib/notificationService';
+import { handleSquareDisputeWebhook, type SquareDisputeWebhookEvent } from '../services/squareRefundService'; // findasale-hacker fix-and-reverify (2026-09-08): wire the REAL dispute handler -- squareRefundService.ts's handleSquareDisputeWebhook was fully built for exactly this call site (see its own doc comment) but was never actually invoked here; the dispute.created/dispute.state.updated cases below were silently calling a local log-only stub instead, meaning real Square chargebacks were never processed (no DISPUTED/DISPUTE_LOST status, no serial-chargeback buyer suspension, no organizer notification, no chargeback-rate metric). See VALID-STATE-ONLY-EXPOSURE finding in the 2026-09-08 security-QA pass.
 
 /**
  * Square webhook payload envelope shape (confirmed via live fetch of Square's webhook event
@@ -50,25 +51,6 @@ async function syncSquareRefundStatus(refund: any): Promise<void> {
     `[square-webhook] refund.updated received for Square refund ${refund?.id ?? 'unknown'} ` +
     `(status=${refund?.status ?? 'unknown'}, payment_id=${refund?.payment_id ?? 'unknown'}) -- ` +
     `refund-sync integration point (see TODO above), not yet wired.`
-  );
-}
-
-/**
- * TODO (Wave 1 #4 -- Refunds/disputes, squareRefundService.ts's proposed
- * handleSquareDisputeWebhook, a concurrent dispatch not yet built at the time this file was
- * written): integration point for the real card-network dispute lifecycle. Keep fully
- * separate from FindA.Sale's own internal buyer-ticket Dispute model (disputeController.ts)
- * -- same separation the Stripe side already maintains (stripeController.ts's
- * charge.dispute.* handlers vs disputeController.ts).
- */
-async function syncSquareDisputeStatus(
-  eventType: 'dispute.created' | 'dispute.state.updated',
-  dispute: any
-): Promise<void> {
-  console.log(
-    `[square-webhook] ${eventType} received for Square dispute ${dispute?.id ?? 'unknown'} ` +
-    `(state=${dispute?.state ?? 'unknown'}, disputed_payment_id=${dispute?.disputed_payment?.payment_id ?? 'unknown'}) -- ` +
-    `dispute-sync integration point (see TODO above), not yet wired.`
   );
 }
 
@@ -237,8 +219,10 @@ export const handleSquareWebhook = async (req: Request, res: Response) => {
 
       case 'dispute.created':
       case 'dispute.state.updated': {
-        const dispute = dataObject.dispute ?? {};
-        await syncSquareDisputeStatus(event.type as 'dispute.created' | 'dispute.state.updated', dispute);
+        // findasale-hacker fix (2026-09-08): call the REAL handler (see import comment above).
+        // event's own envelope shape (merchant_id/type/event_id/created_at/data.object.dispute)
+        // is field-for-field identical to SquareDisputeWebhookEvent -- no remapping needed.
+        await handleSquareDisputeWebhook(event as unknown as SquareDisputeWebhookEvent);
         break;
       }
 

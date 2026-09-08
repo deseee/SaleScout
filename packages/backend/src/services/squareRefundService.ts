@@ -136,10 +136,17 @@ async function resolveSquareAccessToken(organizerId: string): Promise<string> {
   }
 }
 
+// SECURITY FIX (findasale-hacker fix-and-reverify pass, 2026-09-08): this defaulted to
+// PRODUCTION whenever SQUARE_ENVIRONMENT was anything other than the exact literal 'sandbox'
+// (unset, blank, or differently-cased all fell through to Production) -- the opposite, riskier
+// default from squareConnectService.ts's getSquareEnvironment() (safely defaults to SANDBOX
+// unless SQUARE_ENVIRONMENT is exactly 'production') and from utils/square.ts's
+// getSquareClientForMerchant (same fix applied there this pass). Flipped to match the same
+// explicit-opt-in-to-production convention across all three files.
 function getSquareClientForToken(accessToken: string): SquareClient {
   return new SquareClient({
     token: accessToken,
-    environment: process.env.SQUARE_ENVIRONMENT === 'sandbox' ? SquareEnvironment.Sandbox : SquareEnvironment.Production,
+    environment: process.env.SQUARE_ENVIRONMENT === 'production' ? SquareEnvironment.Production : SquareEnvironment.Sandbox,
   });
 }
 

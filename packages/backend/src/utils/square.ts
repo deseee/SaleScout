@@ -28,9 +28,19 @@ import { SquareClient, SquareEnvironment, SquareError } from 'square';
 
 let platformClient: SquareClient | null = null;
 
+// SECURITY FIX (findasale-hacker fix-and-reverify pass, 2026-09-08): this used to default to
+// PRODUCTION whenever SQUARE_ENVIRONMENT was unset/blank/mistyped -- the opposite default from
+// squareConnectService.ts's getSquareEnvironment() (which safely defaults to SANDBOX unless
+// SQUARE_ENVIRONMENT is exactly 'production'). Since THIS file is what checkout/POS/vendor-booth-
+// cart's actual charge calls route through (getSquareClientForMerchant, below), the old default
+// meant a missing/misconfigured env var would silently attempt PRODUCTION charges using tokens
+// that were issued (via the Sandbox-defaulting OAuth flow) against Square's SANDBOX -- an
+// inconsistency across files, and the riskier of the two possible defaults. Flipped to match
+// squareConnectService.ts's own convention: explicit opt-IN to production, fail toward the
+// non-money-moving environment otherwise.
 const resolveEnvironment = (): SquareEnvironment => {
   const raw = (process.env.SQUARE_ENVIRONMENT || '').trim().toLowerCase();
-  return raw === 'sandbox' ? SquareEnvironment.Sandbox : SquareEnvironment.Production;
+  return raw === 'production' ? SquareEnvironment.Production : SquareEnvironment.Sandbox;
 };
 
 export const getSquarePlatformClient = (): SquareClient => {
