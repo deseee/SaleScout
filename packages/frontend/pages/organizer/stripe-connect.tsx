@@ -96,7 +96,13 @@ const ACHPayoutsPage: React.FC = () => {
       });
       if (!response.ok) throw new Error('Failed to load consignors');
       const data = await response.json();
-      setConsignors(data);
+      // FIX 2026-09-07: backend returns Prisma's raw `id` field, but every consumer on this
+      // page (both the pre-existing Stripe button and today's new Square button) reads
+      // `consignor.consignorId` -- which was always undefined, silently breaking both
+      // "Set Up Payouts" buttons (confirmed live: GET /api/square-connect/consignor/undefined/status
+      // 404, caught during this session's post-ship QA pass). Map id -> consignorId here rather
+      // than touching the 11 other render-site references, to keep this a minimal, targeted fix.
+      setConsignors(data.map((c: any) => ({ ...c, consignorId: c.id })));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load consignors');
     } finally {
