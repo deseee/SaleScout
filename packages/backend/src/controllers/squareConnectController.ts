@@ -97,7 +97,7 @@ export const getConsignorSquarePayoutStatus = async (req: AuthRequest, res: Resp
     if (!userId) return res.status(401).json({ message: 'Unauthorized' });
 
     const consignor = await prisma.consignor.findFirst({
-      where: { id: consignorId, workspace: { ownerId: userId } },
+      where: { id: consignorId, workspace: { owner: { userId } } },
     });
     if (!consignor) return res.status(404).json({ message: 'Consignor not found or access denied.' });
 
@@ -121,7 +121,7 @@ export const initiateConsignorSquareOnboarding = async (req: AuthRequest, res: R
     if (!userId) return res.status(401).json({ message: 'Unauthorized' });
 
     const consignor = await prisma.consignor.findFirst({
-      where: { id: consignorId, workspace: { ownerId: userId } },
+      where: { id: consignorId, workspace: { owner: { userId } } },
     });
     if (!consignor) return res.status(404).json({ message: 'Consignor not found or access denied.' });
 
@@ -261,7 +261,7 @@ export const handleSquareConnectCallback = async (req: AuthRequest, res: Respons
       if (!organizer) return res.status(403).json({ message: 'You do not own this organizer account.' });
     } else if (ownerType === 'CONSIGNOR') {
       const consignor = await prisma.consignor.findFirst({
-        where: { id: ownerId, workspace: { ownerId: userId } },
+        where: { id: ownerId, workspace: { owner: { userId } } },
       });
       if (!consignor) return res.status(403).json({ message: 'You do not have access to this consignor.' });
     } else {

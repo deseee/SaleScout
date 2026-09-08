@@ -3945,7 +3945,7 @@ export const getDraftItemsBySaleId = async (req: AuthRequest, res: Response) => 
     // Feature #310: Pre-fetch active discount rules for this workspace
     let activeRules: Array<{ tagColor: string; discountPercent: number; activeFrom: Date | null; activeTo: Date | null }> = [];
     const workspace = await prisma.organizerWorkspace.findFirst({
-      where: { ownerId: req.user.id },
+      where: { owner: { userId: req.user.id } },
     });
     if (workspace) {
       const rawRules = await prisma.discountRule.findMany({

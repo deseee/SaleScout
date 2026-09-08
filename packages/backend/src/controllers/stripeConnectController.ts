@@ -30,7 +30,7 @@ export const getConsignorPayoutStatus = async (req: AuthRequest, res: Response) 
       where: {
         id: consignorId,
         workspace: {
-          ownerId: userId,
+          owner: { userId },
         },
       },
     });
@@ -76,7 +76,7 @@ export const initiateConsignorOnboarding = async (req: AuthRequest, res: Respons
       where: {
         id: consignorId,
         workspace: {
-          ownerId: userId,
+          owner: { userId },
         },
       },
     });
@@ -119,7 +119,7 @@ export const initiateConsignorOnboarding = async (req: AuthRequest, res: Respons
     // are unaffected.
     const emailConsignor = req.body?.emailConsignor === true;
     if (emailConsignor && consignor.email) {
-      const workspace = await prisma.organizerWorkspace.findFirst({ where: { ownerId: userId } });
+      const workspace = await prisma.organizerWorkspace.findFirst({ where: { owner: { userId } } });
       sendConsignorPaymentSetupInvite({
         consignorName: consignor.name,
         consignorEmail: consignor.email,
@@ -153,7 +153,7 @@ export const handleConnectReturn = async (req: AuthRequest, res: Response) => {
       where: {
         id: consignorId,
         workspace: {
-          ownerId: userId,
+          owner: { userId },
         },
       },
     });
@@ -204,7 +204,7 @@ export const payConsignor = async (req: AuthRequest, res: Response) => {
       where: {
         id: consignorId,
         workspace: {
-          ownerId: userId,
+          owner: { userId },
         },
       },
     });
