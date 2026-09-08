@@ -17,6 +17,9 @@
 
 -- -------------------------------------------------------------------------------------
 -- ITEM D1 -- ProcessedWebhookEvent primary key. THREE-WAY DIVERGENCE. Recommend APPROVE.
+-- >>> PROMOTED to migration 20260908120000_reconcile_prod_drift_destructive_d1_d2_d6_d7,
+-- >>> 2026-09-08 -- no longer pending in this file. Re-verified live read-only before
+-- >>> promotion; see that migration folder for the exact re-verification notes.
 -- -------------------------------------------------------------------------------------
 -- schema.prisma  : eventId String @id           (no `id` field at all)
 -- production     : columns eventId/status/processedAt/updatedAt, NO PRIMARY KEY AT ALL --
@@ -46,6 +49,10 @@ END $$;
 -- -------------------------------------------------------------------------------------
 -- ITEM D2 -- Seven indexes created by migrations but hand-dropped from production.
 --            Recommend APPROVE for six; see D3 for the seventh.
+-- >>> The six APPROVE indexes PROMOTED to migration
+-- >>> 20260908120000_reconcile_prod_drift_destructive_d1_d2_d6_d7, 2026-09-08 -- no
+-- >>> longer pending in this file. D3 (the seventh, MetroTopFinds) is untouched and
+-- >>> still needs Patrick's A/B decision below.
 -- -------------------------------------------------------------------------------------
 -- Each was created by a real migration and then removed from production by hand -- no
 -- migration drops them (verified: `grep -rn "DROP INDEX" */migration.sql` lists none of these).
@@ -120,6 +127,8 @@ DROP INDEX IF EXISTS "idx_Organizer_cashFeeBalance_updatedAt";
 -- -------------------------------------------------------------------------------------
 -- ITEM D6 -- TrailCheckIn.photoId + FK. Orphaned since the TrailPhoto/checkInId redesign.
 -- Recommend APPROVE. Added 2026-09-07 (ADR-122).
+-- >>> PROMOTED to migration 20260908120000_reconcile_prod_drift_destructive_d1_d2_d6_d7,
+-- >>> 2026-09-08 -- no longer pending in this file.
 -- -------------------------------------------------------------------------------------
 -- schema.prisma:3663 carries an explicit comment: "photoId removed -- photos are queried
 -- via TrailPhoto.checkInId" -- confirming this was an intentional design change that was
@@ -134,6 +143,8 @@ ALTER TABLE "TrailCheckIn" DROP COLUMN IF EXISTS "photoId";
 -- -------------------------------------------------------------------------------------
 -- ITEM D7 -- WorkspaceMember.staffMemberId. Orphaned column. Recommend APPROVE.
 -- Added 2026-09-07 (ADR-122).
+-- >>> PROMOTED to migration 20260908120000_reconcile_prod_drift_destructive_d1_d2_d6_d7,
+-- >>> 2026-09-08 -- no longer pending in this file.
 -- -------------------------------------------------------------------------------------
 -- Not declared anywhere in schema.prisma (the only staffMemberId field in the current
 -- schema belongs to the unrelated WorkspaceSalesActivity model). Live-verified 2026-09-07:
