@@ -16,6 +16,25 @@ interface ConsignorStatus {
   };
 }
 
+// FIX 2026-09-08: both POST handlers below (handleInviteToACH, handleInviteToSquare) use
+// plain fetch() rather than the app-wide `api` axios wrapper (lib/api.ts), so neither ever
+// attached the double-submit x-csrf-token header the backend's CSRF middleware requires for
+// any cookie-authenticated state-mutating request (packages/backend/src/middleware/csrf.ts).
+// This was masked until now by the separate consignorId-undefined bug (fixed 2026-09-07,
+// see loadConsignors above) -- with a real consignor ID now reaching the request, this second,
+// previously-invisible bug surfaced live: POST /api/stripe-connect/onboard/<realId> -> 403
+// "CSRF token validation failed", confirmed in this session's re-verification pass. Minimal
+// targeted fix: read the csrf-token cookie the same way lib/api.ts's interceptor does, and
+// attach it manually, rather than migrating this whole file off fetch().
+const getCsrfHeader = (): Record<string, string> => {
+  if (typeof document === 'undefined') return {};
+  const csrfToken = document.cookie
+    .split('; ')
+    .find((row) => row.startsWith('csrf-token='))
+    ?.split('=')[1];
+  return csrfToken ? { 'x-csrf-token': csrfToken } : {};
+};
+
 const ACHPayoutsPage: React.FC = () => {
   const router = useRouter();
   const { canAccess, tierLoading } = useOrganizerTier();
@@ -114,6 +133,7 @@ const ACHPayoutsPage: React.FC = () => {
     try {
       const response = await fetch(`/api/stripe-connect/onboard/${cId}`, {
         method: 'POST',
+        headers: getCsrfHeader(),
       });
       if (!response.ok) throw new Error('Failed to generate onboarding link');
       const data = await response.json();
@@ -130,6 +150,7 @@ const ACHPayoutsPage: React.FC = () => {
     try {
       const response = await fetch(`/api/square-connect/consignor/${cId}/onboard`, {
         method: 'POST',
+        headers: getCsrfHeader(),
       });
       if (!response.ok) throw new Error('Failed to generate Square onboarding link');
       const data = await response.json();
