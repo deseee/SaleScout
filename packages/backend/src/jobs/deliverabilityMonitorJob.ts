@@ -12,6 +12,86 @@ import { cronGuard } from '../utils/cronGuard';
  * Runs: Every Sunday at 19:00 UTC
  */
 
+/**
+ * Cross-rail SENT volume for the last 7 days.
+ *
+ * Root cause (P1, claude_docs/audits/email-deliverability-audit-2026-09-06.md
+ * Sec.6 recommendation 1a): the bounce-rate denominator used to be
+ * OutreachAuditLog "SENT" alone, which only tracks the cold-organizer-outreach
+ * pipeline. The Resend transactional rail (refunds/receipts/password-resets/
+ * payouts/invoices) and the Gmail bulk/marketing rail had zero visibility —
+ * either understating the true bounce rate or, when outreach volume was
+ * low/zero, skipping the check entirely while thousands of other emails went
+ * out. The numerator (recentSuppressions in runDeliverabilityMonitor below)
+ * was already rail-agnostic (a plain EmailSuppression count with no rail
+ * filter) — only the denominator needed the fix.
+ *
+ * Sources, none requiring a new schema field/table:
+ *  - Cold outreach: prisma.outreachAuditLog "SENT" count (unchanged, exact
+ *    per-event tracking).
+ *  - Gmail bulk/marketing: prisma.emailQuotaLog is the platform-wide daily
+ *    Gmail-API send counter, incremented by BOTH emailService.emails.send()
+ *    (the ~40 bulk/marketing call sites) AND outreachEmailsCron.ts's own
+ *    direct checkAndIncrementQuota() call (packages/backend/src/lib/
+ *    emailService.ts:75,319; packages/backend/src/jobs/outreachEmailsCron.ts:792).
+ *    prisma.outreachQuotaLog is outreach-only volume on that SAME shared
+ *    counter (emailService.ts:159-169) — subtracting it isolates Gmail-bulk-
+ *    only sends per day, so this is never double-counted against the
+ *    outreachSent figure above. Both are daily-granularity counters (date-
+ *    keyed, not per-event), so this is a day-bucket approximation of the
+ *    rolling 7-day window, not exact to the second — acceptable for a weekly
+ *    trend check.
+ *  - Resend transactional: no SENT counter existed for this rail at all.
+ *    Added one this session at lib/transactionalEmailService.ts's single
+ *    shared send() call site (the only Resend send call site in the backend
+ *    used for customer mail — lib/emailService.ts's own `new Resend(...)`
+ *    calls are internal ops alerts only, never customer sends), using the
+ *    already-existing generic ApiUsageLog table (service+dateKey+callCount —
+ *    "resend" was already listed as an example service value in that model's
+ *    own schema.prisma comment) via the existing recordApiUsage() helper.
+ */
+async function getCrossRailSentCounts(sevenDaysAgo: Date): Promise<{
+  outreachSent: number;
+  gmailBulkSent: number;
+  resendSent: number;
+  totalSent: number;
+}> {
+  const earliestDateKey = sevenDaysAgo.toISOString().slice(0, 10); // YYYY-MM-DD
+
+  const [outreachSent, emailQuotaRows, outreachQuotaRows, resendUsageRows] = await Promise.all([
+    prisma.outreachAuditLog.count({
+      where: { createdAt: { gte: sevenDaysAgo }, event: 'SENT' },
+    }),
+    prisma.emailQuotaLog.findMany({
+      where: { date: { gte: earliestDateKey } },
+      select: { count: true },
+    }),
+    prisma.outreachQuotaLog.findMany({
+      where: { date: { gte: earliestDateKey } },
+      select: { count: true },
+    }),
+    prisma.apiUsageLog.findMany({
+      where: { service: 'resend:transactional', dateKey: { gte: earliestDateKey } },
+      select: { callCount: true },
+    }),
+  ]);
+
+  const emailQuotaTotal = emailQuotaRows.reduce((sum, r) => sum + r.count, 0);
+  const outreachQuotaTotal = outreachQuotaRows.reduce((sum, r) => sum + r.count, 0);
+  // Floor at 0 — same-day timing skew between the two shared-counter writes
+  // should never push this negative.
+  const gmailBulkSent = Math.max(0, emailQuotaTotal - outreachQuotaTotal);
+
+  const resendSent = resendUsageRows.reduce((sum, r) => sum + r.callCount, 0);
+
+  return {
+    outreachSent,
+    gmailBulkSent,
+    resendSent,
+    totalSent: outreachSent + gmailBulkSent + resendSent,
+  };
+}
+
 /** Core deliverability check logic — exported so it can be added to JOB_MAP. */
 export async function runDeliverabilityMonitor(): Promise<void> {
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
@@ -19,6 +99,8 @@ export async function runDeliverabilityMonitor(): Promise<void> {
   // Count email suppressions (bounces + complaints) in the last 7 days
   // Exclude COMPETITOR_DOMAIN entries — proactive domain blocks, not real mail bounces.
   // Counting them inflates the reported bounce rate and fires false-positive alerts.
+  // Already rail-agnostic — no relatedOrganizerId/resendEventId filter — so only the
+  // SENT-side denominator below needed extending to cover every rail.
   const recentSuppressions = await prisma.emailSuppression.count({
     where: {
       // Use createdAt (true bounce-event time), NOT suppressedAt/updatedAt - those get
@@ -32,13 +114,9 @@ export async function runDeliverabilityMonitor(): Promise<void> {
     },
   });
 
-  // Count successful sends in the last 7 days
-  const recentSent = await prisma.outreachAuditLog.count({
-    where: {
-      createdAt: { gte: sevenDaysAgo },
-      event: 'SENT',
-    },
-  });
+  // Cross-rail SENT volume — see getCrossRailSentCounts() doc comment above.
+  const { outreachSent, gmailBulkSent, resendSent, totalSent: recentSent } =
+    await getCrossRailSentCounts(sevenDaysAgo);
 
   // Calculate bounce rate
   if (recentSent > 0) {
@@ -46,7 +124,8 @@ export async function runDeliverabilityMonitor(): Promise<void> {
     const bouncePercentage = (bounceRate * 100).toFixed(1);
 
     console.log(
-      `[deliverability] Weekly check: ${recentSent} sent, ${recentSuppressions} bounced/suppressed (${bouncePercentage}%)`
+      `[deliverability] Weekly check: ${recentSent} sent (outreach=${outreachSent}, gmail_bulk=${gmailBulkSent}, resend=${resendSent}), ` +
+      `${recentSuppressions} bounced/suppressed (${bouncePercentage}%)`
     );
 
     // Alert if bounce rate exceeds 2%
@@ -68,11 +147,12 @@ export async function runDeliverabilityMonitor(): Promise<void> {
             to: alertRecipient,
             subject: `⚠️ High bounce rate: ${bouncePercentage}% (${recentSuppressions}/${recentSent})`,
             html: `
-              <p><strong>⚠️ WARNING:</strong> The outreach bounce rate over the last 7 days has exceeded the 2% threshold.</p>
+              <p><strong>⚠️ WARNING:</strong> The email bounce rate across all sending rails over the last 7 days has exceeded the 2% threshold.</p>
               <ul>
                 <li><strong>Bounce rate:</strong> ${bouncePercentage}%</li>
-                <li><strong>Suppressions (bounces + complaints):</strong> ${recentSuppressions}</li>
-                <li><strong>Total sent:</strong> ${recentSent}</li>
+                <li><strong>Suppressions (bounces + complaints, all rails):</strong> ${recentSuppressions}</li>
+                <li><strong>Total sent (all rails):</strong> ${recentSent}</li>
+                <li style="margin-top:6px"><strong>Sent by rail:</strong> cold-outreach ${outreachSent} · Gmail bulk/marketing ${gmailBulkSent} · Resend transactional ${resendSent}</li>
               </ul>
               <p>High bounce rates risk Gmail account suspension and inbox deliverability. Review recent sends and suppress problematic addresses.</p>
               <p style="color:#666;font-size:12px">FindA.Sale · deliverabilityMonitorJob.ts · weekly Sunday 19:00 UTC</p>
@@ -85,7 +165,7 @@ export async function runDeliverabilityMonitor(): Promise<void> {
       }
     }
   } else {
-    console.log('[deliverability] Weekly check: no sends in last 7 days');
+    console.log('[deliverability] Weekly check: no sends in last 7 days (any rail)');
   }
 }
 
@@ -98,14 +178,17 @@ cron.schedule('0 19 * * 0', cronGuard({ jobName: 'deliverabilityMonitor' }, runD
  *
  * Added 2026-09-06 after an email-deliverability audit (see
  * claude_docs/audits/email-deliverability-audit-2026-09-06.md) found that the
- * weekly check above only measures volume via OutreachAuditLog (the cold-outreach
- * pipeline) — it has zero visibility into the Resend transactional rail
+ * weekly check above only measured volume via OutreachAuditLog (the cold-outreach
+ * pipeline) — it had zero visibility into the Resend transactional rail
  * (refunds/receipts/password-resets/payouts/invoices) or the non-outreach Gmail
  * bulk jobs. A real Gmail SMTP hard rejection ("550 5.7.1 ... likely unsolicited
  * mail ... blocked") already happened 2026-08-18 and was not reliably caught by
- * the weekly rate check. This tripwire runs every 6 hours and fires on ANY new
- * EmailSuppression row that looks like an explicit spam-block (not just a bounce),
- * regardless of overall send volume or rate.
+ * the weekly rate check. The weekly check's denominator was extended 2026-09-08
+ * to cover all three rails (see getCrossRailSentCounts() above) — this tripwire
+ * still runs independently every 6 hours and fires on ANY new EmailSuppression
+ * row that looks like an explicit spam-block (not just a bounce), regardless of
+ * overall send volume or rate, since a single 550 5.7.1 is worth a same-day
+ * alert on its own rather than waiting for the weekly rate to cross 2%.
  */
 export async function runSpamBlockTripwire(): Promise<void> {
   const windowStart = new Date(Date.now() - 6 * 60 * 60 * 1000);
@@ -169,7 +252,7 @@ export async function runSpamBlockTripwire(): Promise<void> {
       html: `
         <p><strong>\u{1F6A8} A mailbox provider explicitly flagged FindA.Sale mail as spam/unsolicited in the last 6 hours.</strong></p>
         <ul>${rows}</ul>
-        <p>This fires independent of the weekly bounce-rate check, which only tracks outreach-pipeline volume and would not reliably catch this. See claude_docs/audits/email-deliverability-audit-2026-09-06.md for background.</p>
+        <p>This fires independent of the weekly bounce-rate check (which now also covers all sending rails, but only alerts on the 7-day aggregate rate crossing 2% — a single explicit spam-block signal like this is worth a same-day alert on its own). See claude_docs/audits/email-deliverability-audit-2026-09-06.md for background.</p>
         <p style="color:#666;font-size:12px">FindA.Sale \u00b7 deliverabilityMonitorJob.ts \u00b7 every 6h</p>
       `,
     });

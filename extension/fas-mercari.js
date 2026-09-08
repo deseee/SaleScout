@@ -1579,7 +1579,42 @@
     // Already configured (re-run on a draft that already has a label chosen) -- nothing to do.
     const openerText = mercariShippingOpenerText(opener);
     if (openerText.indexOf('enable shipping') === -1 && openerText.indexOf('add title') === -1) return true;
-    await realClick(opener);
+    // BUG FIX 2026-09-08 (P1, Beeple-hardcover-book draft, live-confirmed via Patrick's shared
+    // tab -- see STATE.md Session Added 2026-09-08 for the full live-DOM writeup): the check
+    // just above is a single point-in-time read. Live-confirmed this can fire while Title/
+    // Category already hold the correct values elsewhere on the page (both visibly correct in
+    // the shared tab) but Mercari's OWN internal validation gating this field hasn't caught up
+    // yet -- the opener's placeholder still read "Add title and category to enable shipping" at
+    // that exact moment. Clicking an opener Mercari itself still considers gated is what stranded
+    // the Beeple draft: the wizard's shoebox question never rendered (the failure return a few
+    // lines below), and the whole fill stopped there with no retry. This is the same race-
+    // condition class already patched three times in this exact function (BATCH-8/11/12,
+    // 2026-08-23/27) for other symptoms in the same wizard.
+    // Fix: poll the SAME text signal this function already treats as authoritative (the
+    // "already configured" check immediately above) for up to 8s BEFORE clicking -- same
+    // bounded re-query-every-300ms idiom as waitForSelector()/waitForOptionByText() elsewhere in
+    // this file -- instead of clicking on a single stale read. Re-queries the opener fresh each
+    // poll tick (not just its text) since the underlying element can itself be replaced by a
+    // React re-render while this waits, same defensive habit as mercariShippingOpener()'s other
+    // callers. If Mercari's own gate genuinely never clears within the timeout, this fails
+    // loudly with a distinct, specific reason string (never a silent stall, never guessed) so a
+    // future live round has a direct answer instead of the misleading downstream "shoebox
+    // question never appeared" message, which was only ever a symptom of this same root cause.
+    let gateOpener = null;
+    const gateWaitStart = Date.now();
+    while (Date.now() - gateWaitStart < 8000) {
+      const freshOpener = mercariShippingOpener();
+      const freshText = freshOpener ? mercariShippingOpenerText(freshOpener) : '';
+      if (freshOpener && freshText.indexOf('enable shipping') === -1 && freshText.indexOf('add title') === -1) {
+        gateOpener = freshOpener;
+        break;
+      }
+      await sleep(300);
+    }
+    if (!gateOpener) {
+      return 'Mercari hasn\'t registered Title + Category as complete yet (its Shipping label field still reads "Add title and category to enable shipping" after waiting), so FindA.Sale did not attempt to open the shipping wizard (UNVERIFIED timing -- Mercari\'s own internal validation may just need more time; re-run this draft).';
+    }
+    await realClick(gateOpener);
     await sleep(500);
 
     // Step 1: "Weigh and measure your package accurately" info modal -- click "Got it".

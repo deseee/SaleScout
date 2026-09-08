@@ -36,6 +36,7 @@ import { fetchEbayPriceComps, endEbayListingIfExists, computeEffectivePackageWei
 import { composeDescription, stripShippingPhrases, DescriptionSource } from '../services/descriptionMerger'; // Item Description Authoring Contract (2026-05-12)
 import { checkAndAward } from '../services/achievementService'; // Feature #58: Achievement tracking
 import { notifyFacebookExportedItemSold } from '../services/facebookNudgeService'; // Bug #461: FB nudge on single-item SOLD
+import { sendItemSoldAlert } from '../services/saleAlertEmailService'; // P1 fix (2026-09-08): off-platform BYOR sold handler had zero organizer notification; reuse the same "item sold" email alert Stripe checkout already sends (stripeController.ts ~2144)
 import { republishEbayOffer, ebayPublishWithSelfHeal, ensureConditionValidForCategory } from '../services/ebayPublishService'; // Phase 2 relocation + Phase 3 rewire (ADR 2026-06-30)
 import { assertCheckoutAllowed, CheckoutGuardError } from '../services/checkoutGuard'; // S1072 Finding #4: collusion/wash-trade guard
 import { commitItemSale, ItemAlreadyCommittedError } from '../services/itemSaleGuard'; // ADR-098: atomic double-sell guard
@@ -2460,14 +2461,23 @@ export const markItemSoldOffPlatform = async (req: AuthRequest, res: Response) =
       where: { id },
       select: {
         id: true,
+        title: true,
+        price: true,
         status: true,
         stockTotal: true,
         saleId: true,
         sale: {
           select: {
             id: true,
+            title: true,
             organizerId: true,
-            organizer: { select: { userId: true, offPlatformSalesEnabled: true } },
+            organizer: {
+              select: {
+                userId: true,
+                offPlatformSalesEnabled: true,
+                user: { select: { email: true, name: true } },
+              },
+            },
           },
         },
       },
@@ -2569,6 +2579,31 @@ export const markItemSoldOffPlatform = async (req: AuthRequest, res: Response) =
     });
 
     await prisma.item.update({ where: { id }, data: { lastSoldVia: 'OFF_PLATFORM_MANUAL' } });
+
+    // P1 fix (2026-09-08, Patrick-reported): this off-platform (BYOR) sold handler is the ONLY
+    // code path that records a sale for every extension-only marketplace (Vinted, Poshmark,
+    // Depop, Grailed, Reverb, Etsy, Discogs -- anything with no API integration) and it never
+    // sent the organizer any "sold" alert, in-app or email. Reusing the EXACT existing "item
+    // sold" organizer email alert the Stripe checkout-completion path already sends (see the
+    // sendItemSoldAlert call in stripeController.ts ~line 2144) rather than inventing a new
+    // notification mechanism -- same service, same dedup guard (15-min Redis cooldown keyed on
+    // organizerEmail+saleId+itemTitle in saleAlertEmailService.ts), same fire-and-forget shape.
+    // No separate in-app Notification row is created here: the on-platform Stripe path this
+    // mirrors doesn't create one either (confirmed by reading it end-to-end -- only
+    // sendItemSoldAlert fires there), so parity with the existing pattern means email-only here.
+    if (organizer.user?.email) {
+      const alertPrice = reportedAmountValue ?? item.price ?? 0;
+      sendItemSoldAlert({
+        organizerEmail: organizer.user.email,
+        organizerName: organizer.user.name || 'there',
+        itemTitle: item.title,
+        saleTitle: item.sale.title,
+        price: alertPrice,
+        saleId: item.sale.id,
+      }).catch((err: any) =>
+        console.warn(`[alert] Failed to send off-platform item sold email for item ${id}:`, err.message)
+      );
+    }
 
     // Cross-channel delisting cascade (verified 2026-09-06, findasale-dev scoping correction #1
     // on Patrick's own direction to verify rather than trust the doc's phrasing -- read both

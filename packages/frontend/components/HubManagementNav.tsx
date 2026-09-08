@@ -21,13 +21,19 @@ export default function HubManagementNav({ hubId }: HubManagementNavProps) {
   const tabs = [
     { label: 'Hub Details', href: `/organizer/hubs/${hubId}/manage` },
     { label: 'Vendor Booths', href: `/organizer/hubs/${hubId}/vendor-booths` },
-    { label: 'Register', href: `/organizer/hubs/${hubId}/cart` },
+    // 2026-09-08 (P2, Blocked Queue 2026-09-06): repointed from the deprecated
+    // /organizer/hubs/[hubId]/cart register to the current venue-mode POS
+    // (#587), matching vendor-booths.tsx's own "Open Register" link fixed
+    // earlier the same day. Static /organizer/pos pathname + ?venue= query,
+    // so it needs its own active-match check below (currentPath strips query).
+    { label: 'Register', href: `/organizer/pos?venue=${hubId}` },
   ];
 
   // asPath (not pathname) is needed here because pathname is the dynamic route
   // template (e.g. "/organizer/hubs/[hubId]/manage") and won't match the real
   // hubId-bearing href we're comparing against.
   const currentPath = router.asPath.split('?')[0].split('#')[0];
+  const currentVenueId = typeof router.query.venue === 'string' ? router.query.venue : null;
 
   return (
     <div className="mb-6">
@@ -36,7 +42,9 @@ export default function HubManagementNav({ hubId }: HubManagementNavProps) {
       )}
       <nav className="flex gap-1 border-b border-warm-200 dark:border-gray-700" aria-label="Hub management">
         {tabs.map((tab) => {
-          const isActive = currentPath === tab.href;
+          const isActive = tab.label === 'Register'
+            ? currentPath === '/organizer/pos' && currentVenueId === hubId
+            : currentPath === tab.href;
           return (
             <Link
               key={tab.href}

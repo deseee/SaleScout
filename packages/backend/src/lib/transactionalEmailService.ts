@@ -1,5 +1,6 @@
 import { Resend } from 'resend';
 import { suppressionService } from '../services/suppressionService';
+import { recordApiUsage } from './aiCostTracker';
 import * as Sentry from '@sentry/node';
 
 /**
@@ -103,6 +104,18 @@ export const transactionalEmailService = {
         });
         throw new Error(`Resend send failed: ${error.message}`);
       }
+
+      // SENT-count tracking for deliverabilityMonitorJob.ts's weekly bounce-rate
+      // check (P1 fix, 2026-09-08 -- see claude_docs/audits/email-deliverability-
+      // audit-2026-09-06.md Sec.6 recommendation 1a). No SENT counter previously
+      // existed for the Resend transactional rail at all, so the weekly bounce-rate
+      // denominator was structurally blind to it. Reuses the existing generic
+      // ApiUsageLog table (service+dateKey+callCount -- "resend" was already listed
+      // as an example service value in schema.prisma's own comment on that model)
+      // via the existing recordApiUsage() helper, instead of adding a new table or
+      // field. writeApiUsageRow() (inside recordApiUsage) already fails open and
+      // never throws, so this can never block or fail a real transactional send.
+      await recordApiUsage('resend:transactional', 0, recipients.length);
 
       return { sent: true };
     },
