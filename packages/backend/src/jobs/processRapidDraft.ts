@@ -1,6 +1,7 @@
 import { prisma } from '../lib/prisma';
 import { Prisma } from '@prisma/client';
 import { analyzeItemImage, analyzeItemImages, suggestPrice, AITagResult } from '../services/cloudAIService';
+import { applyCharmPricing } from '../utils/charmPricing';
 import { checkAITagLimit } from '../lib/tierEnforcement';
 import { composeDescription } from '../services/descriptionMerger'; // Item Description Authoring Contract (2026-05-12)
 import { suggestCategories } from '../services/ebayTaxonomyService';
@@ -272,7 +273,14 @@ export async function processRapidDraft(itemId: string): Promise<void> {
               aiResult.condition,
               compData
             );
-            refinedPrice = priceSuggestion.suggested;
+            // Charm-price the comp-refined suggestion -- suggestPrice() returns a raw
+            // Haiku number with no .49/.99 rounding (unlike finalizePricing()'s AI-guess
+            // path), so without this the refined price silently overwrote an already
+            // charm-priced aiResult.suggestedPrice with a flat whole-dollar amount whenever
+            // >=2 same-category SOLD comps existed (Patrick live report, 2026-09-09: every
+            // record in a Music-category rapidfire batch landed flat because his own prior
+            // sold vinyl comps triggered this branch every time).
+            refinedPrice = applyCharmPricing(priceSuggestion.suggested);
           }
         } catch (priceErr) {
           // Price refinement is best-effort — fall back to raw AI price on error
