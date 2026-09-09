@@ -70,7 +70,13 @@ export const createPaymentRequest = async (req: AuthRequest, res: Response) => {
       discountType,
       discountValue,
       discountReasonNote,
-      processor = 'STRIPE', // Square migration Wave 1 #3 (2026-09-07)
+      // S-STRIPE-SQUARE-DEFAULT-FIX (2026-09-09): Stripe's platform account is now
+      // PERMANENTLY closed -- defaulting an un-specified processor to STRIPE meant
+      // every 'Send to Phone' request from a frontend build that doesn't pass
+      // `processor` explicitly would silently attempt a doomed Stripe charge.
+      // Default flipped to SQUARE. STRIPE branch left in place, inert, only for a
+      // caller that explicitly requests it (e.g. servicing an existing in-flight row).
+      processor = 'SQUARE', // Square migration Wave 1 #3 (2026-09-07) -- default corrected 2026-09-09
     } = req.body as {
       shopperUserId?: string;
       saleId?: string;

@@ -3,7 +3,6 @@ import { AuthRequest } from '../middleware/auth';
 import { prisma } from '../lib/prisma';
 import { getStripe } from '../utils/stripe';
 import {
-  createConnectAccount,
   createOnboardingLink,
   createStandardMigrationAccount,
   createStandardMigrationAccountManual,
@@ -11,6 +10,9 @@ import {
   payConsignorViaACH,
   updateConsignorOnboardingStatus,
 } from '../services/stripeConnectService';
+// S-STRIPE-SQUARE-ONBOARDING-GUARD (2026-09-09): createConnectAccount no longer used
+// in this file -- both call sites that used it (consignor + hub-owner onboarding)
+// now block new-Stripe-identity creation instead (Stripe platform account closed).
 import { sendConsignorPaymentSetupInvite } from '../services/consignorEmailService';
 import { isPayoutFlaggedForReview } from '../services/connectAccountGuard'; // S1198 (2026-09-06): bank-fingerprint collusion hold
 import { Decimal } from '@prisma/client/runtime/library';
@@ -89,17 +91,17 @@ export const initiateConsignorOnboarding = async (req: AuthRequest, res: Respons
 
     // Create account if it doesn't exist
     if (!accountId) {
-      // ADR-020 (2026-07-07, Patrick-approved): Consignor onboarding also moves to
-      // Standard accounts, alongside VendorBooth — same createConnectAccount
-      // function, same accountType parameter, extending the migration Patrick
-      // explicitly signed off on for both callers.
-      accountId = await createConnectAccount(consignor, 'standard');
-      // 2026-07-08 fix (S1091): createConnectAccount no longer persists internally
-      // (it's shared with vendorBoothController.ts, which owns a different model) --
-      // this caller now persists the new accountId to the Consignor row itself.
-      await prisma.consignor.update({
-        where: { id: consignor.id },
-        data: { stripeAccountId: accountId, stripeAccountType: 'standard' },
+      // S-STRIPE-SQUARE-ONBOARDING-GUARD (2026-09-09): Stripe's platform account is
+      // now PERMANENTLY closed. A consignor with no existing stripeAccountId reaching
+      // this point would previously get a brand-new Stripe Standard account created
+      // here (ADR-020) -- that call now hard-fails 100% of the time. Per the Square
+      // changeover decision (2026-09-09), no NEW Stripe identity may be created for a
+      // consignor with no existing one -- block and point the caller at the already-
+      // live Square consignor onboarding endpoint instead.
+      return res.status(409).json({
+        message: 'Stripe is no longer available for new consignor payment accounts. Please connect with Square instead.',
+        code: 'STRIPE_CLOSED_USE_SQUARE',
+        squareOnboardingUrl: `/api/square-connect/consignor/${consignorId}/onboard`,
       });
     }
 
@@ -533,24 +535,19 @@ export const initiateHubOwnerStripeOnboarding = async (req: AuthRequest, res: Re
       });
     }
 
-    // No Stripe account at all yet — create a fresh Standard account, same
-    // 'standard' branch createConnectAccount already uses for Consignor/VendorBooth
-    // onboarding (ADR-020). Organizer has no workspaceId concept (unlike Consignor),
-    // so this calls stripe().accounts.create directly rather than routing through
-    // the shared createConnectAccount() helper.
-    const account = await stripe().accounts.create({
-      type: 'standard',
-      email: req.user!.email,
-      metadata: { organizerId: organizer.id, source: 'hub_owner_onboarding' },
+    // S-STRIPE-SQUARE-ONBOARDING-GUARD (2026-09-09): Stripe's platform account is now
+    // PERMANENTLY closed. This point is reached only when the organizer has no
+    // existing stripeConnectId at all -- previously created a fresh Stripe Standard
+    // account here, which now hard-fails 100% of the time. Per the Square changeover
+    // decision (2026-09-09), no NEW Stripe identity may be created for an organizer
+    // with no existing one -- block and point the caller at the already-live Square
+    // hub-owner onboarding endpoint instead. The needsStandardMigration branch above
+    // (an organizer who already has a live Stripe identity) is untouched.
+    return res.status(409).json({
+      message: 'Stripe is no longer available for new hub owner payment accounts. Please connect with Square instead.',
+      code: 'STRIPE_CLOSED_USE_SQUARE',
+      squareOnboardingUrl: '/api/square-connect/hub-owner/onboard',
     });
-
-    await prisma.organizer.update({
-      where: { id: organizer.id },
-      data: { stripeConnectId: account.id, stripeAccountType: 'standard' },
-    });
-
-    const url = await createOnboardingLink(account.id, returnUrl, refreshUrl);
-    return res.json({ onboardingUrl: url, alreadyOnboarded: false });
   } catch (error) {
     console.error('initiateHubOwnerStripeOnboarding error:', error);
     return res.status(500).json({ message: 'Failed to start hub owner Stripe onboarding.' });

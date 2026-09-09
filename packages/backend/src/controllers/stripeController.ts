@@ -320,33 +320,27 @@ export const createConnectAccount = async (req: AuthRequest, res: Response) => {
       }
     }
 
-    const account = await stripe().accounts.create({
-      type: 'express',
-      email: req.user.email,
-      business_type: 'individual',
-      capabilities: {
-        card_payments: { requested: true },
-        transfers: { requested: true },
-      },
+    // S-STRIPE-SQUARE-ONBOARDING-GUARD (2026-09-09): Stripe's platform account is now
+    // PERMANENTLY closed. Every code path reaching this point has no live, existing
+    // Stripe Connect identity (either the organizer never had one, or the one on file
+    // was just cleared above as invalid) -- so this would be a brand-new
+    // stripe().accounts.create() call, which will now hard-fail 100% of the time.
+    // Per the Square changeover decision (2026-09-09), no NEW Stripe identity may be
+    // created for any organizer with no existing one -- block here and point the
+    // caller at the already-live Square onboarding endpoint instead. This does NOT
+    // touch the login-link/account-link branches above, which continue to service any
+    // organizer who already has a real Stripe Connect identity.
+    return res.status(409).json({
+      message: 'Stripe is no longer available for new payment accounts. Please connect with Square instead.',
+      code: 'STRIPE_CLOSED_USE_SQUARE',
+      squareOnboardingUrl: '/api/square-connect/organizer/onboard',
     });
-
-    await prisma.organizer.update({
-      where: { userId: req.user.id },
-      data: { stripeConnectId: account.id }
-    });
-
-    // SECURITY: Audit log for Stripe Connect account association
-    console.log(`[SECURITY] Stripe Connect account linked: organizerId=${organizer.id} connectId=${account.id} by userId=${req.user.id} at ${new Date().toISOString()}`);
-    console.info(`[billing] Stripe Connect account created for organizer ${organizer.id}`);
-
-    const accountLink = await stripe().accountLinks.create({
-      account: account.id,
-      refresh_url: `${process.env.FRONTEND_URL}/organizer/dashboard`,
-      return_url: `${process.env.FRONTEND_URL}/organizer/dashboard`,
-      type: 'account_onboarding',
-    });
-
-    res.json({ url: accountLink.url });
+    // Dead-code-below removed 2026-09-09 (was: fresh stripe().accounts.create() +
+    // accountLinks.create() for a brand-new organizer). Unreachable now that the guard
+    // above always returns first for any organizer with no existing Stripe identity --
+    // removed rather than left as unreachable code. The EXISTING-account login-link/
+    // account-link branches earlier in this function are untouched and still service any
+    // organizer who already has a real Stripe Connect identity.
   } catch (error: unknown) {
     let statusCode = 500;
     let message = 'Failed to create Stripe Connect account';

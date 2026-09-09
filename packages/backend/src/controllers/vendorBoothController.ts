@@ -2,7 +2,10 @@ import { Request, Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import { prisma } from '../lib/prisma';
 import { Decimal } from '@prisma/client/runtime/library';
-import { createConnectAccount, createOnboardingLink, getAccountStatus } from '../services/stripeConnectService';
+// S-STRIPE-SQUARE-ONBOARDING-GUARD (2026-09-09): createConnectAccount no longer
+// used in this file -- the genuinely-new-vendor branch now blocks new-Stripe-
+// identity creation instead (Stripe platform account closed).
+import { createOnboardingLink, getAccountStatus } from '../services/stripeConnectService';
 // Square migration (2026-09-07, Wave 1 #2): vendor-booth-operator's Square-side onboarding.
 // buildSquareAuthorizeUrl/resolveExistingSquareIdentityForUser mirror the existing Stripe
 // reuse-resolution pattern below (see startVendorBoothStripeOnboarding) -- the actual OAuth
@@ -792,28 +795,19 @@ export const startVendorBoothStripeOnboarding = async (req: AuthRequest, res: Re
       }
 
       // No existing Organizer/Stripe identity found -- genuinely new vendor.
-      // ADR-020 (2026-07-07, Patrick-approved): new-from-scratch onboarding
-      // creates a Standard account -- each such booth becomes its own
-      // Direct-charge merchant of record (Stripe files that booth's own
-      // 1099-K, not FindA.Sale). This benefit is scoped to genuinely new
-      // vendors only (ADR-021) -- it does not apply when an existing account
-      // was reused above, since Stripe does not support converting an
-      // existing account's type.
-      accountId = await createConnectAccount(
-        {
-          id: booth.id,
-          email: booth.vendorEmail || req.user.email,
-          name: booth.vendorName,
-          workspaceId: booth.hubId,
-        },
-        'standard'
-      );
-      // createConnectAccount is typed for Consignor's update call internally in the
-      // original implementation's own persistence — VendorBooth needs its own write here
-      // since createConnectAccount only persists to the Consignor table today.
-      await prisma.vendorBooth.update({
-        where: { id: booth.id },
-        data: { stripeAccountId: accountId, stripeAccountType: 'standard' },
+      // S-STRIPE-SQUARE-ONBOARDING-GUARD (2026-09-09): Stripe's platform account is
+      // now PERMANENTLY closed. Previously (ADR-020/ADR-021), a genuinely new vendor
+      // reaching this point got a brand-new Stripe Standard account created here --
+      // that call now hard-fails 100% of the time. Per the Square changeover decision
+      // (2026-09-09), no NEW Stripe identity may be created for a booth with no
+      // existing one -- block and point the caller at the already-live Square
+      // vendor-booth onboarding endpoint instead. The reuse-existing-identity branch
+      // above (a claiming user who already has a working Stripe Connect account as an
+      // Organizer) is untouched.
+      return res.status(409).json({
+        error: 'Stripe is no longer available for new vendor booth payment accounts. Please connect with Square instead.',
+        code: 'STRIPE_CLOSED_USE_SQUARE',
+        squareOnboardingUrl: `/api/vendor-booth/${vendorBoothId}/square/onboard`,
       });
     }
 
