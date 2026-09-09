@@ -189,6 +189,12 @@ describe('POS server-authoritative catalog pricing -- no-discount floor check (A
         saleId: sale.id,
         itemIds: [item.id],
         totalAmountCents: 5000, // exactly matches the real $50.00 catalog price
+        // S-STRIPE-SQUARE-DEFAULT-FIX (2026-09-09): createPaymentRequest now defaults an
+        // unspecified processor to SQUARE (Stripe's platform account is permanently
+        // closed). This fixture's organizer only has stripeConnectId set (no Square
+        // fields), so it must pin the legacy Stripe path explicitly -- this test is about
+        // catalog-pricing correctness, not about which processor is the default.
+        processor: 'STRIPE',
       },
     };
     const createRes = makeMockRes();
@@ -218,6 +224,10 @@ describe('POS server-authoritative catalog pricing -- no-discount floor check (A
         saleId: sale.id,
         itemIds: [],
         totalAmountCents: 250, // arbitrary misc amount, no catalog item to check against
+        // S-STRIPE-SQUARE-DEFAULT-FIX (2026-09-09): see the "correctly matches" test above --
+        // same fixture shape (Stripe-only organizer), same reason to pin the processor
+        // explicitly rather than rely on the new SQUARE default.
+        processor: 'STRIPE',
       },
     };
     const createRes = makeMockRes();

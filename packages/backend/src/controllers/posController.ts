@@ -890,7 +890,11 @@ export const sendHoldInvoice = async (req: AuthRequest, res: Response) => {
         });
       }
 
-      const paidResult = await markHoldInvoicePaid(cashOnlyInvoice.id, null, { source: 'pos-cash' });
+      const paidResult = await markHoldInvoicePaid(
+        cashOnlyInvoice.id,
+        { processor: 'STRIPE', externalPaymentId: null }, // Square changeover Wave S1 (2026-09-09): generalized signature, zero behavior change for this cash-only Stripe-column write
+        { source: 'pos-cash' }
+      );
       if (paidResult.deadInvoice || (!paidResult.recorded && !paidResult.alreadyPaid)) {
         // Effectively unreachable (the invoice was just created PENDING above, nothing else
         // could have raced it), but fail loudly rather than silently claim a payment that

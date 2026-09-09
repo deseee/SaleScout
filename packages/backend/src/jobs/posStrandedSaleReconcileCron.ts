@@ -296,10 +296,12 @@ export const reconcileStrandedPosSales = async (): Promise<void> => {
         ? paidSession.payment_intent
         : (paidSession.payment_intent as any)?.id ?? undefined;
 
+      // Square changeover Wave S1 (2026-09-09): generalized signature (processor + externalPaymentId), zero behavior change for this STRIPE reconcile path
       const result = await recordPosPaymentLinkSale(fresh, {
         source: 'reconcile',
         sessionId: paidSession.id,
-        paymentIntentId: reconcilePaymentIntentId,
+        processor: 'STRIPE',
+        externalPaymentId: reconcilePaymentIntentId,
       });
 
       if (result.recorded) {

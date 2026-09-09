@@ -20,8 +20,8 @@ import {
   createTerminalPaymentIntent,
   captureTerminalPaymentIntent,
   cancelTerminalPaymentIntent,
-  cashPayment,
 } from '../controllers/terminalController';
+import { cashPayment } from '../controllers/cashPaymentController'; // moved 2026-09-09 (Square-changeover split-out) -- route path unchanged
 import { authenticate, optionalAuthenticate } from '../middleware/auth';
 import { paymentLimiter } from '../middleware/rateLimiter';
 

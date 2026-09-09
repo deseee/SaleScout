@@ -3197,7 +3197,8 @@ export const webhookHandler = async (req: Request, res: Response) => {
             const posPaymentIntentId = typeof session.payment_intent === 'string'
               ? session.payment_intent
               : (session.payment_intent as any)?.id ?? undefined;
-            await recordPosPaymentLinkSale(posPaymentLink, { source: 'webhook', sessionId: session.id, paymentIntentId: posPaymentIntentId });
+            // Square changeover Wave S1 (2026-09-09): generalized signature (processor + externalPaymentId), zero behavior change for this STRIPE call site
+            await recordPosPaymentLinkSale(posPaymentLink, { source: 'webhook', sessionId: session.id, processor: 'STRIPE', externalPaymentId: posPaymentIntentId });
           } catch (recErr: any) {
             // Re-throw so the outer handler try/catch marks the event FAILED and returns 500,
             // letting Stripe retry -- and the reconciliation cron is the additional backstop.
@@ -3427,11 +3428,15 @@ export const webhookHandler = async (req: Request, res: Response) => {
           const invoiceId = paymentIntent.metadata.invoiceId;
           // LOCKED DECISION #1: Calculate organizer payout (total amount - platform fee - Stripe fee)
           const stripeFeeAmount = (charge.amount - (charge.amount - (charge.amount_refunded || 0))) / 100; // convert from cents
-          await markHoldInvoicePaid(invoiceId, paymentIntent.id, {
-            source: 'webhook',
-            chargeId: charge.id,
-            stripeFeeAmountCents: Math.round(stripeFeeAmount * 100),
-          });
+          await markHoldInvoicePaid(
+            invoiceId,
+            { processor: 'STRIPE', externalPaymentId: paymentIntent.id }, // Square changeover Wave S1 (2026-09-09): generalized signature, zero behavior change
+            {
+              source: 'webhook',
+              chargeId: charge.id,
+              stripeFeeAmountCents: Math.round(stripeFeeAmount * 100),
+            }
+          );
         } else {
           // ADR-111 self-healing fallback (2026-08-28): paymentIntent.metadata.invoiceId is
           // sometimes missing because reservationController.ts's markSoldAndCreateInvoice (and
@@ -3466,11 +3471,15 @@ export const webhookHandler = async (req: Request, res: Response) => {
                 );
                 const stripeFeeAmount =
                   (charge.amount - (charge.amount - (charge.amount_refunded || 0))) / 100;
-                await markHoldInvoicePaid(fallbackInvoice.id, paymentIntent.id, {
-                  source: 'webhook-fallback',
-                  chargeId: charge.id,
-                  stripeFeeAmountCents: Math.round(stripeFeeAmount * 100),
-                });
+                await markHoldInvoicePaid(
+                  fallbackInvoice.id,
+                  { processor: 'STRIPE', externalPaymentId: paymentIntent.id }, // Square changeover Wave S1 (2026-09-09): generalized signature, zero behavior change
+                  {
+                    source: 'webhook-fallback',
+                    chargeId: charge.id,
+                    stripeFeeAmountCents: Math.round(stripeFeeAmount * 100),
+                  }
+                );
                 try {
                   Sentry.captureMessage(
                     `[hold-invoice/webhook-fallback] ADR-111 fallback used for HoldInvoice ${fallbackInvoice.id} ` +

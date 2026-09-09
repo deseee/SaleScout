@@ -171,16 +171,37 @@ function reportDeadInvoicePayment(params: {
   }
 }
 
+export interface ExternalPaymentRef {
+  /** Which processor recorded this payment -- discriminates which ID field this call writes,
+   *  matching the `processor` string-discriminator convention already used on
+   *  HoldInvoice/Purchase (schema.prisma, Square migration 2026-09-07 Wave 0). */
+  processor: 'STRIPE' | 'SQUARE';
+  // ADR-114 (2026-08-31): nullable to support the 'pos-cash' source above -- a fully-cash
+  // invoice has no Stripe PaymentIntent (or Square Payment) at all. Every use of this value
+  // below already tolerates null (stored as-is on HoldInvoice.stripePaymentIntentId/
+  // squarePaymentId and Purchase.stripePaymentIntentId/squarePaymentId, all nullable columns;
+  // only used in log/Sentry text otherwise) -- confirmed by reading the full function body
+  // before this change.
+  externalPaymentId: string | null;
+}
+
+/**
+ * Square changeover Wave S1 (2026-09-09): generalized from a Stripe-only `paymentIntentId`
+ * positional parameter to a `{ processor, externalPaymentId }` pair (see ExternalPaymentRef
+ * above) so this recorder can be called for a Square-paid HoldInvoice once Wave S2 #3 wires
+ * Square into reservationController.ts/posController.ts's invoice-creation paths. This is a
+ * signature/branching change ONLY -- every existing STRIPE call site below is unchanged in
+ * behavior (still writes HoldInvoice.stripePaymentIntentId/Purchase.stripePaymentIntentId
+ * exactly as before); a SQUARE call just writes squarePaymentId instead. See
+ * claude_docs/feature-notes/square-changeover-remaining-work-scoping-2026-09-09.md Section
+ * 1.4 Wave S1.
+ */
 export async function markHoldInvoicePaid(
   invoiceId: string,
-  // ADR-114 (2026-08-31): nullable to support the 'pos-cash' source above -- a fully-cash
-  // invoice has no Stripe PaymentIntent at all. Every use of this parameter below already
-  // tolerates null (stored as-is on HoldInvoice.stripePaymentIntentId and
-  // Purchase.stripePaymentIntentId, both nullable columns; only used in log/Sentry text
-  // otherwise) -- confirmed by reading the full function body before this change.
-  paymentIntentId: string | null,
+  paymentRef: ExternalPaymentRef,
   opts: MarkHoldInvoicePaidOpts
 ): Promise<MarkHoldInvoicePaidResult> {
+  const { processor, externalPaymentId } = paymentRef;
   const { source, chargeId, stripeFeeAmountCents = 0 } = opts;
 
   // Fetch the invoice with full context
@@ -241,7 +262,7 @@ export async function markHoldInvoicePaid(
   if (holdInvoice.status !== 'PENDING') {
     reportDeadInvoicePayment({
       invoiceId,
-      paymentIntentId,
+      paymentIntentId: externalPaymentId,
       invoiceStatus: holdInvoice.status,
       amountCents: holdInvoice.totalAmount,
       source,
@@ -299,7 +320,13 @@ export async function markHoldInvoicePaid(
       data: {
         status: 'PAID',
         paidAt: new Date(),
-        stripePaymentIntentId: paymentIntentId,
+        processor,
+        // Square changeover Wave S1 (2026-09-09): processor-branched write -- a STRIPE call
+        // writes stripePaymentIntentId exactly as before (zero behavior change); a SQUARE call
+        // writes squarePaymentId instead. Never writes both.
+        ...(processor === 'SQUARE'
+          ? { squarePaymentId: externalPaymentId }
+          : { stripePaymentIntentId: externalPaymentId }),
         stripeFeeAmount: Math.round(stripeFeeAmount * 100),
       },
     });
@@ -363,7 +390,7 @@ export async function markHoldInvoicePaid(
           // Sentry alert is what makes the shortfall actionable.
           const oversoldMsg =
             `[hold-invoice/${source}] OVERSOLD-RACE invoice=${invoiceId} item=${bundledItemId} ` +
-            `pi=${paymentIntentId} -- payment captured but this item could not be sold ` +
+            `pi=${externalPaymentId} -- payment captured but this item could not be sold ` +
             `(${stockErr.message}). No Purchase row will be created for it, so there is no ` +
             `record for executeVerifiedRefund to key off: this charge needs manual review ` +
             `and likely a partial refund in Stripe.`;
@@ -375,7 +402,8 @@ export async function markHoldInvoicePaid(
                 message: oversoldMsg,
                 invoiceId,
                 itemId: bundledItemId,
-                stripePaymentIntentId: paymentIntentId,
+                processor,
+                externalPaymentId,
                 chargeId: chargeId ?? null,
                 saleId: holdInvoice.saleId,
                 shopperUserId: holdInvoice.shopperUserId,
@@ -457,7 +485,10 @@ export async function markHoldInvoicePaid(
             // established value 'POS' -- see terminalController.ts's own cash/card Purchase
             // rows, which already use 'POS').
             source: source === 'pos-cash' ? 'POS' : 'ONLINE',
-            stripePaymentIntentId: paymentIntentId,
+            processor,
+            ...(processor === 'SQUARE'
+              ? { squarePaymentId: externalPaymentId }
+              : { stripePaymentIntentId: externalPaymentId }),
             chargeType: useDirect ? 'DIRECT' : 'DESTINATION',
             ...(useDirect && chargeAccountId ? { stripeAccountId: chargeAccountId } : {}),
           },
@@ -466,6 +497,11 @@ export async function markHoldInvoicePaid(
         // Compound partial unique (stripePaymentIntentId, itemId) backstop -- mirrors
         // posPaymentLinkRecorder.ts: a concurrent webhook/reconcile race that both reach
         // this insert can't double-create a Purchase row for the same item + PaymentIntent.
+        // KNOWN GAP (Square changeover Wave S1, 2026-09-09, not fixed here): this backstop
+        // only covers stripePaymentIntentId -- a SQUARE-processor row has no matching unique
+        // index on squarePaymentId yet. Flagged for a follow-up schema change once Wave S2
+        // wires real Square traffic through this recorder; out of scope for this dispatch
+        // (no schema.prisma edits permitted).
         if (purchaseErr.code === 'P2002') {
           console.warn(`[hold-invoice/${source}] Purchase already exists for item ${bundledItem.id} on invoice ${invoiceId} — treating as already recorded.`);
         } else {
@@ -511,7 +547,10 @@ export async function markHoldInvoicePaid(
             // established value 'POS' -- see terminalController.ts's own cash/card Purchase
             // rows, which already use 'POS').
             source: source === 'pos-cash' ? 'POS' : 'ONLINE',
-            stripePaymentIntentId: paymentIntentId,
+            processor,
+            ...(processor === 'SQUARE'
+              ? { squarePaymentId: externalPaymentId }
+              : { stripePaymentIntentId: externalPaymentId }),
             chargeType: useDirect ? 'DIRECT' : 'DESTINATION',
             ...(useDirect && chargeAccountId ? { stripeAccountId: chargeAccountId } : {}),
           },
@@ -614,7 +653,7 @@ export async function markHoldInvoicePaid(
     if (postFlipStatus && postFlipStatus !== 'PAID') {
       reportDeadInvoicePayment({
         invoiceId,
-        paymentIntentId,
+        paymentIntentId: externalPaymentId,
         invoiceStatus: postFlipStatus,
         amountCents: holdInvoice.totalAmount,
         source,

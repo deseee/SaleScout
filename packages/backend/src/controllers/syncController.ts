@@ -6,7 +6,7 @@
 import { Request, Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import { prisma } from '../lib/prisma';
-import { processCashSaleCore, CashSaleError } from './terminalController'; // #561 offline cash-checkout replay
+import { processCashSaleCore, CashSaleError } from './cashPaymentController'; // #561 offline cash-checkout replay
 import { classifyEbayShipping } from '../utils/ebayShippingClassifier'; // P0 fix: ebayShippingClassification was never written anywhere
 
 interface SyncOperation {

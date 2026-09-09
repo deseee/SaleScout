@@ -30,8 +30,9 @@ const stripe = () => getStripe();
  *      caught per-item as P2002 and treated as already-recorded.
  *
  * Real PaymentIntent id (fixed 2026-08-26): stripePaymentIntentId is now the REAL Stripe
- * PaymentIntent id (`pi_...`), passed in by the caller via opts.paymentIntentId -- both
- * callers (stripeController.ts's checkout.session.completed webhook and
+ * PaymentIntent id (`pi_...`), passed in by the caller via opts.externalPaymentId (renamed
+ * from opts.paymentIntentId in the Square changeover Wave S1 generalization, 2026-09-09) --
+ * both STRIPE callers (stripeController.ts's checkout.session.completed webhook and
  * posStrandedSaleReconcileCron.ts's reconcile branch) already have a real Stripe Checkout
  * Session object in hand and extract session.payment_intent from it, mirroring the exact
  * idiom used elsewhere in stripeController.ts and holdInvoicePaymentRecorder.ts (the correct
@@ -51,13 +52,26 @@ export interface RecordPosPaymentLinkSaleOpts {
   source: 'webhook' | 'reconcile';
   sessionId?: string;
   /**
-   * The REAL Stripe PaymentIntent id (`pi_...`) for this sale, when the caller has it
-   * (both current callers do -- see the docblock above). Used as Purchase.stripePaymentIntentId
-   * instead of the synthetic `pos_<linkId>` fallback so refundService.ts's
-   * executeVerifiedRefund can actually refund the charge. Falls back to the synthetic id
-   * (with a warning logged) only if a caller genuinely cannot supply one.
+   * Square changeover Wave S1 (2026-09-09): generalized from a Stripe-only optional
+   * `paymentIntentId` to a `{ processor, externalPaymentId }` pair so this recorder can be
+   * called for a Square-paid POSPaymentLink once Wave S2 #4 wires Square into
+   * posController.ts's createPaymentLinkInternal. Signature/branching change ONLY -- every
+   * existing STRIPE call site is unchanged in behavior (still writes
+   * Purchase.stripePaymentIntentId exactly as before, including the synthetic-id fallback
+   * below); a SQUARE call writes Purchase.squarePaymentId instead. See
+   * claude_docs/feature-notes/square-changeover-remaining-work-scoping-2026-09-09.md Section
+   * 1.4 Wave S1.
    */
-  paymentIntentId?: string;
+  processor: 'STRIPE' | 'SQUARE';
+  /**
+   * The REAL Stripe PaymentIntent id (`pi_...`) or Square Payment id for this sale, when the
+   * caller has it (both current STRIPE callers do -- see the docblock above). Used as
+   * Purchase.stripePaymentIntentId/Purchase.squarePaymentId instead of the synthetic
+   * `pos_<linkId>` fallback so refundService.ts's executeVerifiedRefund can actually refund
+   * the charge. Falls back to the synthetic id (with a warning logged) only if a caller
+   * genuinely cannot supply one.
+   */
+  externalPaymentId?: string;
 }
 
 export interface RecordPosPaymentLinkSaleResult {
@@ -85,7 +99,7 @@ export async function recordPosPaymentLinkSale(
   posPaymentLink: POSPaymentLink,
   opts: RecordPosPaymentLinkSaleOpts
 ): Promise<RecordPosPaymentLinkSaleResult> {
-  const { source, paymentIntentId } = opts;
+  const { source, processor, externalPaymentId } = opts;
 
   // Fast path — already recorded before we even open a transaction.
   if (posPaymentLink.status === 'COMPLETED') {
@@ -166,9 +180,9 @@ export async function recordPosPaymentLinkSale(
     // `pos_<linkId>` placeholder rather than writing a null/blank stripePaymentIntentId --
     // but log loudly, since it means a caller is missing data it should have and refunds
     // for this Purchase will fail exactly like the pre-fix bug this change closes.
-    const resolvedPaymentIntentId = paymentIntentId || `pos_${fresh.id}`;
-    if (!paymentIntentId) {
-      console.warn(`[pos-record/${source}] No real PaymentIntent id supplied for link ${fresh.id} -- falling back to synthetic placeholder '${resolvedPaymentIntentId}'. Refunds for this Purchase will FAIL until this is fixed.`);
+    const resolvedPaymentIntentId = externalPaymentId || `pos_${fresh.id}`;
+    if (!externalPaymentId) {
+      console.warn(`[pos-record/${source}] No real ${processor === 'SQUARE' ? 'Square Payment' : 'Stripe PaymentIntent'} id supplied for link ${fresh.id} -- falling back to synthetic placeholder '${resolvedPaymentIntentId}'. Refunds for this Purchase will FAIL until this is fixed.`);
     }
 
     if (fresh.itemIds?.length) {
@@ -223,7 +237,10 @@ export async function recordPosPaymentLinkSale(
               ...snapshotForCommissionOnly((item.price || 0) * posFeeRate, posFeeRate),
               status: 'PAID',
               source: 'POS',
-              stripePaymentIntentId: resolvedPaymentIntentId,
+              processor,
+              ...(processor === 'SQUARE'
+                ? { squarePaymentId: resolvedPaymentIntentId }
+                : { stripePaymentIntentId: resolvedPaymentIntentId }),
               chargeType: posUseDirect ? 'DIRECT' : 'DESTINATION',
               ...(posUseDirect && posStripeConnectId ? { stripeAccountId: posStripeConnectId } : {}),
             },
@@ -267,7 +284,10 @@ export async function recordPosPaymentLinkSale(
             ...snapshotForCommissionOnly(miscFeeAmount, posFeeRate),
             status: 'PAID',
             source: 'POS',
-            stripePaymentIntentId: resolvedPaymentIntentId,
+            processor,
+            ...(processor === 'SQUARE'
+              ? { squarePaymentId: resolvedPaymentIntentId }
+              : { stripePaymentIntentId: resolvedPaymentIntentId }),
             chargeType: posUseDirect ? 'DIRECT' : 'DESTINATION',
             ...(posUseDirect && posStripeConnectId ? { stripeAccountId: posStripeConnectId } : {}),
           },

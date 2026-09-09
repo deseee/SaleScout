@@ -173,6 +173,12 @@ describe('POS split-payment commission — cash-half accrual + tier-aware rate',
         isSplitPayment: true,
         cashAmountCents: 5000,
         cardAmountCents: 5000,
+        // S-STRIPE-SQUARE-DEFAULT-FIX (2026-09-09): createPaymentRequest now defaults an
+        // unspecified processor to SQUARE (Stripe's platform account is permanently
+        // closed). This fixture's organizer only has stripeConnectId set (no Square
+        // fields), so it must pin the legacy Stripe path explicitly -- this test is about
+        // split-payment commission math, not about which processor is the default.
+        processor: 'STRIPE',
       },
     };
     const createRes = makeMockRes();
@@ -250,6 +256,9 @@ describe('POS split-payment commission — cash-half accrual + tier-aware rate',
         saleId: sale.id,
         itemIds: [],
         totalAmountCents: 10000,
+        // S-STRIPE-SQUARE-DEFAULT-FIX (2026-09-09): see the split-payment test above -- same
+        // Stripe-only organizer fixture, same reason to pin the processor explicitly.
+        processor: 'STRIPE',
       },
     };
     const createRes = makeMockRes();

@@ -66,10 +66,16 @@ const makeMockRes = () => {
 describe('sendHoldInvoice -- merged item commit + invoiceId stamp (ADR-113)', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockSessionsCreate.mockResolvedValue({
-      id: 'cs_adr113_fixture',
-      payment_intent: 'pi_adr113_fixture',
-    });
+    // Each test (and each sendHoldInvoice call within a test) must get its OWN unique
+    // mocked Stripe Checkout session id via mockResolvedValueOnce -- HoldInvoice.stripeSessionId
+    // is @unique (schema.prisma), and the real Stripe API always returns a fresh unique id per
+    // call, so a shared/default mockResolvedValue() here causes a false P2002 collision the
+    // real system could never produce. See sendHoldInvoiceCashCardSplit.test.ts for the
+    // established per-test-unique pattern this now follows. (Root cause of the CI failure this
+    // fixes: this file's second test calls sendHoldInvoice twice, and with no per-test DB
+    // cleanup, the first call in the SECOND test reused the same hardcoded 'cs_adr113_fixture'
+    // id already persisted by the FIRST test -- a real unique-constraint collision, but only
+    // because the mock, not the app, was reusing an id.)
     mockPaymentIntentsUpdate.mockResolvedValue({});
   });
 
@@ -174,6 +180,11 @@ describe('sendHoldInvoice -- merged item commit + invoiceId stamp (ADR-113)', ()
   it('commits BOTH items to INVOICE_ISSUED and stamps invoiceId on BOTH reservations', async () => {
     const { orgUser, anchorHold, mergedItem, mergedHold } = await seed('commit');
 
+    mockSessionsCreate.mockResolvedValueOnce({
+      id: 'cs_adr113_commit',
+      payment_intent: 'pi_adr113_commit',
+    });
+
     const req: any = {
       user: { id: orgUser.id, role: 'ORGANIZER', roles: ['ORGANIZER'], email: orgUser.email },
       params: { reservationId: anchorHold.id },
@@ -204,6 +215,20 @@ describe('sendHoldInvoice -- merged item commit + invoiceId stamp (ADR-113)', ()
 
   it('rejects a second sendHoldInvoice attempt against the already-invoiced merged item (409)', async () => {
     const { orgUser, anchorHold, mergedItem, mergedHold } = await seed('race');
+
+    // Two distinct session ids queued -- the first call is expected to succeed and hit
+    // Stripe; the second is expected to be rejected by the invoiced-item guard BEFORE ever
+    // reaching Stripe, but a second unique id is queued defensively in case that guard
+    // ordering ever changes, so this test can never re-collide on the unique stripeSessionId
+    // constraint the way the shared-mock version of this file did.
+    mockSessionsCreate.mockResolvedValueOnce({
+      id: 'cs_adr113_race_1',
+      payment_intent: 'pi_adr113_race_1',
+    });
+    mockSessionsCreate.mockResolvedValueOnce({
+      id: 'cs_adr113_race_2',
+      payment_intent: 'pi_adr113_race_2',
+    });
 
     const firstReq: any = {
       user: { id: orgUser.id, role: 'ORGANIZER', roles: ['ORGANIZER'], email: orgUser.email },

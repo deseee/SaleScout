@@ -34,8 +34,10 @@
  * E2E Tests — Stripe Connect Express Onboarding + Fee Capture
  *
  * Covers issue #3 (beta-blocker):
- *   - createConnectAccount: new account creation, incomplete-onboarding retry,
- *     login link for fully-onboarded account, 403 for non-organizer
+ *   - createConnectAccount: 409 STRIPE_CLOSED_USE_SQUARE for a fresh organizer with no
+ *     existing Stripe identity (S-STRIPE-SQUARE-ONBOARDING-GUARD, 2026-09-09 -- Stripe's
+ *     platform account is permanently closed), incomplete-onboarding retry, login link for
+ *     fully-onboarded account, 403 for non-organizer
  *   - createPaymentIntent: 10% platform fee on regular items, 5% buyer premium on auction items,
  *     PENDING Purchase DB record, correct response shape, 400 guard rails
  *   - webhookHandler: payment_intent.succeeded → Purchase PAID + Item SOLD + receipt email
@@ -330,7 +332,7 @@ describe('Stripe Connect + Fee Capture E2E', () => {
       console.log('✓ Account link returned for incomplete onboarding');
     });
 
-    it('should create a new Connect Express account and persist the ID for a fresh organizer', async () => {
+    it('should return 409 STRIPE_CLOSED_USE_SQUARE for a fresh organizer with no existing Stripe identity (S-STRIPE-SQUARE-ONBOARDING-GUARD, 2026-09-09)', async () => {
       // Fresh organizer — no stripeConnectId yet
       const freshUser = await prisma.user.create({
         data: {
@@ -351,9 +353,6 @@ describe('Stripe Connect + Fee Capture E2E', () => {
         },
       });
 
-      mockAccountsCreate.mockResolvedValueOnce({ id: 'acct_new_e2e_fresh' });
-      mockAccountLinksCreate.mockResolvedValueOnce({ url: 'https://connect.stripe.com/setup/new' });
-
       const req: any = {
         user: { id: freshUser.id, role: 'ORGANIZER', email: freshUser.email },
       };
@@ -361,17 +360,29 @@ describe('Stripe Connect + Fee Capture E2E', () => {
 
       await createConnectAccount(req, res);
 
-      // Stripe account created with correct type and email
-      expect(mockAccountsCreate).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'express', email: freshUser.email })
-      );
+      // Stripe's platform account is now PERMANENTLY closed (2026-09-09) -- an organizer
+      // with no existing Stripe identity can no longer get a brand-new Connect account
+      // created here. No Stripe API call is made at all; the guard returns before that
+      // dead code (removed from the controller) would ever run. (mockAccountsCreate is
+      // never used by any other test in this file, so "not called" is unambiguous here --
+      // mockAccountLinksCreate IS called by the earlier "incomplete onboarding" test above
+      // and this suite has no clearMocks/resetMocks configured (see package.json jest
+      // config), so its call history persists across `it` blocks and is deliberately not
+      // asserted on here.)
+      expect(mockAccountsCreate).not.toHaveBeenCalled();
 
-      // Connect ID was persisted to the DB
+      expect(res.status).toHaveBeenCalledWith(409);
+      expect(res.json).toHaveBeenCalledWith({
+        message: 'Stripe is no longer available for new payment accounts. Please connect with Square instead.',
+        code: 'STRIPE_CLOSED_USE_SQUARE',
+        squareOnboardingUrl: '/api/square-connect/organizer/onboard',
+      });
+
+      // No Connect ID was persisted -- the organizer is left exactly as it was.
       const updated = await prisma.organizer.findUnique({ where: { id: freshOrganizer.id } });
-      expect(updated?.stripeConnectId).toBe('acct_new_e2e_fresh');
+      expect(updated?.stripeConnectId).toBeNull();
 
-      expect(res.json).toHaveBeenCalledWith({ url: 'https://connect.stripe.com/setup/new' });
-      console.log('✓ New Connect account created and stripeConnectId persisted to DB');
+      console.log('✓ 409 STRIPE_CLOSED_USE_SQUARE returned for fresh organizer, no Stripe account created');
 
       // Clean up fresh organizer (order matters for FK)
       await prisma.organizer.delete({ where: { id: freshOrganizer.id } }).catch(() => {});

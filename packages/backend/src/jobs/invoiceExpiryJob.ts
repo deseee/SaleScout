@@ -223,7 +223,8 @@ export const reclaimExpiredInvoices = async (): Promise<void> => {
 
               if (paymentIntentId) {
                 try {
-                  const result = await markHoldInvoicePaid(invoice.id, paymentIntentId, { source: 'reconcile' });
+                  // Square changeover Wave S1 (2026-09-09): generalized signature (processor + externalPaymentId), zero behavior change for this STRIPE reconcile path
+                  const result = await markHoldInvoicePaid(invoice.id, { processor: 'STRIPE', externalPaymentId: paymentIntentId }, { source: 'reconcile' });
                   reconcileOutcome = result.recorded
                     ? 'RECORDED'
                     : (result.alreadyPaid ? 'ALREADY-PAID (no-op, webhook or a prior run beat this one)' : 'NOT-RECORDED');
