@@ -1,0 +1,109 @@
+-- Migration: reconcile_prod_drift_destructive_d3_d4_d5 (ADR-108 + ADR-125, promoted 2026-09-08)
+-- Promotes items D3, D4 (three droppable columns), and D5 from
+-- packages/database/prisma/manual/2026-08-17-drift-destructive-PENDING-APPROVAL.sql.
+-- Per CLAUDE.md §7, these are pure technical/schema-hygiene calls with no product or
+-- business tradeoff -- the Architect decided directly, no Patrick sign-off needed (none
+-- of these touch user-facing functionality; each is an unused index or a dead/orphaned
+-- column/table with zero code references). D1/D2/D6/D7 were promoted separately earlier
+-- today in migration 20260908120000_reconcile_prod_drift_destructive_d1_d2_d6_d7.
+-- Item.searchVector (the fourth D4 sub-item) is NOT here -- it needed a schema.prisma
+-- declaration fix, not a migration, and was found ALREADY correctly declared via
+-- `Unsupported("tsvector")?` (schema.prisma:1551) -- see ADR-125 for the re-verification
+-- that confirmed this needed no further action.
+--
+-- Live re-verified read-only against Railway production, 2026-09-08, immediately before
+-- this file was written (see ADR-125 for exact queries/output):
+--
+--   D3 -- MetroTopFinds composite index. CONFIRMED as described: production has
+--        MetroTopFinds_citySlug_idx, MetroTopFinds_metro_idx, MetroTopFinds_soldAt_idx
+--        (three singles) and no MetroTopFinds_citySlug_soldAt_idx. Option A taken (schema.prisma's
+--        `@@index([citySlug, soldAt])` removed in the same commit as this migration) --
+--        production's three singles have served for months; a composite would cost disk
+--        space on the table the 2026-08-09 space pass was trying to shrink.
+--
+--   D4 (isPrivate) -- CORRECTED FINDING vs. the PENDING-APPROVAL file: migration
+--        20260817070000_reconcile_db_push_drift_2026_08_09 is NOT still pending -- it
+--        is already APPLIED (finished_at 2026-08-17 05:58:38 UTC, confirmed via
+--        _prisma_migrations). It DID add the column. Production was then hand-dropped
+--        of "isPrivate" sometime after that (confirmed via pg_attribute: the column
+--        shows as an attisdropped=true tombstone on "Item" today), matching the same
+--        "2026-08-09 DB space pass" hand-cleanup pattern documented for D2/D6/D7.
+--        Zero code references anywhere in packages/ (re-grepped 2026-09-08; the only
+--        matches are unrelated `isPrivateIdentifier`/ip-address-lib false positives in
+--        node_modules). Because migration 20260817070000 is already applied, it is NOT
+--        edited (editing an applied migration is prohibited) -- this new migration adds
+--        the corrective DROP so a database rebuilt from migration history (CI/DR) also
+--        ends up without the column, matching live production.
+--
+--   D4 (Organizer.returnWindowHours) -- CONFIRMED: column exists (integer, nullable),
+--        0 of 205,761 rows non-null. Re-grepped packages/: the only `returnWindowHours`
+--        references in the codebase (returnService.ts, ReceiptCard.tsx, sales/[id].tsx,
+--        shopper/history.tsx) all read `sale.returnWindowHours` / `purchase.sale.returnWindowHours`
+--        -- the field schema.prisma already declares on Sale (schema.prisma:1004). Zero
+--        references to an Organizer-scoped returnWindowHours. Confirmed copy/paste-era
+--        leftover. Zero data loss (all NULL).
+--
+--   D4 (Sale.ripples) -- CONFIRMED: bare column exists (jsonb[], NOT NULL DEFAULT '{}'),
+--        shadowed by the real `SaleRipple[]` relation of the same name (schema.prisma:1031,
+--        backed by the SaleRipple model + saleId FK). Re-grepped packages/: every
+--        `ripples` reference in code (fraudService.ts's `sale._count.ripples`,
+--        rippleService.ts, useRipples.ts, organizer/ripples.tsx) goes through the Prisma
+--        relation/count or a TanStack Query key -- none touches a raw `Sale.ripples`
+--        array column. Re-verified zero data loss: all 22,351 Sale rows have the column's
+--        default empty array; SELECT count(*) WHERE array_length(ripples,1) > 0 → 0.
+--
+--   D5 (OrganizerClaimEmail) -- CORRECTED FINDING vs. the PENDING-APPROVAL file: the file
+--        claimed "0 rows... this is schema drift, not replay drift" (i.e., a real live
+--        table Prisma just can't see). Re-verified live 2026-09-08: the table does NOT
+--        exist in production at all (`relation "OrganizerClaimEmail" does not exist`).
+--        This is actually REPLAY drift, same class as D1/D6/D7: migration 20260223014341
+--        (the renamed-from-20250501080000 folder) still creates it on a from-scratch
+--        rebuild, but production itself carries no such table today. Production's real,
+--        live successor is "DirectoryClaimEmail" (29,290 rows, properly declared at
+--        schema.prisma:5366, actively used) -- an expanded redesign of the same 3-touch
+--        claim-email concept (now 4 touches + open/click tracking) that was evidently
+--        shipped via a hand-run rename/rebuild outside migration history, leaving the old
+--        "OrganizerClaimEmail" migration replay stranded. Zero code references to
+--        "OrganizerClaimEmail" anywhere in packages/ (only the two migration files and
+--        the PENDING-APPROVAL doc mention the name). Dropping it here prevents a
+--        rebuilt-from-migrations database from ending up with a phantom, unused,
+--        unschematized legacy table.
+--
+-- No production ALTER/DROP was executed by this session -- read-only queries only.
+-- Applied for real via Patrick's own `prisma migrate deploy` run against Railway.
+
+-- ============================================================
+-- D3 -- MetroTopFinds composite index. Production + schema (post-edit) agree: three
+-- single-column indexes only. Companion schema.prisma edit: `@@index([citySlug, soldAt])`
+-- removed from the MetroTopFinds model in this same commit.
+-- ============================================================
+DROP INDEX IF EXISTS "MetroTopFinds_citySlug_soldAt_idx";
+
+-- ============================================================
+-- D4 -- Item.isPrivate. Zero code references. Already hand-dropped from live production
+-- after migration 20260817070000 added it; this corrects the rebuilt-from-migrations case.
+-- ============================================================
+ALTER TABLE "Item" DROP COLUMN IF EXISTS "isPrivate";
+
+-- ============================================================
+-- D4 -- Organizer.returnWindowHours. Copy/paste-era leftover -- the real field lives on
+-- Sale (schema.prisma:1004) and is the only one referenced anywhere in the codebase.
+-- 0 of 205,761 rows non-null. Zero data loss.
+-- ============================================================
+ALTER TABLE "Organizer" DROP COLUMN IF EXISTS "returnWindowHours";
+
+-- ============================================================
+-- D4 -- Sale.ripples. Bare jsonb[] column shadowed by the real SaleRipple[] relation.
+-- All 22,351 rows hold the column's default empty array; zero non-empty rows. Zero data
+-- loss. (Item.searchVector, the fourth D4 sub-item, is intentionally NOT here -- see the
+-- file header above; it required a schema.prisma declaration fix only, already present.)
+-- ============================================================
+ALTER TABLE "Sale" DROP COLUMN IF EXISTS "ripples";
+
+-- ============================================================
+-- D5 -- OrganizerClaimEmail table. Does not exist in live production (superseded by the
+-- properly-modeled DirectoryClaimEmail, 29,290 live rows). Replay-only phantom from
+-- migration 20260223014341. Zero code references. Zero data loss (nothing to lose --
+-- production already has no such table).
+-- ============================================================
+DROP TABLE IF EXISTS "OrganizerClaimEmail";

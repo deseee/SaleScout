@@ -5425,7 +5425,6 @@ model MetroTopFinds {
   updatedAt     DateTime @updatedAt
 
   @@unique([citySlug, ebayListingId])
-  @@index([citySlug, soldAt])
 }
 
 // ADR-074 Phase 2: Category Sync — top eBay items per product category, synced nightly

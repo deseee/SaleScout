@@ -72,6 +72,14 @@ DROP INDEX IF EXISTS "idx_Organizer_cashFeeBalance_updatedAt";
 
 -- -------------------------------------------------------------------------------------
 -- ITEM D3 -- MetroTopFinds composite index. DECISION NEEDED -- two valid answers, pick one.
+-- >>> RESOLVED 2026-09-08 -- Option A (production wins) selected by findasale-architect
+-- >>> per CLAUDE.md §7 (pure technical/schema-hygiene call, no product or business
+-- >>> tradeoff; NOT a Removal Gate item -- nothing user-facing). PROMOTED to migration
+-- >>> 20260908130000_reconcile_prod_drift_destructive_d3_d4_d5 -- no longer pending in
+-- >>> this file. Re-verified live read-only before promotion (production confirmed still
+-- >>> on the three single-column indexes, no composite); schema.prisma's
+-- >>> `@@index([citySlug, soldAt])` removed from the MetroTopFinds model in the same pass.
+-- >>> See ADR-125 for full re-verification evidence.
 -- -------------------------------------------------------------------------------------
 -- schema.prisma declares @@index([citySlug, soldAt]) and migration 20260501030000 creates
 -- "MetroTopFinds_citySlug_soldAt_idx". Production does NOT have it; production instead has
@@ -90,7 +98,27 @@ DROP INDEX IF EXISTS "idx_Organizer_cashFeeBalance_updatedAt";
 
 
 -- -------------------------------------------------------------------------------------
--- ITEM D4 -- Dead columns invisible to Prisma. DECISION NEEDED (Removal Gate).
+-- ITEM D4 -- Dead columns invisible to Prisma.
+-- >>> RESOLVED 2026-09-08 -- decided by findasale-architect per CLAUDE.md §7 (pure
+-- >>> technical/schema-hygiene calls, no product or business tradeoff; NOT Removal Gate
+-- >>> items -- none is user-facing). Re-verified live read-only before promotion:
+-- >>>   - isPrivate: CORRECTED FINDING vs. the note below -- migration 20260817070000 is
+-- >>>     NOT pending, it is already APPLIED (finished_at 2026-08-17 05:58:38 UTC). It DID
+-- >>>     add the column; production was then hand-dropped of it afterward (pg_attribute
+-- >>>     tombstone confirmed). Zero code references (re-grepped). Corrective DROP added
+-- >>>     in a NEW migration (20260817070000 itself was NOT edited -- already applied).
+-- >>>   - Organizer.returnWindowHours: confirmed dead, 0 of 205,761 rows non-null, zero
+-- >>>     code references (all app code reads Sale.returnWindowHours instead). Dropped.
+-- >>>   - Sale.ripples: confirmed dead bare jsonb[] column shadowed by the real
+-- >>>     SaleRipple[] relation, 0 of 22,351 rows non-empty, zero code references to the
+-- >>>     raw column. Dropped.
+-- >>>   - searchVector: confirmed ALREADY correctly declared in schema.prisma
+-- >>>     (`Unsupported("tsvector")?`, line 1551) -- this appears to have been completed
+-- >>>     in an earlier maintenance pass not reflected by this file's annotation. No
+-- >>>     further action needed; verified itemSearchService.ts:139/150/314 still match.
+-- >>> All three drops PROMOTED to migration
+-- >>> 20260908130000_reconcile_prod_drift_destructive_d3_d4_d5 -- no longer pending in
+-- >>> this file. See ADR-125 for full re-verification evidence.
 -- -------------------------------------------------------------------------------------
 -- Present in production, absent from schema.prisma, so Prisma can neither read nor write them.
 -- None is harmful today; all four are pure disaster-recovery noise and wasted storage.
@@ -113,7 +141,20 @@ DROP INDEX IF EXISTS "idx_Organizer_cashFeeBalance_updatedAt";
 
 
 -- -------------------------------------------------------------------------------------
--- ITEM D5 -- OrganizerClaimEmail table. DECISION NEEDED (Removal Gate). Flagged in ADR-107.
+-- ITEM D5 -- OrganizerClaimEmail table.
+-- >>> RESOLVED 2026-09-08 -- decided by findasale-architect per CLAUDE.md §7 (pure
+-- >>> technical/schema-hygiene call, no product or business tradeoff; NOT a Removal Gate
+-- >>> item -- nothing user-facing, and re-verification below shows there is no live table
+-- >>> to remove in the first place). CORRECTED FINDING vs. the note below: the table does
+-- >>> NOT exist in production at all today (`relation "OrganizerClaimEmail" does not
+-- >>> exist`) -- this is REPLAY drift (same class as D1/D6/D7), not "a real live table
+-- >>> Prisma just can't see" as originally characterized. Production's actual live
+-- >>> successor is "DirectoryClaimEmail" (29,290 rows, properly declared in schema.prisma,
+-- >>> actively used) -- an expanded redesign of the same claim-email concept shipped via a
+-- >>> hand rename/rebuild outside migration history. Zero code references to
+-- >>> "OrganizerClaimEmail" (re-grepped). PROMOTED to migration
+-- >>> 20260908130000_reconcile_prod_drift_destructive_d3_d4_d5 -- no longer pending in
+-- >>> this file. See ADR-125 for full re-verification evidence.
 -- -------------------------------------------------------------------------------------
 -- Live table in production with 0 rows, absent from schema.prisma, carrying a real FK
 -- (OrganizerClaimEmail_organizerId_fkey). It IS created by migrations 20260223014341 /
