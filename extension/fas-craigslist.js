@@ -183,6 +183,49 @@
     });
   }
 
+  // BUG FIX 2026-09-08 (S-EXT-CRAIGSLIST-IMAGES-LAG, P0, live-confirmed root cause). Craigslist's
+  // image-upload widget renders a <div role="progressbar" aria-valuenow="X" aria-valuemax="100">
+  // inside the SAME <form> as the "done with images" submit button. Thumbnails appear in the grid
+  // BEFORE this progressbar's aria-valuenow actually reaches aria-valuemax -- there is a real lag
+  // between "thumbnail visible" and "upload actually finished server-side". Clicking "done with
+  // images" during that gap causes Craigslist's own form to silently no-op the submit (no
+  // navigation, no error) -- confirmed live this session on a real 10-photo listing: the
+  // extension's own diagnostic reported a stall while a direct DOM query showed
+  // aria-valuenow !== aria-valuemax at that moment; a manual click performed only once the bar
+  // read 100/100 worked immediately and advanced to the review screen. More photos = longer
+  // completion lag after thumbnails render (Patrick: seen on a 9-photo Craigslist listing, not on
+  // lower-count Craigslist listings or on eBay's own, differently-paced upload pipeline). Bounded
+  // poll, same 300ms-interval philosophy as fas-mercari.js's waitForSelector()/shipping-gate poll
+  // (grep fas-mercari.js for "gateWaitStart" / "while (Date.now() - start < maxWaitMs)") -- kept
+  // as a setTimeout-chained poll here to match this file's own existing waitForStepChange() /
+  // waitForCraigslistPublish() style rather than mixing in a while-loop idiom. If no progressbar
+  // is found at all after a short grace period (e.g. zero images, or Craigslist changes this
+  // widget), treats "nothing found" as "nothing pending" rather than hanging forever -- never
+  // blocks a listing that has nothing left to wait for.
+  function waitForImagesUploadComplete(timeoutMs) {
+    return new Promise((resolve) => {
+      const startedAt = Date.now();
+      const NO_BAR_GRACE_MS = 1500;
+      const check = () => {
+        const bar = document.querySelector('[role="progressbar"]');
+        if (bar) {
+          const now = bar.getAttribute('aria-valuenow');
+          const max = bar.getAttribute('aria-valuemax');
+          if (now != null && max != null && now !== '' && max !== '0' && now === max) {
+            resolve(true);
+            return;
+          }
+        } else if (Date.now() - startedAt >= NO_BAR_GRACE_MS) {
+          resolve(true);
+          return;
+        }
+        if (Date.now() - startedAt >= timeoutMs) { resolve(false); return; }
+        setTimeout(check, 300);
+      };
+      check();
+    });
+  }
+
   function button(id, label, primary) {
     return '<button id="' + id + '" style="margin-top:10px;margin-right:8px;padding:7px 12px;border-radius:8px;border:none;cursor:pointer;' +
       'font-weight:600;font-size:13px;background:' + (primary ? '#3c8c5a' : '#3a4842') + ';color:#fff">' + label + '</button>';
@@ -717,6 +760,21 @@
       showReviewOverlay(item, index, total, photosOk);
       return;
     }
+    // BUG FIX 2026-09-08 (S-EXT-CRAIGSLIST-IMAGES-LAG, P0): don't click "done with images" based
+    // on thumbnail count / a fixed pause alone -- poll Craigslist's own upload-progress signal
+    // first (see waitForImagesUploadComplete() above for the live-confirmed root cause). 20s bound
+    // gives comfortable headroom for higher photo-count listings (Patrick-observed lag scales with
+    // photo count; eBay listings with 20+ photos need more time per his own comparison). If the
+    // poll times out without confirming, do NOT click blindly -- surface the same kind of honest
+    // "still processing" diagnostic this file already uses elsewhere rather than fabricate
+    // progress.
+    overlay('<b>FindA.Sale</b> - waiting for photos to finish uploading...');
+    const uploadDone = await waitForImagesUploadComplete(20000);
+    if (!uploadDone) {
+      overlayError('Images', 'Photos are still uploading after waiting -- Craigslist\'s own upload progress hasn\'t finished. Please wait for the upload to complete, then click "done with images" yourself.');
+      return;
+    }
+    doneBtn = document.getElementById('doneWithImages') || doneBtn;
     // BUG FIX 2026-08-19 (S-EXT-BATCH, P1): this used to click doneBtn and return immediately with
     // NO verification the click actually did anything -- unlike doPreviewStep's own
     // waitForCraigslistPublish, which DOES poll. Reported symptom: stuck on the photo-upload page,

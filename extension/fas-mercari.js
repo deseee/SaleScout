@@ -1580,41 +1580,37 @@
     const openerText = mercariShippingOpenerText(opener);
     if (openerText.indexOf('enable shipping') === -1 && openerText.indexOf('add title') === -1) return true;
     // BUG FIX 2026-09-08 (P1, Beeple-hardcover-book draft, live-confirmed via Patrick's shared
-    // tab -- see STATE.md Session Added 2026-09-08 for the full live-DOM writeup): the check
-    // just above is a single point-in-time read. Live-confirmed this can fire while Title/
-    // Category already hold the correct values elsewhere on the page (both visibly correct in
-    // the shared tab) but Mercari's OWN internal validation gating this field hasn't caught up
-    // yet -- the opener's placeholder still read "Add title and category to enable shipping" at
-    // that exact moment. Clicking an opener Mercari itself still considers gated is what stranded
-    // the Beeple draft: the wizard's shoebox question never rendered (the failure return a few
-    // lines below), and the whole fill stopped there with no retry. This is the same race-
-    // condition class already patched three times in this exact function (BATCH-8/11/12,
-    // 2026-08-23/27) for other symptoms in the same wizard.
-    // Fix: poll the SAME text signal this function already treats as authoritative (the
-    // "already configured" check immediately above) for up to 8s BEFORE clicking -- same
-    // bounded re-query-every-300ms idiom as waitForSelector()/waitForOptionByText() elsewhere in
-    // this file -- instead of clicking on a single stale read. Re-queries the opener fresh each
-    // poll tick (not just its text) since the underlying element can itself be replaced by a
-    // React re-render while this waits, same defensive habit as mercariShippingOpener()'s other
-    // callers. If Mercari's own gate genuinely never clears within the timeout, this fails
-    // loudly with a distinct, specific reason string (never a silent stall, never guessed) so a
-    // future live round has a direct answer instead of the misleading downstream "shoebox
-    // question never appeared" message, which was only ever a symptom of this same root cause.
-    let gateOpener = null;
-    const gateWaitStart = Date.now();
-    while (Date.now() - gateWaitStart < 8000) {
-      const freshOpener = mercariShippingOpener();
-      const freshText = freshOpener ? mercariShippingOpenerText(freshOpener) : '';
-      if (freshOpener && freshText.indexOf('enable shipping') === -1 && freshText.indexOf('add title') === -1) {
-        gateOpener = freshOpener;
-        break;
-      }
+    // tab -- see STATE.md Session Added 2026-09-08 for the full live-DOM writeup): CORRECTED same
+    // session. The earlier version of this fix (BATCH-13) polled this SAME placeholder text for up
+    // to 8s before clicking, reasoning it just needed more time to update. Live-tested further and
+    // found that reasoning was wrong: Mercari's own "Add title and category to enable shipping"
+    // label text NEVER updates to reflect readiness, even once Title + Category are genuinely filled
+    // and the control is fully functional -- confirmed by clicking the exact live element by hand
+    // with both fields already correct: it responded immediately ("Please select a shipping
+    // carrier") and opened the real "Weigh and measure your package" modal. So the 8s poll above
+    // was waiting on a signal that structurally never fires, timing out even on fully-ready drafts --
+    // this is what stranded the Beeple draft, not a real Mercari-side delay. Fix: stop gating the
+    // click on this text at all. The only pre-click check now is the control's own functional
+    // disabled state (not its text) -- bounded-poll idiom kept (re-query every 300ms up to 8s,
+    // re-fetching the live element each tick in case React swaps it out, same defensive habit as
+    // mercariShippingOpener()'s other callers) but now watching disabled/aria-disabled instead of a
+    // placeholder string. Real confirmation that the click actually worked is left to the existing
+    // downstream checks a few lines below (the "Got it" modal / the shoebox-fit question) -- if
+    // Mercari's gating genuinely wasn't satisfied yet, those already return a specific, honest
+    // failure reason instead of a silent stall.
+    function isFunctionallyDisabled(el) {
+      return !!el && (el.disabled === true || el.getAttribute('aria-disabled') === 'true');
+    }
+    let clickTarget = opener;
+    const disabledWaitStart = Date.now();
+    while (isFunctionallyDisabled(clickTarget) && Date.now() - disabledWaitStart < 8000) {
       await sleep(300);
+      clickTarget = mercariShippingOpener() || clickTarget;
     }
-    if (!gateOpener) {
-      return 'Mercari hasn\'t registered Title + Category as complete yet (its Shipping label field still reads "Add title and category to enable shipping" after waiting), so FindA.Sale did not attempt to open the shipping wizard (UNVERIFIED timing -- Mercari\'s own internal validation may just need more time; re-run this draft).';
+    if (isFunctionallyDisabled(clickTarget)) {
+      return 'Mercari\'s Shipping label field is still disabled after waiting (UNVERIFIED timing -- Mercari\'s own internal validation may just need more time; re-run this draft).';
     }
-    await realClick(gateOpener);
+    await realClick(clickTarget);
     await sleep(500);
 
     // Step 1: "Weigh and measure your package accurately" info modal -- click "Got it".
@@ -1762,12 +1758,20 @@
     await realClick(saveBtn);
     await sleep(500);
 
-    // Verify: the opener's placeholder text should no longer say "enable shipping" / "add title".
-    const openerAfter = mercariShippingOpener();
-    const openerAfterText = openerAfter ? mercariShippingOpenerText(openerAfter) : '';
-    const stuck = !openerAfter || (openerAfterText.indexOf('enable shipping') === -1 && openerAfterText.indexOf('add title') === -1);
-    if (stuck) return true;
-    return 'Went through Mercari\'s whole shipping-label wizard, but the field still shows its placeholder text afterward (UNVERIFIED confirmation).';
+    // Verify: Mercari's own placeholder label text on the opener NEVER updates to reflect a
+    // completed shipping label -- confirmed live this session (same root cause as the pre-click
+    // gate fixed above) -- so checking that text here would report "still shows placeholder" on
+    // EVERY run, even one that just went through this entire wizard successfully, permanently
+    // blocking the auto-publish List click downstream (see fillMercariShippingLabel's caller: any
+    // non-true return sets shippingLabelFailedReason and stops the run before List is ever clicked).
+    // Functional signal used instead: the carrier-selection modal's own Save button is gone from the
+    // DOM once Mercari has actually accepted the save -- that's real evidence the wizard completed,
+    // unlike the static label text.
+    const modalClosed = await waitForSelector(() => (document.querySelector('[data-testid="SelectCarrierSaveButton"]') ? null : true), 3000);
+    if (!modalClosed) {
+      return 'Clicked Save on Mercari\'s shipping-carrier screen, but its modal never closed afterward (UNVERIFIED confirmation) -- the save may not have registered.';
+    }
+    return true;
   }
 
   function photoInput() {
