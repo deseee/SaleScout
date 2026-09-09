@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { createSquarePayment, createSquareCartPayment } from '../controllers/squarePaymentController';
+import { createSquarePayment, createSquareCartPayment, createSquareTestTransaction } from '../controllers/squarePaymentController';
 import { authenticate, optionalAuthenticate } from '../middleware/auth';
 import { paymentLimiter } from '../middleware/rateLimiter';
 
@@ -13,5 +13,9 @@ const router = Router();
 // parity as Stripe's create-cart-checkout-session ("guest cart checkout is out of scope").
 router.post('/create-payment', optionalAuthenticate, paymentLimiter, createSquarePayment);
 router.post('/create-cart-payment', authenticate, paymentLimiter, createSquareCartPayment);
+
+// Test harness -- verify Square POS fee math without real money (2026-09-09).
+// Mirrors routes/stripe.ts's '// Test harness' section (test-transaction et al).
+router.post('/test-transaction', authenticate, createSquareTestTransaction);
 
 export default router;

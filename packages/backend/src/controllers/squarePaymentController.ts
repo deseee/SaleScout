@@ -747,3 +747,135 @@ export const createSquareCartPayment = async (req: AuthRequest, res: Response) =
     return res.status(500).json({ error: 'Failed to process cart payment', details: msg });
   }
 };
+
+// ─── QA Test-Transaction Harness (2026-09-09) ──────────────────────────────────────────────
+// isQABypassRequest reuses the SAME secret + header index.ts's isQABypassRequest (~line 407)
+// and routes/auth.ts's isQABypass (~line 65) already gate QA-only behavior with. Neither of
+// those is exported (both are file-local consts), so this file re-declares the identical
+// 4-line check locally -- the same convention routes/auth.ts itself uses instead of importing
+// from index.ts. This is layered ON TOP OF, not instead of, the organizer-auth + sale-ownership
+// check inside createSquareTestTransaction below, which mirrors the actual authorization shape
+// both cited precedents use (reservationController.ts's isTestTransaction branch,
+// stripeController.ts's testTransaction) -- organizer role + verified ownership of the sale.
+const isQABypassRequest = (req: AuthRequest): boolean => {
+  const secret = process.env.QA_RATE_LIMIT_BYPASS_SECRET;
+  if (!secret) return false;
+  return req.headers['x-qa-bypass'] === secret;
+};
+
+/**
+ * POST /api/square-payment/test-transaction
+ *
+ * Square QA test-settlement path. Mirrors stripeController.ts's testTransaction (POST
+ * /api/stripe/test-transaction, ~line 4436) so QA can verify Square POS fee math end-to-end
+ * without a real charge. Before this, squarePaymentController.ts had ZERO isTestTransaction
+ * references (confirmed by grep) -- there was no sanctioned way to create a tagged Square
+ * test Purchase row, so live Square QA either couldn't verify the fee math at all, or risked
+ * writing an untagged real-looking row into revenue reporting -- the same "leftover test
+ * account left live in production" failure pattern that has previously gotten FindA.Sale's
+ * Stripe account closed by Stripe's fraud system.
+ *
+ * WHY THIS NEVER CALLS THE REAL SQUARE API (deliberate divergence from the Stripe precedent's
+ * shape -- confirmed via code read, not assumed):
+ * stripeController.ts's testTransaction calls getTestStripe() (utils/stripe.ts), a SEPARATE
+ * Stripe secret key (STRIPE_TEST_SECRET_KEY) structurally isolated from any organizer's own
+ * Connect account, so a "test" PaymentIntent can never touch real money or a real merchant.
+ * Square has no equivalent isolated platform-level test credential in this codebase: every
+ * real Square charge (createSquarePayment above, squarePosPaymentAdapter.ts) authenticates as
+ * the ORGANIZER'S OWN connected access token via resolveOrganizerSquareAccessToken, and which
+ * Square environment that token is valid in (sandbox vs production) is a single global env var
+ * (SQUARE_ENVIRONMENT -- see utils/square.ts / squareConnectService.ts), not a separate
+ * platform-level "test mode" key the way Stripe has. Calling the real Square API here would
+ * mean charging a real card against a real organizer's real connected Square account whenever
+ * SQUARE_ENVIRONMENT=production -- exactly the class of incident this endpoint exists to
+ * prevent. Instead, this mirrors reservationController.ts's isTestTransaction branch
+ * (batchUpdateHolds, ~line 1172): skip the real charge entirely, write a Purchase row tagged
+ * isTestTransaction:true using the SAME fee-computation helper (buildPurchaseFeeContext,
+ * defined above in this file and used by the real createSquarePayment path) so the fee math
+ * is genuinely verified end-to-end without ever touching a real hold or a real charge.
+ */
+export const createSquareTestTransaction = async (req: AuthRequest, res: Response) => {
+  try {
+    const hasOrganizerRole = req.user?.roles?.includes('ORGANIZER') || req.user?.role === 'ORGANIZER';
+    if (!req.user || !hasOrganizerRole) {
+      return res.status(403).json({ message: 'Organizer access required' });
+    }
+
+    // Additional QA gate (dispatch-directed, layered ON TOP of the organizer-auth check
+    // above -- not a replacement for it): reuses the same X-QA-Bypass /
+    // QA_RATE_LIMIT_BYPASS_SECRET mechanism index.ts/routes/auth.ts already use to gate
+    // QA-only behavior elsewhere in this codebase.
+    if (!isQABypassRequest(req)) {
+      return res.status(403).json({ message: 'QA bypass header required for test transactions' });
+    }
+
+    const { saleId, amount } = req.body as { saleId?: string; amount?: number };
+
+    if (!saleId || typeof saleId !== 'string') {
+      return res.status(400).json({ message: 'saleId is required' });
+    }
+    if (!amount || typeof amount !== 'number' || amount <= 0) {
+      return res.status(400).json({ message: 'amount must be a positive number' });
+    }
+
+    // Verify sale ownership -- same check as stripeController.ts's testTransaction
+    const sale = await prisma.sale.findUnique({
+      where: { id: saleId },
+      include: { organizer: true },
+    });
+    if (!sale) return res.status(404).json({ message: 'Sale not found' });
+    if (sale.organizer.userId !== req.user.id) {
+      return res.status(403).json({ message: 'You do not own this sale' });
+    }
+
+    const amountCents = Math.round(amount * 100);
+    const feeRate = getPlatformFeeRate(sale.organizer.subscriptionTier as SubscriptionTier);
+
+    // Reuse the EXACT SAME fee-computation helper createSquarePayment (above, this file)
+    // calls -- not hand-rolled. isAuctionItem is always false here: POS/test-harness
+    // transactions are never auction settlements, same posture as stripeController.ts's
+    // testTransaction (source: 'POS', commission-only, no buyer premium).
+    const { platformFeeAmount } = buildPurchaseFeeContext({
+      isAuctionItem: false,
+      priceCents: amountCents,
+      feePercent: feeRate,
+      saleCoversFee: false,
+    });
+    const netAmount = (amountCents - platformFeeAmount) / 100;
+
+    // No real Square API call -- see this function's header comment for why. Synthetic id
+    // mirrors reservationController.ts's `cash_test_${randomUUID()}` convention.
+    const squareTestPaymentId = `sq_test_${crypto.randomUUID()}`;
+
+    const purchase = await prisma.purchase.create({
+      data: {
+        saleId,
+        amount,
+        platformFeeAmount: platformFeeAmount / 100,
+        // FEE SNAPSHOT (2026-08-17 convention, see schema.prisma's Purchase model):
+        // commission-only, same shape stripeController.ts's testTransaction writes. Test
+        // rows are excluded from earnings (Purchase.isTestTransaction) but kept consistent
+        // with the same reporting-visible columns as a real row.
+        ...snapshotForCommissionOnly(platformFeeAmount / 100, feeRate),
+        processor: 'SQUARE',
+        squarePaymentId: squareTestPaymentId,
+        status: 'PAID',
+        source: 'POS',
+        isTestTransaction: true,
+      },
+    });
+
+    return res.json({
+      success: true,
+      transactionId: purchase.id,
+      squarePaymentId: squareTestPaymentId,
+      amount,
+      platformFeeAmount: platformFeeAmount / 100,
+      netAmount,
+      message: 'Square test transaction successful. No real Square API call was made -- see createSquareTestTransaction header comment for why.',
+    });
+  } catch (error: any) {
+    console.error('[square-test-transaction] error:', error);
+    return res.status(500).json({ message: 'Test transaction failed', details: error.message });
+  }
+};
