@@ -20,6 +20,18 @@ const getStripePromise = () => {
   return stripePromise;
 };
 
+// Stripe Terminal/Test-Payment stopgap (2026-09-09, BUG MODE dispatch): Stripe's platform
+// account is permanently closed (confirmed in claude_docs/feature-notes/
+// stripe-removal-and-square-changeover-scoping-2026-09-09.md: "Every Stripe API call
+// FindA.Sale makes today, Connect or not, hits a dead account"). POST /stripe/test-in-app-intent
+// (stripeController.ts testInAppIntent) calls getTestStripe(), which either uses
+// STRIPE_TEST_SECRET_KEY on the SAME closed platform relationship or falls back to the closed
+// live key entirely (utils/stripe.ts) -- either way this always fails now. Short-circuited here
+// instead of letting every organizer who clicks "Run Test" hit a dead endpoint. Flip back to
+// true once Stripe is restored, or replace with a Square-based test flow -- not attempted
+// tonight, flagged as a DECISION NEEDED item in the session handoff.
+const ENABLE_TEST_IN_APP_PAYMENT = false;
+
 interface TestPaymentFormProps {
   saleId: string;
   onClose: () => void;
@@ -128,6 +140,10 @@ const TestCheckoutModal = ({ saleId, onClose, onDone }: TestCheckoutModalProps) 
   const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!ENABLE_TEST_IN_APP_PAYMENT) {
+      setLoadError('In-app payment testing is temporarily unavailable while payment tools are being updated. This does not affect your sale.');
+      return;
+    }
     const fetchIntent = async () => {
       try {
         const res = await api.post('/stripe/test-in-app-intent', { saleId });

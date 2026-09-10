@@ -31,6 +31,10 @@ interface VendorBooth {
   revenueSharePercent: number;
   status: string;
   stripeOnboarded: boolean;
+  // Square changeover (2026-09-09): the Square twin of stripeOnboarded above. A booth can
+  // carry a legacy Stripe connection and a Square connection independently -- this is
+  // additive, not a replacement.
+  squareOnboarded: boolean;
   boothToken: string;
   userId: string | null;
   confirmedAt: string | null;
@@ -44,6 +48,7 @@ interface VendorBooth {
   confirmNotifiedAt: string | null;
   decisionNotifiedAt: string | null;
   stripeNotifiedAt: string | null;
+  squareNotifiedAt: string | null;
   // Register access grant (2026-07-29, Patrick's decision): a SEPARATE state from
   // claim/confirm. null = not granted. See VendorBooth.registerAccessGrantedAt in
   // schema.prisma.
@@ -79,7 +84,7 @@ interface FeeCharge {
  * when the organizer taps it. Collapsed, the cell is one short line plus one chip.
  */
 type NotifyState = 'sent' | 'missing' | 'untracked' | 'na';
-type NotifyKind = 'claim' | 'confirm' | 'decision' | 'stripe';
+type NotifyKind = 'claim' | 'confirm' | 'decision' | 'stripe' | 'square';
 
 interface NotifyRow {
   key: NotifyKind;
@@ -173,6 +178,16 @@ const buildNotifyRows = (booth: VendorBooth): NotifyRow[] => {
     booth.createdAt
   );
 
+  // 5. Square connected -> the organizer. Square's twin of #4 above (2026-09-09 changeover),
+  // independent of the Stripe row since a booth can have gone through either processor, or
+  // in a legacy case both.
+  const squareState = classifyNotifyState(
+    booth.squareOnboarded,
+    booth.squareNotifiedAt,
+    null,
+    booth.createdAt
+  );
+
   return [
     {
       key: 'claim',
@@ -231,6 +246,20 @@ const buildNotifyRows = (booth: VendorBooth): NotifyRow[] => {
             : stripeState === 'untracked'
               ? 'Stripe was connected before we started recording these alerts, so we cannot say.'
               : 'This vendor has not connected Stripe yet.',
+    },
+    {
+      key: 'square',
+      label: 'Square alert to you',
+      state: squareState,
+      at: booth.squareNotifiedAt,
+      detail:
+        squareState === 'sent'
+          ? `We told you when ${vendor} finished connecting Square.`
+          : squareState === 'missing'
+            ? `${vendor} finished connecting Square and you were never alerted.`
+            : squareState === 'untracked'
+              ? 'Square was connected before we started recording these alerts, so we cannot say.'
+              : 'This vendor has not connected Square yet.',
     },
   ];
 };
@@ -607,6 +636,7 @@ const VendorBoothsPage: React.FC = () => {
                 confirmNotifiedAt: response.data?.confirmNotifiedAt ?? b.confirmNotifiedAt,
                 decisionNotifiedAt: response.data?.decisionNotifiedAt ?? b.decisionNotifiedAt,
                 stripeNotifiedAt: response.data?.stripeNotifiedAt ?? b.stripeNotifiedAt,
+                squareNotifiedAt: response.data?.squareNotifiedAt ?? b.squareNotifiedAt,
               }
             : b
         )

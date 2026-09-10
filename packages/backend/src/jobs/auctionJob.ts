@@ -184,6 +184,10 @@ export const endAuctions = async () => {
         let squareCheckoutUrl: string | null = null;
         let purchaseSquarePaymentLinkId: string | null = null;
         let purchaseSquareOrderId: string | null = null;
+        // 2026-09-09 (findasale-dev BUG MODE, dead-link fix): the Stripe-branch winner email
+        // needs a real purchase id to link to (see payUrl construction below) -- captured off
+        // the tx.purchase.create() result once it runs, further down.
+        let createdPurchaseId: string | null = null;
 
         // Square migration Wave S2 #2 (2026-09-09): Square-onboarded organizers route here
         // automatically, not optionally -- Stripe's platform account is permanently closed
@@ -268,7 +272,7 @@ export const endAuctions = async () => {
         // the winner still owes money and the Purchase must stay PENDING, not PAID.
         const hasPendingPayment = !!stripePaymentIntentId || !!squareCheckoutUrl;
         if (highestBid) {
-          await tx.purchase.create({
+          const createdPurchase = await tx.purchase.create({
             data: {
               userId: highestBid.userId,
               itemId: currentItem.id,
@@ -293,9 +297,10 @@ export const endAuctions = async () => {
               ...(purchaseStripeAccountId ? { stripeAccountId: purchaseStripeAccountId } : {}),
             },
           });
+          createdPurchaseId = createdPurchase.id;
         }
 
-        return { status: 'SUCCESS', item: currentItem, highestBid, stripePaymentIntentId, squareCheckoutUrl, price };
+        return { status: 'SUCCESS', item: currentItem, highestBid, stripePaymentIntentId, squareCheckoutUrl, purchaseId: createdPurchaseId, price };
       });
 
       // All transaction-critical operations complete. Now handle post-transaction side effects.
@@ -331,16 +336,26 @@ export const endAuctions = async () => {
             const fromEmail = process.env.GMAIL_FROM_EMAIL || process.env.SES_FROM_EMAIL || 'find@outreach.finda.sale';
             // Square migration Wave S2 #2 (2026-09-09): a Square payment link is a fully
             // self-contained hosted checkout page -- no FindA.Sale frontend page is needed at
-            // all, so the winner goes straight there. Found during this dispatch's knock-on
-            // check (NOT fixed here, flagged in the handoff): the Stripe fallback URL below
-            // (`/shopper/purchases`) has no corresponding frontend page -- CheckoutModal.tsx's
-            // purchaseId-resume capability (which calls GET /stripe/pending-payment/:purchaseId)
-            // is never invoked from any page, so this link has been a dead 404 pre-existing this
-            // change. Left byte-for-byte unchanged for the untouched Stripe branch per this
-            // dispatch's "don't touch existing Stripe code beyond what's needed" scope.
+            // all, so the winner goes straight there.
+            // Stripe dead-link fix (2026-09-09, findasale-dev BUG MODE): the prior fallback URL
+            // here was `/shopper/purchases`, which is not a real frontend route (confirmed via
+            // repo-wide grep -- no pages/shopper/purchases.tsx or pages/shopper/purchases/index.tsx
+            // exists) -- a Stripe-only auction winner clicking "Complete Payment" 404'd with no
+            // way to actually pay. CheckoutModal.tsx's purchaseId-resume branch (GET
+            // /stripe/pending-payment/:purchaseId) has always worked correctly server-side but was
+            // never invoked from any page. Fixed by pointing at the existing persistent purchase
+            // page (`pages/purchases/[id].tsx`, already used as the post-payment confirmation
+            // page elsewhere in this flow), which now renders CheckoutModal in resume mode
+            // whenever the purchase it loads is still PENDING on Stripe. `createdPurchaseId` is
+            // always set here: this whole block runs only when `result.highestBid` is truthy,
+            // which is exactly the condition under which the transaction above created a
+            // Purchase row. The `/shopper/history` fallback is defensive only (should be
+            // unreachable) and points at a page that DOES exist.
             const payUrl = result.squareCheckoutUrl
               ? result.squareCheckoutUrl
-              : `${process.env.FRONTEND_URL || 'https://finda.sale'}/shopper/purchases`;
+              : result.purchaseId
+                ? `${process.env.FRONTEND_URL || 'https://finda.sale'}/purchases/${result.purchaseId}`
+                : `${process.env.FRONTEND_URL || 'https://finda.sale'}/shopper/history`;
             try {
               await emailService.emails.send({
                 from: fromEmail,

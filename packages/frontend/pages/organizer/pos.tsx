@@ -95,6 +95,28 @@ type NumpadMode = 'price';
 // touch the cash+card split-tender ('Send to Phone') feature -- that stays live, untouched.
 const ENABLE_SPLIT_BILL = false;
 
+// Stripe Terminal card-reader hardware stopgap (2026-09-09, BUG MODE dispatch): Stripe's
+// platform account is permanently closed (confirmed in
+// claude_docs/feature-notes/stripe-removal-and-square-changeover-scoping-2026-09-09.md) --
+// the 4 terminalController.ts endpoints this reader flow depends on (connection-token,
+// payment-intent, capture, cancel) are dead. No Square-hardware equivalent exists for THIS
+// (non-venue) page yet -- Square is only wired up for venue/multi-vendor-hub carts
+// (paymentMode 'square_qr') today. Flipping this back to true requires either Stripe
+// Terminal support being restored or a Square Terminal API port -- both out of scope for
+// this stopgap; flagged as DECISION NEEDED in the session handoff. Mirrors the
+// ENABLE_SPLIT_BILL pattern above: state/logic kept intact, UI gated off, nothing deleted.
+const ENABLE_STRIPE_TERMINAL_CARD_READER = false;
+
+// Manual card-entry stopgap (2026-09-09, same dispatch): PosManualCard's non-setup-intent
+// branch (the "No reader? Enter card manually" flow reached from THIS page) POSTs to
+// /stripe/terminal/manual-card-payment-intent -- confirmed via repo-wide grep this session
+// that NO backend route registers this path at all (a separate, additional dead endpoint
+// beyond the 4 confirmed-dead terminalController.ts ones above, found during this stopgap's
+// investigation). Disabled here for the same reason; PosManualCard's setup-intent mode
+// (used by the venue/vendor-booth QR rail) is untouched -- different call site, different
+// code path, not confirmed dead.
+const ENABLE_MANUAL_CARD_ENTRY = false;
+
 interface CashPaymentResponse {
   platformFee: number;
   cashFeeBalance: number;
@@ -768,6 +790,11 @@ export default function POSPage() {
   // ─── Initialize Stripe Terminal SDK ───────────────────────────────────────────────────────
 
   const initTerminal = useCallback(async () => {
+    if (!ENABLE_STRIPE_TERMINAL_CARD_READER) {
+      setReaderStatus('error');
+      setErrorMessage('Card-reader hardware support is being updated -- cash, Stripe QR, and Venmo/Zelle are available now.');
+      return;
+    }
     if (sdkLoadedRef.current) return;
     setReaderStatus('connecting');
     try {
@@ -2695,7 +2722,14 @@ export default function POSPage() {
           </button>
 
           {/* Reader status */}
-          {(readerStatus === 'idle' || readerStatus === 'error' || readerStatus === 'disconnected') ? (
+          {!ENABLE_STRIPE_TERMINAL_CARD_READER ? (
+            <span
+              title="Card-reader hardware support is being updated -- cash, Stripe QR, and Venmo/Zelle are available now."
+              className="text-xs px-3 py-1 rounded-full font-medium bg-warm-200 text-warm-700 dark:bg-gray-700 dark:text-warm-300"
+            >
+              Card reader unavailable
+            </span>
+          ) : (readerStatus === 'idle' || readerStatus === 'error' || readerStatus === 'disconnected') ? (
             <button
               onClick={initTerminal}
               className={`text-xs px-3 py-1 rounded-full font-medium cursor-pointer hover:opacity-80 transition ${readerBadge.color}`}
@@ -3707,18 +3741,24 @@ export default function POSPage() {
             </button>
             <button
               onClick={() => {
-                if (readerStatus !== 'connected' || loadedHold) return;
+                if (!ENABLE_STRIPE_TERMINAL_CARD_READER || readerStatus !== 'connected' || loadedHold) return;
                 setPaymentMode('card');
                 setNumpadOpen(false);
               }}
-              disabled={readerStatus !== 'connected' || !!loadedHold}
-              title={loadedHold ? 'Item is on hold -- use Invoice to complete this sale' : readerStatus !== 'connected' ? 'Tap the status indicator in the top corner to connect your reader' : ''}
+              disabled={!ENABLE_STRIPE_TERMINAL_CARD_READER || readerStatus !== 'connected' || !!loadedHold}
+              title={
+                !ENABLE_STRIPE_TERMINAL_CARD_READER
+                  ? 'Card-reader hardware support is being updated -- cash, Stripe QR, and Venmo/Zelle are available now.'
+                  : loadedHold
+                  ? 'Item is on hold -- use Invoice to complete this sale'
+                  : readerStatus !== 'connected'
+                  ? 'Tap the status indicator in the top corner to connect your reader'
+                  : ''
+              }
               className={`py-4 rounded-xl font-semibold transition flex flex-col items-center gap-1 ${
-                paymentMode === 'card' && readerStatus === 'connected' && !loadedHold
+                ENABLE_STRIPE_TERMINAL_CARD_READER && paymentMode === 'card' && readerStatus === 'connected' && !loadedHold
                   ? 'bg-sage-700 text-white'
-                  : readerStatus !== 'connected' || loadedHold
-                  ? 'bg-warm-100 text-warm-300 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600'
-                  : 'bg-warm-200 text-warm-700 hover:bg-warm-300 dark:bg-gray-700 dark:text-warm-200 dark:hover:bg-gray-600'
+                  : 'bg-warm-100 text-warm-300 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600'
               }`}
             >
               <span className="text-xl">💳</span>
@@ -3805,12 +3845,19 @@ export default function POSPage() {
           <div className="mt-2">
             <button
               onClick={() => {
+                if (!ENABLE_MANUAL_CARD_ENTRY) return;
                 setPaymentMode('manual_card');
                 setNumpadOpen(false);
               }}
-              className="text-xs text-sage-700 dark:text-sage-400 hover:underline"
+              disabled={!ENABLE_MANUAL_CARD_ENTRY}
+              title={!ENABLE_MANUAL_CARD_ENTRY ? 'Manual card entry is being updated -- cash, Stripe QR, and Venmo/Zelle are available now.' : ''}
+              className={
+                ENABLE_MANUAL_CARD_ENTRY
+                  ? 'text-xs text-sage-700 dark:text-sage-400 hover:underline'
+                  : 'text-xs text-warm-400 dark:text-gray-500 cursor-not-allowed'
+              }
             >
-              No reader? Enter card manually
+              {ENABLE_MANUAL_CARD_ENTRY ? 'No reader? Enter card manually' : 'Manual card entry unavailable'}
             </button>
           </div>
             </>
@@ -3819,7 +3866,7 @@ export default function POSPage() {
       )}
 
       {/* Payment Method: Manual Card Entry */}
-      {!venueHubId && paymentMode === 'manual_card' && cart.length > 0 && (
+      {!venueHubId && ENABLE_MANUAL_CARD_ENTRY && paymentMode === 'manual_card' && cart.length > 0 && (
         <Elements stripe={getStripePromise()}>
           <PosManualCard
             cartTotal={cartTotal}
@@ -4136,31 +4183,37 @@ export default function POSPage() {
         <div className="space-y-3">
           {/* Card payment button */}
           {paymentMode === 'card' && (
-            <>
-              <button
-                onClick={handleCharge}
-                disabled={
-                  readerStatus !== 'connected' ||
-                  ['creating', 'waiting_for_card', 'processing'].includes(paymentStatus)
-                }
-                className="w-full py-4 rounded-xl font-bold text-lg transition disabled:opacity-40 disabled:cursor-not-allowed bg-sage-700 text-white hover:bg-sage-800 active:scale-95"
-              >
-                {paymentStatus === 'creating' && 'Creating payment…'}
-                {paymentStatus === 'waiting_for_card' && '📲 Present card to reader…'}
-                {paymentStatus === 'processing' && 'Processing…'}
-                {(paymentStatus === 'idle' || paymentStatus === 'error' || paymentStatus === 'cancelled') &&
-                  `Charge $${cardAmount.toFixed(2)}`}
-              </button>
-
-              {['waiting_for_card', 'creating'].includes(paymentStatus) && (
+            !ENABLE_STRIPE_TERMINAL_CARD_READER ? (
+              <div className="p-4 rounded-xl bg-warm-100 dark:bg-gray-800 border border-warm-200 dark:border-gray-700 text-sm text-warm-600 dark:text-warm-400 text-center">
+                Card-reader hardware support is being updated -- cash, Stripe QR, and Venmo/Zelle are available now.
+              </div>
+            ) : (
+              <>
                 <button
-                  onClick={handleCancel}
-                  className="w-full py-2 rounded-xl border border-warm-300 dark:border-gray-700 text-warm-600 dark:text-warm-400 text-sm hover:bg-warm-100 dark:hover:bg-gray-700 transition"
+                  onClick={handleCharge}
+                  disabled={
+                    readerStatus !== 'connected' ||
+                    ['creating', 'waiting_for_card', 'processing'].includes(paymentStatus)
+                  }
+                  className="w-full py-4 rounded-xl font-bold text-lg transition disabled:opacity-40 disabled:cursor-not-allowed bg-sage-700 text-white hover:bg-sage-800 active:scale-95"
                 >
-                  Cancel
+                  {paymentStatus === 'creating' && 'Creating payment…'}
+                  {paymentStatus === 'waiting_for_card' && '📲 Present card to reader…'}
+                  {paymentStatus === 'processing' && 'Processing…'}
+                  {(paymentStatus === 'idle' || paymentStatus === 'error' || paymentStatus === 'cancelled') &&
+                    `Charge $${cardAmount.toFixed(2)}`}
                 </button>
-              )}
-            </>
+
+                {['waiting_for_card', 'creating'].includes(paymentStatus) && (
+                  <button
+                    onClick={handleCancel}
+                    className="w-full py-2 rounded-xl border border-warm-300 dark:border-gray-700 text-warm-600 dark:text-warm-400 text-sm hover:bg-warm-100 dark:hover:bg-gray-700 transition"
+                  >
+                    Cancel
+                  </button>
+                )}
+              </>
+            )
           )}
 
           {/* Cash payment numpad and button */}

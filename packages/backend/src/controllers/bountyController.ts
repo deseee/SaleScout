@@ -18,6 +18,8 @@ import {
   buildSquareIdempotencyKey,
   createSquareCharge,
 } from '../services/squarePaymentService'; // Square migration Wave S2 #1 (2026-09-09): additive Square branch, see completeBountyPurchase
+import { assertSaleCanAcceptPayment } from '../services/paymentEligibilityService'; // BUG FIX (2026-09-09, findasale-dev BUG MODE): completeBountyPurchase's Stripe branch was skipping this shared sale-status / Stripe-Connect-onboarding gate that createPaymentIntent/createCartCheckoutSession (stripeController.ts) already enforce (2026-08-27 carding incident). Stripe-specific fields -- used ONLY in the Stripe branch below. Square eligibility is governed separately (organizerHasSquare + resolveOrganizerSquareAccessToken), so this must not run for Square-onboarded organizers who have no live Stripe Connect account at all.
+import { assertCheckoutAllowed, CheckoutGuardError } from '../services/checkoutGuard'; // S1072 Finding #4 collusion/wash-trade guard -- BUG FIX (2026-09-09): was missing from BOTH processor branches here. Identity-based (buyer vs. organizer fingerprints), not Stripe-specific, so added once, shared, before the Square/Stripe branch split.
 
 const stripe = () => getStripe();
 
@@ -767,20 +769,32 @@ export const getCommunityBounties = async (req: AuthRequest, res: Response) => {
  * POST /api/bounties/submissions/:id/purchase
  * Complete bounty purchase (auth required, owner of bounty)
  *
- * Flow:
+ * Flow (BUG FIX 2026-09-09, findasale-dev BUG MODE -- Gap 1 & Gap 2, see bottom note):
  * 1. Validate submission ownership and status
- * 2. Check shopper has ≥50 XP (BOUNTY_FULFILLMENT cost)
- * 3. Deduct 50 XP from shopper (BOUNTY_FULFILLMENT)
- * 4. Award 25 XP to organizer (BOUNTY_FULFILLMENT)
- * 5. Charge the item price -- SQUARE (organizer.squareOnboarded && squareMerchantId, synchronous
- *    CreatePayment, requires `sourceId` in the request body) or STRIPE (existing PaymentIntent
- *    flow, unchanged) depending on which processor the organizer has completed onboarding for.
+ * 2. S1072 collusion/wash-trade guard (assertCheckoutAllowed) -- shared, both processors
+ * 3. Check shopper has ≥50 XP (BOUNTY_FULFILLMENT cost) -- eligibility pre-check only
+ * 4. Charge the item price -- SQUARE (organizer.squareOnboarded && squareMerchantId, synchronous
+ *    CreatePayment, requires `sourceId` in the request body) or STRIPE (PaymentIntent flow,
+ *    gated first by assertSaleCanAcceptPayment -- sale-status / Stripe-Connect-onboarding)
+ *    depending on which processor the organizer has completed onboarding for.
  *    Square migration Wave S2 #1 (2026-09-09): additive branch, see organizerHasSquare below.
- * 6. Update BountySubmission.status → PURCHASED
- * 7. Create Purchase record linked to the charge (Purchase.processor discriminates STRIPE/SQUARE)
- * 8. Response shape differs by processor: STRIPE returns a clientSecret for the frontend to
- *    confirm client-side; SQUARE's charge is already complete synchronously, so it returns
- *    squarePaymentId/status directly with no further client-side confirmation step.
+ * 5. ONLY AFTER a confirmed charge: deduct 50 XP from shopper, award 25 XP to organizer,
+ *    update BountySubmission.status → PURCHASED, create/finalize the Purchase record
+ *    (Purchase.processor discriminates STRIPE/SQUARE), notify the organizer.
+ *    SQUARE's charge is synchronous, so all of this runs inline right after chargeResult.ok.
+ *    STRIPE's confirmation is asynchronous, so this endpoint only creates a PENDING Purchase
+ *    row + PaymentIntent here; the payment_intent.succeeded webhook (stripeController.ts,
+ *    metadata.type === 'BOUNTY_SUBMISSION') runs the rest once Stripe actually confirms.
+ * 6. Response shape differs by processor: STRIPE returns a clientSecret for the frontend to
+ *    confirm client-side (submission status in the response is NOT yet PURCHASED); SQUARE's
+ *    charge is already complete synchronously, so it returns squarePaymentId/status directly
+ *    with no further client-side confirmation step.
+ *
+ * Prior to this fix, Steps "deduct/award XP, flip status, notify" ran unconditionally BEFORE
+ * any charge was attempted on either processor, with no rollback on a cancelled/declined
+ * Stripe payment, and neither processor branch enforced the sale-status/Connect-onboarding
+ * gate or the S1072 collusion guard that the generic single-item checkout endpoints
+ * (stripeController.ts createPaymentIntent/createCartCheckoutSession) already enforce.
  */
 export const completeBountyPurchase = async (req: AuthRequest, res: Response) => {
   try {
@@ -794,7 +808,7 @@ export const completeBountyPurchase = async (req: AuthRequest, res: Response) =>
       where: { id: submissionId },
       include: {
         bounty: true,
-        item: { include: { sale: { select: { id: true, organizerId: true, organizer: { select: { stripeConnectId: true, subscriptionTier: true, squareMerchantId: true, squareOnboarded: true, squareLocationId: true } } } } } },
+        item: { include: { sale: { select: { id: true, status: true, paymentsHeldAt: true, organizerId: true, organizer: { select: { stripeConnectId: true, stripeOnboarded: true, subscriptionTier: true, squareMerchantId: true, squareOnboarded: true, squareLocationId: true } } } } } },
         organizer: true,
       },
     });
@@ -806,11 +820,31 @@ export const completeBountyPurchase = async (req: AuthRequest, res: Response) =>
       return res.status(400).json({ message: 'Submission cannot be purchased.' });
     }
 
+    // S1072 Finding #4: collusion/wash-trade guard -- BUG FIX (2026-09-09). Identity-grade
+    // device/card fingerprint match between this shopper and the submission's sale organizer.
+    // Runs BEFORE the Square/Stripe branch split (and before any XP mutation) so both
+    // processors get the same coverage and there is no charge-of-any-kind before this point.
+    try {
+      await assertCheckoutAllowed({
+        buyerUserId: userId,
+        saleId: submission.item.sale!.id,
+        itemId: submission.itemId,
+        prisma,
+        context: 'completeBountyPurchase',
+      });
+    } catch (guardError) {
+      if (guardError instanceof CheckoutGuardError) {
+        return res.status(403).json({ message: guardError.message });
+      }
+      throw guardError;
+    }
+
     // XP Constants for Bounty Fulfillment
     const XP_BOUNTY_COST = 50;           // Shopper pays 50 XP
     const XP_ORGANIZER_REWARD = 25;      // Organizer earns 25 XP
 
-    // Step 1: Check shopper has sufficient spendable XP
+    // Step 1: Check shopper has sufficient spendable XP (eligibility pre-check only -- the
+    // actual deduction no longer happens here, see BUG FIX note below).
     const spendableXp = await getSpendableXp(userId);
     if (spendableXp < XP_BOUNTY_COST) {
       return res.status(402).json({
@@ -820,26 +854,17 @@ export const completeBountyPurchase = async (req: AuthRequest, res: Response) =>
       });
     }
 
-    // Step 2: Deduct XP from shopper using idempotency key based on submission ID
-    const shoppingSpendSuccess = await spendXp(
-      userId,
-      XP_BOUNTY_COST,
-      'BOUNTY_FULFILLMENT',
-      { description: `Bounty submission purchase: ${submission.item.title}` }
-    );
-    if (!shoppingSpendSuccess) {
-      return res.status(402).json({
-        message: 'Failed to deduct XP. Please try again.',
-      });
-    }
-
-    // Step 3: Award XP to organizer
-    await awardXp(
-      submission.organizerId,
-      'BOUNTY_FULFILLMENT',
-      XP_ORGANIZER_REWARD,
-      { description: `Earned from bounty submission: ${submission.item.title}` }
-    );
+    // BUG FIX (Gap 1, 2026-09-09, findasale-dev BUG MODE): Steps 2-3 (spendXp the shopper,
+    // awardXp the organizer) used to run HERE, unconditionally, before either processor branch
+    // and before any charge was even attempted -- a cancelled/declined Stripe payment left both
+    // XP mutations applied with no rollback, and (found during this fix, contrary to this
+    // function's own dispatch context) the Square branch had the identical bug: its charge
+    // happens further below, AFTER this point, so XP was moving before money too. Both
+    // mutations now happen ONLY after a confirmed charge: inline, right after
+    // chargeResult.ok, in the Square branch below; in the webhook (payment_intent.succeeded,
+    // stripeController.ts, metadata.type === 'BOUNTY_SUBMISSION') for the Stripe branch, since
+    // Stripe confirmation is asynchronous. See the Square branch and the Stripe branch's
+    // Purchase-creation comment below for exactly where each now happens.
 
     // Step 4: Prepare Stripe PaymentIntent for the item price
     const itemPrice = submission.item.price || 0;
@@ -917,6 +942,26 @@ export const completeBountyPurchase = async (req: AuthRequest, res: Response) =>
         return res.status(402).json({ message: chargeResult.message, code: 'SQUARE_PAYMENT_DECLINED' });
       }
 
+      // BUG FIX (Gap 1, 2026-09-09): XP deduct/award now happen HERE -- immediately after the
+      // Square charge is confirmed successful -- instead of unconditionally before any charge
+      // was even attempted (the pre-existing bug this fix closes; see the removed Steps 2-3
+      // comment above). Best-effort / non-blocking: Square has already captured real money by
+      // this line, so a rare XP-balance race must never strand a paying buyer without their
+      // item -- same posture as this file's other fire-and-forget XP awards (e.g.
+      // fulfillBounty above).
+      await spendXp(
+        userId,
+        XP_BOUNTY_COST,
+        'BOUNTY_FULFILLMENT',
+        { description: `Bounty submission purchase: ${submission.item.title}` }
+      ).catch(err => console.error(`[completeBountyPurchase][square] spendXp failed (non-fatal, charge already succeeded) for user ${userId}:`, err));
+      await awardXp(
+        submission.organizerId,
+        'BOUNTY_FULFILLMENT',
+        XP_ORGANIZER_REWARD,
+        { description: `Earned from bounty submission: ${submission.item.title}` }
+      ).catch(err => console.error(`[completeBountyPurchase][square] awardXp failed (non-fatal, charge already succeeded) for organizer ${submission.organizerId}:`, err));
+
       // Step 5 (Square): Update submission status to PURCHASED -- identical to the Stripe
       // branch's Step 5 below, just reached from this earlier return.
       const squareUpdatedSubmission = await prisma.bountySubmission.update({
@@ -978,6 +1023,27 @@ export const completeBountyPurchase = async (req: AuthRequest, res: Response) =>
         organizerXpAwarded: XP_ORGANIZER_REWARD,
         processor: 'SQUARE',
       });
+    }
+
+    // BUG FIX (Gap 2, 2026-09-09): shared sale-status / Stripe-Connect-onboarding gate that
+    // createPaymentIntent/createCartCheckoutSession (stripeController.ts) already enforce
+    // (2026-08-27 carding incident) -- this endpoint skipped it entirely. Same response
+    // shape/status codes as the generic endpoints (SELLER_PAYMENTS_UNAVAILABLE /
+    // SALE_NOT_ACTIVE / SALE_PAYMENTS_HELD), placed before any Stripe charge attempt. Stripe-
+    // Connect-specific fields -- correctly scoped to this branch only (a Square-onboarded
+    // organizer has no live stripeConnectId/stripeOnboarded and must not be blocked by this).
+    const bountyPaymentEligibility = await assertSaleCanAcceptPayment({
+      prisma,
+      sale: {
+        id: submission.item.sale!.id,
+        status: submission.item.sale!.status,
+        paymentsHeldAt: submission.item.sale!.paymentsHeldAt,
+      },
+      organizerStripeConnectId: stripeConnectId,
+      organizerStripeOnboarded: submission.item.sale!.organizer.stripeOnboarded,
+    });
+    if (bountyPaymentEligibility.blocked) {
+      return res.status(bountyPaymentEligibility.status).json(bountyPaymentEligibility.body);
     }
 
     // Stripe routing: check if organizer has Stripe Connect (unchanged -- Square branch above returns early)
@@ -1054,16 +1120,23 @@ export const completeBountyPurchase = async (req: AuthRequest, res: Response) =>
       throw stripeError;
     }
 
-    // Step 5: Update submission status to PURCHASED
-    const updated = await prisma.bountySubmission.update({
-      where: { id: submissionId },
-      data: {
-        status: 'PURCHASED',
-        purchasedAt: new Date(),
-      },
-    });
-
-    // Step 6: Create Purchase record linked to bounty submission
+    // Step 5 (Stripe): Purchase record created eagerly as PENDING -- same "create now, finalize
+    // in the webhook once payment is confirmed" pattern createPaymentIntent (stripeController.ts)
+    // already uses for single-item purchases (see its own PENDING Purchase.create + the
+    // payment_intent.succeeded "Standard Purchase" handler that later flips it to PAID). This
+    // row is what that webhook's new metadata.type === 'BOUNTY_SUBMISSION' branch looks up by
+    // stripePaymentIntentId to flip to PAID.
+    //
+    // BUG FIX (Gap 1, 2026-09-09): the BountySubmission status flip to PURCHASED, the XP
+    // deduct/award, and the organizer notification used to all happen HERE -- before Stripe
+    // ever confirmed the charge. A cancelled or declined checkout left every one of those
+    // applied with no rollback (the bug this dispatch was opened to fix). All three now happen
+    // in the webhook instead, gated on a confirmed payment_intent.succeeded event for this PI
+    // (stripeController.ts, metadata.type === 'BOUNTY_SUBMISSION' branch) -- matching the "side
+    // effects only after a confirmed charge" timing the Square branch above now also uses (see
+    // Gap 1 fix comment there). The submissionId/bountyId/itemId/saleId/userId/type metadata
+    // already stamped on this PaymentIntent (above) carry everything that webhook branch needs
+    // to resolve and finalize this exact submission -- no new metadata fields were required.
     const purchase = await prisma.purchase.create({
       data: {
         userId,
@@ -1089,24 +1162,23 @@ export const completeBountyPurchase = async (req: AuthRequest, res: Response) =>
       },
     });
 
-    // Step 7: Notify organizer of purchase
-    await createNotification(
-      submission.organizerId,
-      'BOUNTY_PURCHASED',
-      'Bounty Purchased!',
-      `Your submission was purchased! You earned ${XP_ORGANIZER_REWARD} XP.`,
-      `/bounties/submissions`,
-      'OPERATIONAL'
-    );
-
     return res.json({
       clientSecret: paymentIntent.client_secret,
       amount: priceCents,
       currency: 'usd',
-      submissionId: updated.id,
+      submissionId: submission.id,
       bountyId: submission.bountyId,
       purchaseId: purchase.id,
-      status: updated.status,
+      // Gap 1 fix: reflects the REAL current status -- still PENDING_REVIEW/APPROVED, not yet
+      // PURCHASED, until the webhook confirms payment. Knock-on check performed (2026-09-09):
+      // the frontend (pages/shopper/bounties/submissions.tsx handleCompletePurchase) never
+      // reads this field to render an optimistic "Purchased" badge -- it opens CheckoutModal
+      // and only reloads submissions from the server (loadSubmissions()) after the checkout
+      // flow's own onSuccess fires, independent of this response body. No frontend change
+      // needed.
+      status: submission.status,
+      // Amounts that WILL be deducted/awarded once the webhook confirms this charge -- not
+      // yet applied at this point (Gap 1 fix). Not read by the frontend today.
       xpDeducted: XP_BOUNTY_COST,
       organizerXpAwarded: XP_ORGANIZER_REWARD,
     });

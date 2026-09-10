@@ -104,6 +104,12 @@ describe('Bounty-fulfillment purchase commission — tier rate, not a hardcoded 
         address: '219 E Michigan Ave, Paw Paw, MI 49079',
         subscriptionTier: tier,
         stripeConnectId: `acct_bountyfee${key}`,
+        // Knock-on fix (2026-09-09, findasale-dev BUG MODE): completeBountyPurchase's Stripe
+        // branch now calls the shared assertSaleCanAcceptPayment gate (paymentEligibilityService.ts,
+        // 2026-08-27 carding incident), which blocks with 409 SELLER_PAYMENTS_UNAVAILABLE unless
+        // stripeOnboarded === true, not just a live stripeConnectId. Without this, every test in
+        // this suite would be blocked before ever reaching mockPaymentIntentCreate.
+        stripeOnboarded: true,
       },
     });
     const sale = await prisma.sale.create({

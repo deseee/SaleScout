@@ -11,6 +11,13 @@ import {
   isPayoutFlaggedForReview,
   type SquareOnboardingOwnerType,
 } from '../services/squareConnectService';
+// Booth-lifecycle notification (2026-09-09, Square changeover parity fix): the VENDOR_BOOTH
+// branch below previously updated squareOnboarded with no false->true edge check and no
+// organizer notification at all -- the Stripe equivalent (getVendorBoothStripeStatus /
+// startVendorBoothStripeOnboarding) has always told the hub organizer when a vendor finishes
+// onboarding. See the VENDOR_BOOTH branch below for the edge-check this mirrors from
+// getVendorBoothStripeStatus's poll-based version, adapted for a single OAuth callback.
+import { notifyOrganizerBoothSquareConnected } from '../services/vendorBoothLifecycleNotificationService';
 
 /**
  * Square Connect-Equivalent Onboarding Controller
@@ -264,12 +271,18 @@ export const handleSquareConnectCallback = async (req: AuthRequest, res: Respons
         where: { id: ownerId, workspace: { owner: { userId } } },
       });
       if (!consignor) return res.status(403).json({ message: 'You do not have access to this consignor.' });
-    } else {
-      // VENDOR_BOOTH
+    }
+
+    // VENDOR_BOOTH ownership check + pre-update snapshot, captured OUTSIDE the if/else above
+    // so the false->true edge check below (mirroring getVendorBoothStripeStatus's poll-based
+    // equivalent) has the value from BEFORE this callback's update to compare against.
+    let boothBeforeUpdate: { squareOnboarded: boolean } | null = null;
+    if (ownerType === 'VENDOR_BOOTH') {
       const booth = await prisma.vendorBooth.findFirst({ where: { id: ownerId } });
       if (!booth || booth.userId !== userId) {
         return res.status(403).json({ message: 'You do not operate this booth.' });
       }
+      boothBeforeUpdate = { squareOnboarded: booth.squareOnboarded };
     }
 
     // --- Token exchange (Stage 3) ---
@@ -321,6 +334,19 @@ export const handleSquareConnectCallback = async (req: AuthRequest, res: Respons
           squareTokenExpiresAt,
         },
       });
+
+      // Organizer notification, false->true edge only (mirrors getVendorBoothStripeStatus's
+      // poll-based equivalent, adapted for this single callback instead of a poll). Without
+      // the edge check, a booth that reconnects Square after already being onboarded -- or
+      // whose OAuth callback somehow fires twice -- would re-notify on every completion; the
+      // squareNotifiedAt stamp in the service is a second, independent guard against a
+      // literal duplicate send, but this edge check is what keeps a NOT-genuinely-new
+      // completion from even attempting one.
+      if (boothBeforeUpdate && !boothBeforeUpdate.squareOnboarded && status.active) {
+        notifyOrganizerBoothSquareConnected(ownerId).catch(err =>
+          console.warn('[booth-lifecycle] Square notification failed for booth', ownerId, err)
+        );
+      }
     }
 
     // --- Immediate, synchronous bank-fingerprint fraud check (S1198-equivalent, Square

@@ -29,6 +29,7 @@ import {
   notifyVendorBoothConfirmed,
   notifyVendorBoothDecision,
   notifyOrganizerBoothStripeConnected,
+  notifyOrganizerBoothSquareConnected,
 } from '../services/vendorBoothLifecycleNotificationService';
 import type { BoothNotifyResult } from '../services/vendorBoothLifecycleNotificationService';
 
@@ -104,6 +105,12 @@ export const listVendorBooths = async (req: AuthRequest, res: Response) => {
         // what each null means, exactly as it already does for inviteSentAt.
         claimNotifiedAt: true, confirmNotifiedAt: true,
         decisionNotifiedAt: true, stripeNotifiedAt: true,
+        // Square changeover (2026-09-09): squareOnboarded is the "happened" input the page's
+        // classifyNotifyState needs for the Square notification row (same role stripeOnboarded
+        // plays for the Stripe row), and squareNotifiedAt is that row's own stamp -- added
+        // alongside the Stripe pair above, never replacing it, since a booth can carry a
+        // legacy Stripe connection and a Square connection independently.
+        squareOnboarded: true, squareNotifiedAt: true,
         // Register access grant (2026-07-29, Patrick's decision) -- separate from
         // claim/confirm. See VendorBooth.registerAccessGrantedAt in schema.prisma.
         registerAccessGrantedAt: true,
@@ -399,7 +406,7 @@ export const resendVendorBoothInvite = async (req: AuthRequest, res: Response) =
 /**
  * POST /api/organizer/hubs/:hubId/vendor-booths/:boothId/notify
  * Organizer-only. Re-runs ONE lifecycle notification that should have gone out and did not.
- * Body: { kind: 'claim' | 'confirm' | 'decision' | 'stripe' }
+ * Body: { kind: 'claim' | 'confirm' | 'decision' | 'stripe' | 'square' }
  *
  * Ownership check is the SAME three-step chain resendVendorBoothInvite above uses, copied
  * line for line: getOrganizerWorkspace(req.user.id) -> saleHub.findFirst({ id: hubId,
@@ -423,7 +430,7 @@ export const resendVendorBoothNotification = async (req: AuthRequest, res: Respo
     const { hubId, boothId } = req.params;
     const { kind } = req.body;
 
-    const validKinds = ['claim', 'confirm', 'decision', 'stripe'];
+    const validKinds = ['claim', 'confirm', 'decision', 'stripe', 'square'];
     if (!kind || !validKinds.includes(kind)) {
       return res.status(400).json({ error: `kind must be one of ${validKinds.join(', ')}` });
     }
@@ -450,8 +457,10 @@ export const resendVendorBoothNotification = async (req: AuthRequest, res: Respo
         return res.status(409).json({ error: 'This booth was not rejected or cancelled, so there is no decision to send' });
       }
       sendResult = await notifyVendorBoothDecision(boothId, existing.status);
-    } else {
+    } else if (kind === 'stripe') {
       sendResult = await notifyOrganizerBoothStripeConnected(boothId);
+    } else {
+      sendResult = await notifyOrganizerBoothSquareConnected(boothId);
     }
 
     if (!sendResult.sent) {
@@ -464,7 +473,7 @@ export const resendVendorBoothNotification = async (req: AuthRequest, res: Respo
       where: { id: boothId },
       select: {
         claimNotifiedAt: true, confirmNotifiedAt: true,
-        decisionNotifiedAt: true, stripeNotifiedAt: true,
+        decisionNotifiedAt: true, stripeNotifiedAt: true, squareNotifiedAt: true,
       },
     });
 
@@ -475,6 +484,7 @@ export const resendVendorBoothNotification = async (req: AuthRequest, res: Respo
       confirmNotifiedAt: refreshed?.confirmNotifiedAt ?? null,
       decisionNotifiedAt: refreshed?.decisionNotifiedAt ?? null,
       stripeNotifiedAt: refreshed?.stripeNotifiedAt ?? null,
+      squareNotifiedAt: refreshed?.squareNotifiedAt ?? null,
     });
   } catch (error) {
     console.error('[resendVendorBoothNotification] Error:', error);
@@ -1179,6 +1189,16 @@ export const startVendorBoothSquareOnboarding = async (req: AuthRequest, res: Re
           where: { id: booth.id },
           data: { squareAccountId: existing.squareMerchantId, squareOnboarded: true },
         });
+        // Reusing an already-working Square identity means this booth just became
+        // payment-ready in one shot, with no return trip through Square's hosted OAuth
+        // flow -- mirrors startVendorBoothStripeOnboarding's identical reuse-branch
+        // notification above (:786). booth.squareOnboarded was falsy on the way in
+        // (the outer `if (!booth.squareAccountId)` guard above already establishes this
+        // branch is reached only when the booth was not already Square-onboarded), so
+        // this is always a genuine false->true transition, not a repeat.
+        notifyOrganizerBoothSquareConnected(booth.id).catch(err =>
+          console.warn('[booth-lifecycle] Square notification failed for booth', booth.id, err)
+        );
         return res.status(200).json({ linkedExistingAccount: true, squareOnboarded: true });
       }
     }

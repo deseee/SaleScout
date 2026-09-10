@@ -192,7 +192,7 @@ const shopperFAQs: FAQItem[] = [
     answer: (
       <>
         Click <strong>Buy Now</strong> on any item, review your order, and complete checkout with your
-        card via Stripe. Once payment goes through, the item is marked sold and you'll receive a
+        card. Once payment goes through, the item is marked sold and you'll receive a
         confirmation. Coordinate pickup directly with the organizer. Their contact info is on the sale page.
       </>
     ),
@@ -202,7 +202,7 @@ const shopperFAQs: FAQItem[] = [
     answer: (
       <>
         FindA.Sale accepts all major credit and debit cards (Visa, Mastercard, American Express,
-        Discover) through Stripe. Cash, and other payment methods are handled at the sale location
+        Discover) for online purchases. Cash and other payment methods are handled at the sale location
         using the FindA.Sale Point of Sale platform.
       </>
     ),
@@ -348,8 +348,8 @@ const organizerFAQs: FAQItem[] = [
       <>
         Shoppers browse sales on the{' '}
         <Link href="/" className="text-amber-600 hover:underline">homepage</Link> or map,
-        click into any sale to see items, then click <strong>Buy Now</strong> and complete checkout
-        via Stripe. Once paid, the item is marked sold and they receive a confirmation. They coordinate
+        click into any sale to see items, then click <strong>Buy Now</strong> and complete checkout.
+        Once paid, the item is marked sold and they receive a confirmation. They coordinate
         pickup directly with you. Or select from available pickup times if you enable them.
       </>
     ),
@@ -358,10 +358,10 @@ const organizerFAQs: FAQItem[] = [
     question: 'How do I get paid?',
     answer: (
       <>
-        Organizers receive payouts via <strong>Stripe Connect</strong>. Before your sale goes live,
-        visit your <Link href="/organizer/dashboard" className="text-amber-600 hover:underline">dashboard</Link> and
-        click <strong>Setup Payments</strong> to complete Stripe onboarding. Once verified, your share
-        of each completed sale is deposited to your bank account within 2 business days.
+        Organizers receive payouts via <strong>Square</strong>. Before your sale goes live,
+        visit <Link href="/organizer/settings" className="text-amber-600 hover:underline">Settings &rarr; Payments</Link> and
+        click <strong>Connect Square</strong> to link your account. Once connected, your share
+        of each completed sale is deposited to your bank account on a weekly schedule.
       </>
     ),
   },
@@ -377,7 +377,7 @@ const organizerFAQs: FAQItem[] = [
         <strong>buyer&apos;s premium</strong> on top of the winning bid, a flat <strong>5%</strong> set by
         FindA.Sale. It is not something you configure, and it does not change your platform fee. On a $200
         winning bid at the 10% platform rate, the buyer pays $210.00, your platform fee is $20.00, and you
-        receive $180.00 before Stripe processing. If you would rather your winner paid exactly their bid,
+        receive $180.00 before Square's processing fee. If you would rather your winner paid exactly their bid,
         turn on &ldquo;Cover the buyer&apos;s premium&rdquo; and it comes out of your payout instead.
       </>
     ),
@@ -386,38 +386,20 @@ const organizerFAQs: FAQItem[] = [
     question: 'How do I test my payment setup before my sale starts?',
     answer: (
       <>
-        You have two ways to test payment flows:
-        <br /><br />
-        <strong>For POS (in-person card payments):</strong> Open the{' '}
-        <Link href="/organizer/pos" className="text-amber-600 hover:underline">POS page</Link>,
-        select your sale, and tap <strong>"Run $1.00 Test Transaction"</strong> in the Pre-Sale Test card.
-        It sends a $1 charge through Stripe's test environment No real money moves and automatically
-        checks off the POS task on your sale's progress checklist when it succeeds.
-        <br /><br />
-        <strong>For online checkout:</strong> Open your sale's Promote page and tap <strong>"Test Online Checkout"</strong> or <strong>"Test Auction Checkout"</strong> to get a test link and QR code. No real money moves and your inventory stays safe.
+        From your <Link href="/organizer/dashboard" className="text-amber-600 hover:underline">dashboard</Link>,
+        open the Sale Progress card and tap <strong>Track Progress</strong> to reach your sale's Plan
+        page. It walks you through a pre-sale checklist, including a payment test step that verifies
+        your checkout is wired up correctly. No real money moves and your inventory isn't affected.
         <br /><br />
         For a full pre-sale walkthrough including all checkout methods and a day-before checklist, see the{' '}
         <Link href="/guide#before-you-go-live" className="text-amber-600 hover:underline">Before You Go Live</Link>{' '}
         section of the Organizer Guide.
         <br /><br />
-        <strong>Common reasons tests fail:</strong> Stripe account not fully onboarded (look for a
-        setup banner on your Earnings page), sale not yet published, or no items added. Still stuck?
-        Contact support with your sale name and we'll help you get sorted before opening day.
-      </>
-    ),
-  },
-  {
-    question: 'What Stripe test card numbers should I use?',
-    answer: (
-      <>
-        Use these when clicking through the test checkout links on the Promote page. Any future expiry date (e.g. 12/30) and any 3-digit CVC work with all test cards.
-        <br /><br />
-        <strong>4242 4242 4242 4242</strong>. Payment succeeds<br />
-        <strong>4000 0000 0000 0002</strong>. Payment is declined<br />
-        <strong>4000 0025 0000 3155</strong>. Triggers an authentication step (3D Secure)
-        <br /><br />
-        Test cards only work in test checkout flows. Real checkouts will never ask for these numbers.
-        If you see a test card request when you&apos;re not testing, contact support.
+        <strong>Common reasons a test doesn't go through:</strong> your payment account isn't fully
+        connected yet (check{' '}
+        <Link href="/organizer/settings" className="text-amber-600 hover:underline">Settings &rarr; Payments</Link>),
+        your sale isn't published yet, or no items have been added. Still stuck? Contact support with
+        your sale name and we'll help you get sorted before opening day.
       </>
     ),
   },
@@ -519,7 +501,7 @@ const organizerFAQs: FAQItem[] = [
     question: 'How does in-person / Point of Sale checkout work?',
     answer: (
       <>
-        The FindA.Sale POS lets you process sales at the event using your phone or tablet. From your sale dashboard, tap <strong>POS</strong> to open the point-of-sale view. You can search your inventory, add items to a cart, accept payment (card via Stripe or cash), and mark items sold. All from the same screen. POS transactions sync with your online inventory in real time, so an item sold in person won't show as available online.
+        The FindA.Sale POS lets you process sales at the event using your phone or tablet. From your sale dashboard, tap <strong>POS</strong> to open the point-of-sale view. You can search your inventory, add items to a cart, accept payment (card or cash), and mark items sold. All from the same screen. POS transactions sync with your online inventory in real time, so an item sold in person won't show as available online.
       </>
     ),
   },
@@ -527,17 +509,15 @@ const organizerFAQs: FAQItem[] = [
     question: 'Can I use a physical card reader at my sale?',
     answer: (
       <>
-        Yes. FindA.Sale's POS supports two Stripe Terminal smart readers: the <strong>Stripe Reader S700</strong> and
-        the <strong>Stripe Reader S710</strong>. The S710 adds cellular connectivity. Useful for outdoor venues or
-        locations where Wi-Fi isn't reliable. Both accept chip, swipe, and contactless payments including Apple Pay
-        and Google Pay. Order directly from Stripe at{' '}
-        <a href="https://stripe.com/terminal" target="_blank" rel="noopener noreferrer" className="text-amber-600 hover:underline">stripe.com/terminal</a>.
+        At your sale, the FindA.Sale POS accepts both cash and card. For card payments, the shopper
+        completes their own card entry on their phone through a secure payment link or QR code, so
+        nobody needs to type a card into your device. A working internet connection at your venue is
+        what makes this possible.
         <br /><br />
-        Because FindA.Sale is a web app, readers connect over the internet rather than Bluetooth. So a working
-        Wi-Fi or cellular connection at your venue is required. Your Stripe account must also be fully onboarded
-        before the reader will process payments. See{' '}
-        <Link href="/organizer/pos" className="text-amber-600 hover:underline">your POS page</Link> to
-        connect a reader once it arrives.
+        Support for a dedicated physical card reader is under review. If a reader option becomes
+        available, it will appear right on your{' '}
+        <Link href="/organizer/pos" className="text-amber-600 hover:underline">POS page</Link> &mdash; no
+        separate setup elsewhere.
       </>
     ),
   },
@@ -556,8 +536,9 @@ const organizerFAQs: FAQItem[] = [
     answer: (
       <>
         All sales are final once payment is completed. If there's a genuine issue (item not as described,
-        damage, etc.), the organizer can issue a refund through their Stripe dashboard. Our support team
-        can also help mediate disputes. Contact us at{' '}
+        damage, etc.), the organizer can issue a refund directly from their{' '}
+        <Link href="/organizer/orders" className="text-amber-600 hover:underline">Orders page</Link>{' '}
+        within 30 days of purchase. Our support team can also help mediate disputes. Contact us at{' '}
         <Link href="/contact" className="text-amber-600 hover:underline">support@finda.sale</Link>.
       </>
     ),

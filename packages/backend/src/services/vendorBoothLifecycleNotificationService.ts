@@ -58,7 +58,7 @@ const FRONTEND_URL = process.env.FRONTEND_URL || 'https://finda.sale';
 export type BoothNotifyResult = { sent: boolean; reason?: string };
 
 /** Which stamp column guards which transition. Each is a real nullable VendorBooth column. */
-type StampField = 'claimNotifiedAt' | 'confirmNotifiedAt' | 'decisionNotifiedAt' | 'stripeNotifiedAt';
+type StampField = 'claimNotifiedAt' | 'confirmNotifiedAt' | 'decisionNotifiedAt' | 'stripeNotifiedAt' | 'squareNotifiedAt';
 
 /**
  * The one place an email actually leaves this module. Same two gates the invite service
@@ -102,8 +102,10 @@ async function stamp(boothId: string, field: StampField): Promise<void> {
       await prisma.vendorBooth.update({ where: { id: boothId }, data: { confirmNotifiedAt: now } });
     } else if (field === 'decisionNotifiedAt') {
       await prisma.vendorBooth.update({ where: { id: boothId }, data: { decisionNotifiedAt: now } });
-    } else {
+    } else if (field === 'stripeNotifiedAt') {
       await prisma.vendorBooth.update({ where: { id: boothId }, data: { stripeNotifiedAt: now } });
+    } else {
+      await prisma.vendorBooth.update({ where: { id: boothId }, data: { squareNotifiedAt: now } });
     }
   } catch (error) {
     console.error(`[booth-lifecycle] Could not stamp ${field} on booth ${boothId}:`, error);
@@ -460,6 +462,85 @@ export async function notifyOrganizerBoothStripeConnected(boothId: string): Prom
     return { sent: false, reason: 'Could not send the Stripe notification' };
   }
 }
+
+/**
+ * 4b. Vendor finished Square onboarding -> tell the hub organizer.
+ *
+ * Square's twin of notifyOrganizerBoothStripeConnected above (2026-09-09, Square changeover).
+ * Structurally identical -- same recipient resolution, same stillPending guard, same
+ * in-app-then-email order, same idempotency stamp pattern -- just Square-flavored copy and
+ * its own stamp column (squareNotifiedAt) so a booth that has gone through BOTH a legacy
+ * Stripe connection and a later Square connection can report each independently rather than
+ * one send suppressing the other.
+ */
+export async function notifyOrganizerBoothSquareConnected(boothId: string): Promise<BoothNotifyResult> {
+  try {
+    const booth = await loadBooth(boothId);
+    if (!booth) return { sent: false, reason: 'Booth not found' };
+    if (booth.deletedAt) return { sent: false, reason: 'Booth has been removed' };
+    if (booth.squareNotifiedAt) return { sent: false, reason: 'Organizer was already notified about this Square connection' };
+
+    const organizerUserId = booth.hub?.organizer?.userId;
+    const organizerEmail = booth.hub?.organizer?.user?.email;
+    if (!organizerUserId) return { sent: false, reason: 'This hub has no organizer account' };
+
+    const vendorName = escapeHtml(booth.vendorName);
+    const boothNumber = escapeHtml(booth.boothNumber);
+    const hubName = escapeHtml(booth.hub?.name || 'your market');
+    const organizerName = escapeHtml(booth.hub?.organizer?.businessName || 'there');
+    const boothsPath = `/organizer/hubs/${booth.hubId}/vendor-booths`;
+    const boothsUrl = `${FRONTEND_URL}${boothsPath}`;
+
+    // A booth can be Square-connected while still PENDING, so say so rather than
+    // implying the booth is ready when the organizer still has to confirm it.
+    const stillPending = booth.status !== 'CONFIRMED';
+
+    await createNotification(
+      organizerUserId,
+      'vendor_booth',
+      `Booth ${booth.boothNumber} connected Square`,
+      stillPending
+        ? `${booth.vendorName} connected Square for Booth ${booth.boothNumber} at ${booth.hub?.name || 'your market'}. The booth still needs your confirmation before anything can be sold from it.`
+        : `${booth.vendorName} connected Square for Booth ${booth.boothNumber} at ${booth.hub?.name || 'your market'}. Card payments at that booth can now reach them.`,
+      boothsPath,
+      'OPERATIONAL'
+    );
+
+    let result: BoothNotifyResult = { sent: false, reason: 'No organizer email on file' };
+    if (organizerEmail) {
+      const pendingBlock = stillPending
+        ? `<p><strong>Booth ${boothNumber} still needs your confirmation.</strong> It is marked ${escapeHtml(booth.status)}, and nothing can be rung up or sold at it until you confirm it on your Vendor Booths page.</p>`
+        : `<p>That was the last setup step for this booth. Nothing else is needed from you.</p>`;
+
+      const html = buildEmail({
+        preheader: `${vendorName} finished Square setup for Booth ${boothNumber}.`,
+        headline: `Booth ${boothNumber} can now take card payments`,
+        body: `<p>Hi ${organizerName},</p>
+        <p>${vendorName} finished connecting their Square account for Booth ${boothNumber} at ${hubName}.</p>
+        <p>Card payments rung up at Booth ${boothNumber} now go to ${vendorName}. Your revenue share and the platform fee come off at the time of sale, so you do not have to collect anything after the fact.</p>
+        ${pendingBlock}
+        <p>If the button does not work, copy this link into your browser:<br />${boothsUrl}</p>
+        <p>The FindA.Sale Team</p>`,
+        ctaText: 'View Vendor Booths',
+        ctaUrl: boothsUrl,
+      });
+
+      result = await deliverEmail(
+        organizerEmail,
+        `${booth.vendorName} connected Square for Booth ${booth.boothNumber}`,
+        html,
+        'square'
+      );
+    }
+
+    await stamp(booth.id, 'squareNotifiedAt');
+    return result;
+  } catch (error) {
+    console.error(`[booth-lifecycle] notifyOrganizerBoothSquareConnected failed for booth ${boothId}:`, error);
+    return { sent: false, reason: 'Could not send the Square notification' };
+  }
+}
+
 /**
  * 5. A booth rent charge failed -> tell the vendor AND the hub organizer.
  *

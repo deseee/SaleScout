@@ -17,7 +17,7 @@ import { pushSaleStatus } from '../services/saleStatusService';
 import { sendItemSoldAlert } from '../services/saleAlertEmailService';
 import { awardStamp } from '../services/loyaltyService'; // Feature #29: Loyalty Passport
 import { checkAndAward } from '../services/achievementService'; // Features #58-59: Achievement Badges & Streak Rewards
-import { awardXp, applyHuntPassMultiplier, XP_AWARDS, markHuntPassCancellation } from '../services/xpService'; // Explorer's Guild XP awards
+import { awardXp, spendXp, applyHuntPassMultiplier, XP_AWARDS, markHuntPassCancellation } from '../services/xpService'; // Explorer's Guild XP awards -- spendXp added 2026-09-09 (findasale-dev BUG MODE) for the new payment_intent.succeeded BOUNTY_SUBMISSION branch below
 import { checkAndAwardOgBuyer } from '../services/badgeService'; // Feature #404: OG Buyer badge
 import { referralTrancheService } from '../services/referralTrancheService'; // Feature: Referral tranche system
 import { awardOrganizerClaimedXp, awardProUpgradeXp } from '../services/referralService'; // Organizer referral XP
@@ -1542,6 +1542,102 @@ export const webhookHandler = async (req: Request, res: Response) => {
           }
         }
         break; // Hunt Pass handled — exit case
+      }
+
+      // Bounty Submission (Stripe path) -- BUG FIX (Gap 1, 2026-09-09, findasale-dev BUG MODE):
+      // completeBountyPurchase (bountyController.ts) used to deduct/award XP, flip
+      // BountySubmission.status -> PURCHASED, and notify the organizer BEFORE Stripe ever
+      // confirmed the charge -- a cancelled/declined checkout left all of that applied with no
+      // rollback. metadata.type === 'BOUNTY_SUBMISSION' is stamped on the PaymentIntent at
+      // creation time (bountyController.ts) specifically so this branch can run every one of
+      // those side effects HERE instead, only once payment is actually confirmed -- the same
+      // "side effects after a confirmed charge" timing bountyController.ts's Square branch now
+      // also uses for its own (synchronous) charge. Mirrors the Boost/Hunt Pass branches
+      // immediately above: check metadata, do the work, `break` before the generic "Standard
+      // Purchase" fallback below -- that fallback would otherwise ALSO match this same Purchase
+      // row via stripePaymentIntentId (bountyController.ts creates it with the same field) and
+      // run unrelated item-status/XP logic against it.
+      if (paymentIntent.metadata?.type === 'BOUNTY_SUBMISSION') {
+        const submissionId = paymentIntent.metadata?.submissionId;
+        if (!submissionId) {
+          console.error('[bounty-webhook] BOUNTY_SUBMISSION PaymentIntent missing submissionId metadata:', paymentIntent.id);
+          break;
+        }
+        try {
+          const bountySubmission = await prisma.bountySubmission.findUnique({
+            where: { id: submissionId },
+            include: { item: { select: { title: true } } },
+          });
+
+          if (!bountySubmission) {
+            console.error(`[bounty-webhook] BountySubmission ${submissionId} not found for PI ${paymentIntent.id}`);
+            break;
+          }
+
+          // Idempotency: Stripe may retry/redeliver this event. A submission already PURCHASED
+          // means a prior delivery of this same event (or a genuine duplicate) already ran
+          // everything below -- re-running would double-deduct/double-award XP and double-notify.
+          if (bountySubmission.status === 'PURCHASED') {
+            console.log(`[bounty-webhook] Submission ${submissionId} already PURCHASED — skipping duplicate webhook delivery for PI ${paymentIntent.id}`);
+            break;
+          }
+
+          const BOUNTY_XP_COST = 50;             // Must match bountyController.ts XP_BOUNTY_COST
+          const BOUNTY_ORGANIZER_XP_REWARD = 25; // Must match bountyController.ts XP_ORGANIZER_REWARD
+          const buyerUserId = paymentIntent.metadata?.userId;
+          const itemTitle = bountySubmission.item?.title ?? submissionId;
+
+          // Best-effort, non-blocking: this handler only runs on payment_intent.succeeded, so
+          // Stripe has already captured real money by this point. A rare XP-balance race here
+          // must never strand a paying buyer without their item -- same posture as
+          // bountyController.ts's Square branch, which now runs this identical XP mutation
+          // post-charge for the same reason.
+          if (buyerUserId) {
+            spendXp(buyerUserId, BOUNTY_XP_COST, 'BOUNTY_FULFILLMENT', {
+              description: `Bounty submission purchase: ${itemTitle}`,
+            }).catch(err => console.error(`[bounty-webhook] spendXp failed (non-fatal, charge already succeeded) for user ${buyerUserId}:`, err));
+          } else {
+            console.error(`[bounty-webhook] BOUNTY_SUBMISSION PI ${paymentIntent.id} missing userId metadata — cannot deduct shopper XP (non-fatal, continuing fulfillment)`);
+          }
+          awardXp(bountySubmission.organizerId, 'BOUNTY_FULFILLMENT', BOUNTY_ORGANIZER_XP_REWARD, {
+            description: `Earned from bounty submission: ${itemTitle}`,
+          }).catch(err => console.error(`[bounty-webhook] awardXp failed (non-fatal, charge already succeeded) for organizer ${bountySubmission.organizerId}:`, err));
+
+          await prisma.bountySubmission.update({
+            where: { id: submissionId },
+            data: { status: 'PURCHASED', purchasedAt: new Date() },
+          });
+
+          // Flips the PENDING Purchase row bountyController.ts created at PaymentIntent-creation
+          // time (same stripePaymentIntentId) to PAID -- mirrors the "Standard Purchase" flow's
+          // own PENDING -> PAID transition below, just for the bounty-specific row shape.
+          await prisma.purchase.updateMany({
+            where: { stripePaymentIntentId: paymentIntent.id },
+            data: { status: 'PAID' },
+          });
+
+          await createNotification({
+            userId: bountySubmission.organizerId,
+            type: 'BOUNTY_PURCHASED',
+            title: 'Bounty Purchased!',
+            body: `Your submission was purchased! You earned ${BOUNTY_ORGANIZER_XP_REWARD} XP.`,
+            link: '/bounties/submissions',
+            channel: 'OPERATIONAL',
+          });
+
+          console.log(`[bounty-webhook] Bounty submission ${submissionId} confirmed PURCHASED via PI ${paymentIntent.id}`);
+        } catch (err) {
+          console.error(`[bounty-webhook] Failed to finalize bounty purchase for PI ${paymentIntent.id}:`, err);
+          try {
+            Sentry.captureException(err instanceof Error ? err : new Error(String(err)), {
+              tags: { area: 'bounty-purchase-webhook-fulfillment' },
+              extra: { submissionId, paymentIntentId: paymentIntent.id },
+            });
+          } catch {
+            // Sentry may not be initialized -- silently continue
+          }
+        }
+        break; // Bounty handled — exit case, never fall through to generic Standard Purchase logic
       }
 
       // Standard Purchase: handle existing purchase records
