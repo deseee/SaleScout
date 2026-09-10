@@ -2041,7 +2041,7 @@ export const captureBoothCart = async (req: BoothAuthRequest, res: Response) => 
       if (cached) return cached;
       const booth = await prisma.vendorBooth.findUnique({
         where: { id: vendorBoothId },
-        select: { id: true, squareAccountId: true, squareOnboarded: true },
+        select: { id: true, userId: true, squareAccountId: true, squareOnboarded: true },
       });
       if (!booth) throw new SquareBoothOnboardingIncompleteError(vendorBoothId);
       const token = await resolveVendorBoothSquareAccessToken(booth);

@@ -64,7 +64,7 @@ export async function releasePendingCartHold(cart: { id: string; status: string 
         // squareVendorBoothCartService.ts's file header for the full contrast).
         const booth = await prisma.vendorBooth.findUnique({
           where: { id: leg.vendorBoothId },
-          select: { id: true, squareAccountId: true, squareOnboarded: true },
+          select: { id: true, userId: true, squareAccountId: true, squareOnboarded: true },
         });
         if (!booth) throw new Error(`[releasePendingCartHold] Booth ${leg.vendorBoothId} not found for Square leg ${leg.id}`);
         const boothAccessToken = await resolveVendorBoothSquareAccessToken(booth);

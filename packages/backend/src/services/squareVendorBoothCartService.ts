@@ -2,7 +2,7 @@ import { SquareError } from 'square';
 import { prisma } from '../lib/prisma';
 import { getSquareClientForMerchant, getSquarePlatformClient } from '../utils/square';
 import { decryptToken, encryptToken } from '../utils/tokenCrypto';
-import { buildSquareIdempotencyKey, toSquareMoney } from './squarePaymentService';
+import { buildSquareIdempotencyKey, toSquareMoney, resolveOrganizerSquareAccessToken } from './squarePaymentService';
 import { refreshSquareAccessToken } from './squareConnectService'; // no circular import -- squareConnectService.ts does not import this file
 
 /**
@@ -93,6 +93,7 @@ const SQUARE_TOKEN_REFRESH_SKEW_MS = 5 * 60 * 1000; // 5 minutes -- same skew sq
  */
 export async function resolveVendorBoothSquareAccessToken(booth: {
   id: string;
+  userId: string | null;
   squareAccountId: string | null;
   squareOnboarded: boolean;
 }): Promise<string> {
@@ -110,6 +111,39 @@ export async function resolveVendorBoothSquareAccessToken(booth: {
   });
 
   if (!row?.squareAccessTokenEncrypted) {
+    // P0 fix (2026-09-09, live-DB-confirmed against Artifact MI's real VendorBooth row):
+    // a reuse-linked booth (startVendorBoothSquareOnboarding's reuse branch,
+    // vendorBoothController.ts ~1185-1203) has squareOnboarded=true/squareAccountId set but
+    // NEVER had a token copied onto it -- there was no second OAuth consent to copy a token
+    // FROM. The only real token is the Organizer's own. Fall back to it here instead of
+    // failing closed on a booth the user was told is "ready to take payments."
+    if (booth.userId) {
+      const organizer = await prisma.organizer.findFirst({
+        where: { userId: booth.userId },
+        select: { id: true, squareMerchantId: true, squareOnboarded: true },
+      });
+      // Safety check: only trust the fallback when the organizer's own Square identity is
+      // EXACTLY the one this booth was reuse-linked to (the reuse branch sets
+      // `squareAccountId: existing.squareMerchantId` at link time). A mismatch means real
+      // data drift, not the expected reuse case -- never hand back a token for a payment
+      // scoped to a different organizer than the one that actually owns this booth.
+      if (
+        organizer &&
+        organizer.squareOnboarded &&
+        organizer.squareMerchantId &&
+        organizer.squareMerchantId === booth.squareAccountId
+      ) {
+        try {
+          return await resolveOrganizerSquareAccessToken(organizer);
+        } catch (err) {
+          console.error(
+            `[squareVendorBoothCartService] Organizer-token fallback failed for reuse-linked booth ${booth.id}:`,
+            err
+          );
+          throw new SquareBoothOnboardingIncompleteError(booth.id);
+        }
+      }
+    }
     throw new SquareBoothOnboardingIncompleteError(booth.id);
   }
 

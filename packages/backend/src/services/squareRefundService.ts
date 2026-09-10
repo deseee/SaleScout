@@ -288,7 +288,7 @@ export async function executeVerifiedSquareRefund(
       }
       const booth = await prisma.vendorBooth.findUnique({
         where: { id: vendorBoothId },
-        select: { id: true, squareAccountId: true, squareOnboarded: true },
+        select: { id: true, userId: true, squareAccountId: true, squareOnboarded: true },
       });
       if (!booth) {
         await prisma.purchase.updateMany({ where: { id: purchaseId, status: 'REFUNDING' }, data: { status: 'PAID' } });
