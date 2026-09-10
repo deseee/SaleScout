@@ -26,12 +26,14 @@
  *
  * P0 fix (2026-09-09, live-DB-confirmed against Maple Lake Mall's real house booth row):
  * this drift-sync was Stripe-only and was never extended when Square was added to this
- * codebase, so a hub owner's own Square identity (squareAccountId/squareOnboarded/
- * squareLocationId) could go live on the Organizer row while the synthetic house
- * VendorBooth stayed permanently squareOnboarded:false -- meaning the owner's own
- * register could never process a Square sale for their own inventory even though they
- * were genuinely connected. Square now mirrors the exact same drift-check/refresh/create
- * pattern as Stripe above, for the identical reason.
+ * codebase, so a hub owner's own Square identity (squareAccountId/squareOnboarded) could
+ * go live on the Organizer row while the synthetic house VendorBooth stayed permanently
+ * squareOnboarded:false -- meaning the owner's own register could never process a Square
+ * sale for their own inventory even though they were genuinely connected. Square now
+ * mirrors the exact same drift-check/refresh/create pattern as Stripe above, for the
+ * identical reason. NOTE: VendorBooth has no squareLocationId column (only Organizer
+ * does, confirmed via direct schema/DB check) -- only squareAccountId/squareOnboarded
+ * are mirrored here, unlike the fuller Organizer-side field set.
  */
 
 import { Decimal } from '@prisma/client/runtime/library';
@@ -54,7 +56,6 @@ export async function getOrCreateHouseBooth(hubId: string): Promise<{
           stripeOnboarded: true,
           squareMerchantId: true,
           squareOnboarded: true,
-          squareLocationId: true,
         },
       },
     },
@@ -72,7 +73,6 @@ export async function getOrCreateHouseBooth(hubId: string): Promise<{
       stripeOnboarded: true,
       squareAccountId: true,
       squareOnboarded: true,
-      squareLocationId: true,
     },
   });
 
@@ -82,8 +82,7 @@ export async function getOrCreateHouseBooth(hubId: string): Promise<{
       existing.stripeAccountType !== organizer.stripeAccountType ||
       existing.stripeOnboarded !== organizer.stripeOnboarded ||
       existing.squareAccountId !== organizer.squareMerchantId ||
-      existing.squareOnboarded !== organizer.squareOnboarded ||
-      existing.squareLocationId !== organizer.squareLocationId;
+      existing.squareOnboarded !== organizer.squareOnboarded;
 
     if (drifted) {
       const refreshed = await prisma.vendorBooth.update({
@@ -94,7 +93,6 @@ export async function getOrCreateHouseBooth(hubId: string): Promise<{
           stripeOnboarded: organizer.stripeOnboarded,
           squareAccountId: organizer.squareMerchantId,
           squareOnboarded: organizer.squareOnboarded,
-          squareLocationId: organizer.squareLocationId,
         },
         select: { id: true, userId: true, stripeAccountId: true },
       });
@@ -121,7 +119,6 @@ export async function getOrCreateHouseBooth(hubId: string): Promise<{
         stripeOnboarded: organizer.stripeOnboarded,
         squareAccountId: organizer.squareMerchantId,
         squareOnboarded: organizer.squareOnboarded,
-        squareLocationId: organizer.squareLocationId,
       },
       select: { id: true, userId: true, stripeAccountId: true },
     });
