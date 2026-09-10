@@ -137,6 +137,7 @@ async function loadBooth(boothId: string) {
       confirmNotifiedAt: true,
       decisionNotifiedAt: true,
       stripeNotifiedAt: true,
+      squareNotifiedAt: true,
       user: { select: { email: true } },
       hub: {
         select: {
