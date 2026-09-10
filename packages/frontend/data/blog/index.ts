@@ -35,8 +35,9 @@ import { postV } from './posts/shipping-rates-refreshed-camera-guide-social-read
 import { postW } from './posts/do-you-owe-sales-tax-on-estate-sale-yard-sale';
 import { postX } from './posts/staff-discounts-and-discogs-listing-push';
 import { postY } from './posts/designer-piece-or-just-old-furniture-2026';
+import { postZ } from './posts/two-apps-partnering-still-two-logins';
 
-export const posts: BlogPost[] = [postA, postB, postC, postD, postE, postF, postG, postH, postI, postJ, postK, postL, postM, postN, postO, postP, postQ, postR, postS, postT, postU, postV, postW, postX, postY];
+export const posts: BlogPost[] = [postA, postB, postC, postD, postE, postF, postG, postH, postI, postJ, postK, postL, postM, postN, postO, postP, postQ, postR, postS, postT, postU, postV, postW, postX, postY, postZ];
 
 export function getPostBySlug(slug: string): BlogPost | undefined {
   return posts.find((p) => p.slug === slug);
