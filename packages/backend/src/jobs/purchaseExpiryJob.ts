@@ -82,6 +82,18 @@ export const reclaimStalePurchases = async (): Promise<void> => {
       select: {
         id: true,
         stripePaymentIntentId: true,
+        // Square migration Wave S2 #2 (2026-09-09) knock-on fix: without this, every
+        // legitimate pending Square auction-win payment link (jobs/auctionJob.ts /
+        // services/auctionService.ts, both new Square branches) has no
+        // stripePaymentIntentId and fell into the noPi bucket below, which logs
+        // "needs manual review" every 10 minutes forever for a completely normal,
+        // working-as-intended state. `processor` lets that bucket split real
+        // Stripe anomalies (still "needs manual review") from expected-and-not-yet-
+        // reconcilable Square rows (see the noPi loop below) -- this job still does
+        // NOT attempt Square reconciliation itself (that needs a
+        // squarePaymentLinkId/squareOrderId column this dispatch flagged as a
+        // SCHEMA CHANGE NEEDED item, not added here).
+        processor: true,
         isTestTransaction: true,
         userId: true,
         itemId: true,
@@ -120,6 +132,17 @@ export const reclaimStalePurchases = async (): Promise<void> => {
     }
 
     for (const p of noPi) {
+      if (p.processor === 'SQUARE') {
+        // Square migration Wave S2 #2 (2026-09-09): expected state, not an anomaly --
+        // a pending Square payment link (auction winner pays later) has no
+        // stripePaymentIntentId by design. This job has no Square-side reconciliation
+        // yet (needs a squarePaymentLinkId/squareOrderId column + a Square GetPayment/
+        // SearchOrders lookup -- flagged as a real follow-up, not built here), so it
+        // just logs at info level and leaves the row PENDING for a future reconcile
+        // pass -- no false "needs manual review" alarm.
+        console.log(`[purchaseExpiryJob] SQUARE-PENDING-SKIPPED purchase=${p.id} createdAt=${p.createdAt.toISOString()} -- pending Square payment link, no reconciliation mechanism built yet. Left PENDING.`);
+        continue;
+      }
       // No PaymentIntent at all -- no Stripe ground truth to verify against (should be
       // rare; every checkout path creates the PI before the Purchase row). Log for
       // manual review, mirroring invoiceExpiryJob.ts's NO-SESSION-SKIPPED branch.

@@ -72,11 +72,22 @@ export async function createNotification(
     }
 
     const fromEmail = process.env.GMAIL_FROM_EMAIL || process.env.SES_FROM_EMAIL || 'find@outreach.finda.sale';
+    // Square migration Wave S2 #2 (2026-09-09) fix, found via knock-on grep: `link` is not
+    // always a FindA.Sale-relative path -- services/auctionService.ts's closeAuction passes a
+    // full absolute checkout URL (Stripe Checkout Session or, as of this dispatch, a Square
+    // payment link) as `link` when notifying the auction winner. Blindly prefixing
+    // FRONTEND_URL onto an already-absolute URL produced a broken concatenated link (e.g.
+    // "https://finda.salehttps://checkout.square.site/..."), a pre-existing bug on the Stripe
+    // side too (confirmed by direct read this dispatch) that would have equally corrupted the
+    // new Square link if left as-is. An absolute URL is used verbatim; a relative path is still
+    // prefixed with FRONTEND_URL exactly as before.
+    const isAbsoluteLink = !!link && /^https?:\/\//i.test(link);
+    const detailsUrl = link ? (isAbsoluteLink ? link : `${process.env.FRONTEND_URL}${link}`) : null;
     await emailService.emails.send({
       from: fromEmail,
       to: recipient,
       subject: emailSubject || title,
-      html: `<p>Hi ${user.name || 'there'},</p><p>${body}</p>${link ? `<p><a href="${process.env.FRONTEND_URL}${link}">View Details</a></p>` : ''}`,
+      html: `<p>Hi ${user.name || 'there'},</p><p>${body}</p>${detailsUrl ? `<p><a href="${detailsUrl}">View Details</a></p>` : ''}`,
     });
   } catch (emailError) {
     // Fail open: log but don't throw — email failure should not affect the in-app notification already created above.

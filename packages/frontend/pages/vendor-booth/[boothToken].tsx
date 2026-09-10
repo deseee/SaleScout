@@ -3,7 +3,8 @@
  * ADR-015/016/017. Public/token-gated read + claim CTA. Once claimed, shows
  * itemized fee disclosure (platform's flat 10% + THIS booth's boothFee + THIS
  * booth's revenueSharePercent — never a blended number, since one vendor can
- * have different terms at different malls) and Stripe onboarding status.
+ * have different terms at different malls) and Square onboarding status. Stripe
+ * onboarding removed 2026-09-09 -- the Stripe platform account is permanently closed.
  * Functional over polished — correctness and full state coverage prioritized.
  */
 
@@ -67,32 +68,12 @@ interface FeeCharge {
 }
 
 /**
- * Live Stripe payout state for this booth, from GET /vendor-booth/:id/stripe/status
- * (vendorBoothController.ts getVendorBoothStripeStatus). That endpoint re-reads Stripe
- * and self-heals the stored VendorBooth.stripeOnboarded flag, so it -- not the possibly
- * stale boolean on /my-booths -- decides what this page shows.
- */
-interface StripePayoutStatus {
-  stripeOnboarded: boolean; // Stripe charges_enabled
-  payoutsEnabled?: boolean; // Stripe payouts_enabled -- NOT the same thing
-  status: string; // 'NOT_STARTED' | 'PENDING' | 'COMPLETE'
-}
-
-/**
- * 'loading'    nothing decided yet. Never render a setup button in this state.
- * 'notStarted' no Stripe account on this booth at all.
- * 'incomplete' an account exists but the vendor cannot actually be paid yet.
- * 'ready'      charges AND payouts enabled. No primary setup call to action.
- * 'unknown'    this booth is not one of the signed-in user's booths, or the lookup failed.
- */
-type PayoutSetupState = 'loading' | 'notStarted' | 'incomplete' | 'ready' | 'unknown';
-
-/**
  * Square status for this booth, from GET /vendor-booth/:id/square/status
  * (vendorBoothController.ts getVendorBoothSquareStatus). Cache-only -- confirmed via direct
- * read of that controller's own comment: unlike the Stripe status endpoint above, there is no
- * live re-verify against Square on every poll. This is a parallel, additive processor option
- * alongside Stripe (Patrick decided 2026-09-07 Stripe stays available, not replaced).
+ * read of that controller's own comment: there is no live re-verify against Square on every
+ * poll. Square is the sole payout processor for vendor booths -- Stripe onboarding removed
+ * 2026-09-09 (the Stripe platform account is permanently closed, superseding the 2026-09-07
+ * "Stripe stays available" decision).
  */
 interface SquarePayoutStatus {
   squareAccountId: string | null;
@@ -101,9 +82,12 @@ interface SquarePayoutStatus {
 }
 
 /**
- * Same shape as PayoutSetupState above, but derived from the cache-only Square status --
- * there is no live re-verify, so 'incomplete' here just means "an account exists but Square
- * hasn't reported it as onboarded yet," not a fresh charges/payouts-enabled check.
+ * 'loading'    nothing decided yet. Never render a setup button in this state.
+ * 'notStarted' no Square account on this booth at all.
+ * 'incomplete' an account exists but Square hasn't reported it as onboarded yet -- this is
+ *              cache-only, there is no live re-verify against Square on every poll.
+ * 'ready'      Square reports the account onboarded.
+ * 'unknown'    this booth is not one of the signed-in user's booths, or the lookup failed.
  */
 type SquarePayoutSetupState = 'loading' | 'notStarted' | 'incomplete' | 'ready' | 'unknown';
 
@@ -121,46 +105,15 @@ const VendorBoothTokenPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [claiming, setClaiming] = useState(false);
-  const [onboarding, setOnboarding] = useState(false);
-  const [stripeStatus, setStripeStatus] = useState<StripePayoutStatus | null>(null);
-  const [payoutSetup, setPayoutSetup] = useState<PayoutSetupState>('loading');
-  const [payoutCheckFailed, setPayoutCheckFailed] = useState(false);
-  const [recheckingPayouts, setRecheckingPayouts] = useState(false);
   const [feeBillingFailed, setFeeBillingFailed] = useState(false);
 
-  // Square: parallel processor option alongside Stripe above (additive, Patrick decided
-  // 2026-09-07 Stripe stays available -- not a replacement).
+  // Square is the sole payout processor for vendor booths. Stripe onboarding removed
+  // 2026-09-09 -- the Stripe platform account is permanently closed. Supersedes the
+  // 2026-09-07 "Stripe stays available" decision. (The Stripe.js/Elements usage further
+  // below for Booth Rent Auto-Pay is a separate, unrelated concern -- not touched here.)
   const [squareStatus, setSquareStatus] = useState<SquarePayoutStatus | null>(null);
   const [squarePayoutSetup, setSquarePayoutSetup] = useState<SquarePayoutSetupState>('loading');
   const [squareOnboarding, setSquareOnboarding] = useState(false);
-
-  // charges_enabled and payouts_enabled are NOT the same thing. A Stripe account can be
-  // allowed to take card payments while Stripe still refuses to pay the money out (bank
-  // details missing, or an unmet requirement). Treating charges_enabled alone as "done"
-  // is what made a half-finished booth look finished.
-  const derivePayoutSetup = (s: StripePayoutStatus): PayoutSetupState => {
-    if (s.status === 'NOT_STARTED') return 'notStarted';
-    if (!s.stripeOnboarded) return 'incomplete';
-    if (s.payoutsEnabled === false) return 'incomplete';
-    if (s.status === 'PENDING') return 'incomplete';
-    return 'ready';
-  };
-
-  const refreshStripeStatus = async (boothId: string, storedOnboarded?: boolean) => {
-    try {
-      const response = await api.get(`/vendor-booth/${boothId}/stripe/status`);
-      setStripeStatus(response.data);
-      setPayoutSetup(derivePayoutSetup(response.data));
-      setPayoutCheckFailed(false);
-    } catch (error: any) {
-      // Live check unavailable. Fall back to the stored flag from /my-booths instead of
-      // breaking the page -- and never fall back in the direction that shows a vendor who
-      // is already set up a "Set Up Payouts" button.
-      console.error('Error checking Stripe payout status:', error);
-      setPayoutCheckFailed(true);
-      setPayoutSetup(storedOnboarded ? 'ready' : 'notStarted');
-    }
-  };
 
   // Cache-only -- no live re-verify against Square (see SquarePayoutStatus's comment above).
   const deriveSquarePayoutSetup = (s: SquarePayoutStatus): SquarePayoutSetupState => {
@@ -178,13 +131,6 @@ const VendorBoothTokenPage: React.FC = () => {
       console.error('Error checking Square payout status:', error);
       setSquarePayoutSetup('unknown');
     }
-  };
-
-  const handleRecheckPayouts = async () => {
-    if (!myBoothId) return;
-    setRecheckingPayouts(true);
-    await refreshStripeStatus(myBoothId, payoutSetup === 'ready');
-    setRecheckingPayouts(false);
   };
 
   const fetchSummary = async () => {
@@ -225,11 +171,8 @@ const VendorBoothTokenPage: React.FC = () => {
         if (match) {
           matchFound = true;
           setMyBoothId(match.id);
-          // Not awaited on purpose: it has its own try/catch, and the payout state must
-          // still resolve even if the /payouts or fee-billing calls below fail.
-          refreshStripeStatus(match.id, match.stripeOnboarded);
-          // Same reasoning as above -- Square status is independent of Stripe's and must
-          // resolve on its own even if the Stripe call, /payouts, or fee-billing calls fail.
+          // Not awaited on purpose: it has its own try/catch, and the Square payout state
+          // must still resolve even if the /payouts or fee-billing calls below fail.
           refreshSquareStatus(match.id);
           const payoutResponse = await api.get(`/vendor-booth/${match.id}/payouts`);
           setPayoutInfo(payoutResponse.data);
@@ -249,13 +192,11 @@ const VendorBoothTokenPage: React.FC = () => {
             setFeeBillingFailed(true);
           }
         } else {
-          setPayoutSetup('unknown');
           setSquarePayoutSetup('unknown');
         }
       } catch (error: any) {
         console.error('Error loading vendor booth details:', error);
         if (!matchFound) {
-          setPayoutSetup('unknown');
           setSquarePayoutSetup('unknown');
         }
       }
@@ -280,34 +221,6 @@ const VendorBoothTokenPage: React.FC = () => {
       showToast(error.response?.data?.error || 'Failed to claim booth', 'error');
     } finally {
       setClaiming(false);
-    }
-  };
-
-  const handleStartOnboarding = async () => {
-    if (!myBoothId) return;
-    setOnboarding(true);
-    try {
-      const response = await api.post(`/vendor-booth/${myBoothId}/stripe/onboard`, {});
-      // ADR-021 (2026-07-08): when the claiming user already has a working
-      // Stripe Connect account (e.g. as an Organizer), the backend links it
-      // directly instead of sending them through onboarding a second time --
-      // there is no onboardingUrl in that case, so don't redirect.
-      if (response.data.linkedExistingAccount) {
-        showToast(
-          response.data.chargesEnabled && response.data.payoutsEnabled
-            ? 'Linked to your existing Stripe account. You can start taking payments.'
-            : 'Linked to your existing Stripe account. Finish setup in your organizer Stripe settings to enable payouts.',
-          'success'
-        );
-        setOnboarding(false);
-        fetchSummary();
-        return;
-      }
-      window.location.href = response.data.onboardingUrl;
-    } catch (error: any) {
-      console.error('Error starting onboarding:', error);
-      showToast(error.response?.data?.error || 'Failed to start Stripe onboarding', 'error');
-      setOnboarding(false);
     }
   };
 
@@ -547,88 +460,16 @@ const VendorBoothTokenPage: React.FC = () => {
                       </div>
                     )}
                   </>
-                ) : payoutSetup === 'unknown' ? null : (
+                ) : squarePayoutSetup === 'unknown' ? null : (
                   <p className="text-sm text-warm-500 dark:text-warm-400 mb-4">Loading your booth details...</p>
                 )}
 
-                {/* Payout setup. This used to be one unconditional primary blue button, so a
-                    vendor who had ALREADY finished Stripe onboarding was still told to go and
-                    do it. It is now driven by the live status endpoint. Hiding the button in
-                    the states where it does not apply is the fix. */}
-                {payoutSetup === 'loading' ? (
-                  <p className="text-sm text-warm-500 dark:text-warm-400">Checking your payout setup...</p>
-                ) : payoutSetup === 'unknown' ? (
-                  <p className="text-sm text-warm-500 dark:text-warm-400">
-                    We could not load your booth details. Please refresh the page.
-                  </p>
-                ) : payoutSetup === 'ready' ? (
-                  <div className="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-                    <p className="text-sm font-bold text-green-800 dark:text-green-300">Payouts are set up</p>
-                    <p className="text-sm text-green-700 dark:text-green-400 mt-1">
-                      Card payments at your booth go to your own Stripe account. There is nothing
-                      else for you to do.
-                    </p>
-                    {payoutCheckFailed && (
-                      <p className="text-xs text-warm-500 dark:text-warm-400 mt-2">
-                        We could not reach Stripe just now. This is your last saved setup.
-                      </p>
-                    )}
-                    <div className="mt-3 flex flex-wrap gap-4">
-                      <button
-                        onClick={handleRecheckPayouts}
-                        disabled={recheckingPayouts || !myBoothId}
-                        className="text-sm font-medium text-warm-600 hover:text-warm-800 dark:text-warm-400 dark:hover:text-warm-200 underline disabled:opacity-50"
-                      >
-                        {recheckingPayouts ? 'Checking...' : 'Check again'}
-                      </button>
-                      <button
-                        onClick={handleStartOnboarding}
-                        disabled={onboarding || !myBoothId}
-                        className="text-sm font-medium text-warm-600 hover:text-warm-800 dark:text-warm-400 dark:hover:text-warm-200 underline disabled:opacity-50"
-                      >
-                        {onboarding ? 'Opening Stripe...' : 'Change your bank details'}
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div>
-                    {payoutSetup === 'incomplete' ? (
-                      <div className="mb-3 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-300 dark:border-amber-800 rounded-lg">
-                        <p className="text-sm font-bold text-amber-900 dark:text-amber-300">
-                          Your payout setup is not finished
-                        </p>
-                        <p className="text-sm text-amber-800 dark:text-amber-400 mt-1">
-                          {stripeStatus?.stripeOnboarded
-                            ? 'Your booth can take card payments, but Stripe cannot send that money to your bank yet. Finish the last steps and you will be paid.'
-                            : 'You cannot be paid until this is finished. Stripe still needs a few details from you.'}
-                        </p>
-                      </div>
-                    ) : (
-                      <p className="text-sm text-warm-600 dark:text-warm-400 mb-3">
-                        Set up payouts so you get your money. Card payments at your booth cannot
-                        reach you until this is done. It takes a few minutes.
-                      </p>
-                    )}
-                    <button
-                      onClick={handleStartOnboarding}
-                      disabled={onboarding || !myBoothId}
-                      className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold py-3 px-4 rounded-lg transition-colors"
-                    >
-                      {onboarding
-                        ? 'Redirecting to Stripe...'
-                        : payoutSetup === 'incomplete'
-                        ? 'Finish Payout Setup (Stripe)'
-                        : 'Set Up Payouts (Stripe)'}
-                    </button>
-                  </div>
-                )}
-
-                {/* Square payout setup -- a parallel option alongside Stripe above, not a
-                    replacement. Stripe stays fully available (Patrick decided 2026-09-07);
-                    this lets a vendor connect Square instead if they'd rather. Square's status
-                    here is cache-only (no live re-verify), so unlike Stripe's "ready" state
-                    above, there is no "Check again" button -- there is nothing new for it to
-                    check (see getVendorBoothSquareStatus's own comment). */}
+                {/* Payout setup -- Square is the sole processor. Stripe onboarding removed
+                    2026-09-09 (the Stripe platform account is permanently closed; supersedes
+                    the 2026-09-07 "Stripe stays available" decision). Square's status here is
+                    cache-only (no live re-verify), so there is no "Check again" button -- there
+                    is nothing new for it to check (see getVendorBoothSquareStatus's own
+                    comment). */}
                 {squarePayoutSetup === 'loading' ? (
                   <p className="text-sm text-warm-500 dark:text-warm-400 mt-4">
                     Checking your Square payout setup...
@@ -667,8 +508,8 @@ const VendorBoothTokenPage: React.FC = () => {
                       </div>
                     ) : (
                       <p className="text-sm text-warm-600 dark:text-warm-400 mb-3">
-                        You can also set up payouts through Square instead of Stripe. Card
-                        payments at your booth can go there once this is done.
+                        Set up payouts through Square so you get your money. Card payments at
+                        your booth cannot reach you until this is done.
                       </p>
                     )}
                     <button

@@ -12,6 +12,12 @@ import { getPlatformFeeRate, SubscriptionTier } from '../utils/feeCalculator'; /
 // services/cashFeeService.ts, services/nativeShippingSuggestionService.ts). Every bounty-fulfillment
 // purchase by a PRO/TEAMS organizer was silently charged 10% instead of their contractual 8%. Now
 // wired through the same shared resolver as every other charge path.
+import {
+  resolveOrganizerSquareAccessToken,
+  SquareOnboardingIncompleteError,
+  buildSquareIdempotencyKey,
+  createSquareCharge,
+} from '../services/squarePaymentService'; // Square migration Wave S2 #1 (2026-09-09): additive Square branch, see completeBountyPurchase
 
 const stripe = () => getStripe();
 
@@ -752,10 +758,15 @@ export const getCommunityBounties = async (req: AuthRequest, res: Response) => {
  * 2. Check shopper has ≥50 XP (BOUNTY_FULFILLMENT cost)
  * 3. Deduct 50 XP from shopper (BOUNTY_FULFILLMENT)
  * 4. Award 25 XP to organizer (BOUNTY_FULFILLMENT)
- * 5. Create Stripe PaymentIntent for item price
+ * 5. Charge the item price -- SQUARE (organizer.squareOnboarded && squareMerchantId, synchronous
+ *    CreatePayment, requires `sourceId` in the request body) or STRIPE (existing PaymentIntent
+ *    flow, unchanged) depending on which processor the organizer has completed onboarding for.
+ *    Square migration Wave S2 #1 (2026-09-09): additive branch, see organizerHasSquare below.
  * 6. Update BountySubmission.status → PURCHASED
- * 7. Create Purchase record linked to Stripe PI
- * 8. Return clientSecret for frontend to complete payment
+ * 7. Create Purchase record linked to the charge (Purchase.processor discriminates STRIPE/SQUARE)
+ * 8. Response shape differs by processor: STRIPE returns a clientSecret for the frontend to
+ *    confirm client-side; SQUARE's charge is already complete synchronously, so it returns
+ *    squarePaymentId/status directly with no further client-side confirmation step.
  */
 export const completeBountyPurchase = async (req: AuthRequest, res: Response) => {
   try {
@@ -769,7 +780,7 @@ export const completeBountyPurchase = async (req: AuthRequest, res: Response) =>
       where: { id: submissionId },
       include: {
         bounty: true,
-        item: { include: { sale: { select: { id: true, organizerId: true, organizer: { select: { stripeConnectId: true, subscriptionTier: true } } } } } },
+        item: { include: { sale: { select: { id: true, organizerId: true, organizer: { select: { stripeConnectId: true, subscriptionTier: true, squareMerchantId: true, squareOnboarded: true, squareLocationId: true } } } } } },
         organizer: true,
       },
     });
@@ -828,8 +839,134 @@ export const completeBountyPurchase = async (req: AuthRequest, res: Response) =>
       return res.status(400).json({ message: 'Item price must be at least $0.50.' });
     }
 
-    // Stripe routing: check if organizer has Stripe Connect
-    const { stripeConnectId, subscriptionTier } = submission.item.sale!.organizer;
+    const { stripeConnectId, subscriptionTier, squareMerchantId, squareOnboarded, squareLocationId } = submission.item.sale!.organizer;
+
+    // Square migration Wave S2 #1 (2026-09-09): additive branch, mirrors squarePaymentController.ts's
+    // createSquarePayment single-item real-time-charge shape exactly (resolveOrganizerSquareAccessToken +
+    // buildSquareIdempotencyKey + createSquareCharge -- same seam, same conventions, same error handling).
+    // Processor selection here is server-determined from the organizer's OWN onboarding state
+    // (squarePaymentEligibilityService.ts's own gate uses the identical signal: squareOnboarded &&
+    // squareMerchantId) rather than a client-supplied `processor` field like posPaymentController.ts's
+    // payment-request flow -- this endpoint has no existing frontend convention for the caller to pick a
+    // processor (see KNOCK-ON note in the dispatch handoff), and Stripe's platform account is permanently
+    // closed, so a Square-onboarded organizer's bounty purchases must route to Square automatically, not
+    // optionally. Existing Stripe-only organizers (squareOnboarded stays false/squareMerchantId stays null
+    // until an organizer actually completes Square Connect onboarding) fall through to the untouched Stripe
+    // branch below -- zero behavior change for them, same as every pre-2026-09-07 organizer row.
+    const organizerHasSquare = squareOnboarded === true && !!squareMerchantId;
+
+    if (organizerHasSquare) {
+      const { sourceId, verificationToken } = req.body as { sourceId?: string; verificationToken?: string };
+      if (!sourceId || typeof sourceId !== 'string' || !sourceId.trim()) {
+        return res.status(400).json({ message: 'A tokenized payment source is required.' });
+      }
+
+      // Same shared resolver every other charge path in this file's fee math ultimately traces
+      // back to (utils/feeCalculator.ts) -- computed independently of the Stripe branch's own
+      // platformFeeAmount below since this if-block returns before that line is ever reached.
+      const squarePlatformFeeAmount = Math.round(priceCents * getPlatformFeeRate(subscriptionTier as SubscriptionTier));
+
+      let organizerAccessToken: string;
+      try {
+        organizerAccessToken = await resolveOrganizerSquareAccessToken({
+          id: submission.item.sale!.organizerId,
+          squareMerchantId,
+          squareOnboarded,
+        });
+      } catch (err) {
+        if (err instanceof SquareOnboardingIncompleteError) {
+          return res.status(409).json({
+            message: "This seller isn't set up to accept online payments yet. Please contact the organizer to arrange your purchase.",
+            code: 'SELLER_PAYMENTS_UNAVAILABLE',
+          });
+        }
+        throw err;
+      }
+
+      // Idempotency-key length note (Square caps at 45 chars, see squarePaymentService.ts) --
+      // hashed, not the literal `bounty-${submissionId}-${userId}` string the Stripe branch below uses.
+      const idempotencyKey = buildSquareIdempotencyKey(['bounty', submissionId, userId]);
+
+      const chargeResult = await createSquareCharge({
+        organizerAccessToken,
+        idempotencyKey,
+        sourceId,
+        amountCents: priceCents,
+        appFeeCents: squarePlatformFeeAmount,
+        locationId: squareLocationId,
+        referenceId: submission.itemId,
+        note: submission.item.title ? submission.item.title.slice(0, 80) : undefined,
+        verificationToken: typeof verificationToken === 'string' ? verificationToken : undefined,
+      });
+
+      if (!chargeResult.ok) {
+        return res.status(402).json({ message: chargeResult.message, code: 'SQUARE_PAYMENT_DECLINED' });
+      }
+
+      // Step 5 (Square): Update submission status to PURCHASED -- identical to the Stripe
+      // branch's Step 5 below, just reached from this earlier return.
+      const squareUpdatedSubmission = await prisma.bountySubmission.update({
+        where: { id: submissionId },
+        data: {
+          status: 'PURCHASED',
+          purchasedAt: new Date(),
+        },
+      });
+
+      // Step 6 (Square): Create Purchase record linked to bounty submission. chargeType/
+      // stripeAccountId are deliberately left unset -- those are Stripe-specific concepts
+      // refundService.ts's DIRECT/DESTINATION routing depends on, same posture
+      // squarePaymentController.ts's own Purchase.create calls already follow for SQUARE rows.
+      // status is 'PAID' immediately (not 'PENDING' like the Stripe branch) because Square's
+      // CreatePayment above is synchronous -- a successful chargeResult means the charge is
+      // already done, there is no separate client-side confirmation step to wait on.
+      const squarePurchase = await prisma.purchase.create({
+        data: {
+          userId,
+          itemId: submission.itemId,
+          saleId: submission.item.sale!.id,
+          amount: itemPrice,
+          platformFeeAmount: squarePlatformFeeAmount / 100,
+          // FEE SNAPSHOT (2026-08-17): commission-only, same as the Stripe branch below -- a
+          // bounty fulfillment is a fixed-price purchase, never an auction lot.
+          buyerPremiumAmount: 0,
+          buyerPremiumRate: 0,
+          commissionAmount: squarePlatformFeeAmount / 100,
+          commissionRate: getPlatformFeeRate(subscriptionTier as SubscriptionTier),
+          organizerAbsorbedPremium: false,
+          processor: 'SQUARE',
+          squarePaymentId: chargeResult.paymentId,
+          status: 'PAID',
+          buyerCardFingerprint: chargeResult.cardFingerprint ?? undefined,
+        },
+      });
+
+      // Step 7 (Square): Notify organizer of purchase -- identical call to the Stripe branch's
+      // Step 7 below.
+      await createNotification(
+        submission.organizerId,
+        'BOUNTY_PURCHASED',
+        'Bounty Purchased!',
+        `Your submission was purchased! You earned ${XP_ORGANIZER_REWARD} XP.`,
+        `/bounties/submissions`,
+        'OPERATIONAL'
+      );
+
+      return res.json({
+        squarePaymentId: chargeResult.paymentId,
+        amount: priceCents,
+        currency: 'usd',
+        submissionId: squareUpdatedSubmission.id,
+        bountyId: submission.bountyId,
+        purchaseId: squarePurchase.id,
+        status: squareUpdatedSubmission.status,
+        xpDeducted: XP_BOUNTY_COST,
+        organizerXpAwarded: XP_ORGANIZER_REWARD,
+        processor: 'SQUARE',
+      });
+    }
+
+    // Stripe routing: check if organizer has Stripe Connect (unchanged -- Square branch above returns early)
     const shouldUseConnect = stripeConnectId && !stripeConnectId.startsWith('acct_test_');
     // Direct-charges migration (2026-08-08): staged-rollout routing decision — live Stripe
     // eligibility check + allowlist gate, see stripeConnectService.shouldUseDirectCharge.

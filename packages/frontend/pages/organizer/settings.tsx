@@ -2,7 +2,7 @@
  * Organizer Settings
  *
  * Allows organizers to manage:
- * - Payment settings (Stripe Connect)
+ * - Payment settings (Square Connect)
  * - Email/SMS preferences
  * - Business info
  * - Account security
@@ -92,10 +92,9 @@ const OrganizerSettingsPage = () => {
   );
   const [organizerTypes, setOrganizerTypes] = useState<string[]>([]);
   const [isSavingHours, setIsSavingHours] = useState(false);
-  const [isConnectingStripe, setIsConnectingStripe] = useState(false);
-  const [stripeConnected, setStripeConnected] = useState(false);
-  // Square: parallel processor option alongside Stripe (additive, Patrick decided 2026-09-07
-  // Stripe stays available -- not a replacement). See
+  // Square is the sole payment processor for organizer payouts. Stripe onboarding UI
+  // removed 2026-09-09 -- the Stripe platform account is permanently closed. Supersedes
+  // the 2026-09-07 "Stripe stays available" decision recorded in
   // claude_docs/feature-notes/square-connect-ux-entry-points-and-flows-2026-09-07.md
   const [isConnectingSquare, setIsConnectingSquare] = useState(false);
   const [squareStatus, setSquareStatus] = useState<{
@@ -502,7 +501,6 @@ const OrganizerSettingsPage = () => {
           setZelleHandle(response.data.zelleHandle || '');
           setPickupWindows(response.data.pickupWindows || '');
           setAddress(response.data.address || '');
-          setStripeConnected(response.data.stripeConnected || false);
           setFoundingOrgBadge(response.data.foundingOrgBadge || false);
           setOrganizerTier(response.data.subscriptionTier || null);
           if (response.data.showFollowerCount !== undefined) {
@@ -653,22 +651,6 @@ const OrganizerSettingsPage = () => {
     });
     return () => { socket.disconnect(); };
   }, [activeTab, showToast]);
-
-  const handleStripeConnect = async () => {
-    setIsConnectingStripe(true);
-    try {
-      const { data } = await api.post('/stripe/create-connect-account');
-      if (data?.url) {
-        window.location.href = data.url;
-      } else {
-        showToast('Could not start Stripe setup. Try again', 'error');
-      }
-    } catch (error: any) {
-      showToast(error.response?.data?.message || 'Failed to connect Stripe', 'error');
-    } finally {
-      setIsConnectingStripe(false);
-    }
-  };
 
   const handleSquareConnect = async () => {
     setIsConnectingSquare(true);
@@ -897,53 +879,16 @@ const OrganizerSettingsPage = () => {
           {/* Payments Tab */}
           {activeTab === 'payments' && (
             <div className="space-y-6">
-              {/* Stripe Connect */}
+              {/* Square Connect -- sole payment processor for organizer payouts. Stripe
+                  onboarding removed 2026-09-09: the Stripe platform account is permanently
+                  closed. Supersedes the 2026-09-07 "Stripe stays available" decision. */}
               <div className="card p-6">
                 <div className="flex items-center gap-2 mb-4">
                   <h2 className="text-xl font-semibold text-warm-900 dark:text-gray-100">Payment Settings</h2>
-                  <Tooltip content="Connect Stripe to receive payouts. Your tier determines the platform fee: SIMPLE 10%, PRO/TEAMS 8%. Payouts are deposited on a weekly schedule." position="right" />
-                </div>
-                <p className="text-warm-600 dark:text-gray-400 mb-6">
-                  Connect your Stripe account to receive payouts from your sales. You'll need a valid bank account in the US.
-                </p>
-                {stripeConnected ? (
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2 text-green-600 dark:text-green-400 font-semibold">
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      Stripe Connected
-                    </div>
-                    <button
-                      onClick={handleStripeConnect}
-                      disabled={isConnectingStripe}
-                      className="bg-warm-100 dark:bg-gray-700 hover:bg-warm-200 dark:hover:bg-gray-600 text-warm-900 dark:text-gray-100 font-semibold py-2 px-4 rounded-lg disabled:opacity-50 text-sm"
-                    >
-                      {isConnectingStripe ? 'Opening Stripe...' : 'Manage Payouts'}
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    onClick={handleStripeConnect}
-                    disabled={isConnectingStripe}
-                    className="bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-6 rounded-lg disabled:opacity-50"
-                  >
-                    {isConnectingStripe ? 'Redirecting to Stripe...' : 'Setup Stripe Connect'}
-                  </button>
-                )}
-              </div>
-
-              {/* Square Connect -- parallel processor option alongside Stripe above. Additive
-                  only: Stripe stays fully available (Patrick decided 2026-09-07), this is a
-                  second, equally-styled choice, not a replacement. */}
-              <div className="card p-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <h2 className="text-xl font-semibold text-warm-900 dark:text-gray-100">Square Payments</h2>
                   <Tooltip content="Connect Square to receive payouts. Your tier determines the platform fee: SIMPLE 10%, PRO/TEAMS 8%. Payouts are deposited on a weekly schedule." position="right" />
                 </div>
                 <p className="text-warm-600 dark:text-gray-400 mb-6">
-                  Connect your Square account to receive payouts from your sales -- an alternative
-                  to Stripe above. You only need one to get paid.
+                  Connect your Square account to receive payouts from your sales.
                 </p>
                 {squareStatus?.squareMerchantId ? (
                   <div className="space-y-3">

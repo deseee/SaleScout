@@ -283,13 +283,13 @@ export async function notifyVendorBoothConfirmed(boothId: string): Promise<Booth
         headline: `Your booth is confirmed`,
         body: `<p>Hi ${vendorName},</p>
         <p>${organizerName} confirmed Booth ${boothNumber} at ${hubName}. Your booth is live, and items can now be rung up and sold at it.</p>
-        <p><strong>One thing is left to do: connect your Stripe account.</strong> Until you do, card payments taken at your booth cannot be paid out to you. It takes a few minutes and you only do it once.</p>
+        <p><strong>One thing is left to do: connect your Square account.</strong> Until you do, card payments taken at your booth cannot be paid out to you. It takes a few minutes and you only do it once.</p>
         ${termsHtml}
-        <p>Open your booth page to connect Stripe and to see what has sold at your booth.</p>
+        <p>Open your booth page to connect Square and to see what has sold at your booth.</p>
         <p>If the button does not work, copy this link into your browser:<br />${boothUrl}</p>
         <p>If anything about this booth looks wrong, contact ${organizerName} at ${hubName}.</p>
         <p>The FindA.Sale Team</p>`,
-        ctaText: 'Connect Stripe',
+        ctaText: 'Connect Square',
         ctaUrl: boothUrl,
       });
 

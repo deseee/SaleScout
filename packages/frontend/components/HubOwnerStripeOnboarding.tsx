@@ -1,10 +1,14 @@
 /**
- * ADR-090 Phase 1: Hub Owner Stripe Connect Onboarding banner.
+ * ADR-090 Phase 1: Hub Owner Square Connect Onboarding banner.
  * Shown on the Vendor Booths admin page so a hub-owning Organizer can complete
- * Stripe Standard-account onboarding specifically in the context of "you own a hub
- * with vendor booths and need to be able to receive hub owner revenue-share /
- * booth-fee payouts." Mirrors ACHPayoutButton.tsx's status-fetch + onboard-link
- * pattern (same shape: GET status, POST onboard, window.open the returned URL).
+ * Square onboarding specifically in the context of "you own a hub with vendor
+ * booths and need to be able to receive hub owner revenue-share / booth-fee
+ * payouts." Mirrors ACHPayoutButton.tsx's status-fetch + onboard-link pattern
+ * (same shape: GET status, POST onboard, window.open the returned URL).
+ *
+ * Stripe onboarding removed 2026-09-09 -- the Stripe platform account is
+ * permanently closed. Supersedes the 2026-09-07 "Stripe stays available"
+ * decision this banner previously implemented alongside Square.
  *
  * Only relevant when at least one booth in this hub has revenueSharePercent > 0 or
  * boothFee > 0 (checkout is blocked for revenue-share booths until onboarding is
@@ -14,20 +18,12 @@
 import React, { useEffect, useState } from 'react';
 import api from '../lib/api';
 
-interface HubOwnerStripeStatus {
-  onboarded: boolean;
-  needsAccount: boolean;
-  needsStandardUpgrade: boolean;
-  stripeAccountType: string | null;
-  chargesEnabled?: boolean;
-  payoutsEnabled?: boolean;
-}
-
 // Square hub-owner status (GET /api/square-connect/hub-owner/status). Deliberately does NOT
-// carry needsStandardUpgrade -- that's a Stripe-account-type-migration concept (ADR-023) with
-// no Square equivalent (confirmed via direct read of squareConnectController.ts's
-// getHubOwnerSquareStatus -- its response is only these three fields, no
-// payoutsFlaggedForReview either, unlike the organizer/consignor Square status endpoints).
+// carry needsStandardUpgrade -- that was a Stripe-account-type-migration concept (ADR-023,
+// now moot since Stripe onboarding is removed) with no Square equivalent (confirmed via
+// direct read of squareConnectController.ts's getHubOwnerSquareStatus -- its response is
+// only these three fields, no payoutsFlaggedForReview either, unlike the organizer/consignor
+// Square status endpoints).
 interface HubOwnerSquareStatus {
   onboarded: boolean;
   needsAccount: boolean;
@@ -35,35 +31,13 @@ interface HubOwnerSquareStatus {
 }
 
 const HubOwnerStripeOnboarding: React.FC = () => {
-  const [status, setStatus] = useState<HubOwnerStripeStatus | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [starting, setStarting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  // Square: parallel processor option alongside Stripe above (additive, Patrick decided
-  // 2026-09-07 Stripe stays available -- not a replacement). Own status/loading/error state,
-  // independent of the Stripe banner's -- neither banner's visibility depends on the other.
+  // Square is the sole processor for hub-owner payouts. Stripe onboarding removed
+  // 2026-09-09 -- the Stripe platform account is permanently closed. Supersedes the
+  // 2026-09-07 "Stripe stays available" decision.
   const [squareStatus, setSquareStatus] = useState<HubOwnerSquareStatus | null>(null);
   const [squareLoading, setSquareLoading] = useState(true);
   const [squareStarting, setSquareStarting] = useState(false);
   const [squareError, setSquareError] = useState<string | null>(null);
-
-  const fetchStatus = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await api.get('/organizers/me/hub-owner/stripe/status');
-      setStatus(response.data);
-    } catch (err: any) {
-      // 404 here just means "you don't own a hub" -- not an error worth surfacing.
-      if (err?.response?.status !== 404) {
-        setError(err?.response?.data?.message || 'Failed to load Stripe status');
-      }
-      setStatus(null);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const fetchSquareStatus = async () => {
     try {
@@ -83,30 +57,9 @@ const HubOwnerStripeOnboarding: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchStatus();
     fetchSquareStatus();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const handleConnect = async () => {
-    try {
-      setStarting(true);
-      setError(null);
-      const response = await api.post('/organizers/me/hub-owner/stripe/onboard');
-      if (response.data?.onboardingUrl) {
-        window.open(response.data.onboardingUrl, '_blank');
-        setTimeout(fetchStatus, 3000);
-      }
-    } catch (err: any) {
-      if (err?.response?.status === 409 && err.response?.data?.needsStandardMigration) {
-        setError(err.response.data.message || 'Your existing Stripe account needs to be upgraded first.');
-      } else {
-        setError(err?.response?.data?.message || 'Failed to start Stripe onboarding');
-      }
-    } finally {
-      setStarting(false);
-    }
-  };
 
   const handleConnectSquare = async () => {
     try {
@@ -126,39 +79,12 @@ const HubOwnerStripeOnboarding: React.FC = () => {
     }
   };
 
-  // Each banner is gated purely on its OWN status -- Square's presence/absence never hides or
-  // depends on Stripe's, and vice versa. Both stay visible in parallel until each is
-  // independently connected, per Patrick's 2026-09-07 direction that Stripe is not replaced.
-  const showStripeBanner = !loading && !!status && !status.onboarded;
   const showSquareBanner = !squareLoading && !!squareStatus && !squareStatus.onboarded;
 
-  if (!showStripeBanner && !showSquareBanner) return null;
+  if (!showSquareBanner) return null;
 
   return (
     <>
-      {showStripeBanner && (
-        <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4 mb-6">
-          <p className="text-amber-800 dark:text-amber-300 font-semibold mb-1">
-            Connect Stripe to receive hub owner payouts
-          </p>
-          <p className="text-amber-700 dark:text-amber-400 text-sm mb-3">
-            {status!.needsStandardUpgrade && !status!.needsAccount
-              ? "Your existing Stripe account needs to be upgraded before it can receive booth revenue-share or booth-fee payouts."
-              : "Booths with a revenue-share agreement can't check out until you connect Stripe to receive your cut."}
-          </p>
-          {error && (
-            <p className="text-xs text-red-600 dark:text-red-400 mb-2">{error}</p>
-          )}
-          <button
-            onClick={handleConnect}
-            disabled={starting}
-            className="bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-4 rounded-lg transition-colors disabled:opacity-50"
-          >
-            {starting ? 'Starting...' : 'Connect Stripe'}
-          </button>
-        </div>
-      )}
-
       {showSquareBanner && (
         <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4 mb-6">
           <p className="text-amber-800 dark:text-amber-300 font-semibold mb-1">

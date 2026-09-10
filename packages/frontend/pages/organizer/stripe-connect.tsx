@@ -43,9 +43,10 @@ const ACHPayoutsPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const { consignorId, success, refresh } = router.query;
 
-  // Square: parallel processor option alongside Stripe (additive, Patrick decided 2026-09-07
-  // Stripe stays available -- not a replacement). Keyed by consignorId since this page lists
-  // many consignors at once. See
+  // Square is the sole payout processor for consignors. Stripe onboarding removed
+  // 2026-09-09 -- the Stripe platform account is permanently closed. Supersedes the
+  // 2026-09-07 "Stripe stays available" decision. Keyed by consignorId since this page
+  // lists many consignors at once. See
   // claude_docs/feature-notes/square-connect-ux-entry-points-and-flows-2026-09-07.md
   const [squareStatuses, setSquareStatuses] = useState<
     Record<string, { squareAccountId: string | null; squareOnboarded: boolean; payoutsFlaggedForReview: boolean }>
@@ -126,22 +127,6 @@ const ACHPayoutsPage: React.FC = () => {
       setError(err instanceof Error ? err.message : 'Failed to load consignors');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleInviteToACH = async (cId: string) => {
-    try {
-      const response = await fetch(`/api/stripe-connect/onboard/${cId}`, {
-        method: 'POST',
-        headers: getCsrfHeader(),
-      });
-      if (!response.ok) throw new Error('Failed to generate onboarding link');
-      const data = await response.json();
-
-      // Open onboarding in new tab
-      window.open(data.onboardingUrl, '_blank');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to invite consignor');
     }
   };
 
@@ -289,15 +274,6 @@ const ACHPayoutsPage: React.FC = () => {
                       <p className="text-sm text-gray-600 dark:text-gray-400">{consignor.email}</p>
                     )}
                     <div className="mt-2 flex flex-wrap gap-2">
-                      {consignor.stripeOnboarded ? (
-                        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                          ✓ Ready to Receive Payouts (Stripe)
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
-                          ⚠ Pending Onboarding (Stripe)
-                        </span>
-                      )}
                       {squareStatuses[consignor.consignorId]?.squareOnboarded ? (
                         <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
                           ✓ Ready to Receive Payouts (Square)
@@ -329,14 +305,6 @@ const ACHPayoutsPage: React.FC = () => {
                   </div>
 
                   <div className="flex flex-col sm:flex-row gap-2 shrink-0">
-                    {!consignor.stripeOnboarded && (
-                      <button
-                        onClick={() => handleInviteToACH(consignor.consignorId)}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-                      >
-                        Set Up Payouts (Stripe)
-                      </button>
-                    )}
                     {!squareStatuses[consignor.consignorId]?.squareOnboarded && (
                       <button
                         onClick={() => handleInviteToSquare(consignor.consignorId)}
@@ -356,7 +324,7 @@ const ACHPayoutsPage: React.FC = () => {
           <div className="mt-12 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-6">
             <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">How Consignor Payouts Work</h3>
             <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-2">
-              <li>• Consignors complete a quick one-time Stripe account setup</li>
+              <li>• Consignors complete a quick one-time Square account setup</li>
               <li>• Payouts are sent directly to their linked bank account</li>
               <li>• Transfers typically arrive within 1–2 business days</li>
               <li>• Available on TEAMS tier only</li>
@@ -366,8 +334,8 @@ const ACHPayoutsPage: React.FC = () => {
           {/* Compliance notes */}
           <div className="mt-6 bg-gray-100 dark:bg-gray-800 rounded-lg p-4 text-xs text-gray-600 dark:text-gray-400">
             <p className="mb-2">
-              <strong>Compliance:</strong> Stripe will require identity verification for consignors at $500 lifetime threshold.
-              1099-NEC tax reporting required for consignors earning $600+/year.
+              <strong>Compliance:</strong> Consignors may be required to complete identity verification as part of
+              Square onboarding. 1099-NEC tax reporting required for consignors earning $600+/year.
             </p>
           </div>
         </div>

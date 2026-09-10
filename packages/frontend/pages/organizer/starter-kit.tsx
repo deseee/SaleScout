@@ -16,7 +16,7 @@ const PRE_SALE_CHECKLIST = [
   'Photograph all key items (aim for 3+ photos each)',
   'Create your sale on FindA.Sale and publish the listing',
   'Enable Sneak Peek. Publish 48 hours early so followers get first look',
-  'Connect Stripe to accept card payments at checkout',
+  'Connect Square to accept card payments at checkout',
   'Share your sale link on Facebook, Nextdoor, and neighborhood groups',
   'Print QR code signs and place them around your sale location',
   'Set prices on all items. Use round numbers for speed',
