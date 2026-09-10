@@ -6349,10 +6349,12 @@ model VendorBooth {
   //   confirmNotifiedAt  vendor was told the organizer confirmed the booth
   //   decisionNotifiedAt vendor was told the booth was rejected or cancelled
   //   stripeNotifiedAt   hub organizer was told the vendor finished Stripe onboarding
+  //   squareNotifiedAt   hub organizer was told the vendor finished Square onboarding
   claimNotifiedAt    DateTime?
   confirmNotifiedAt  DateTime?
   decisionNotifiedAt DateTime?
   stripeNotifiedAt   DateTime?
+  squareNotifiedAt   DateTime?
 
   items               Item[]                 @relation("VendorBoothItems")
   payouts             VendorBoothPayout[]
