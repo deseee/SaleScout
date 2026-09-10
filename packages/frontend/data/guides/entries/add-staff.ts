@@ -8,7 +8,7 @@ const entry: GuideEntry = {
   priority: 2,
   relatedGuides: ['choose-a-plan', 'connect-workspace', 'create-your-first-sale'],
   videoUrl: undefined,
-  body: `Staff accounts let you bring helpers into the app without sharing your login. Each person gets their own credentials and sees only what their role allows. Your payout information and Stripe connection stay private.
+  body: `Staff accounts let you bring helpers into the app without sharing your login. Each person gets their own credentials and sees only what their role allows. Your payout information and payment processor connection stay private.
 
 ---
 
@@ -91,7 +91,7 @@ Use Floor Staff for helpers who are running the checkout table on sale day. They
 
 **Can't do:**
 - Change billing or subscription settings
-- Access or modify Stripe payouts
+- Access or modify payouts
 - Change account-level settings (email, password, plan)
 
 Use Manager for a co-lead or a trusted second-in-command who runs sales on your behalf. They have full operational access; the financial and account settings stay with you.
@@ -118,7 +118,7 @@ Their access is revoked immediately. Their account isn't deleted: they can still
 
 ## What staff cannot see
 
-- Your Stripe account or payout details
+- Your payment processor account or payout details
 - Your bank account or payout history
 - Your subscription plan or billing information
 - Other staff members' personal information

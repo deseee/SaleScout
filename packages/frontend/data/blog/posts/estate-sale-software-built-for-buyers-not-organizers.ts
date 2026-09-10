@@ -26,7 +26,7 @@ Some tools have tried to close this gap. PROSALE has been around long enough to 
 
 Independent organizers are also up against something else now. Franchise operations, Blue Moon being the most visible example, have started rolling out AI tools to their network. Franchise organizers get instant item identification, automated pricing suggestions pulled from real sold-price comparables, and consistent cataloging workflows across every project. Independent organizers are doing the same work from memory and gut feel, and the gap between the two is only getting wider.
 
-The tools to close that gap already exist, at least in pieces. Mobile-first photo capture where the system suggests the title, description, and price. A sale page that goes live in under an hour. Integrated checkout with Stripe so you're not running three apps at once. A post-sale report that doesn't require manually reconciling a spreadsheet at midnight.
+The tools to close that gap already exist, at least in pieces. Mobile-first photo capture where the system suggests the title, description, and price. A sale page that goes live in under an hour. Integrated checkout so you're not running three apps at once. A post-sale report that doesn't require manually reconciling a spreadsheet at midnight.
 
 That's not a wishlist. It's what FindA.Sale was built to deliver, starting from the organizer's side of the problem because that's where the actual work happens. Shoppers get a clean experience because the organizer had a clean setup process to begin with.
 

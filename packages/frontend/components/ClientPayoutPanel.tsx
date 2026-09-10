@@ -90,7 +90,11 @@ export default function ClientPayoutPanel({
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-gray-600 dark:text-gray-400">Method</span>
             <span className="text-sm text-gray-900 dark:text-white">
-              {existingPayout.method === 'STRIPE_CONNECT' ? 'Stripe Connect' : 'Manual (check/cash)'}
+              {/* Processor-neutral label (2026-09-10 Stripe-copy sweep): the underlying stored
+                  method value stays 'STRIPE_CONNECT' for backward compat with existing rows, but
+                  this panel has no access to which processor (Stripe or Square) the organizer is
+                  actually on, so the DISPLAYED label no longer names a specific processor. */}
+              {existingPayout.method === 'STRIPE_CONNECT' ? 'Electronic Transfer' : 'Manual (check/cash)'}
             </span>
           </div>
           <div className="flex items-center justify-between">
@@ -195,7 +199,7 @@ export default function ClientPayoutPanel({
                   : 'border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400'
               }`}
             >
-              Stripe Connect
+              Electronic Transfer
             </button>
           </div>
         </div>

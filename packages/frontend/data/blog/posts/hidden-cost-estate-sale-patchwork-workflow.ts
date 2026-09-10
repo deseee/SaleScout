@@ -26,7 +26,7 @@ Photo workflows are where the most time gets lost. The catalog is the sale. Befo
 
 ## Checkout
 
-Checkout is where the patchwork becomes most visible. A sale can look completely professional right up until a buyer asks how they pay and you hand them a Venmo QR code. That's not a knock on Venmo. It's a sign that the platform you're using doesn't treat checkout as part of the product. Integrated Stripe checkout isn't a luxury. It's a basic expectation for any operation that wants to look and run like a real business.
+Checkout is where the patchwork becomes most visible. A sale can look completely professional right up until a buyer asks how they pay and you hand them a Venmo QR code. That's not a knock on Venmo. It's a sign that the platform you're using doesn't treat checkout as part of the product. Integrated checkout isn't a luxury. It's a basic expectation for any operation that wants to look and run like a real business.
 
 ## Post-sale reporting
 

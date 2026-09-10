@@ -958,7 +958,16 @@ export const createBoothCartTerminalConnectionToken = async (req: BoothAuthReque
 
     const booth = await prisma.vendorBooth.findFirst({ where: { id: vendorBoothId, hubId } });
     if (!booth?.stripeAccountId) {
-      return res.status(400).json({ error: 'This booth has not completed Stripe onboarding' });
+      // Processor-accurate messaging (Square migration, 2026-09-10): this connection-token
+      // endpoint is Stripe Terminal hardware -- there is no Square Terminal integration in
+      // this codebase, so a Square-connected booth genuinely cannot use the physical card
+      // reader, but telling them to complete "Stripe onboarding" when they already have a
+      // working Square account for QR/in-app checkout is wrong and confusing.
+      return res.status(400).json({
+        error: booth?.squareOnboarded
+          ? 'This card reader requires a connected Stripe account. This booth is connected via Square, which currently supports QR/in-app checkout only.'
+          : 'This booth has not completed Stripe onboarding',
+      });
     }
 
     const token = await stripe().terminal.connectionTokens.create({}, { stripeAccount: booth.stripeAccountId! });
@@ -1047,9 +1056,19 @@ export const authorizeBoothCartTerminalLeg = async (req: BoothAuthRequest, res: 
         // an owner still on a legacy Express account can't sell their own items via
         // card/QR through venue mode until they migrate to Standard -- cash still works
         // (captureBoothCash doesn't require this gate). The gate itself is unchanged.
+        // Processor-accurate messaging (Square migration, 2026-09-10): this physical
+        // Terminal rail is Stripe Terminal hardware -- there is no Square Terminal
+        // integration in this codebase, so a booth that is Square-connected but not
+        // Stripe-onboarded genuinely cannot use this register, but telling them to
+        // "complete a Stripe account upgrade" when they already have a working Square
+        // account is wrong and confusing.
         const message = booth.isHubOwnerBooth
-          ? 'Complete your Stripe account upgrade in Settings to sell your own items through this register'
-          : `Booth "${booth.vendorName}" has not completed Standard-account onboarding`;
+          ? booth.squareOnboarded
+            ? "This register's card reader requires a connected Stripe account. You are connected via Square, which currently supports QR/in-app checkout only -- use that instead, or complete Stripe onboarding in Settings to use the card reader."
+            : 'Complete your Stripe account upgrade in Settings to sell your own items through this register'
+          : booth.squareOnboarded
+            ? `Booth "${booth.vendorName}" is connected via Square, which currently supports QR/in-app checkout only -- the card reader requires a connected Stripe account`
+            : `Booth "${booth.vendorName}" has not completed Standard-account onboarding`;
         return res.status(400).json({ error: message });
       }
       // Direct-charges migration (2026-08-08): live capability preflight. The check above
@@ -1319,9 +1338,17 @@ export const authorizeBoothCartQrLegs = async (req: BoothAuthRequest, res: Respo
         // Fix 2 (2026-08-01): see the identical note on the Terminal rail above -- a
         // house booth here is the hub owner's own account, so the failure copy is
         // organizer-facing instead of the generic vendor-facing message.
+        // Processor-accurate messaging (Square migration, 2026-09-10): this endpoint is
+        // the Stripe QR/in-app rail specifically -- a Square-connected booth belongs on
+        // authorizeBoothCartSquareLegs instead, so tell them that rather than implying
+        // Stripe is the only option they have.
         const message = booth.isHubOwnerBooth
-          ? 'Complete your Stripe account upgrade in Settings to sell your own items through this register'
-          : `Booth "${booth.vendorName}" has not completed Standard-account onboarding`;
+          ? booth.squareOnboarded
+            ? 'You are connected via Square for this register -- use Square checkout instead, or complete Stripe onboarding in Settings to use this Stripe checkout.'
+            : 'Complete your Stripe account upgrade in Settings to sell your own items through this register'
+          : booth.squareOnboarded
+            ? `Booth "${booth.vendorName}" is connected via Square -- use Square checkout for this booth instead of Stripe`
+            : `Booth "${booth.vendorName}" has not completed Standard-account onboarding`;
         failure = { vendorBoothId: booth.id, vendorName: booth.vendorName, message };
         break;
       }

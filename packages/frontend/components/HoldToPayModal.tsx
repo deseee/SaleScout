@@ -189,7 +189,7 @@ export default function HoldToPayModal({
             </div>
           )}
           <div className="flex justify-between text-base font-bold pt-2">
-            <span className="text-gray-900 dark:text-gray-100">{isAuction ? 'You Receive (after Stripe fees)' : 'You Receive'}</span>
+            <span className="text-gray-900 dark:text-gray-100">{isAuction ? 'You Receive (after processing fees)' : 'You Receive'}</span>
             <span className="text-amber-600 dark:text-amber-400">
               ~${estimatedPayout.toFixed(2)}
             </span>

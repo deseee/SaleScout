@@ -15,6 +15,7 @@ import { useAuth } from './AuthContext';
 import { useShopperCart } from '../hooks/useShopperCart';
 import HoldTimer from './HoldTimer';
 import { getThumbnailUrl } from '../lib/imageUtils';
+import { SquarePaymentRequestForm } from './SquarePaymentRequestForm';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -56,6 +57,14 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
   const [qrExpanded, setQrExpanded] = useState(false);
   const [shopperQRCodeDataUrl, setShopperQRCodeDataUrl] = useState<string | null>(null);
   const [referralLink, setReferralLink] = useState<string | null>(null);
+  // Square-only-organizer cart checkout fix (2026-09-10, findasale-dev, P0): dedicated modal
+  // state for the Square Web Payments SDK tokenize-then-charge flow, mirroring CheckoutModal.tsx's
+  // isBountySquare branch (squareSubmitting/squareError/squareSuccess) for the cart case.
+  const [showSquareCartCheckout, setShowSquareCartCheckout] = useState(false);
+  const [squareCartSubmitting, setSquareCartSubmitting] = useState(false);
+  const [squareCartError, setSquareCartError] = useState<string | null>(null);
+  const [squareCartSuccess, setSquareCartSuccess] = useState(false);
+  const [squareCartPurchaseIds, setSquareCartPurchaseIds] = useState<string[]>([]);
 
   const { data: holds = [], isLoading, refetch } = useQuery({
     queryKey: ['my-holds-full'],
@@ -110,6 +119,17 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
     staleTime: 5 * 60 * 1000,
   });
   const cartOrganizerName: string | undefined = cartSaleData?.organizer?.businessName;
+  // Square-only-organizer cart checkout fix (2026-09-10, findasale-dev, P0): CartDrawer used to
+  // hardcode POST /stripe/create-cart-checkout-session with zero processor awareness -- broken
+  // end-to-end for a Square-only organizer (no live Stripe Connect onboarding, e.g. Maple Lake
+  // Mall, Artifact). Square-wins-when-both-present priority matches payoutController.ts's
+  // resolvePayoutProcessor and CheckoutModal.tsx's isBountySquare check (read both before writing
+  // this). saleController.ts's getSale now returns these fields on organizer for exactly this
+  // purpose (see that file's own comment on the change).
+  const cartOrganizerSquareOnboarded: boolean = cartSaleData?.organizer?.squareOnboarded === true;
+  const cartOrganizerSquareMerchantId: string | null | undefined = cartSaleData?.organizer?.squareMerchantId;
+  const cartOrganizerSquareLocationId: string | null | undefined = cartSaleData?.organizer?.squareLocationId;
+  const isCartOrgSquareOnly = cartOrganizerSquareOnboarded && !!cartOrganizerSquareMerchantId;
 
   const cancelMutation = useMutation({
     mutationFn: (reservationId: string) => api.delete(`/reservations/${reservationId}`),
@@ -169,6 +189,49 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
       showToast(message, 'error');
     } finally {
       setCheckoutLoading(false);
+    }
+  };
+
+  // Square-only-organizer cart checkout fix (2026-09-10, findasale-dev, P0): parallel path to
+  // handleCheckout above, used only when isCartOrgSquareOnly. Opens a tokenization modal
+  // (SquarePaymentRequestForm, the same Web Payments SDK component the bounty-purchase Square
+  // flow already uses) instead of redirecting to a hosted Stripe Checkout Session -- Square's
+  // CreatePayment needs a client-side sourceId token before the backend can charge anything.
+  const handleGoToCheckout = () => {
+    if (cart.cartCount === 0) return;
+    if (isCartOrgSquareOnly) {
+      setSquareCartError(null);
+      setSquareCartSuccess(false);
+      setShowSquareCartCheckout(true);
+      return;
+    }
+    handleCheckout();
+  };
+
+  // Called once SquarePaymentRequestForm's card.tokenize() succeeds (sourceId in hand). Square's
+  // CreatePayment is synchronous on the backend (see squarePaymentController.ts's
+  // createSquareCartPayment header comment) -- a 200 here means every Purchase row for the cart
+  // is already created and PAID, no webhook/confirm step needed.
+  const handleSquareCartTokenized = async (sourceId: string) => {
+    if (cart.cartCount === 0) return;
+    setSquareCartSubmitting(true);
+    setSquareCartError(null);
+    try {
+      const itemIds = cart.items.map((item) => item.id);
+      const res = await api.post('/square-payment/create-cart-payment', { itemIds, sourceId });
+      if (res.data?.purchaseIds) {
+        setSquareCartPurchaseIds(res.data.purchaseIds);
+        setSquareCartSuccess(true);
+        cart.clearCart();
+        queryClient.invalidateQueries({ queryKey: ['my-holds-full'] });
+      } else {
+        setSquareCartError('Payment did not complete. Please try again.');
+      }
+    } catch (err: any) {
+      const message = err?.response?.data?.error || err?.response?.data?.message || 'Payment failed. Please try again.';
+      setSquareCartError(message);
+    } finally {
+      setSquareCartSubmitting(false);
     }
   };
 
@@ -516,13 +579,13 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                   the last FindA.Sale-rendered screen before payment; show it here. */}
               {cart.cartCount > 0 && cartOrganizerName && (
                 <p className="text-xs text-warm-500 dark:text-gray-400 text-center">
-                  Buying from {cartOrganizerName} &middot; Payment processed securely by Stripe.
+                  Buying from {cartOrganizerName} &middot; Payment processed securely by {isCartOrgSquareOnly ? 'Square' : 'Stripe'}.
                 </p>
               )}
 
               {/* Go to Checkout */}
               <button
-                onClick={handleCheckout}
+                onClick={handleGoToCheckout}
                 disabled={checkoutLoading || cart.cartCount === 0}
                 className="w-full bg-amber-600 dark:bg-amber-700 hover:bg-amber-700 dark:hover:bg-amber-800 text-white font-semibold py-2 px-4 rounded-lg transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
               >
@@ -620,6 +683,107 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
               >
                 Share My Link
               </button>
+            </div>
+          </div>
+        )}
+
+        {/* Square Cart Checkout Modal (2026-09-10, findasale-dev, P0): shown only when
+            isCartOrgSquareOnly. Mirrors CheckoutModal.tsx's isBountySquare branch -- tokenize via
+            SquarePaymentRequestForm (Web Payments SDK), then POST { itemIds, sourceId } to
+            /square-payment/create-cart-payment, which is synchronous (charge is done in that one
+            request/response, no webhook/confirm step). */}
+        {showSquareCartCheckout && (
+          <div
+            className="fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4"
+            onClick={() => { if (!squareCartSubmitting) setShowSquareCartCheckout(false); }}
+          >
+            <div
+              className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-sm w-full shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-bold text-warm-900 dark:text-gray-50">Complete Purchase</h2>
+                {!squareCartSubmitting && (
+                  <button
+                    onClick={() => setShowSquareCartCheckout(false)}
+                    className="text-warm-400 hover:text-warm-600 text-2xl leading-none"
+                    aria-label="Close"
+                  >
+                    &times;
+                  </button>
+                )}
+              </div>
+
+              {squareCartSuccess ? (
+                <div className="text-center">
+                  <div className="mb-4 p-4 bg-green-50 rounded-lg border border-green-200">
+                    <p className="text-3xl mb-2">✅</p>
+                    <p className="text-lg font-bold text-green-900 mb-1">Order Confirmed!</p>
+                    <p className="text-xs text-green-700 mb-3">Your payment has been processed successfully.</p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setShowSquareCartCheckout(false);
+                      setSquareCartSuccess(false);
+                      onClose();
+                      // Stripe dead-link precedent (2026-09-09, findasale-dev BUG MODE):
+                      // /shopper/purchases is not a real route. Single-purchase carts go straight
+                      // to the persistent purchase page; multi-item carts fall back to the real
+                      // shopper dashboard list, same choice squarePaymentController.ts's own
+                      // buyer notification link makes for this exact response shape.
+                      if (typeof window !== 'undefined') {
+                        window.location.href = squareCartPurchaseIds.length === 1
+                          ? `/purchases/${squareCartPurchaseIds[0]}`
+                          : '/shopper/dashboard';
+                      }
+                    }}
+                    className="w-full py-2 px-4 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded"
+                  >
+                    Done
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <div className="mb-4 p-3 bg-warm-50 rounded-lg">
+                    <p className="text-sm text-warm-600">{cart.cartCount} item{cart.cartCount === 1 ? '' : 's'}</p>
+                    <div className="flex justify-between font-bold text-warm-900 dark:text-warm-100 border-t border-warm-300 pt-2 mt-2 text-sm">
+                      <span>Total Due</span>
+                      <span>${(cartTotalCents / 100).toFixed(2)}</span>
+                    </div>
+                  </div>
+
+                  {squareCartError && (
+                    <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
+                      <p className="mb-2">{squareCartError}</p>
+                      <button
+                        type="button"
+                        onClick={() => setSquareCartError(null)}
+                        className="text-xs underline text-red-600 hover:text-red-800 font-medium"
+                      >
+                        Try Again
+                      </button>
+                    </div>
+                  )}
+
+                  <SquarePaymentRequestForm
+                    requestId={cart.saleId || 'cart'}
+                    totalAmountCents={cartTotalCents}
+                    squareLocationId={cartOrganizerSquareLocationId ?? null}
+                    onSuccess={handleSquareCartTokenized}
+                    onError={setSquareCartError}
+                    isProcessing={squareCartSubmitting}
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() => setShowSquareCartCheckout(false)}
+                    disabled={squareCartSubmitting}
+                    className="w-full mt-3 py-2 px-4 border border-warm-300 rounded text-warm-700 hover:bg-warm-50 disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                </>
+              )}
             </div>
           </div>
         )}

@@ -117,6 +117,7 @@ export async function notifyVendorOfBoothSale(legId: string): Promise<BoothSaleN
         hubOwnerShareAmount: true,
         status: true,
         rail: true,
+        processor: true,
         vendorSaleNotifiedAt: true,
         vendorBooth: {
           select: {
@@ -185,6 +186,13 @@ export async function notifyVendorOfBoothSale(legId: string): Promise<BoothSaleN
     // some other way, not what Stripe will deposit.
     const isCash = leg.rail === 'CASH';
 
+    // Processor-accurate wording (Square migration, 2026-09-10): BoothCartLeg.processor
+    // says which processor actually settled this leg -- Stripe wording only when it
+    // really is STRIPE, so a Square-connected booth's vendor isn't told to go looking
+    // in a Stripe account that was never involved.
+    const isSquare = leg.processor === 'SQUARE';
+    const processorName = isSquare ? 'Square' : 'Stripe';
+
     // In-app first, so the vendor gets the alert even when the email leg is skipped.
     if (booth.userId) {
       await createNotification(
@@ -192,9 +200,9 @@ export async function notifyVendorOfBoothSale(legId: string): Promise<BoothSaleN
         'vendor_booth',
         `You sold $${money(grossCents)} at Booth ${booth.boothNumber}`,
         isCash
-          ? `${itemCount} ${itemWord} sold at Booth ${booth.boothNumber} at ${hubNameRaw} for $${money(grossCents)} cash, rung up at the register. This did not go through Stripe -- settle the FindA.Sale fee${hubOwnerShareCents > 0 ? ` and revenue share` : ''} with the market organizer directly.`
+          ? `${itemCount} ${itemWord} sold at Booth ${booth.boothNumber} at ${hubNameRaw} for $${money(grossCents)} cash, rung up at the register. This did not go through ${processorName} -- settle the FindA.Sale fee${hubOwnerShareCents > 0 ? ` and revenue share` : ''} with the market organizer directly.`
           : netCents !== null
-          ? `${itemCount} ${itemWord} sold at Booth ${booth.boothNumber} at ${hubNameRaw}. $${money(netCents)} reaches your Stripe account after the platform fee and the revenue share.`
+          ? `${itemCount} ${itemWord} sold at Booth ${booth.boothNumber} at ${hubNameRaw}. $${money(netCents)} reaches your ${processorName} account after the platform fee and the revenue share.`
           : `${itemCount} ${itemWord} sold at Booth ${booth.boothNumber} at ${hubNameRaw}, for $${money(grossCents)} before fees.`,
         boothPath,
         'OPERATIONAL'
@@ -222,18 +230,18 @@ export async function notifyVendorOfBoothSale(legId: string): Promise<BoothSaleN
           ${platformFeeCents !== null ? `<li>FindA.Sale fee you owe: $${money(platformFeeCents)}</li>` : ''}
           ${hubOwnerShareCents > 0 ? `<li>Revenue share owed to ${organizerName}: $${money(hubOwnerShareCents)}</li>` : ''}
         </ul>
-        <p>This was a cash sale rung up at the register -- it never went through Stripe, so nothing was deducted automatically and nothing is landing in your Stripe account for it. Settle the fee${hubOwnerShareCents > 0 ? ` and revenue share` : ''} above with ${organizerName} directly; your booth page shows your current terms.</p>`
+        <p>This was a cash sale rung up at the register -- it never went through ${processorName}, so nothing was deducted automatically and nothing is landing in your ${processorName} account for it. Settle the fee${hubOwnerShareCents > 0 ? ` and revenue share` : ''} above with ${organizerName} directly; your booth page shows your current terms.</p>`
       : platformFeeCents !== null && netCents !== null
         ? `<p><strong>What this sale came to</strong></p>
         <ul>
           <li>Sold: $${money(grossCents)}</li>
           <li>FindA.Sale fee: $${money(platformFeeCents)}</li>
           ${hubOwnerShareCents > 0 ? `<li>Revenue share to ${organizerName}: $${money(hubOwnerShareCents)}</li>` : ''}
-          <li><strong>Reaches your Stripe account: $${money(netCents)}</strong></li>
+          <li><strong>Reaches your ${processorName} account: $${money(netCents)}</strong></li>
         </ul>
-        <p>Stripe's own card processing fee comes out of that as well, so the amount that lands in your bank will be a little lower.</p>`
+        <p>${processorName}'s own card processing fee comes out of that as well, so the amount that lands in your bank will be a little lower.</p>`
         : `<p><strong>Sold: $${money(grossCents)}</strong></p>
-        <p>That is what the shopper paid at your booth. The FindA.Sale fee and any revenue share you agreed with ${organizerName} come out of it, along with Stripe's card processing fee, before the rest reaches you. Your booth page shows your current terms.</p>`;
+        <p>That is what the shopper paid at your booth. The FindA.Sale fee and any revenue share you agreed with ${organizerName} come out of it, along with ${processorName}'s card processing fee, before the rest reaches you. Your booth page shows your current terms.</p>`;
 
     const html = buildEmail({
       preheader: `${itemCount} ${itemWord} sold at Booth ${boothNumber} at ${hubName}.`,
@@ -243,8 +251,8 @@ export async function notifyVendorOfBoothSale(legId: string): Promise<BoothSaleN
         ${itemsHtml}
         ${breakdownHtml}
         ${isCash
-          ? `<p>This was a cash sale -- the cashier already has your money. ${organizerName} did not collect anything on your behalf and nothing was charged on Stripe.</p>`
-          : `<p>The money goes to your own Stripe account, not to us and not to ${organizerName}. You do not have to collect anything or invoice anyone.</p>`}
+          ? `<p>This was a cash sale -- the cashier already has your money. ${organizerName} did not collect anything on your behalf and nothing was charged on ${processorName}.</p>`
+          : `<p>The money goes to your own ${processorName} account, not to us and not to ${organizerName}. You do not have to collect anything or invoice anyone.</p>`}
         <p>If the button does not work, copy this link into your browser:<br />${boothUrl}</p>
         <p>If this sale does not look right, contact ${organizerName} at ${hubName}.</p>
         <p>The FindA.Sale Team</p>`,
@@ -310,6 +318,19 @@ export async function notifyVendorBoothSaleRefunded(purchaseId: string): Promise
     const booth = purchase.item?.vendorBooth;
     if (!booth) return { sent: false, reason: 'This purchase has no vendor booth' };
 
+    // Processor-accurate wording (Square migration, 2026-09-10): find this purchase's
+    // BoothCartLeg the same way notifyVendorOfBoothSale's own cart-grouping does (same
+    // cartTransactionId + vendorBoothId pairing) so the refund message names the
+    // processor that actually settled the original sale rather than assuming Stripe.
+    const leg = purchase.boothCartTransactionId
+      ? await prisma.boothCartLeg.findFirst({
+          where: { cartTransactionId: purchase.boothCartTransactionId, vendorBoothId: booth.id },
+          select: { processor: true },
+        })
+      : null;
+    const isSquare = leg?.processor === 'SQUARE';
+    const processorName = isSquare ? 'Square' : 'Stripe';
+
     const amount = (purchase.amount || 0).toFixed(2);
     const itemTitleRaw = purchase.item?.title || 'An item';
     const hubNameRaw = booth.hub?.name || 'the market';
@@ -321,7 +342,7 @@ export async function notifyVendorBoothSaleRefunded(purchaseId: string): Promise
         booth.userId,
         'vendor_booth',
         `A $${amount} sale at Booth ${booth.boothNumber} was refunded`,
-        `${itemTitleRaw} was refunded to the shopper. The $${amount} comes back out of your Stripe account, and the fees taken on that sale are returned to you.`,
+        `${itemTitleRaw} was refunded to the shopper. The $${amount} comes back out of your ${processorName} account, and the fees taken on that sale are returned to you.`,
         boothPath,
         'OPERATIONAL'
       );
@@ -342,7 +363,7 @@ export async function notifyVendorBoothSaleRefunded(purchaseId: string): Promise
       headline: `A sale at Booth ${boothNumber} was refunded`,
       body: `<p>Hi ${vendorName},</p>
         <p>${itemTitle}, which sold for $${amount} at Booth ${boothNumber} at ${hubName}, has been refunded to the shopper.</p>
-        <p>The $${amount} comes back out of your own Stripe account, because that is where the sale landed in the first place. The FindA.Sale fee and any revenue share taken on that sale are returned to you at the same time, so you are not left paying fees on a sale that was undone.</p>
+        <p>The $${amount} comes back out of your own ${processorName} account, because that is where the sale landed in the first place. The FindA.Sale fee and any revenue share taken on that sale are returned to you at the same time, so you are not left paying fees on a sale that was undone.</p>
         <p>The item is back in your booth and can be sold again.</p>
         <p>${organizerName} at ${hubName} issued this refund. If you were not expecting it, contact them directly.</p>
         <p>If the button does not work, copy this link into your browser:<br />${boothUrl}</p>

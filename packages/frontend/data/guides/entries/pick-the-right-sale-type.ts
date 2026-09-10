@@ -55,7 +55,7 @@ FindA.Sale supports two formats: timed (online bidding with a countdown) and liv
 
 **Best for:** High-value items, antique collections, estate jewelry, farm equipment.
 
-**Features unlocked:** Bidding system, bid-bot (auto-bid up to a max), auction close and winner notification, Stripe checkout for winners.
+**Features unlocked:** Bidding system, bid-bot (auto-bid up to a max), auction close and winner notification, secure checkout for winners.
 
 ---
 

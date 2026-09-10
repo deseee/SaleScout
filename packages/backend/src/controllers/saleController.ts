@@ -502,6 +502,13 @@ export const getSale = async (req: Request, res: Response) => {
             id: true, userId: true, businessName: true, phone: true, address: true,
             tier: true, verificationStatus: true, verificationSource: true, subscriptionTier: true, removeWatermarkEnabled: true,
             isClaimed: true, isUnmanagedListing: true,
+            // Square migration cart-checkout fix (2026-09-10, findasale-dev, P0): CartDrawer.tsx
+            // needs to know which processor this organizer is actually live on BEFORE calling
+            // checkout so it can route to Stripe's create-cart-checkout-session or Square's
+            // create-cart-payment instead of hardcoding Stripe. See responseSale.organizer below
+            // for the public-safe exposure precedent (mirrors CheckoutModal.tsx's existing
+            // organizerSquareOnboarded/squareMerchantId/squareLocationId props).
+            squareOnboarded: true, squareMerchantId: true, squareLocationId: true, stripeOnboarded: true,
             user: { select: { userBadges: { include: { badge: true } } } }
           }
         },
@@ -604,6 +611,14 @@ export const getSale = async (req: Request, res: Response) => {
         tier: organizer.tier, verificationStatus: organizer.verificationStatus, verificationSource: organizer.verificationSource,
         subscriptionTier: organizer.subscriptionTier, removeWatermarkEnabled: organizer.removeWatermarkEnabled,
         isClaimed: organizer.isClaimed, isUnmanagedListing: organizer.isUnmanagedListing,
+        // Square migration cart-checkout fix (2026-09-10, findasale-dev, P0): non-secret
+        // processor-identity fields (same exposure precedent as CheckoutModal.tsx's own
+        // organizerSquareOnboarded/squareMerchantId/squareLocationId props for bounty checkout)
+        // so CartDrawer.tsx can decide Stripe vs. Square BEFORE calling a checkout endpoint.
+        squareOnboarded: organizer.squareOnboarded,
+        squareMerchantId: organizer.squareMerchantId,
+        squareLocationId: organizer.squareLocationId,
+        stripeOnboarded: organizer.stripeOnboarded,
       },
     };
 

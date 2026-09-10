@@ -313,10 +313,11 @@ export const approveVendorBoothSettlementBatch = async (req: AuthRequest, res: R
       return res.status(409).json({ error: `Batch in status ${batch.status} cannot be approved` });
     }
 
-    const organizerStripeConnectId = batch.hub.organizer.stripeConnectId;
-    if (!organizerStripeConnectId) {
-      return res.status(400).json({ error: 'Organizer Stripe account not configured' });
-    }
+    // ADR-090 Phase 3 fix (2026-09-10): this batch is now a read-only reconciliation
+    // report -- no Stripe Transfer is fired anywhere below (see comment further down) --
+    // so a hard block on missing organizerStripeConnectId served no purpose except
+    // locking Square-only TEAMS organizers out of approving their own settlement batches.
+    // Removed; organizerStripeConnectId is unused past this point.
 
     await prisma.vendorBoothSettlementBatch.update({
       where: { id: batch.id },
@@ -398,10 +399,9 @@ export const retryPendingVendorBoothPayouts = async (req: AuthRequest, res: Resp
       return res.status(404).json({ error: 'Settlement batch not found' });
     }
 
-    const organizerStripeConnectId = batch.hub.organizer.stripeConnectId;
-    if (!organizerStripeConnectId) {
-      return res.status(400).json({ error: 'Organizer Stripe account not configured' });
-    }
+    // ADR-090 Phase 3 fix (2026-09-10): legacy-cleanup-only path, no Stripe Transfer is
+    // attempted (see comment below) -- removed the same dead Stripe-only block as above,
+    // for the same reason (was locking out Square-only TEAMS organizers for no purpose).
 
     const live = vendorLiveTransfersEnabled(); // kept only for the response payload's liveTransfersEnabled field below
     const anyFailure = false;

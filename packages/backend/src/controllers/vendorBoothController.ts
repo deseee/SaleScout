@@ -729,6 +729,12 @@ export const listMyVendorBooths = async (req: AuthRequest, res: Response) => {
       select: {
         id: true, hubId: true, boothNumber: true, vendorName: true, status: true,
         boothFee: true, revenueSharePercent: true, stripeOnboarded: true,
+        // Audit sweep fix (2026-09-10): squareOnboarded was missing from this select, so a
+        // Square-ready booth's payout status always fell back to the stripeOnboarded=false
+        // branch below and displayed "Payouts not set up yet" even after real Square
+        // onboarding succeeded. Mirrors the same field already selected by listVendorBooths
+        // above (organizer-facing list) -- this is the vendor-facing equivalent.
+        squareOnboarded: true,
         // Deep link back to this booth's own page. Owner-scoped by the where clause above.
         boothToken: true,
         // The market's name. Without it the vendor sees a bare hub id, which means nothing

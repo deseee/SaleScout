@@ -33,6 +33,14 @@ export interface MyVendorBooth {
   vendorName: string;
   status: string;
   stripeOnboarded: boolean;
+  /**
+   * Square changeover (audit sweep, 2026-09-10): mirrors stripeOnboarded -- a booth can be
+   * payment-ready via either processor (or, in a legacy-transition window, both). Optional
+   * because the field is a recent addition to listMyVendorBooths' select and a stale cached
+   * API response (e.g. a not-yet-refreshed service worker) may omit it; treated as falsy
+   * when absent, same as stripeOnboarded's own implicit-falsy handling below.
+   */
+  squareOnboarded?: boolean;
   /** Bearer secret. Href only. Added to listMyVendorBooths alongside `hub`. */
   boothToken?: string | null;
   hub?: { id: string; name: string } | null;
@@ -170,12 +178,12 @@ const MyVendorBoothsCard: React.FC<MyVendorBoothsCardProps> = ({ variant = 'card
 
             <p
               className={`mt-1 text-sm ${
-                booth.stripeOnboarded
+                booth.stripeOnboarded || booth.squareOnboarded
                   ? 'text-green-700 dark:text-green-400'
                   : 'text-warm-700 dark:text-warm-300'
               }`}
             >
-              {booth.stripeOnboarded
+              {booth.stripeOnboarded || booth.squareOnboarded
                 ? 'Payouts connected'
                 : 'Payouts not set up yet. Open your booth to finish it.'}
             </p>

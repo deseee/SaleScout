@@ -748,6 +748,13 @@ export async function markHoldInvoicePaid(
     }).catch((err: unknown) => console.warn(`[hold-invoice/${source}] Failed to send shopper email:`, err));
 
     // Email to organizer
+    // Square changeover (2026-09-10): processor-accurate copy -- `processor` is already in
+    // scope from the ExternalPaymentRef destructured at the top of this function (line 204),
+    // and is the actual processor this specific invoice was paid through (not an assumption),
+    // so no extra lookup is needed. Previously hardcoded "Stripe Connect account" / "Stripe fee"
+    // unconditionally, which was wrong for any invoice paid via Square.
+    const payoutProcessorLabel = processor === 'SQUARE' ? 'Square' : 'Stripe';
+    const payoutAccountPhrase = processor === 'SQUARE' ? 'Square account' : 'Stripe Connect account';
     transactionalEmailService.emails.send({
       from: fromEmail,
       to: holdInvoice.organizer.email,
@@ -756,8 +763,8 @@ export async function markHoldInvoicePaid(
         <h2>Payment Received</h2>
         <p>Hi ${holdInvoice.organizer.name},</p>
         <p>Payment of $${organizerPayout.toFixed(2)} has been received for <strong>${itemList}</strong>.</p>
-        <p>Payout will be transferred to your Stripe Connect account within 1-2 business days.</p>
-        <p style="color: #6b7280; font-size: 14px;">Platform fee: $${platformFee} | Stripe fee: $${stripeFeeAmount.toFixed(2)}</p>
+        <p>Payout will be transferred to your ${payoutAccountPhrase} within 1-2 business days.</p>
+        <p style="color: #6b7280; font-size: 14px;">Platform fee: $${platformFee} | ${payoutProcessorLabel} fee: $${stripeFeeAmount.toFixed(2)}</p>
       `,
     }).catch((err: unknown) => console.warn(`[hold-invoice/${source}] Failed to send organizer email:`, err));
   });

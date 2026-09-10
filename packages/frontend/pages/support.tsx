@@ -13,21 +13,21 @@ const FAQ_DATA = [
     category: 'Getting Started',
     question: 'How do I set up payments before my first sale?',
     answer:
-      'Before you can receive payments, you\'ll need to connect a Stripe account. From your Dashboard, click Setup Payments and follow the short onboarding flow. Stripe will verify your identity and bank account. This usually takes a few minutes. Once connected, your share of each sale deposits to your bank account within 2 business days. You only need to do this once.',
+      'Before you can receive payments, you\'ll need to connect a Square account. From your Dashboard, click Setup Payments and follow the short onboarding flow. Square will verify your identity and bank account. This usually takes a few minutes. Once connected, Square settles your share of each sale to your bank account automatically — check your Square Dashboard for your exact payout schedule. You only need to do this once.',
   },
   {
     id: 'getting-started-2',
     category: 'Getting Started',
     question: 'What is the platform fee and how is it calculated?',
     answer:
-      'FindA.Sale charges a flat 10% platform fee on each completed purchase. If an item sells for $100, we keep $10 and you receive $90 (minus any Stripe payment processing fee, typically 2.9% + $0.30). There are no listing fees, no monthly fees on SIMPLE, and no per-photo charges. PRO and TEAMS plans reduce the fee to 8%. Auctions add one more fee, paid by the winning bidder rather than by you: a flat 5% buyer premium on top of the winning bid, set by FindA.Sale. It is not something you configure and it does not change your platform fee. On a $200 winning bid at the 10% platform rate, the buyer pays $210, your fee is $20, and you receive $180 before Stripe processing. If you would rather your winner paid exactly their bid, turn on "Cover the buyer\'s premium" on the sale and the 5% comes out of your payout instead.',
+      'FindA.Sale charges a flat 10% platform fee on each completed purchase. If an item sells for $100, we keep $10 and you receive $90 (minus any card payment processing fee, typically 2.9% + $0.30). There are no listing fees, no monthly fees on SIMPLE, and no per-photo charges. PRO and TEAMS plans reduce the fee to 8%. Auctions add one more fee, paid by the winning bidder rather than by you: a flat 5% buyer premium on top of the winning bid, set by FindA.Sale. It is not something you configure and it does not change your platform fee. On a $200 winning bid at the 10% platform rate, the buyer pays $210, your fee is $20, and you receive $180 before card processing fees. If you would rather your winner paid exactly their bid, turn on "Cover the buyer\'s premium" on the sale and the 5% comes out of your payout instead.',
   },
   {
     id: 'getting-started-3',
     category: 'Getting Started',
-    question: 'Can I run a sale without setting up Stripe first?',
+    question: 'Can I run a sale without setting up payments first?',
     answer:
-      'You can create and preview a sale without connecting Stripe, but the sale cannot go live and accept payments until your Stripe account is verified. We recommend completing Stripe onboarding before you start building your inventory so there\'s no delay when you\'re ready to publish.',
+      'You can create and preview a sale without connecting Square, but the sale cannot go live and accept payments until your Square account is verified. We recommend completing Square onboarding before you start building your inventory so there\'s no delay when you\'re ready to publish.',
   },
 
   // Sales Management FAQs

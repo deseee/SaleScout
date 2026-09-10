@@ -87,7 +87,7 @@ Refund policy is set by the organizer, not by FindA.Sale. Check the sale's terms
 Yes. Once the window closes, the request is no longer payable. The organizer would need to send a new one if you still want to complete the purchase.
 
 **Is my payment information stored in the app?**
-Payment is processed through Stripe. FindA.Sale does not store your card number.
+Payment is processed through our secure payment processor. FindA.Sale does not store your card number.
 
 ---
 

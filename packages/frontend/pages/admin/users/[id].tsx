@@ -455,7 +455,7 @@ const AdminUserDetail = () => {
             <div className="p-5 space-y-3">
               <p className="text-sm text-warm-700 dark:text-warm-300">
                 Refund <span className="font-semibold">${refundModalPurchase.amount.toFixed(2)}</span> to{' '}
-                {userData.email}? This reverses the Stripe charge and cannot be undone.
+                {userData.email}? This reverses the charge and cannot be undone.
               </p>
               {refundError && (
                 <p className="text-sm text-red-600 dark:text-red-400">{refundError}</p>

@@ -549,7 +549,22 @@ export const createSquareCartPayment = async (req: AuthRequest, res: Response) =
       return res.status(404).json({ error: `Items not found: ${missing.join(', ')}` });
     }
 
-    const saleIds = [...new Set(items.map((i) => i.saleId).filter(Boolean))];
+    // Security fix (findasale-hacker adversarial pass, 2026-09-10): the prior
+    // `.filter(Boolean)` silently DROPPED any item with a null saleId before computing the
+    // "all items share one sale" set. Item.saleId is genuinely nullable in production
+    // (schema.prisma ~line 1304/1340 -- Feature #300 unlisted "library" inventory items,
+    // status defaults AVAILABLE, denormalized organizerId). An item with saleId=null could
+    // ride along in the same cart request as one legitimate item from an unrelated
+    // sale/organizer: it would still be priced into totalCents, charged via THAT organizer's
+    // Square account, stock-decremented via sellItemUnits, and given a Purchase row stamped
+    // with a saleId it never belonged to -- a real cross-tenant charge/misattribution, not
+    // merely a validation gap. Fix: every item must have a NON-NULL saleId, and all of them
+    // must be the SAME saleId -- no more filtering nulls out of the uniqueness check.
+    const itemsWithoutSale = items.filter((i) => !i.saleId);
+    if (itemsWithoutSale.length > 0) {
+      return res.status(400).json({ error: `Some items are not part of an active sale: ${itemsWithoutSale.map((i) => i.title).join(', ')}` });
+    }
+    const saleIds = [...new Set(items.map((i) => i.saleId))];
     if (saleIds.length !== 1) {
       return res.status(400).json({ error: 'All cart items must belong to the same sale' });
     }

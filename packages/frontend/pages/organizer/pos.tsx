@@ -117,6 +117,21 @@ const ENABLE_STRIPE_TERMINAL_CARD_READER = false;
 // code path, not confirmed dead.
 const ENABLE_MANUAL_CARD_ENTRY = false;
 
+// Venue-mode Stripe QR stopgap (2026-09-10, BUG MODE dispatch): handleVenueGenerateQr ->
+// createBoothCartQrSetupIntent (vendorBoothCartController.ts) calls
+// stripe().customers.create/setupIntents.create UNCONDITIONALLY -- guaranteed to fail for
+// every organizer now that Stripe's platform account is permanently closed (same root cause
+// as ENABLE_STRIPE_TERMINAL_CARD_READER above). Unlike the card-reader flow, a fully-working
+// drop-in replacement already exists in this same subsystem: the Square QR rail
+// (handleVenueGenerateSquareQr / finishVenueSquareCheckout / paymentMode 'square_qr') mirrors
+// this flow exactly and is confirmed live. Rather than porting Square into this button, the
+// dead Stripe QR mode is gated off entirely -- state/handlers (handleVenueGenerateQr,
+// finishVenueQrCheckout, the poll effect, venueQrStatus/venueQrUrl/venueQrClientSecret/
+// venueQrSetupIntentId) are kept intact, nothing deleted, only the selector button and its
+// content panel are hidden so the mode can never be reached. Square QR is the only venue QR
+// option shown while this is false.
+const ENABLE_VENUE_STRIPE_QR = false;
+
 interface CashPaymentResponse {
   platformFee: number;
   cashFeeBalance: number;
@@ -792,7 +807,7 @@ export default function POSPage() {
   const initTerminal = useCallback(async () => {
     if (!ENABLE_STRIPE_TERMINAL_CARD_READER) {
       setReaderStatus('error');
-      setErrorMessage('Card-reader hardware support is being updated -- cash, Stripe QR, and Venmo/Zelle are available now.');
+      setErrorMessage('Card-reader hardware support is being updated -- cash, QR, and Venmo/Zelle are available now.');
       return;
     }
     if (sdkLoadedRef.current) return;
@@ -2724,7 +2739,7 @@ export default function POSPage() {
           {/* Reader status */}
           {!ENABLE_STRIPE_TERMINAL_CARD_READER ? (
             <span
-              title="Card-reader hardware support is being updated -- cash, Stripe QR, and Venmo/Zelle are available now."
+              title="Card-reader hardware support is being updated -- cash, QR, and Venmo/Zelle are available now."
               className="text-xs px-3 py-1 rounded-full font-medium bg-warm-200 text-warm-700 dark:bg-gray-700 dark:text-warm-300"
             >
               Card reader unavailable
@@ -3486,19 +3501,24 @@ export default function POSPage() {
                 >
                   <span>💵</span><span className="text-xs">Cash</span>
                 </button>
-                <button
-                  onClick={() => setPaymentMode('qr')}
-                  disabled={cart.length === 0}
-                  className={`py-3 rounded-xl font-semibold transition flex flex-col items-center justify-center gap-1 ${
-                    paymentMode === 'qr'
-                      ? 'bg-sage-700 text-white'
-                      : cart.length === 0
-                      ? 'bg-warm-100 text-warm-300 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600'
-                      : 'bg-warm-200 text-warm-700 hover:bg-warm-300 dark:bg-gray-700 dark:text-warm-200 dark:hover:bg-gray-600'
-                  }`}
-                >
-                  <span>📲</span><span className="text-xs">QR. Scan to pay</span>
-                </button>
+                {/* Venue-mode Stripe QR selector gated off (2026-09-10 stopgap, see
+                    ENABLE_VENUE_STRIPE_QR above) -- Square QR below is the only venue QR
+                    option while this stays false; nothing deleted, just unreachable. */}
+                {ENABLE_VENUE_STRIPE_QR && (
+                  <button
+                    onClick={() => setPaymentMode('qr')}
+                    disabled={cart.length === 0}
+                    className={`py-3 rounded-xl font-semibold transition flex flex-col items-center justify-center gap-1 ${
+                      paymentMode === 'qr'
+                        ? 'bg-sage-700 text-white'
+                        : cart.length === 0
+                        ? 'bg-warm-100 text-warm-300 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600'
+                        : 'bg-warm-200 text-warm-700 hover:bg-warm-300 dark:bg-gray-700 dark:text-warm-200 dark:hover:bg-gray-600'
+                    }`}
+                  >
+                    <span>📲</span><span className="text-xs">QR. Scan to pay</span>
+                  </button>
+                )}
                 <button
                   onClick={() => setPaymentMode('square_qr')}
                   disabled={cart.length === 0}
@@ -3585,12 +3605,17 @@ export default function POSPage() {
                       `💵 Record Cash Sale $${cartTotal.toFixed(2)}`}
                   </button>
                 </>
-              ) : paymentMode === 'qr' ? (
+              ) : (paymentMode === 'qr' && ENABLE_VENUE_STRIPE_QR) ? (
                 <>
                   {/* Register-side QR display -- same generate/display/poll shape as
                       the non-venue paymentLink* QR flow (PosPaymentQr) further down,
                       using the same react-qr-code component already imported in this
-                      file (see the Venmo QR block below for its other existing use). */}
+                      file (see the Venmo QR block below for its other existing use).
+                      Gated by ENABLE_VENUE_STRIPE_QR (2026-09-10 stopgap) as a safety
+                      net -- the selector button above no longer sets paymentMode to
+                      'qr' in venue mode, so this branch is unreachable while the flag
+                      is false, but the condition stays explicit rather than relying on
+                      that alone. */}
                   {(venueQrStatus === 'idle') && (
                     <button
                       onClick={handleVenueGenerateQr}
@@ -3724,6 +3749,14 @@ export default function POSPage() {
               <span className="text-xl">💵</span>
               <span className="text-xs">Cash</span>
             </button>
+            {/* Audit sweep fix (2026-09-10): relabeled from "Stripe QR" -- this mode's
+                backend (/pos/payment-links -> createPaymentLinkInternal, posController.ts)
+                already branches on organizerHasSquare (Square changeover Wave S2 #4) and
+                creates a Square Checkout Link for Square-onboarded organizers, so it is no
+                longer Stripe-exclusive. Still dead for a Stripe-only organizer with no
+                Square onboarding (Stripe's platform account is permanently closed), but
+                that is a per-organizer processor gap, not something this generic QR mode
+                label should claim either way. */}
             <button
               onClick={() => setPaymentMode('qr')}
               disabled={cart.length === 0 || !!loadedHold}
@@ -3737,7 +3770,7 @@ export default function POSPage() {
               }`}
             >
               <span className="text-xl">📲</span>
-              <span className="text-xs">Stripe QR</span>
+              <span className="text-xs">QR</span>
             </button>
             <button
               onClick={() => {
@@ -3748,7 +3781,7 @@ export default function POSPage() {
               disabled={!ENABLE_STRIPE_TERMINAL_CARD_READER || readerStatus !== 'connected' || !!loadedHold}
               title={
                 !ENABLE_STRIPE_TERMINAL_CARD_READER
-                  ? 'Card-reader hardware support is being updated -- cash, Stripe QR, and Venmo/Zelle are available now.'
+                  ? 'Card-reader hardware support is being updated -- cash, QR, and Venmo/Zelle are available now.'
                   : loadedHold
                   ? 'Item is on hold -- use Invoice to complete this sale'
                   : readerStatus !== 'connected'
@@ -3850,7 +3883,7 @@ export default function POSPage() {
                 setNumpadOpen(false);
               }}
               disabled={!ENABLE_MANUAL_CARD_ENTRY}
-              title={!ENABLE_MANUAL_CARD_ENTRY ? 'Manual card entry is being updated -- cash, Stripe QR, and Venmo/Zelle are available now.' : ''}
+              title={!ENABLE_MANUAL_CARD_ENTRY ? 'Manual card entry is being updated -- cash, QR, and Venmo/Zelle are available now.' : ''}
               className={
                 ENABLE_MANUAL_CARD_ENTRY
                   ? 'text-xs text-sage-700 dark:text-sage-400 hover:underline'
@@ -4185,7 +4218,7 @@ export default function POSPage() {
           {paymentMode === 'card' && (
             !ENABLE_STRIPE_TERMINAL_CARD_READER ? (
               <div className="p-4 rounded-xl bg-warm-100 dark:bg-gray-800 border border-warm-200 dark:border-gray-700 text-sm text-warm-600 dark:text-warm-400 text-center">
-                Card-reader hardware support is being updated -- cash, Stripe QR, and Venmo/Zelle are available now.
+                Card-reader hardware support is being updated -- cash, QR, and Venmo/Zelle are available now.
               </div>
             ) : (
               <>

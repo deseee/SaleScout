@@ -456,7 +456,7 @@ const AdminPurchases = () => {
             <p className="text-sm text-warm-700 dark:text-warm-300">
               Refund <span className="font-semibold">${singleRefundTarget.amount.toFixed(2)}</span> to{' '}
               {singleRefundTarget.user?.email || singleRefundTarget.buyerEmail || 'this buyer'}? This reverses
-              the Stripe charge and cannot be undone.
+              the charge and cannot be undone.
             </p>
             <label className="flex items-start gap-2 text-sm text-warm-700 dark:text-warm-300 cursor-pointer">
               <input
@@ -466,7 +466,7 @@ const AdminPurchases = () => {
                 className="mt-0.5"
               />
               <span>
-                This is fraud — mark the refund as fraudulent in Stripe. <strong>This auto-blocks the
+                This is fraud — mark the refund as fraudulent. <strong>This auto-blocks the
                 buyer&apos;s email and card from ever paying this organizer again.</strong> Leave unchecked
                 for a normal refund (test purchase, buyer request, mistake, etc.).
               </span>
@@ -511,7 +511,7 @@ const AdminPurchases = () => {
           <div className="p-5 space-y-3">
             <p className="text-sm text-warm-700 dark:text-warm-300">
               Refund <span className="font-semibold">{selected.size}</span> selected purchase{selected.size === 1 ? '' : 's'}?
-              Each reverses its Stripe charge in full and cannot be undone.
+              Each reverses its charge in full and cannot be undone.
             </p>
             <label className="flex items-start gap-2 text-sm text-warm-700 dark:text-warm-300 cursor-pointer">
               <input
@@ -522,7 +522,7 @@ const AdminPurchases = () => {
               />
               <span>
                 This is a fraud incident — mark all {selected.size} refund{selected.size === 1 ? '' : 's'} as
-                fraudulent in Stripe. <strong>This auto-blocks each buyer&apos;s email and card from ever
+                fraudulent. <strong>This auto-blocks each buyer&apos;s email and card from ever
                 paying this organizer again.</strong> Leave unchecked for routine refunds.
               </span>
             </label>

@@ -29,6 +29,22 @@ const getStripePromise = () => {
   return stripePromise;
 };
 
+// Booth rent auto-pay stopgap (audit sweep, 2026-09-10): VendorBoothFeeBillingSetup's card
+// entry (below) and the backend fee-billing/setup-intent + fee-billing/confirm endpoints
+// (vendorBoothController.ts) are 100% Stripe -- a platform-account Stripe Customer +
+// SetupIntent, then vendorBoothFeeBillingCron.ts charges via a platform-account
+// PaymentIntent and Transfers the proceeds to the hub owner's stripeConnectId. Stripe's
+// platform account is permanently closed (same fact already documented in this file's own
+// header comment above and in pos.tsx's ENABLE_STRIPE_TERMINAL_CARD_READER stopgap) -- every
+// one of those Stripe calls now fails for every organizer, not just Square-only ones. A real
+// Square-based replacement is NOT a small swap: Square has no platform-initiated
+// Transfer-between-connected-merchants primitive (confirmed, see squareRefundService.ts's file
+// header), so the cron's hub-owner payout leg needs a genuinely different architecture, not a
+// drop-in client change -- flagged as DECISION NEEDED / architecture work, not built blind
+// here. Mirrors the ENABLE_STRIPE_TERMINAL_CARD_READER / ENABLE_SPLIT_BILL pattern in
+// pos.tsx: state/logic kept intact, UI gated off with an honest message, nothing deleted.
+const ENABLE_BOOTH_FEE_AUTOPAY = false;
+
 interface PublicBoothSummary {
   boothNumber: string;
   vendorName: string;
@@ -422,6 +438,11 @@ const VendorBoothTokenPage: React.FC = () => {
                             {feeBillingStatus.brand && feeBillingStatus.last4
                               ? `. ${feeBillingStatus.brand} ending in ${feeBillingStatus.last4}`
                               : ''}
+                          </p>
+                        ) : !ENABLE_BOOTH_FEE_AUTOPAY ? (
+                          <p className="text-sm text-warm-500 dark:text-warm-400">
+                            Booth rent auto-pay isn&apos;t available right now. Contact your hub
+                            organizer to arrange paying your booth rent directly.
                           </p>
                         ) : myBoothId ? (
                           <Elements stripe={getStripePromise()}>

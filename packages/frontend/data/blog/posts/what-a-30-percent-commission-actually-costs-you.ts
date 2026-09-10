@@ -12,7 +12,7 @@ export const postS: BlogPost = {
 
 MaxSold runs managed online auctions for estate sales, downsizing, and business liquidations. Its fee structure is public: a managed auction (MaxSold handles photography, cataloging, hosting, marketing, invoicing, and pickup) charges 30% commission plus a $2,000 flat fee, with a $500 deposit required upfront. A seller-managed auction, where the organizer or family does the cataloging and pickup themselves, charges the greater of 30% of proceeds or a $99 minimum commission.
 
-FindA.Sale charges a flat commission with no flat fee and no deposit: 10% on standard accounts, 8% on PRO and TEAMS accounts, plus standard Stripe payment processing of about 3.2%. All-in, that's roughly 13.2% or 11.2% depending on tier.
+FindA.Sale charges a flat commission with no flat fee and no deposit: 10% on standard accounts, 8% on PRO and TEAMS accounts, plus standard card payment processing of about 3.2%. All-in, that's roughly 13.2% or 11.2% depending on tier.
 
 Those numbers only mean something once you run them against a real sale. Here's the payout on three sale sizes.
 

@@ -199,7 +199,7 @@ export async function notifyOrganizerBoothClaimed(boothId: string): Promise<Boot
         <p><strong>Once you confirm:</strong></p>
         <ul>
           <li>Items can be rung up and sold at Booth ${boothNumber}</li>
-          <li>${vendorName} can connect a Stripe account so card payments reach them</li>
+          <li>${vendorName} can connect a payment processor (Stripe or Square) so card payments reach them</li>
           <li>The booth appears in your checkout and settlement screens</li>
         </ul>`
         : `<p>Booth ${boothNumber} is already confirmed, so there is nothing you need to do.</p>`;
@@ -262,7 +262,7 @@ export async function notifyVendorBoothConfirmed(boothId: string): Promise<Booth
         booth.userId,
         'vendor_booth',
         `Booth ${booth.boothNumber} is confirmed`,
-        `${booth.hub?.organizer?.businessName || 'The market organizer'} confirmed Booth ${booth.boothNumber} at ${booth.hub?.name || 'the market'}. Connect your Stripe account so card payments reach you.`,
+        `${booth.hub?.organizer?.businessName || 'The market organizer'} confirmed Booth ${booth.boothNumber} at ${booth.hub?.name || 'the market'}. Connect your payment processor (Stripe or Square) so card payments reach you.`,
         boothPath,
         'OPERATIONAL'
       );

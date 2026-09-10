@@ -749,7 +749,15 @@ export const captureTerminalPaymentIntent = async (req: AuthRequest, res: Respon
         const html = buildEmail({
           preheader: `Receipt for your purchase`,
           headline: 'Your receipt from FindA.Sale 🎉',
-          body: `<p>Thank you for your purchase!</p><ul>${itemsList}</ul><p><strong>Total: $${totalAmount.toFixed(2)}</strong></p><p>Payment processed securely via Stripe.</p>`,
+          // Square changeover (2026-09-10): Terminal/card-reader capture (createTerminalPaymentIntent,
+          // above) is Stripe-only today -- confirmed via this file's imports (getStripe/
+          // stripeConnectService only, no Square import anywhere in this controller) -- and the
+          // Purchase rows created here never set a `processor` value explicitly, so there is no
+          // per-purchase processor field to branch on at this call site without a Terminal-routing
+          // change (out of scope for this pass, flagged separately). Going generic here removes the
+          // unconditional "via Stripe" claim without asserting a processor this call site can't
+          // cheaply verify.
+          body: `<p>Thank you for your purchase!</p><ul>${itemsList}</ul><p><strong>Total: $${totalAmount.toFixed(2)}</strong></p><p>Payment processed securely.</p>`,
           ctaText: 'Visit FindA.Sale',
           ctaUrl: process.env.FRONTEND_URL || 'https://finda.sale',
           accentColor: '#10b981',

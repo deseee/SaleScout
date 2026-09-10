@@ -11,7 +11,7 @@ Organizers use FindA.Sale to:
 - **Create and manage sales** — List sales with dates, locations, and sale types
 - **Upload and tag inventory** — Photograph items; our system auto-tags titles, descriptions, and prices using Smart Pricing
 - **Manage shoppers** — Handle holds, reservations, and pre-sale questions via built-in messaging
-- **Take payments** — Accept card payments via Stripe point-of-sale (in-person) and online checkout
+- **Take payments** — Accept card payments via point-of-sale (in-person) and online checkout
 - **Track performance** — View post-sale analytics, earnings breakdowns, and shopper engagement via Flip Report
 - **Export and integrate** — Publish to eBay, Facebook Marketplace, Craigslist, and more with one click
 - **Scale operations** — Run multiple concurrent sales, use command center for team management (PRO/TEAMS tiers)
@@ -29,7 +29,7 @@ Shoppers use FindA.Sale to:
 - **Discover sales** — Browse sales near your location; filter by date, type, or search by item/keyword
 - **Browse items** — View detailed listings with photos, descriptions, condition ratings, and prices
 - **Place holds and bids** — Reserve items before a sale or participate in auctions
-- **Buy online** — Checkout directly via Stripe for pre-sale purchases or auction wins
+- **Buy online** — Checkout directly online for pre-sale purchases or auction wins
 - **Save favorites** — Follow organizers and save sales for easy reference
 - **Engage via Explorer's Guild** — Earn XP from activities (visits, purchases, hauls, reviews), progress through five ranks (Initiate → Grandmaster), unlock perks like longer hold times and early access to Rare items
 - **Unlock Hunt Pass** — Optional $4.99/month tier for 1.5× XP multiplier, 6/12-hour early access to Rare/Legendary items, seasonal challenges, Treasure Trail creation
@@ -69,7 +69,7 @@ City landing pages at /city/{slug} and /city/{slug}/{category} include ItemList 
 
 FindA.Sale offers:
 
-- **Stripe Integration** — Payment processing, payouts via Stripe Connect, terminal reader support (S700/S710)
+- **Payment Processing** — Card payments via Stripe or Square depending on the organizer's connected account, with payouts through the same processor
 - **Social Exports** — One-click publish to eBay, Facebook Marketplace, Craigslist, EstateSales.net
 - **Webhooks** — TEAMS tier access; trigger integrations on purchase, auction win, sale publish
 - **Zapier** — Connect FindA.Sale to thousands of apps for custom workflows

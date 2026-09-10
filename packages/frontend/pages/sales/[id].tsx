@@ -2325,7 +2325,7 @@ const SaleDetailPage: React.FC<SaleDetailPageProps> = ({ ogData, initialData, ev
             {/* Holds & shipping: mobile */}
             <div className="lg:hidden rounded-xl p-4 text-xs leading-relaxed text-[rgba(26,24,20,0.5)] dark:text-[rgba(242,240,234,0.5)] bg-black/5 dark:bg-white/5">
               <div className="font-medium mb-1.5 uppercase tracking-wider text-[10px] text-[rgba(26,24,20,0.62)] dark:text-[rgba(242,240,234,0.62)]" style={{ fontFamily: 'ui-monospace, monospace', letterSpacing: '0.08em' }}>Holds & shipping</div>
-              Holds last <strong className="text-[#1A1814] dark:text-[#F2F0EA]">{sale.holdDurationHours || 48} hours</strong> after a yellow tag. Items marked "ships" are paid via Stripe and sent within 3 business days.
+              Holds last <strong className="text-[#1A1814] dark:text-[#F2F0EA]">{sale.holdDurationHours || 48} hours</strong> after a yellow tag. Items marked "ships" are paid securely online and sent within 3 business days.
               {sale.returnWindowHours && <div className="mt-1">Returns accepted within {sale.returnWindowHours}h of pickup.</div>}
             </div>
 
@@ -2446,7 +2446,7 @@ const SaleDetailPage: React.FC<SaleDetailPageProps> = ({ ogData, initialData, ev
             {/* Holds & shipping info */}
             <div className="rounded-xl p-4 text-xs leading-relaxed text-[rgba(26,24,20,0.5)] dark:text-[rgba(242,240,234,0.5)] bg-black/5 dark:bg-white/5">
               <div className="font-medium mb-1.5 uppercase tracking-wider text-[10px] text-[rgba(26,24,20,0.62)] dark:text-[rgba(242,240,234,0.62)]" style={{ fontFamily: 'ui-monospace, monospace', letterSpacing: '0.08em' }}>Holds & shipping</div>
-              Holds last <strong className="text-[#1A1814] dark:text-[#F2F0EA]">{sale.holdDurationHours || 48} hours</strong> after a yellow tag. Items marked "ships" are paid via Stripe and sent within 3 business days.
+              Holds last <strong className="text-[#1A1814] dark:text-[#F2F0EA]">{sale.holdDurationHours || 48} hours</strong> after a yellow tag. Items marked "ships" are paid securely online and sent within 3 business days.
               {sale.returnWindowHours && <div className="mt-1">Returns accepted within {sale.returnWindowHours}h of pickup.</div>}
             </div>
 

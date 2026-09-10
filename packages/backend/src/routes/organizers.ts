@@ -643,12 +643,14 @@ router.get('/me', authenticate, checkTierLapse, async (req: AuthRequest, res: Re
       referralDiscountExpiry: discountExpiry ? discountExpiry.toISOString() : null,
       subscriptionLapsed,
       stripeConnected: !!(organizer as any).stripeConnectId,
-      // ADR-023: computed server-side so the frontend never has to infer the
-      // migration business rule from raw stripeAccountType/pendingStripe... fields.
-      needsStripeMigration:
-        (organizer as any).stripeAccountType === 'express' &&
-        !(organizer as any).pendingStripeMigrationAccountId,
-      migrationPending: !!(organizer as any).pendingStripeMigrationAccountId,
+      // ADR-023 migration mechanism is now permanently dead: the Stripe
+      // platform account was closed entirely during the Square changeover
+      // (2026-09), so /organizers/me/stripe/start-standard-migration can
+      // never succeed -- there is no live Stripe account to migrate TO or
+      // FROM. Hardcoded false rather than deleting the ADR-023 field/banner
+      // machinery outright (Removal Gate -- audit sweep, 2026-09-10).
+      needsStripeMigration: false,
+      migrationPending: false,
       subscriptionTier: organizer.subscriptionTier ?? 'SIMPLE',
       graceEndAt: (organizer as any).graceEndAt ? (organizer as any).graceEndAt.toISOString() : null,
       graceTierBefore: (organizer as any).graceTierBefore || null,

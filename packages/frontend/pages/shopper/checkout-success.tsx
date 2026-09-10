@@ -244,11 +244,15 @@ const CheckoutSuccessPage = () => {
                   ${purchase.amount.toFixed(2)}
                 </span>
               </div>
-              {purchase.stripePaymentIntentId && (
+              {(purchase.stripePaymentIntentId || purchase.squarePaymentId) && (
                 <div className="flex justify-between items-center pt-3 border-t border-gray-200 dark:border-gray-700">
                   <span className="text-gray-600 dark:text-gray-400 text-xs font-mono">Reference ID</span>
                   <span className="text-gray-700 dark:text-gray-300 text-xs font-mono break-all">
-                    {purchase.stripePaymentIntentId.substring(0, 12)}...
+                    {/* Processor-aware (2026-09-10 Stripe-copy sweep): squarePaymentId for
+                        Square-processed purchases, stripePaymentIntentId for Stripe ones --
+                        was hardcoded to stripePaymentIntentId only, which silently hid this
+                        row for every Square purchase. */}
+                    {(purchase.stripePaymentIntentId || purchase.squarePaymentId).substring(0, 12)}...
                   </span>
                 </div>
               )}
@@ -376,7 +380,7 @@ const CheckoutSuccessPage = () => {
               <p className="max-w-xl mx-auto leading-relaxed">
                 This purchase was made directly with{' '}
                 <span className="font-medium text-gray-700 dark:text-gray-300">{organizer.businessName}</span>{' '}
-                and processed securely by Stripe. If you have any questions about your order &mdash;
+                and processed securely{purchase.processor === 'SQUARE' ? ' by Square' : ' by Stripe'}. If you have any questions about your order &mdash;
                 pickup, condition, timing &mdash; {organizer.businessName} is who to contact first.
                 Send them a message via your{' '}
                 <Link href="/shopper/messages" className="text-amber-600 hover:text-amber-700 dark:text-amber-500 dark:hover:text-amber-400 font-medium">
