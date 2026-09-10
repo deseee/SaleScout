@@ -14,7 +14,7 @@ Settlement is the five-step process that happens after your sale closes.
 You review what sold, confirm what each consignor is owed, export the report, and your payout goes to your bank.
 The whole thing usually takes under ten minutes.
 
-For a deeper look at how payouts work (timing, bank connection, and failure states), see [Connect Stripe and receive your first payout](/guides/connect-stripe-and-receive-your-first-payout).
+For a deeper look at how payouts work (timing, bank connection, and failure states), see [Connect Square and receive your first payout](/guides/connect-square).
 
 ---
 
@@ -30,7 +30,7 @@ Don't close the sale while shoppers are still picking up: items need to be in th
 
 A **Settle Up** button appears at the top of your sale dashboard.
 Tap it.
-You'll see gross revenue broken down by payment method (cash, Venmo/Zelle, Stripe), a total item count, and, if you have consignors, each consignor's section.
+You'll see gross revenue broken down by payment method (cash, Venmo/Zelle, Square), a total item count, and, if you have consignors, each consignor's section.
 
 ### Step 3: Review consignor splits
 
@@ -50,10 +50,10 @@ Send the consignor their section as your record of payment.
 What consignors receive: an email with their item list, total sold, split percentage, and payout amount.
 They don't see other consignors' numbers.
 
-### Step 5: Your Stripe payout
+### Step 5: Your Square payout
 
-Once you finalize settlement, Stripe initiates a transfer to your connected bank account.
-Standard timing is 2–5 business days.
+Once you finalize settlement, Square initiates a transfer to your connected bank account.
+Payouts are deposited on a weekly schedule.
 You'll get an email when it lands.
 
 The platform fee is deducted before your payout is calculated. It's not a separate charge.
@@ -73,8 +73,8 @@ If a dispute comes up after the fact, you'll need to sort it out manually (pay t
 **What if I have cash sales that weren't logged through the POS?**
 Add them manually in the Settlement hub before you export. There's an "Add cash transaction" option. This keeps your PDF accurate.
 
-**Do I need Stripe to settle?**
-You need Stripe to receive your platform payout to a bank account. If you collected only cash or Venmo/Zelle and want to skip the payout step, you can export the PDF and mark settlement complete without initiating a Stripe transfer.
+**Do I need Square to settle?**
+You need Square to receive your platform payout to a bank account. If you collected only cash or Venmo/Zelle and want to skip the payout step, you can export the PDF and mark settlement complete without initiating a Square transfer.
 
 **Can I settle a partial sale (items from one day of a multi-day sale)?**
 No. Settlement covers the entire sale when it closes. Run separate sales in the app if you need separate settlement periods.

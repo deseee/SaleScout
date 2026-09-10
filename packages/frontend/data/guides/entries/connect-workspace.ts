@@ -6,7 +6,7 @@ const entry: GuideEntry = {
   audience: 'organizer',
   format: 'written',
   priority: 3,
-  relatedGuides: ['add-staff', 'choose-a-plan', 'connect-stripe'],
+  relatedGuides: ['add-staff', 'choose-a-plan', 'connect-square'],
   videoUrl: undefined,
   body: `A Workspace is a shared account layer that lets multiple organizers collaborate under one business. Each organizer keeps their own account and their own sales. The workspace connects them so you can see everything in one place.
 
@@ -36,7 +36,7 @@ The distinction matters:
 |---|---|---|
 | Their own organizer account | No | Yes |
 | Can run their own sales | No | Yes |
-| Their own Stripe payout | No | Yes |
+| Their own Square payout | No | Yes |
 | Appear in shared analytics | No | Yes |
 | Shared subscription billing | N/A | Yes: under workspace owner's Teams plan |
 
@@ -70,7 +70,7 @@ Invited organizers must already have a FindA.Sale account or create one when the
 
 **Not shared, stays per-organizer:**
 - **Sale revenue**: each organizer's sales and earnings are their own
-- **Stripe payouts**: each organizer connects their own Stripe account; payouts go directly to them, not to the workspace owner
+- **Square payouts**: each organizer connects their own Square account; payouts go directly to them, not to the workspace owner
 - **Individual sale management**: each organizer creates, edits, and runs their own sales independently
 - **Item inventory**: one organizer can't edit another organizer's items
 
@@ -114,7 +114,7 @@ There's no hard cap. The Teams plan is priced per workspace, not per seat.
 
 - [Add staff and set their permissions](/guides/add-staff)
 - [Choosing a plan: Simple, Pro, or Teams](/guides/choose-a-plan)
-- [Connect Stripe and receive your first payout](/guides/connect-stripe)`,
+- [Connect Square and receive your first payout](/guides/connect-square)`,
 };
 
 export default entry;

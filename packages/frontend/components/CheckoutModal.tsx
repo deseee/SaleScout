@@ -387,6 +387,19 @@ interface CheckoutModalProps {
   // them -- this is an additive branch, not a rewrite.
   bountySubmissionId?: string;
   bountyItemPrice?: number; // item.price in dollars -- bounty purchases are never auctions/have no buyer premium or shipping, so this is the whole charge
+  // Orphaned-PaymentIntent fix (2026-09-09, findasale-dev BUG MODE): the Stripe (non-Square)
+  // sibling of the Square branch above. bountyController.ts's completeBountyPurchase Stripe
+  // branch already creates the real PaymentIntent/Purchase for this submission before this
+  // modal ever opens; the caller (submissions.tsx) passes that PaymentIntent's clientSecret
+  // straight through here so this modal renders THAT PaymentIntent instead of falling into the
+  // generic itemId/loadIntent path below (which used to mint a SECOND, unrelated PaymentIntent
+  // via /stripe/create-payment-intent, orphaning the first). Deliberately NOT resolved via the
+  // existing `purchaseId` resume branch (GET /stripe/pending-payment/:id) below -- that branch
+  // has never been wired to any live page (confirmed via auctionJob.ts's 2026-09-09 knock-on
+  // note: its Stripe fallback payment-link email points at a page that has never invoked it) --
+  // so this fix supplies the already-known secret directly rather than becoming that branch's
+  // first, unverified caller on a real-money path.
+  bountyClientSecret?: string;
   organizerSquareOnboarded?: boolean;
   organizerSquareMerchantId?: string | null;
   organizerSquareLocationId?: string | null;
@@ -394,7 +407,7 @@ interface CheckoutModalProps {
   onSuccess: () => void;
 }
 
-const CheckoutModal = ({ itemId, purchaseId: initialPurchaseId, itemTitle, listingType, organizerName, saleId, shippingAvailable = false, shippingPrice = null, bountySubmissionId, bountyItemPrice, organizerSquareOnboarded, organizerSquareMerchantId, organizerSquareLocationId, onClose, onSuccess }: CheckoutModalProps) => {
+const CheckoutModal = ({ itemId, purchaseId: initialPurchaseId, itemTitle, listingType, organizerName, saleId, shippingAvailable = false, shippingPrice = null, bountySubmissionId, bountyItemPrice, bountyClientSecret, organizerSquareOnboarded, organizerSquareMerchantId, organizerSquareLocationId, onClose, onSuccess }: CheckoutModalProps) => {
   const { user } = useAuth();
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [itemPrice, setItemPrice] = useState(0);
@@ -442,7 +455,7 @@ const CheckoutModal = ({ itemId, purchaseId: initialPurchaseId, itemTitle, listi
   }, []);
 
   // Sprint 3: Coupon entry phase (shown before calling create-payment-intent)
-  const [started, setStarted] = useState(!!initialPurchaseId); // auction resumption skips coupon step
+  const [started, setStarted] = useState(!!initialPurchaseId || !!bountyClientSecret); // auction resumption / bounty-Stripe purchase both skip the coupon step
   const [couponInput, setCouponInput] = useState('');
 
   // Guest checkout (2026-07-18): email + name collected up front (before the PaymentIntent
@@ -498,6 +511,17 @@ const CheckoutModal = ({ itemId, purchaseId: initialPurchaseId, itemTitle, listi
 
   useEffect(() => {
     if (!started) return; // wait until user clicks "Continue to Pay"
+
+    // Orphaned-PaymentIntent fix (2026-09-09): bounty purchase, Stripe (non-Square) organizer.
+    // The real PaymentIntent + its clientSecret already exist (created by
+    // completeBountyPurchase before this modal opened) -- render it directly, skip loadIntent's
+    // network paths entirely. See the bountyClientSecret prop comment above for why this does
+    // NOT go through the initialPurchaseId/getPendingPayment resume branch below instead.
+    if (bountyClientSecret) {
+      setClientSecret(bountyClientSecret);
+      setItemPrice(bountyItemPrice ?? 0);
+      return;
+    }
 
     const loadIntent = async () => {
       try {
@@ -570,7 +594,7 @@ const CheckoutModal = ({ itemId, purchaseId: initialPurchaseId, itemTitle, listi
     };
 
     loadIntent();
-  }, [started, itemId, initialPurchaseId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [started, itemId, initialPurchaseId, bountyClientSecret, bountyItemPrice]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSuccess = () => {
     onSuccess();

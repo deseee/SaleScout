@@ -69,7 +69,7 @@ import schedule_and_visibility from './entries/schedule-and-visibility';
 import multi_location_hubs from './entries/multi-location-hubs';
 import retail_mode from './entries/retail-mode';
 import set_up_your_account from './entries/set-up-your-account';
-import connect_stripe from './entries/connect-stripe';
+import connect_square from './entries/connect-square';
 import choose_a_plan from './entries/choose-a-plan';
 import add_staff from './entries/add-staff';
 import connect_workspace from './entries/connect-workspace';
@@ -147,7 +147,7 @@ export const guides: GuideEntry[] = [
   multi_location_hubs,
   retail_mode,
   set_up_your_account,
-  connect_stripe,
+  connect_square,
   choose_a_plan,
   add_staff,
   connect_workspace,

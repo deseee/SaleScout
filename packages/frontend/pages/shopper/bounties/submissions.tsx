@@ -74,6 +74,24 @@ export default function SubmissionsPage() {
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [checkoutSubmission, setCheckoutSubmission] = useState<BountySubmission | null>(null);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  // Orphaned-PaymentIntent fix (2026-09-09, findasale-dev BUG MODE): completeBountyPurchase's
+  // Stripe branch already creates the real Purchase row + PaymentIntent for this submission on
+  // this very call. CheckoutModal's generic itemId path used to ignore that entirely and mint a
+  // SECOND, unrelated PaymentIntent via /stripe/create-payment-intent -- leaving the first
+  // PaymentIntent/Purchase pair permanently orphaned (never confirmed, eventually swept to FAILED
+  // by purchaseExpiryJob.ts, but never cleanly closed). Capturing clientSecret + purchaseId here
+  // and passing clientSecret to CheckoutModal as `bountyClientSecret` makes CheckoutModal render
+  // the SAME PaymentIntent directly instead of creating a second one -- one PaymentIntent, one
+  // Purchase row, for the entire Stripe bounty-purchase lifecycle. Deliberately NOT using
+  // CheckoutModal's existing `purchaseId` resume branch (GET /stripe/pending-payment/:id) to
+  // fetch this secret -- confirmed this session (see auctionJob.ts's 2026-09-09 knock-on note)
+  // that branch has never been wired to any live page and is unverified; passing the clientSecret
+  // we already have avoids being its first, untested caller on a real-money path. purchaseId is
+  // still threaded through for the post-payment "Done" redirect only. Square path is untouched:
+  // it never sets either (Square's Purchase row doesn't exist until the synchronous charge
+  // succeeds).
+  const [bountyPurchaseId, setBountyPurchaseId] = useState<string | null>(null);
+  const [bountyClientSecret, setBountyClientSecret] = useState<string | null>(null);
   useEffect(() => {
     loadSubmissions();
   }, [activeFilter]);
@@ -160,6 +178,11 @@ export default function SubmissionsPage() {
       setPurchasingId(submission.id);
       setCheckoutError(null);
       const response = await api.post(`/bounties/submissions/${submission.id}/purchase`);
+      // See bountyPurchaseId/bountyClientSecret comment above: this response already carries
+      // the real Purchase.id + PaymentIntent clientSecret for this submission -- capture both
+      // so CheckoutModal renders THAT PaymentIntent instead of minting a second, orphaned one.
+      setBountyPurchaseId(response.data?.purchaseId ?? null);
+      setBountyClientSecret(response.data?.clientSecret ?? null);
       setCheckoutSubmission(submission);
       setCheckoutOpen(true);
       showToast('Ready to complete purchase. Please proceed with payment.', 'info');
@@ -182,12 +205,16 @@ export default function SubmissionsPage() {
     setCheckoutOpen(false);
     setCheckoutSubmission(null);
     setCheckoutError(null);
+    setBountyPurchaseId(null);
+    setBountyClientSecret(null);
   };
 
   const handleCheckoutSuccess = () => {
     showToast('Purchase completed successfully!', 'success');
     setCheckoutOpen(false);
     setCheckoutSubmission(null);
+    setBountyPurchaseId(null);
+    setBountyClientSecret(null);
     loadSubmissions();
   };
   const isExpiringSoon = (expiresAt: string): boolean => {
@@ -451,6 +478,13 @@ export default function SubmissionsPage() {
       {checkoutOpen && checkoutSubmission && (
         <CheckoutModal
           itemId={checkoutSubmission.item.id}
+          // Orphaned-PaymentIntent fix (2026-09-09): bountyClientSecret makes CheckoutModal
+          // render THIS submission's real PaymentIntent directly instead of creating a second
+          // one via itemId. purchaseId is passed only for the post-payment "Done" redirect.
+          // Both are only ever set on the Stripe (non-Square) path -- see bountyPurchaseId /
+          // bountyClientSecret comment above.
+          purchaseId={bountyPurchaseId ?? undefined}
+          bountyClientSecret={bountyClientSecret ?? undefined}
           itemTitle={checkoutSubmission.item.title}
           organizerName={checkoutSubmission.organizer?.name}
           saleId={checkoutSubmission.item.saleId}

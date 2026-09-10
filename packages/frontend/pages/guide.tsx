@@ -28,12 +28,12 @@ const sections: Section[] = [
           A professional photo and welcoming bio help shoppers trust you before they ever visit a sale.
         </p>
 
-        <h3 className="text-xl font-semibold text-warm-800 dark:text-warm-200 mt-6">Connecting Stripe (Required for Payouts)</h3>
+        <h3 className="text-xl font-semibold text-warm-800 dark:text-warm-200 mt-6">Connecting Square (Required for Payouts)</h3>
         <p className="text-warm-700 dark:text-warm-300 leading-relaxed">
-          Before you can receive payments, connect your bank account through Stripe Connect.
-          Go to <strong>Settings → Payouts</strong> and click <strong>Connect Stripe</strong>.
-          This is a one-time setup that takes about 5 minutes. Stripe will verify your identity
-          and banking details before your first payout.
+          Before you can receive payments, connect your bank account through Square.
+          Go to <strong>Settings → Payments</strong> and click <strong>Connect Square</strong>.
+          This is a one-time setup that takes about 5 to 10 minutes, handled on Square's own
+          onboarding page. Square verifies your identity and banking details before your first payout.
         </p>
       </div>
     ),
@@ -211,14 +211,14 @@ const sections: Section[] = [
           a flat <strong>5%</strong>, set by FindA.Sale on every auction. Bidders see it on the sale page
           and on the bid form before they bid, and confirm it before paying. Worked example on a $200
           winning bid at the 10% platform rate: the buyer is charged <strong>$210.00</strong>, your
-          platform fee is <strong>$20.00</strong>, and you receive <strong>$180.00</strong> before Stripe
+          platform fee is <strong>$20.00</strong>, and you receive <strong>$180.00</strong> before Square
           processing. If you would rather your winner paid exactly their bid, turn on &ldquo;Cover the
           buyer&apos;s premium&rdquo; on the sale. The 5% then comes out of your payout, so you receive{' '}
           <strong>$170.00</strong> and the buyer is charged <strong>$200.00</strong>.
         </p>
         <p className="text-warm-700 dark:text-warm-300 leading-relaxed">
-          After the auction ends, we notify winners and process payments. Payouts arrive within 2–3
-          business days via your connected Stripe account.
+          After the auction ends, we notify winners and process payments. Payouts are deposited to
+          your connected Square account on a weekly schedule.
         </p>
       </div>
     ),
@@ -246,18 +246,13 @@ const sections: Section[] = [
     content: (
       <div className="space-y-4">
         <p className="text-warm-700 dark:text-warm-300 leading-relaxed">
-          Once Stripe Connect is configured, payouts happen automatically. Your share of each completed
-          sale is deposited to your connected bank account within 2–3 business days of each purchase.
+          Once Square is connected, payouts happen automatically. Your share of each completed
+          sale is deposited to your connected Square account on a weekly schedule.
           The 10% platform fee is deducted before payout.
         </p>
         <p className="text-warm-700 dark:text-warm-300 leading-relaxed">
-          <strong>Instant Payouts</strong>. Need funds sooner? Stripe's instant payout option lets
-          you withdraw your balance immediately for a small fee charged by Stripe. Visit your Stripe
-          dashboard to enable this option.
-        </p>
-        <p className="text-warm-700 dark:text-warm-300 leading-relaxed">
-          View your full payout history and pending balance at <strong>Settings → Payouts</strong>
-          in your FindA.Sale dashboard.
+          View your full payout history and pending balance at <strong>Settings → Payments</strong>
+          in your FindA.Sale dashboard, or in your Square dashboard directly.
         </p>
       </div>
     ),
@@ -347,46 +342,31 @@ const sections: Section[] = [
           than a payment issue at the table.
         </p>
 
-        <h3 className="text-xl font-semibold text-warm-800 dark:text-warm-200 mt-6">1. Confirm Your Stripe Account Is Ready</h3>
+        <h3 className="text-xl font-semibold text-warm-800 dark:text-warm-200 mt-6">1. Confirm Your Square Account Is Ready</h3>
         <p className="text-warm-700 dark:text-warm-300 leading-relaxed">
-          Go to your <strong>Earnings</strong> page. If you see a yellow banner asking you to complete
-          Stripe setup, do that first. No payments will go through until onboarding is finished.
-          You're ready when there are no setup banners and your Earnings page shows a connected payout method.
+          Go to <strong>Settings → Payments</strong>. If you see a banner saying your Square setup
+          isn't finished, complete it there first. No card payments will go through until it's done.
+          You're ready when you see a green &quot;Square Connected&quot; status and no setup banners.
         </p>
 
-        <h3 className="text-xl font-semibold text-warm-800 dark:text-warm-200 mt-6">2. Run the POS Test Transaction</h3>
+        <h3 className="text-xl font-semibold text-warm-800 dark:text-warm-200 mt-6">2. Walk Through the POS Flow Once</h3>
         <p className="text-warm-700 dark:text-warm-300 leading-relaxed">
           Open the{' '}
-          <Link href="/organizer/pos" className="text-amber-600 hover:underline font-medium">POS page</Link>,
-          select your sale, and tap <strong>"Run $1.00 Test Transaction"</strong> in the Pre-Sale Test card.
-          This sends a $1 charge through Stripe's test environment. No real money moves. When it succeeds,
-          the "POS open and test transaction done" item on your progress checklist automatically marks itself complete.
+          <Link href="/organizer/pos" className="text-amber-600 hover:underline font-medium">POS page</Link>{' '}
+          and run a quick walkthrough: search for an item, add it to the cart, and verify prices look
+          right. If your sale uses self-checkout QR codes, open one on your phone to confirm it loads
+          correctly. You're just confirming items load, prices are accurate, and the checkout screen
+          appears the way you expect.
         </p>
         <p className="text-warm-700 dark:text-warm-300 leading-relaxed">
-          If the test fails, double-check your Stripe account is fully onboarded and try again.
-          Still failing? Contact support before your sale day.
-        </p>
-
-        <h3 className="text-xl font-semibold text-warm-800 dark:text-warm-200 mt-6">3. Test Online Checkout (if using self-checkout QR codes)</h3>
-        <p className="text-warm-700 dark:text-warm-300 leading-relaxed">
-          Open the POS page for your sale and tap &quot;Test Online Checkout&quot;. You&apos;ll get a link and QR code. Click to open on desktop, or scan with your phone to test the real mobile experience. Use card <strong>4242 4242 4242 4242</strong> with any future expiry and any CVC. Your inventory won&apos;t change. The test is fully isolated.
-        </p>
-        <p className="text-warm-700 dark:text-warm-300 leading-relaxed mt-3">
-          If you&apos;re running an auction, tap &quot;Test Auction Checkout&quot; to verify the winner payment flow works the same way.
-        </p>
-
-        <h3 className="text-xl font-semibold text-warm-800 dark:text-warm-200 mt-6">4. Walk Through the POS Flow Once</h3>
-        <p className="text-warm-700 dark:text-warm-300 leading-relaxed">
-          Open the POS page and run a quick walkthrough: search for an item, add it to the cart, and
-          verify prices look right. You don't need to complete a real charge. You're just confirming
-          items load, prices are accurate, and the charge screen appears correctly.
+          Running into trouble even with your Square account showing Connected? Contact support before
+          your sale day.
         </p>
 
         <h3 className="text-xl font-semibold text-warm-800 dark:text-warm-200 mt-6">Pre-Sale Checklist</h3>
         <ul className="space-y-2 text-warm-700 dark:text-warm-300 mt-2">
           {[
-            'Stripe account fully connected (no yellow banners)',
-            'POS test transaction completed. Checklist task auto-checked',
+            'Square account fully connected (no setup banners)',
             'At least one item is priced and published',
             'QR codes printed and tested (if using self-checkout)',
             'Sale start time is correct (double-check timezone)',
@@ -399,46 +379,13 @@ const sections: Section[] = [
           ))}
         </ul>
 
-        <h3 className="text-xl font-semibold text-warm-800 dark:text-warm-200 mt-6">Test Card Numbers</h3>
+        <h3 className="text-xl font-semibold text-warm-800 dark:text-warm-200 mt-8">Card Readers and In-Person Payments</h3>
         <p className="text-warm-700 dark:text-warm-300 leading-relaxed">
-          Use these when testing checkout flows. Any future expiry date and any 3-digit CVC work with all test cards.
+          For in-person card payments at your sale, check the{' '}
+          <Link href="/organizer/pos" className="text-amber-600 hover:underline font-medium">POS page</Link>{' '}
+          for current card reader support and setup steps. Cash, Venmo, and Zelle are always available
+          as walk-up payment options.
         </p>
-        <div className="overflow-x-auto mt-2">
-          <table className="w-full text-sm text-warm-700 dark:text-warm-300 border-collapse">
-            <thead>
-              <tr className="border-b border-warm-200 dark:border-gray-700">
-                <th className="text-left py-2 pr-6 font-semibold">Card Number</th>
-                <th className="text-left py-2 font-semibold">Result</th>
-              </tr>
-            </thead>
-            <tbody>
-              {[
-                ['4242 4242 4242 4242', 'Payment succeeds'],
-                ['4000 0000 0000 0002', 'Payment declined'],
-                ['4000 0025 0000 3155', 'Requires authentication step'],
-              ].map(([card, result]) => (
-                <tr key={card} className="border-b border-warm-100 dark:border-gray-800">
-                  <td className="py-2 pr-6 font-mono text-xs">{card}</td>
-                  <td className="py-2">{result}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        <h3 className="text-xl font-semibold text-warm-800 dark:text-warm-200 mt-8">Optional: Physical Card Reader</h3>
-        <p className="text-warm-700 dark:text-warm-300 leading-relaxed">
-          FindA.Sale's POS supports two Stripe Terminal smart readers: the <strong>Stripe Reader S700</strong> and
-          the <strong>Stripe Reader S710</strong>. The S710 adds cellular connectivity. A good choice for outdoor
-          venues or anywhere Wi-Fi is spotty. Both accept chip, swipe, and contactless payments including Apple Pay
-          and Google Pay. Order at{' '}
-          <a href="https://stripe.com/terminal" target="_blank" rel="noopener noreferrer" className="text-amber-600 hover:underline font-medium">stripe.com/terminal</a>.
-        </p>
-        <p className="text-warm-700 dark:text-warm-300 leading-relaxed mt-3">
-          Because FindA.Sale is a web app, readers connect over the internet rather than Bluetooth. Your venue
-          needs a working Wi-Fi or cellular connection. Your Stripe account must be fully onboarded before
-          in-person card payments will process. If you're ordering a reader, allow a few days for delivery and
-          add reader setup to your pre-sale checklist.
-        </p>
-        </div>
       </div>
     ),
   },

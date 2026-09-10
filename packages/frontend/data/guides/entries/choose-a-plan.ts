@@ -6,7 +6,7 @@ const entry: GuideEntry = {
   audience: 'organizer',
   format: 'written',
   priority: 2,
-  relatedGuides: ['set-up-your-account', 'connect-stripe', 'add-staff'],
+  relatedGuides: ['set-up-your-account', 'connect-square', 'add-staff'],
   videoUrl: undefined,
   body: `Three plans, one platform fee. The plan you pick determines which tools you get, not what you pay per sale. Every plan charges the same 10% on sales.
 
@@ -65,7 +65,7 @@ Teams is the right choice when your operation outgrows one person. If you're han
 
 All three plans charge **10% on every sale**. This is the same rate regardless of which plan you're on. The fee covers payment processing, hosting, search indexing, and shopper notifications.
 
-The fee is deducted before your payout is calculated. If your auction brings in $2,500, your payout is $2,250 (before Stripe's processing fee, which is typically 2.9% + $0.30 per transaction).
+The fee is deducted before your payout is calculated. If your auction brings in $2,500, your payout is $2,250 (before Square's own processing fees).
 
 Auction sales carry one additional fee, paid by the winning bidder rather than by you: a 5% buyer's premium added to the winning bid at checkout. It does not change your 10%. On a $200 winning bid the buyer pays $210, your fee is $20, and you receive $180.
 
@@ -114,7 +114,7 @@ Not currently. You can cancel at any time and resubscribe later: your data stays
 ## Related guides
 
 - [Set up your organizer account](/guides/set-up-your-account)
-- [Connect Stripe and receive your first payout](/guides/connect-stripe)
+- [Connect Square and receive your first payout](/guides/connect-square)
 - [Add staff and set their permissions](/guides/add-staff)`,
 };
 
