@@ -19,6 +19,18 @@ interface BountySubmission {
     price?: number;
     photoUrls: string[];
     saleId?: string;
+    // Square migration Wave S2 #1 follow-up (2026-09-09): threaded through from
+    // getMySubmissions (bountyController.ts) so handleCompletePurchase can decide, BEFORE
+    // ever calling the purchase endpoint, whether this organizer is Square-onboarded --
+    // same item.sale.organizer relation the backend gates on, not the User-typed
+    // top-level `organizer` field below (which has no Square columns).
+    sale?: {
+      organizer?: {
+        squareOnboarded?: boolean;
+        squareMerchantId?: string | null;
+        squareLocationId?: string | null;
+      };
+    };
   };
   organizer: {
     id: string;
@@ -126,6 +138,24 @@ export default function SubmissionsPage() {
   };
 
   const handleCompletePurchase = async (submission: BountySubmission) => {
+    // Square migration Wave S2 #1 follow-up (2026-09-09): mirrors bountyController.ts's own
+    // organizerHasSquare gate exactly (squareOnboarded === true && !!squareMerchantId) so the
+    // frontend and backend can never disagree about which processor a given organizer uses.
+    const organizerHasSquare =
+      submission.item.sale?.organizer?.squareOnboarded === true &&
+      !!submission.item.sale?.organizer?.squareMerchantId;
+
+    if (organizerHasSquare) {
+      // Square's charge is a single synchronous call that REQUIRES a tokenized sourceId in
+      // the request body -- there is nothing to call yet. Open the modal directly; it
+      // tokenizes the card via the Web Payments SDK first, then POSTs sourceId to
+      // /bounties/submissions/:id/purchase itself once tokenization succeeds.
+      setCheckoutError(null);
+      setCheckoutSubmission(submission);
+      setCheckoutOpen(true);
+      return;
+    }
+
     try {
       setPurchasingId(submission.id);
       setCheckoutError(null);
@@ -424,6 +454,11 @@ export default function SubmissionsPage() {
           itemTitle={checkoutSubmission.item.title}
           organizerName={checkoutSubmission.organizer?.name}
           saleId={checkoutSubmission.item.saleId}
+          bountySubmissionId={checkoutSubmission.id}
+          bountyItemPrice={checkoutSubmission.item.price}
+          organizerSquareOnboarded={checkoutSubmission.item.sale?.organizer?.squareOnboarded}
+          organizerSquareMerchantId={checkoutSubmission.item.sale?.organizer?.squareMerchantId}
+          organizerSquareLocationId={checkoutSubmission.item.sale?.organizer?.squareLocationId}
           onClose={handleCheckoutClose}
           onSuccess={handleCheckoutSuccess}
         />

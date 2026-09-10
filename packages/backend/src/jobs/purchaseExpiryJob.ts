@@ -4,6 +4,7 @@ import { prisma } from '../lib/prisma';
 import { cronGuard } from '../utils/cronGuard';
 import { getStripe, getTestStripe } from '../utils/stripe';
 import { createNotification } from '../lib/notificationService';
+import { getSquareOrderPaymentStatus } from '../services/squareCheckoutLinkService'; // Square reconciliation follow-up (2026-09-09): reuses the shared Orders-API lookup built for posStrandedSaleReconcileCron.ts's Square branch -- see that file's own getSquareOrderPaymentStatus usage.
 
 /**
  * purchaseExpiryJob.ts
@@ -55,9 +56,31 @@ import { createNotification } from '../lib/notificationService';
  * candidates are grouped by PaymentIntent ID and verified against Stripe once per
  * PaymentIntent, then the flip applies to every PENDING row sharing that PaymentIntent.
  *
+ * Square reconciliation (added 2026-09-09, same-day follow-up to the squarePaymentLinkId/
+ * squareOrderId columns landing on Purchase): this job previously logged
+ * SQUARE-PENDING-SKIPPED and left every SQUARE-processor PENDING row untouched forever --
+ * that gap is now closed. Same evidence-first philosophy, same atomic conditional-updateMany
+ * race guard, grouped by squareOrderId instead of PaymentIntent ID, verified via
+ * squareCheckoutLinkService.ts's getSquareOrderPaymentStatus() (the same Orders-API lookup
+ * posStrandedSaleReconcileCron.ts's Square branch already uses -- no duplicated Square API
+ * call logic here). Square's Order.state has only three values (OPEN | COMPLETED | CANCELED):
+ *   - COMPLETED (paid: true) -> STRANDED-PAID safety net, same as Stripe's `succeeded`.
+ *     Flip PENDING -> PAID (+ squarePaymentId, mirroring squareWebhookController.ts's own
+ *     PAID-flip convention).
+ *   - CANCELED             -> Square's one genuine terminal non-paid state, the direct
+ *                             equivalent of Stripe's ABANDONED_STATUSES. Flip PENDING -> FAILED.
+ *   - OPEN (or unrecognized) -> Square has no richer sub-state than that (no
+ *                             requires_payment_method/requires_action equivalent -- a Quick Pay
+ *                             link is either still open, paid, or canceled). Left alone,
+ *                             re-checked next run, same posture as Stripe's IN_FLIGHT_STATUSES.
+ * Purchase has no organizerId of its own -- every current Square-checkout-link caller
+ * (auctionJob.ts / auctionService.ts) sets Purchase.saleId at creation time, so organizerId is
+ * resolved via Sale.organizerId (batch-fetched once per run, not per row).
+ *
  * Kill-switch: set PURCHASE_EXPIRY_RECLAIM_DISABLED=1 to make the job early-return
  * (rollback lever, matching the existing convention in invoiceExpiryJob.ts /
- * posStrandedSaleReconcileCron.ts).
+ * posStrandedSaleReconcileCron.ts). This kill-switch covers the Square reconciliation added
+ * above too -- there is no separate Square-only kill-switch.
  *
  * Threshold: PURCHASE_PENDING_EXPIRY_HOURS (default 2) -- a Purchase row is only a
  * candidate once it has been PENDING for longer than this many hours.
@@ -82,18 +105,16 @@ export const reclaimStalePurchases = async (): Promise<void> => {
       select: {
         id: true,
         stripePaymentIntentId: true,
-        // Square migration Wave S2 #2 (2026-09-09) knock-on fix: without this, every
-        // legitimate pending Square auction-win payment link (jobs/auctionJob.ts /
-        // services/auctionService.ts, both new Square branches) has no
-        // stripePaymentIntentId and fell into the noPi bucket below, which logs
-        // "needs manual review" every 10 minutes forever for a completely normal,
-        // working-as-intended state. `processor` lets that bucket split real
-        // Stripe anomalies (still "needs manual review") from expected-and-not-yet-
-        // reconcilable Square rows (see the noPi loop below) -- this job still does
-        // NOT attempt Square reconciliation itself (that needs a
-        // squarePaymentLinkId/squareOrderId column this dispatch flagged as a
-        // SCHEMA CHANGE NEEDED item, not added here).
+        // Square migration Wave S2 #2 (2026-09-09) knock-on fix, now RESOLVED (2026-09-09
+        // same-day follow-up): `processor` splits real Stripe anomalies (noPi bucket below)
+        // from Square rows (byOrderId/noOrder buckets below). This job now DOES reconcile
+        // Square rows directly -- see the Square reconciliation block in the header comment
+        // and the byOrderId loop below -- using the squarePaymentLinkId/squareOrderId columns
+        // that landed the same day this comment was originally written.
         processor: true,
+        saleId: true,
+        squareOrderId: true,
+        squarePaymentLinkId: true,
         isTestTransaction: true,
         userId: true,
         itemId: true,
@@ -110,8 +131,35 @@ export const reclaimStalePurchases = async (): Promise<void> => {
     // Stripe exactly once.
     const byPi = new Map<string, { ids: string[]; isTestTransaction: boolean; userIds: (string | null)[]; itemIds: (string | null)[] }>();
     const noPi: typeof candidates = [];
+    // Square reconciliation (2026-09-09 follow-up): grouped by squareOrderId, mirroring byPi's
+    // grouping-by-PaymentIntent-ID pattern exactly -- a Square Order (like a Stripe
+    // PaymentIntent) is the one thing worth asking the processor about once per candidate set,
+    // even though every current Square-checkout-link caller (auctionJob.ts / auctionService.ts)
+    // creates exactly one Order per Purchase row today.
+    const byOrderId = new Map<string, { ids: string[]; saleId: string | null; userIds: (string | null)[]; itemIds: (string | null)[] }>();
+    const noOrder: typeof candidates = [];
 
     for (const p of candidates) {
+      if (p.processor === 'SQUARE') {
+        if (!p.squareOrderId) {
+          noOrder.push(p);
+          continue;
+        }
+        const orderGroup = byOrderId.get(p.squareOrderId);
+        if (orderGroup) {
+          orderGroup.ids.push(p.id);
+          orderGroup.userIds.push(p.userId);
+          orderGroup.itemIds.push(p.itemId);
+        } else {
+          byOrderId.set(p.squareOrderId, {
+            ids: [p.id],
+            saleId: p.saleId,
+            userIds: [p.userId],
+            itemIds: [p.itemId],
+          });
+        }
+        continue;
+      }
       if (!p.stripePaymentIntentId) {
         noPi.push(p);
         continue;
@@ -132,21 +180,18 @@ export const reclaimStalePurchases = async (): Promise<void> => {
     }
 
     for (const p of noPi) {
-      if (p.processor === 'SQUARE') {
-        // Square migration Wave S2 #2 (2026-09-09): expected state, not an anomaly --
-        // a pending Square payment link (auction winner pays later) has no
-        // stripePaymentIntentId by design. This job has no Square-side reconciliation
-        // yet (needs a squarePaymentLinkId/squareOrderId column + a Square GetPayment/
-        // SearchOrders lookup -- flagged as a real follow-up, not built here), so it
-        // just logs at info level and leaves the row PENDING for a future reconcile
-        // pass -- no false "needs manual review" alarm.
-        console.log(`[purchaseExpiryJob] SQUARE-PENDING-SKIPPED purchase=${p.id} createdAt=${p.createdAt.toISOString()} -- pending Square payment link, no reconciliation mechanism built yet. Left PENDING.`);
-        continue;
-      }
       // No PaymentIntent at all -- no Stripe ground truth to verify against (should be
       // rare; every checkout path creates the PI before the Purchase row). Log for
       // manual review, mirroring invoiceExpiryJob.ts's NO-SESSION-SKIPPED branch.
       console.warn(`[purchaseExpiryJob] NO-PI-SKIPPED purchase=${p.id} createdAt=${p.createdAt.toISOString()} -- expired PENDING with no stripePaymentIntentId. NOT auto-reverting; needs manual review.`);
+    }
+
+    for (const p of noOrder) {
+      // A SQUARE-processor row with no squareOrderId shouldn't happen -- every path that sets
+      // processor='SQUARE' only does so once createSquareCheckoutLink actually succeeded (see
+      // auctionJob.ts / auctionService.ts), and that success path always returns an orderId.
+      // Log for manual review rather than silently dropping it, mirroring NO-PI-SKIPPED above.
+      console.warn(`[purchaseExpiryJob] NO-ORDER-SKIPPED purchase=${p.id} createdAt=${p.createdAt.toISOString()} -- expired PENDING SQUARE row with no squareOrderId. NOT auto-reverting; needs manual review.`);
     }
 
     let paidCount = 0;
@@ -261,7 +306,125 @@ export const reclaimStalePurchases = async (): Promise<void> => {
       }
     }
 
-    console.log(`[purchaseExpiryJob] Reclaimed ${paidCount} PAID (missed webhook), ${failedCount} FAILED (abandoned); ${inFlightSkipped} still in flight; ${noPi.length} NO-PI (needs manual review).`);
+    // Square reconciliation (2026-09-09): mirrors the byPi loop above -- evidence-first (ask
+    // Square's Orders API for the real state before touching the DB), same atomic
+    // conditional-updateMany race guard, same notification side effects on a stranded-paid
+    // find. See the header comment for the full OPEN/COMPLETED/CANCELED state-mapping rationale.
+    if (byOrderId.size > 0) {
+      // Batch-resolve organizerId once per distinct saleId (Purchase has no organizerId of its
+      // own; getSquareOrderPaymentStatus needs the organizer's own Square access token).
+      const saleIds = [...new Set([...byOrderId.values()].map((g) => g.saleId).filter((id): id is string => !!id))];
+      const sales = saleIds.length > 0
+        ? await prisma.sale.findMany({ where: { id: { in: saleIds } }, select: { id: true, organizerId: true } })
+        : [];
+      const organizerIdBySaleId = new Map(sales.map((s) => [s.id, s.organizerId]));
+
+      for (const [orderId, group] of byOrderId) {
+        const organizerId = group.saleId ? organizerIdBySaleId.get(group.saleId) : undefined;
+        if (!organizerId) {
+          console.warn(`[purchaseExpiryJob] SQUARE-NO-ORGANIZER-SKIPPED order=${orderId} purchaseIds=${group.ids.join(',')} -- could not resolve organizerId from saleId=${group.saleId ?? 'null'}. NOT auto-reverting; needs manual review.`);
+          continue;
+        }
+
+        try {
+          const statusResult = await getSquareOrderPaymentStatus({ organizerId, orderId });
+          if (!statusResult.ok) {
+            console.error(`[purchaseExpiryJob] SQUARE-STATUS-CHECK-FAILED order=${orderId} purchaseIds=${group.ids.join(',')} -- ${statusResult.code} -- ${statusResult.message}. Will retry next run.`);
+            continue;
+          }
+
+          if (statusResult.paid) {
+            // Square shows the order actually completed -- the payment.updated webhook
+            // (squareWebhookController.ts) was missed/delayed. Safety net only, same posture
+            // as the Stripe `succeeded` branch above: does NOT replay stock-decrement/eBay-sync
+            // side effects.
+            const result = await prisma.purchase.updateMany({
+              where: { squareOrderId: orderId, status: 'PENDING' },
+              data: { status: 'PAID', squarePaymentId: statusResult.paymentId ?? null },
+            });
+            if (result.count > 0) {
+              paidCount += result.count;
+              const msg = `[purchaseExpiryJob] SQUARE-STRANDED-PAID-RECLAIMED order=${orderId} rows=${result.count} purchaseIds=${group.ids.join(',')} -- Square shows COMPLETED but still PENDING past ${PENDING_EXPIRY_HOURS}h (webhook missed). Flipped to PAID. NOTE: does not replay stock-decrement/eBay-sync side effects -- verify downstream state if this fires often.`;
+              console.error(msg);
+              try { Sentry.captureMessage(msg, 'error'); } catch { /* Sentry may not be initialized */ }
+
+              const strandedItemIds = [...new Set(group.itemIds.filter((iid): iid is string => !!iid))];
+              const itemInfo = strandedItemIds.length > 0
+                ? await prisma.item.findMany({
+                    where: { id: { in: strandedItemIds } },
+                    select: { id: true, title: true, sale: { select: { organizer: { select: { userId: true } } } } },
+                  })
+                : [];
+              const itemInfoById = new Map(itemInfo.map((i) => [i.id, i]));
+
+              const notifiedOrganizers = new Set<string>();
+              for (let i = 0; i < group.ids.length; i++) {
+                const userId = group.userIds[i];
+                const itemId = group.itemIds[i];
+                const info = itemId ? itemInfoById.get(itemId) : undefined;
+                const itemTitle = info?.title || 'your item';
+
+                if (userId) {
+                  createNotification({
+                    userId,
+                    type: 'purchase_reclaimed_paid',
+                    title: 'Payment confirmed',
+                    body: `Good news -- your payment for "${itemTitle}" went through. There was a brief delay confirming it, but your purchase is now marked paid.`,
+                    link: itemId ? `/items/${itemId}` : undefined,
+                    channel: 'OPERATIONAL',
+                    sendEmail: true,
+                  }).catch((err: unknown) => console.error(`[purchaseExpiryJob] Failed to notify buyer ${userId} for order=${orderId}:`, err));
+                }
+
+                const organizerUserId = info?.sale?.organizer?.userId;
+                if (organizerUserId && !notifiedOrganizers.has(organizerUserId)) {
+                  notifiedOrganizers.add(organizerUserId);
+                  createNotification({
+                    userId: organizerUserId,
+                    type: 'purchase_reclaimed_paid_organizer',
+                    title: 'A delayed payment was just confirmed. Please verify your listing.',
+                    body: `A payment for "${itemTitle}" was confirmed after a delay in our system. Please double-check this item's stock and any connected marketplace listings (eBay, Facebook, etc.) to make sure they reflect the sale correctly.`,
+                    link: itemId ? `/items/${itemId}` : undefined,
+                    channel: 'OPERATIONAL',
+                    sendEmail: true,
+                  }).catch((err: unknown) => console.error(`[purchaseExpiryJob] Failed to notify organizer ${organizerUserId} for order=${orderId}:`, err));
+                }
+              }
+            }
+          } else if (statusResult.state === 'CANCELED') {
+            const result = await prisma.purchase.updateMany({
+              where: { squareOrderId: orderId, status: 'PENDING' },
+              data: { status: 'FAILED' },
+            });
+            if (result.count > 0) {
+              failedCount += result.count;
+              console.log(`[purchaseExpiryJob] SQUARE-EXPIRED-RECLAIMED order=${orderId} squareState=${statusResult.state} rows=${result.count} purchaseIds=${group.ids.join(',')} -- abandoned past ${PENDING_EXPIRY_HOURS}h. Flipped to FAILED.`);
+
+              for (let i = 0; i < group.ids.length; i++) {
+                const userId = group.userIds[i];
+                const itemId = group.itemIds[i];
+                if (!userId) continue;
+                await createNotification({
+                  userId,
+                  type: 'purchase_expired',
+                  title: 'Checkout not completed',
+                  body: 'Your checkout was not completed in time, so the payment attempt was cancelled. If you still want this item, you can try again.',
+                  link: itemId ? `/items/${itemId}` : undefined,
+                  channel: 'OPERATIONAL',
+                }).catch(err => console.error(`[purchaseExpiryJob] Failed to notify user ${userId} for order=${orderId}:`, err));
+              }
+            }
+          } else {
+            inFlightSkipped += group.ids.length;
+            console.log(`[purchaseExpiryJob] SQUARE-IN-FLIGHT-SKIPPED order=${orderId} squareState=${statusResult.state} rows=${group.ids.length} -- not a terminal state yet, retrying next run.`);
+          }
+        } catch (err: any) {
+          console.error(`[purchaseExpiryJob] Failed to reconcile Square order ${orderId} (purchaseIds=${group.ids.join(',')}) -- will retry next run:`, err?.message ?? err);
+        }
+      }
+    }
+
+    console.log(`[purchaseExpiryJob] Reclaimed ${paidCount} PAID (missed webhook), ${failedCount} FAILED (abandoned); ${inFlightSkipped} still in flight; ${noPi.length} NO-PI (needs manual review); ${noOrder.length} SQUARE NO-ORDER (needs manual review).`);
   } catch (error) {
     console.error('[purchaseExpiryJob] Error:', error);
   }

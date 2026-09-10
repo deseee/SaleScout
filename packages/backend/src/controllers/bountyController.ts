@@ -438,6 +438,20 @@ export const getMySubmissions = async (req: AuthRequest, res: Response) => {
             price: true,
             saleId: true,
             photoUrls: true,
+            // Square migration Wave S2 #1 follow-up (2026-09-09): the frontend needs to know
+            // BEFORE opening CheckoutModal whether this bounty's organizer is Square-onboarded,
+            // so it can tokenize via the Web Payments SDK first instead of the blind
+            // call-purchase-then-open-Stripe-Elements sequence the Stripe path uses. Same
+            // relation path (item.sale.organizer) completeBountyPurchase itself gates on --
+            // NOT the top-level BountySubmission.organizer below, which is a User record with
+            // no Square columns of its own (see schema.prisma Organizer model).
+            sale: {
+              select: {
+                organizer: {
+                  select: { squareOnboarded: true, squareMerchantId: true, squareLocationId: true },
+                },
+              },
+            },
           },
         },
         organizer: { select: { id: true, name: true } },

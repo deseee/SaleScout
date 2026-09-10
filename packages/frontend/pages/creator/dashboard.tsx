@@ -36,10 +36,21 @@ interface StripeStatus {
   detailsSubmitted: boolean;
 }
 
+// 2026-09-09: Stripe's platform account is permanently closed for new payment
+// accounts (see backend stripeController.ts createConnectAccount --
+// S-STRIPE-SQUARE-ONBOARDING-GUARD). No Square equivalent exists yet for the
+// Creator/referral payout flow -- that's a separately scoped follow-up, not
+// built here. This message covers both the guaranteed-409 "brand new account"
+// case and any other failure from the "existing incomplete account" path below.
+const STRIPE_UNAVAILABLE_MESSAGE =
+  "Payouts through Stripe aren't available right now. We're switching to a new payment provider for creator payouts \u2014 check back soon.";
+
 const CreatorDashboard = () => {
   const router = useRouter();
   const { user, isLoading } = useAuth();
   const [activeTab, setActiveTab] = useState<'analytics' | 'settings'>('analytics');
+  const [connectError, setConnectError] = useState<string | null>(null);
+  const [connecting, setConnecting] = useState(false);
 
   // Fetch creator affiliate stats
   const {
@@ -100,9 +111,28 @@ const CreatorDashboard = () => {
     );
   }
 
-  const handleConnectStripe = () => {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
-    window.location.href = `${apiUrl}/stripe/create-connect-account`;
+  // 2026-09-09 fix: this used to be a raw window.location.href GET navigation to
+  // /stripe/create-connect-account -- a POST-only route (see routes/stripe.ts) --
+  // which already 404'd ("Cannot GET") before ever reaching the backend's Stripe
+  // logic, and also bypassed the api client's cookie/CSRF handling. Now calls the
+  // real endpoint correctly and handles both the expected 409 (Stripe closed for
+  // new accounts) and any other failure with an honest inline message instead of
+  // a raw browser error page.
+  const handleConnectStripe = async () => {
+    setConnecting(true);
+    setConnectError(null);
+    try {
+      const response = await api.post('/stripe/create-connect-account');
+      if (response.data?.url) {
+        window.location.href = response.data.url;
+        return;
+      }
+      setConnectError(STRIPE_UNAVAILABLE_MESSAGE);
+    } catch (err: any) {
+      setConnectError(err?.response?.data?.message || STRIPE_UNAVAILABLE_MESSAGE);
+    } finally {
+      setConnecting(false);
+    }
   };
 
   return (
@@ -263,15 +293,9 @@ const CreatorDashboard = () => {
 
                     {stripeStatus?.needsSetup ? (
                       <div className="bg-warm-50 dark:bg-gray-900 border border-warm-200 dark:border-gray-700 rounded p-4">
-                        <p className="text-warm-700 dark:text-warm-300 mb-4">
-                          Connect your Stripe account to receive payouts for your referrals.
+                        <p className="text-warm-700 dark:text-warm-300">
+                          {STRIPE_UNAVAILABLE_MESSAGE}
                         </p>
-                        <button
-                          onClick={handleConnectStripe}
-                          className="bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-6 rounded transition-colors"
-                        >
-                          Connect Stripe
-                        </button>
                       </div>
                     ) : stripeStatus?.onboarded ? (
                       <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded p-4">
@@ -294,10 +318,14 @@ const CreatorDashboard = () => {
                         </p>
                         <button
                           onClick={handleConnectStripe}
-                          className="bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-2 px-6 rounded transition-colors text-sm"
+                          disabled={connecting}
+                          className="bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-2 px-6 rounded transition-colors text-sm disabled:opacity-60 disabled:cursor-not-allowed"
                         >
-                          Complete Setup
+                          {connecting ? 'Checking...' : 'Complete Setup'}
                         </button>
+                        {connectError && (
+                          <p className="text-yellow-800 text-sm mt-3">{connectError}</p>
+                        )}
                       </div>
                     )}
                   </div>

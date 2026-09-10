@@ -11,6 +11,7 @@ import api from '../lib/api';
 import { formatBuyerPremiumPct, AUCTION_BUYER_PREMIUM_LABEL } from '../lib/platformFees';
 import AccessibleModal from './AccessibleModal';
 import { useAuth } from './AuthContext';
+import { SquarePaymentRequestForm } from './SquarePaymentRequestForm';
 
 // Lazy-initialize Stripe on client-side only to avoid SSR errors
 let stripePromise: Promise<Stripe | null> | null = null;
@@ -374,11 +375,26 @@ interface CheckoutModalProps {
   // only ever honored there when !isAuctionItem && item.shippingAvailable && item.shippingPrice != null).
   shippingAvailable?: boolean;
   shippingPrice?: number | null;
+  // Square migration Wave S2 #1 follow-up (2026-09-09): bounty-purchase routing. Presence of
+  // bountySubmissionId signals "this checkout is a bounty purchase" -- when the organizer is
+  // ALSO Square-onboarded, CheckoutModal skips the generic itemId/loadIntent/Stripe-Elements
+  // path entirely (that path calls /stripe/create-payment-intent, which has no Square
+  // equivalent) and instead tokenizes via the same Web Payments SDK component POS payment
+  // requests already use (SquarePaymentRequestForm), then POSTs sourceId directly to
+  // bountyController.ts's completeBountyPurchase. Every other CheckoutModal caller
+  // (sales/[id].tsx, items/[id].tsx, vendor-booth, organizer/plan, auction resumption) never
+  // passes these props, so the existing itemId/purchaseId Stripe flow below is untouched for
+  // them -- this is an additive branch, not a rewrite.
+  bountySubmissionId?: string;
+  bountyItemPrice?: number; // item.price in dollars -- bounty purchases are never auctions/have no buyer premium or shipping, so this is the whole charge
+  organizerSquareOnboarded?: boolean;
+  organizerSquareMerchantId?: string | null;
+  organizerSquareLocationId?: string | null;
   onClose: () => void;
   onSuccess: () => void;
 }
 
-const CheckoutModal = ({ itemId, purchaseId: initialPurchaseId, itemTitle, listingType, organizerName, saleId, shippingAvailable = false, shippingPrice = null, onClose, onSuccess }: CheckoutModalProps) => {
+const CheckoutModal = ({ itemId, purchaseId: initialPurchaseId, itemTitle, listingType, organizerName, saleId, shippingAvailable = false, shippingPrice = null, bountySubmissionId, bountyItemPrice, organizerSquareOnboarded, organizerSquareMerchantId, organizerSquareLocationId, onClose, onSuccess }: CheckoutModalProps) => {
   const { user } = useAuth();
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [itemPrice, setItemPrice] = useState(0);
@@ -560,6 +576,40 @@ const CheckoutModal = ({ itemId, purchaseId: initialPurchaseId, itemTitle, listi
     onSuccess();
   };
 
+  // Square migration Wave S2 #1 follow-up (2026-09-09): mirrors bountyController.ts's own
+  // organizerHasSquare gate exactly (squareOnboarded === true && !!squareMerchantId) --
+  // frontend and backend must never disagree about which processor is in play.
+  const isBountySquare = !!bountySubmissionId && organizerSquareOnboarded === true && !!organizerSquareMerchantId;
+  const [squareSubmitting, setSquareSubmitting] = useState(false);
+  const [squareError, setSquareError] = useState<string | null>(null);
+  const [squareSuccess, setSquareSuccess] = useState(false);
+
+  // Called once SquarePaymentRequestForm's card.tokenize() succeeds (sourceId in hand).
+  // Square's CreatePayment on the backend is synchronous -- completeBountyPurchase's Square
+  // branch charges the card, deducts/awards XP, and marks the submission PURCHASED all in
+  // this one call, returning { squarePaymentId, status, ... } with NO clientSecret and no
+  // further client-side confirmation step (unlike the Stripe branch's PaymentIntent flow).
+  // Success is keyed off squarePaymentId being present, not off a specific `status` string
+  // value -- read directly from bountyController.ts: the response's `status` field is the
+  // BountySubmission's own status ('PURCHASED'), not a separate 'PAID' payment-status enum.
+  const handleSquareTokenized = async (sourceId: string) => {
+    setSquareSubmitting(true);
+    setSquareError(null);
+    try {
+      const response = await api.post(`/bounties/submissions/${bountySubmissionId}/purchase`, { sourceId });
+      if (response.data?.squarePaymentId) {
+        setSquareSuccess(true);
+      } else {
+        setSquareError('Payment did not complete. Please try again.');
+      }
+    } catch (err: any) {
+      const msg = err.response?.data?.message || 'Payment failed. Please try again.';
+      setSquareError(msg);
+    } finally {
+      setSquareSubmitting(false);
+    }
+  };
+
   const isOpen = true; // This modal is shown conditionally by parent
 
   return (
@@ -580,6 +630,93 @@ const CheckoutModal = ({ itemId, purchaseId: initialPurchaseId, itemTitle, listi
         </button>
       </div>
 
+      {isBountySquare ? (
+        // Square migration Wave S2 #1 follow-up (2026-09-09): bounty purchase, Square-onboarded
+        // organizer. Skips the generic itemId/loadIntent/Stripe-Elements path entirely --
+        // there is no clientSecret to fetch here, and no coupon/guest pre-step applies (this
+        // endpoint requires an authenticated bounty owner and has no coupon support).
+        <div>
+          {squareSuccess ? (
+            <div className="text-center">
+              <div className="mb-4 p-4 bg-green-50 rounded-lg border border-green-200">
+                <p className="text-3xl mb-2">✅</p>
+                <p className="text-lg font-bold text-green-900 mb-1">Order Confirmed!</p>
+                <p className="text-xs text-green-700 mb-3">Your payment has been processed successfully.</p>
+              </div>
+
+              <div className="mb-4 p-4 bg-warm-50 rounded-lg text-left space-y-3">
+                <div>
+                  <p className="text-xs text-warm-500">Item</p>
+                  <p className="font-semibold text-warm-900 dark:text-warm-100">{itemTitle}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-warm-500">Total Paid</p>
+                  <p className="text-lg font-bold text-warm-900 dark:text-warm-100">${(bountyItemPrice ?? 0).toFixed(2)}</p>
+                </div>
+              </div>
+
+              {organizerName && (
+                <p className="text-xs text-warm-600 mb-4 leading-relaxed">
+                  This purchase was made directly with <strong>{organizerName}</strong> and processed
+                  securely by Square. If you have any questions about your order &mdash; pickup,
+                  condition, timing &mdash; {organizerName} is who to contact first.
+                  {' '}FindA.Sale is here if you need help finding them or navigating the platform.
+                </p>
+              )}
+
+              <button
+                onClick={handleSuccess}
+                className="w-full py-2 px-4 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded"
+              >
+                Done
+              </button>
+            </div>
+          ) : (
+            <>
+              <div className="mb-4 p-3 bg-warm-50 rounded-lg">
+                <p className="text-sm text-warm-600">Item</p>
+                <p className="font-semibold text-warm-900 dark:text-warm-100">{itemTitle}</p>
+                <div className="flex justify-between font-bold text-warm-900 dark:text-warm-100 border-t border-warm-300 pt-2 mt-2 text-sm">
+                  <span>Total Due</span>
+                  <span>${(bountyItemPrice ?? 0).toFixed(2)}</span>
+                </div>
+              </div>
+
+              {squareError && (
+                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
+                  <p className="mb-2">{squareError}</p>
+                  <button
+                    type="button"
+                    onClick={() => setSquareError(null)}
+                    className="text-xs underline text-red-600 hover:text-red-800 font-medium"
+                  >
+                    Try Again
+                  </button>
+                </div>
+              )}
+
+              <SquarePaymentRequestForm
+                requestId={bountySubmissionId!}
+                totalAmountCents={Math.round((bountyItemPrice ?? 0) * 100)}
+                squareLocationId={organizerSquareLocationId ?? null}
+                onSuccess={handleSquareTokenized}
+                onError={setSquareError}
+                isProcessing={squareSubmitting}
+              />
+
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={squareSubmitting}
+                className="w-full mt-3 py-2 px-4 border border-warm-300 rounded text-warm-700 hover:bg-warm-50 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+            </>
+          )}
+        </div>
+      ) : (
+        <>
       {/* Guest contact info (guests only) + Sprint 3 coupon entry (accounts only):
           shown before payment form loads. Coupons are per-account XP rewards, so a guest
           never sees that field; a logged-in buyer never sees the guest fields. */}
@@ -859,6 +996,8 @@ const CheckoutModal = ({ itemId, purchaseId: initialPurchaseId, itemTitle, listi
               />
             </Elements>
           )}
+        </>
+      )}
         </>
       )}
     </AccessibleModal>
