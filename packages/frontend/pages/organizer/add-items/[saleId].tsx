@@ -2493,7 +2493,18 @@ const AddItemsDetailPage = () => {
                 addingToItemIdRef.current = null;
                 setCameraOpen(false);
               }}
-              maxPhotos={captureMode === 'rapidfire' ? maxPhotosPerItem : 5}
+              // Bug fix (2026-09-10): rapidfire mode used to pass maxPhotosPerItem
+              // (Feature #75's per-ITEM tier photo cap, e.g. 5 for SIMPLE) into RapidCapture's
+              // maxPhotos prop, which it checks as photos.length >= maxPhotos in the isRapidfire
+              // branch. But in rapidfire mode each capture creates a NEW item (see onPhotoCapture
+              // below), so `photos` there is a running total of items captured this camera
+              // session, never reset until mode switch -- not "photos of one item". That mismatch
+              // silently disabled (opacity 0.5, unclickable) the shutter after only
+              // maxPhotosPerItem items, breaking rapidfire's whole point of shooting many items
+              // in a row. Regular mode is unaffected: it gates on the separate MAX_REGULAR=5
+              // constant inside RapidCapture, not this prop. Do not reintroduce a tier-based
+              // value here for rapidfire.
+              maxPhotos={captureMode === 'rapidfire' ? Infinity : 5}
               mode={captureMode}
               onModeChange={setCaptureMode}
               rapidItems={rapidItems}
