@@ -20,6 +20,19 @@ import {
 } from '../services/squarePaymentService'; // Square migration Wave S2 #1 (2026-09-09): additive Square branch, see completeBountyPurchase
 import { assertSaleCanAcceptPayment } from '../services/paymentEligibilityService'; // BUG FIX (2026-09-09, findasale-dev BUG MODE): completeBountyPurchase's Stripe branch was skipping this shared sale-status / Stripe-Connect-onboarding gate that createPaymentIntent/createCartCheckoutSession (stripeController.ts) already enforce (2026-08-27 carding incident). Stripe-specific fields -- used ONLY in the Stripe branch below. Square eligibility is governed separately (organizerHasSquare + resolveOrganizerSquareAccessToken), so this must not run for Square-onboarded organizers who have no live Stripe Connect account at all.
 import { assertCheckoutAllowed, CheckoutGuardError } from '../services/checkoutGuard'; // S1072 Finding #4 collusion/wash-trade guard -- BUG FIX (2026-09-09): was missing from BOTH processor branches here. Identity-based (buyer vs. organizer fingerprints), not Stripe-specific, so added once, shared, before the Square/Stripe branch split.
+import * as Sentry from '@sentry/node';
+// BUG FIX (2026-09-09, findasale-dev BUG MODE): completeBountyPurchase's Square branch never
+// marked the purchased Item SOLD or decremented its stock -- every other purchase path in this
+// codebase (stripeController.ts Standard Purchase + the new BOUNTY_SUBMISSION webhook branch,
+// posPaymentController.ts, squarePaymentController.ts, ebaySoldSyncCron.ts, etc.) calls
+// sellItemUnits (itemStockService.ts) for exactly this. Same imports the generic Square/Stripe
+// purchase flows already use for the fully-sold-out / partial-sale marketplace hooks, so a
+// bounty-fulfillment Item is kept in sync with eBay/Shopify/Facebook exactly like any other Item.
+import { sellItemUnits, InsufficientStockError } from '../services/itemStockService';
+import { syncMarketplaceStock } from '../services/marketplaceStockSyncService';
+import { markShopifyItemSold } from '../services/shopifyService';
+import { endEbayListingIfExists } from './ebayController';
+import { notifyFacebookExportedItemSold } from '../services/facebookNudgeService';
 
 const stripe = () => getStripe();
 
@@ -999,6 +1012,58 @@ export const completeBountyPurchase = async (req: AuthRequest, res: Response) =>
           buyerCardFingerprint: chargeResult.cardFingerprint ?? undefined,
         },
       });
+
+      // BUG FIX (2026-09-09, findasale-dev BUG MODE, Item.status SOLD gap): the purchased Item
+      // was never marked SOLD or its stock decremented -- charge succeeded and the submission
+      // flipped to PURCHASED above, but Item.status/stockSold never moved, so the item stayed
+      // visible/available everywhere else in the app. Placed AFTER the Square charge succeeded
+      // AND the submission was already flipped to PURCHASED (this function only runs once per
+      // request -- Square's charge itself is idempotency-keyed above via buildSquareIdempotencyKey,
+      // so a client retry after a successful charge would fail Square's own idempotency check
+      // before ever reaching this line again; there is no webhook-retry double-fire risk here the
+      // way the async Stripe branch has, which is why that branch's guard is the bountySubmission
+      // .status === 'PURCHASED' check instead). InsufficientStockError is caught non-fatal
+      // (mirrors every other sellItemUnits call site, e.g. squarePaymentController.ts): Square has
+      // already captured real money by this point, so a rare stock race must never surface as a
+      // 500 to a buyer who already paid.
+      let bountyFullySoldOut = false;
+      let bountyRemainingStock: number | undefined;
+      try {
+        ({ fullySoldOut: bountyFullySoldOut, remainingStock: bountyRemainingStock } = await sellItemUnits(submission.itemId, 1));
+      } catch (stockErr: any) {
+        if (stockErr instanceof InsufficientStockError) {
+          console.error(`[completeBountyPurchase][square] Stock race on item ${submission.itemId}: Square payment ${chargeResult.paymentId} captured but item already sold out -- needs manual review.`, stockErr.message);
+          try {
+            Sentry.captureMessage(
+              `[completeBountyPurchase][square] Stock race needs review: paymentId=${chargeResult.paymentId} itemId=${submission.itemId} submissionId=${submissionId}`,
+              'error'
+            );
+          } catch {
+            // Sentry may not be initialized
+          }
+        } else {
+          throw stockErr;
+        }
+      }
+
+      // Mirrors the generic purchase flows' fully-sold-out / partial-sale marketplace hooks -- a
+      // bounty-fulfillment item is a regular Item row and can be cross-listed on eBay/Shopify
+      // exactly like any other, so it must be removed/revised there too once sold via this path.
+      if (bountyFullySoldOut) {
+        markShopifyItemSold(submission.itemId).catch(err =>
+          console.error('[completeBountyPurchase][square] Shopify markSold failed:', err)
+        );
+        endEbayListingIfExists(submission.itemId).catch(err =>
+          console.error('[completeBountyPurchase][square] eBay withdraw failed:', err)
+        );
+        notifyFacebookExportedItemSold(submission.itemId).catch(err =>
+          console.warn(`[completeBountyPurchase][square] FB nudge failed for item ${submission.itemId}:`, err.message)
+        );
+      } else if (bountyRemainingStock !== undefined) {
+        syncMarketplaceStock(submission.itemId, { fullySoldOut: false, remainingStock: bountyRemainingStock }).catch(err =>
+          console.error('[completeBountyPurchase][square] eBay ReviseQty sync failed for item', submission.itemId, err)
+        );
+      }
 
       // Step 7 (Square): Notify organizer of purchase -- identical call to the Stripe branch's
       // Step 7 below.

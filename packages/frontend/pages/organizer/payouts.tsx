@@ -42,7 +42,14 @@ const OrganizerPayoutsPage = () => {
     queryKey: ['stripe-balance'],
     queryFn: async () => {
       const res = await api.get('/stripe/balance');
-      return res.data as { available: number; pending: number };
+      // Stripe-to-Square changeover fix (2026-09-09): `processor`/`message` added so a
+      // Square-onboarded organizer gets an honest explanation instead of Stripe-only numbers.
+      return res.data as {
+        processor: 'STRIPE' | 'SQUARE';
+        available: number | null;
+        pending: number | null;
+        message?: string;
+      };
     },
     enabled: !!user?.id,
   });
@@ -51,7 +58,13 @@ const OrganizerPayoutsPage = () => {
     queryKey: ['payout-schedule'],
     queryFn: async () => {
       const res = await api.get('/stripe/payout-schedule');
-      return res.data as { interval: Interval; weeklyAnchor: string | null; monthlyAnchor: number | null };
+      return res.data as {
+        processor: 'STRIPE' | 'SQUARE';
+        interval: Interval | null;
+        weeklyAnchor: string | null;
+        monthlyAnchor: number | null;
+        message?: string;
+      };
     },
     enabled: !!user?.id,
   });
@@ -64,7 +77,11 @@ const OrganizerPayoutsPage = () => {
     purchaseDate: string;
     salePrice: number;
     platformFee: number;
-    stripeFee: number;
+    // Processor-fee mislabeling fix (2026-09-09): fee is now per-row processor-aware -- see
+    // payoutController.ts's EarningsBreakdownItem for the full rationale.
+    processor: 'STRIPE' | 'SQUARE';
+    processorFee: number;
+    processorFeeLabel: string;
     netPayout: number;
     // ADR-110 Decision Flag 3: buyer's ship-to address for a native-checkout physical
     // shipment. Undefined/absent when this purchase didn't request shipping.
@@ -82,7 +99,7 @@ const OrganizerPayoutsPage = () => {
   interface EarningsTotals {
     grossRevenue: number;
     totalPlatformFees: number;
-    totalStripeFees: number;
+    totalProcessorFees: number;
     totalNetPayout: number;
   }
 
@@ -138,7 +155,7 @@ const OrganizerPayoutsPage = () => {
   });
 
   useEffect(() => {
-    if (schedule && selectedInterval === null) setSelectedInterval(schedule.interval);
+    if (schedule?.interval && selectedInterval === null) setSelectedInterval(schedule.interval);
   }, [schedule]);
 
   // ─── Mutations ───────────────────────────────────────────────────────────────
@@ -244,6 +261,13 @@ const OrganizerPayoutsPage = () => {
   const currentInterval = selectedInterval ?? schedule?.interval ?? 'daily';
   const scheduleChanged = schedule && selectedInterval !== null && selectedInterval !== schedule.interval;
   const cashFeeBalance = earnings?.cashFeeBalance ?? 0;
+  // Stripe-to-Square changeover fix (2026-09-09): balance/schedule responses both carry
+  // `processor` once loaded -- either is a reliable source since both come from the same
+  // organizer. Square has no on-demand balance/schedule/payout equivalent (see
+  // payoutController.ts's file-header note), so isSquareOnly gates the Stripe-only controls
+  // below to an honest explanatory message instead of Stripe-specific numbers/forms.
+  const processor: 'STRIPE' | 'SQUARE' | null = balance?.processor ?? schedule?.processor ?? null;
+  const isSquareOnly = processor === 'SQUARE';
 
   return (
     <>
@@ -290,10 +314,12 @@ const OrganizerPayoutsPage = () => {
           {/* Balance card */}
           <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
             <h2 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">
-              Stripe Balance
+              {isSquareOnly ? 'Square Payouts' : 'Stripe Balance'}
             </h2>
             {balanceLoading ? (
               <p className="text-gray-400 text-sm">Loading balance…</p>
+            ) : isSquareOnly ? (
+              <p className="text-sm text-gray-600 dark:text-gray-300">{balance?.message}</p>
             ) : (
               <div className="flex gap-8">
                 <div>
@@ -356,13 +382,17 @@ const OrganizerPayoutsPage = () => {
             <h2 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">
               Automatic Payout Schedule
             </h2>
-            <p className="text-xs text-gray-400 mb-4">
-              How often Stripe automatically sends your available balance to your bank.
-              Choose <strong>Manual</strong> to only get paid when you request it below.
-            </p>
+            {!isSquareOnly && (
+              <p className="text-xs text-gray-400 mb-4">
+                How often Stripe automatically sends your available balance to your bank.
+                Choose <strong>Manual</strong> to only get paid when you request it below.
+              </p>
+            )}
 
             {scheduleLoading ? (
               <p className="text-gray-400 text-sm">Loading schedule…</p>
+            ) : isSquareOnly ? (
+              <p className="text-sm text-gray-600 dark:text-gray-300">{schedule?.message}</p>
             ) : (
               <>
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 mb-4">
@@ -399,6 +429,14 @@ const OrganizerPayoutsPage = () => {
             <h2 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">
               Request a Payout
             </h2>
+            {isSquareOnly ? (
+              <p className="text-sm text-gray-600 dark:text-gray-300">
+                On-demand payouts aren't available through FindA.Sale for Square accounts. Square
+                settles funds to your bank automatically — check your Square Dashboard for your
+                payout schedule and history.
+              </p>
+            ) : (
+              <>
             <p className="text-xs text-gray-400 mb-4">
               Send funds from your available balance to your bank right now.
               Instant payouts (1–30 min) require an eligible debit card on file in Stripe.
@@ -426,13 +464,13 @@ const OrganizerPayoutsPage = () => {
                   <button
                     type="button"
                     onClick={() => {
-                      const afterFee = Math.max(0, balance.available - cashFeeBalance);
+                      const afterFee = Math.max(0, (balance.available ?? 0) - cashFeeBalance);
                       setPayoutAmount(afterFee.toFixed(2));
                     }}
                     className="text-xs text-blue-600 hover:underline mt-1"
                   >
                     Use full available balance after fees (${
-                      Math.max(0, balance.available - cashFeeBalance).toFixed(2)
+                      Math.max(0, (balance.available ?? 0) - cashFeeBalance).toFixed(2)
                     })
                   </button>
                 )}
@@ -485,6 +523,8 @@ const OrganizerPayoutsPage = () => {
                 {createPayoutMutation.isPending ? 'Initiating payout…' : 'Request payout'}
               </button>
             </form>
+              </>
+            )}
           </div>
 
           {/* Earnings Breakdown: Feature #9 */}
@@ -503,7 +543,8 @@ const OrganizerPayoutsPage = () => {
               </a>
             </div>
             <p className="text-xs text-gray-400 mb-4">
-              Item-level breakdown of your sold items. Stripe fee is estimated at 2.9% + $0.30.
+              Item-level breakdown of your sold items. Processor fee is estimated per sale at
+              that sale's own processor's rate (Stripe or Square, both currently 2.9% + $0.30).
             </p>
 
             {earningsLoading ? (
@@ -517,7 +558,7 @@ const OrganizerPayoutsPage = () => {
                   {[
                     { label: 'Gross Revenue', value: earnings.totals.grossRevenue, color: 'text-gray-900 dark:text-gray-100' },
                     { label: 'Platform Fees', value: -earnings.totals.totalPlatformFees, color: 'text-red-600 dark:text-red-400' },
-                    { label: 'Est. Stripe Fees', value: -earnings.totals.totalStripeFees, color: 'text-orange-500 dark:text-orange-400' },
+                    { label: 'Est. Processor Fees', value: -earnings.totals.totalProcessorFees, color: 'text-orange-500 dark:text-orange-400' },
                     { label: 'Est. Net Payout', value: earnings.totals.totalNetPayout, color: 'text-green-600 dark:text-green-400' },
                   ].map(({ label, value, color }) => (
                     <div key={label} className="rounded-lg border border-gray-100 bg-gray-50 dark:bg-gray-900 p-3 text-center">
@@ -539,7 +580,7 @@ const OrganizerPayoutsPage = () => {
                         <th className="text-left text-xs font-medium text-gray-400 dark:text-gray-500 pb-2 pr-3 hidden md:table-cell">Date</th>
                         <th className="text-right text-xs font-medium text-gray-400 dark:text-gray-500 pb-2 pr-3">Price</th>
                         <th className="text-right text-xs font-medium text-gray-400 dark:text-gray-500 pb-2 pr-3 hidden sm:table-cell">Platform</th>
-                        <th className="text-right text-xs font-medium text-gray-400 dark:text-gray-500 pb-2 pr-3 hidden md:table-cell">Stripe</th>
+                        <th className="text-right text-xs font-medium text-gray-400 dark:text-gray-500 pb-2 pr-3 hidden md:table-cell">Processor Fee</th>
                         <th className="text-right text-xs font-medium text-gray-400 dark:text-gray-500 pb-2 pr-3">Net</th>
                         <th className="text-right text-xs font-medium text-gray-400 dark:text-gray-500 pb-2 pl-3 sticky right-0 bg-white dark:bg-gray-800">Action</th>
                       </tr>
@@ -560,7 +601,8 @@ const OrganizerPayoutsPage = () => {
                               −${item.platformFee.toFixed(2)}
                             </td>
                             <td className="py-2 pr-3 text-right text-orange-400 dark:text-orange-300 text-xs hidden md:table-cell whitespace-nowrap">
-                              ~−${item.stripeFee.toFixed(2)}
+                              ~−${item.processorFee.toFixed(2)}
+                              <span className="block text-[10px] text-gray-400 dark:text-gray-500 font-normal">{item.processorFeeLabel}</span>
                             </td>
                             <td className="py-2 pr-3 text-right text-green-600 dark:text-green-400 font-semibold whitespace-nowrap">
                               ${item.netPayout.toFixed(2)}

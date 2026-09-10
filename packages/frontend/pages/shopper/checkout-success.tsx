@@ -120,7 +120,7 @@ const CheckoutSuccessPage = () => {
             We couldn't load your purchase details. The confirmation may not have been saved yet.
           </p>
           <Link
-            href="/shopper/purchases"
+            href={purchaseId ? `/purchases/${purchaseId}` : '/shopper/dashboard'}
             className="inline-block px-6 py-3 bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-lg transition"
           >
             View My Purchases

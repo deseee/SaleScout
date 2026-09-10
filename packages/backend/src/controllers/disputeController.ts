@@ -254,7 +254,7 @@ export const updateDisputeStatus = async (req: AuthRequest, res: Response) => {
     let actualRefundedAmount: number | undefined;
     let refundedItemId: string | null | undefined;
     let refundConfirmationParams:
-      | { toEmail?: string | null; buyerName?: string | null; itemTitle?: string | null; organizerBusinessName?: string | null }
+      | { toEmail?: string | null; buyerName?: string | null; itemTitle?: string | null; organizerBusinessName?: string | null; purchaseId?: string }
       | undefined;
 
     // Platform Safety #100 cap REMOVED for this path (2026-07-29, Patrick decision):
@@ -314,6 +314,7 @@ export const updateDisputeStatus = async (req: AuthRequest, res: Response) => {
           buyerName: refundedPurchase.user?.name,
           itemTitle: refundedPurchase.item?.title,
           organizerBusinessName: refundedPurchase.sale?.organizer?.businessName,
+          purchaseId: refundedPurchase.id,
         };
       } catch (refundErr) {
         if (refundErr instanceof RefundError) {
@@ -382,7 +383,12 @@ export const updateDisputeStatus = async (req: AuthRequest, res: Response) => {
         type: 'refund_issued',
         title: 'Refund issued',
         body: `Your dispute was resolved with a refund of $${actualRefundedAmount.toFixed(2)}.`,
-        link: '/shopper/purchases',
+        // Stripe dead-link fix (2026-09-09, findasale-dev BUG MODE): /shopper/purchases is not
+        // a real route (404s). existingDispute.orderId is the purchase id -- by the time this
+        // code runs, the IDOR guard above (lines ~271-292) has already resolved orderId to a
+        // real Purchase and verified it belongs to this dispute's buyer/sale/item, so it is
+        // safe to use directly here without a second purchase fetch.
+        link: `/purchases/${existingDispute.orderId}`,
         channel: 'OPERATIONAL',
         sendEmail: false, // sendRefundConfirmationEmail above already sends the email for this event
       }).catch((err) => console.error(`[notification] Failed to create refund_issued notification for dispute ${id}:`, err));

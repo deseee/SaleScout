@@ -129,6 +129,12 @@ describe('RECORD-mode cash settlement — commission accrual', () => {
         address: '219 E Michigan Ave, Paw Paw, MI 49079',
         subscriptionTier: tier,
         stripeConnectId: `acct_cashfee${key}`,
+        // stripeOnboarded added (2026-09-09, S-URGENT-PAYOUTS-STRIPE-ONLY fix knock-on): createPayout
+        // now gates on stripeOnboarded===true, not stripeConnectId alone (see payoutController.ts's
+        // resolvePayoutProcessor) -- this fixture predates that fix and would otherwise hit the new
+        // "no processor connected" 400 instead of exercising the cash-fee-deduction logic these
+        // tests are actually about.
+        stripeOnboarded: true,
         cashFeeBalance: 0,
       },
     });

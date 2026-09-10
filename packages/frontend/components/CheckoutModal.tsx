@@ -82,7 +82,15 @@ const PaymentForm = ({ itemTitle, itemPrice, originalAmount, platformFee, discou
       elements,
       confirmParams: {
         // Return URL is required but we handle success inline via webhook
-        return_url: `${window.location.origin}/shopper/purchases`,
+        // Stripe dead-link fix (2026-09-09, findasale-dev BUG MODE): /shopper/purchases
+        // is not a real route (404s). purchaseId is already a prop on this component
+        // (threaded through from the parent page) -- use it to land on the real
+        // persistent purchase page. Falls back to /shopper/checkout-success (a real
+        // page that itself handles a missing purchaseId by looking up the buyer's most
+        // recent purchase) for the rare case this modal is invoked without one.
+        return_url: purchaseId
+          ? `${window.location.origin}/purchases/${purchaseId}`
+          : `${window.location.origin}/shopper/checkout-success`,
       },
       redirect: 'if_required',
     });

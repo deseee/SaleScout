@@ -480,7 +480,9 @@ export const createSquarePayment = async (req: AuthRequest, res: Response) => {
         type: 'purchase',
         title: 'Purchase confirmed',
         body: `Your purchase of "${item.title}" is confirmed!`,
-        link: '/shopper/purchases',
+        // Stripe dead-link fix (2026-09-09, findasale-dev BUG MODE): /shopper/purchases is not
+        // a real route (404s); purchase.id is already in scope (single-item payment).
+        link: `/purchases/${purchase.id}`,
         channel: 'OPERATIONAL',
       }).catch((err) => console.error('[squarePayment] Failed to notify buyer:', err));
     }
@@ -732,7 +734,12 @@ export const createSquareCartPayment = async (req: AuthRequest, res: Response) =
       type: 'purchase',
       title: 'Purchase confirmed',
       body: `Your purchase of ${items.length} item(s) is confirmed!`,
-      link: '/shopper/purchases',
+      // Stripe dead-link fix (2026-09-09, findasale-dev BUG MODE): /shopper/purchases is not a
+      // real route (404s). This is a multi-item cart checkout (createdPurchaseIds can hold
+      // several Purchase rows across different items) -- link straight to the single purchase
+      // detail page only when there is exactly one, otherwise fall back to the real shopper
+      // purchase-history list page rather than picking one purchase id arbitrarily.
+      link: createdPurchaseIds.length === 1 ? `/purchases/${createdPurchaseIds[0]}` : '/shopper/dashboard',
       channel: 'OPERATIONAL',
     }).catch((err) => console.error('[squareCartPayment] Failed to notify buyer:', err));
 

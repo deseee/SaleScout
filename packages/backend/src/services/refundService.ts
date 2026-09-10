@@ -120,12 +120,22 @@ export function sendRefundConfirmationEmail(params: {
   wasCapped: boolean;
   itemTitle?: string | null;
   organizerBusinessName?: string | null;
+  // Stripe dead-link fix (2026-09-09, findasale-dev BUG MODE): added so this shared
+  // email helper can build a real /purchases/{id} deep link instead of the fabricated,
+  // non-existent /shopper/purchases route. Optional because one caller
+  // (deadInvoiceRefundService.ts) refunds a HoldInvoice that never converted to a
+  // Purchase at all -- there is genuinely no purchase id for that case, so the URL
+  // below falls back to the real shopper purchase-history list page instead.
+  purchaseId?: string | null;
 }): void {
   if (!params.toEmail) return;
 
   const fromEmail = process.env.GMAIL_FROM_EMAIL || process.env.SES_FROM_EMAIL || 'support@finda.sale';
   const itemTitle = params.itemTitle || 'your purchase';
   const baseUrl = process.env.FRONTEND_URL || 'https://finda.sale';
+  const purchaseHistoryUrl = params.purchaseId
+    ? `${baseUrl}/purchases/${params.purchaseId}`
+    : `${baseUrl}/shopper/dashboard`;
 
   transactionalEmailService.emails.send({
     from: fromEmail,
@@ -137,7 +147,7 @@ export function sendRefundConfirmationEmail(params: {
           <p>We've issued a refund of <strong>$${params.refundAmount.toFixed(2)}</strong> for <strong>${itemTitle}</strong> from <strong>${params.organizerBusinessName || 'a sale'}</strong>.</p>
           <p>The refund will appear in your original payment method within 1-2 business days.</p>
           ${params.wasCapped ? `<p style="color: #ef4444; font-size: 14px;"><strong>Note:</strong> Your refund was capped at 50% because your account is less than 30 days old (Platform Safety Policy #100).</p>` : ''}
-          <p><a href="${baseUrl}/shopper/purchases">View your purchase history</a></p>
+          <p><a href="${purchaseHistoryUrl}">View your purchase history</a></p>
         `,
   }).catch((err: unknown) => console.warn('[refund] Failed to send confirmation email:', err));
 }

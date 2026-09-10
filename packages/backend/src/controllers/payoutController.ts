@@ -8,18 +8,75 @@ import { getPlatformFeeRate, resolveOrganizerFeeReport } from '../utils/feeCalcu
 import { buyCheapestLabel, ShippingLabelPurchaseError } from '../services/shippingLabelService';
 import { isPayoutFlaggedForReview } from '../services/connectAccountGuard'; // S1198 (2026-09-06): bank-fingerprint collusion hold, Organizer payout wiring
 
-/** Retrieve the organizer's Stripe Connect account ID, or null if not yet linked */
-const getOrganizerStripeId = async (userId: string): Promise<string | null> => {
+/**
+ * Stripe-to-Square changeover gap fix (2026-09-09, S-URGENT-PAYOUTS-STRIPE-ONLY): this whole
+ * file was missed in the Stripe->Square migration. getBalance/getPayoutSchedule/
+ * updatePayoutSchedule/createPayout were gated on `stripeConnectId != null` alone -- a stale,
+ * non-null stripeConnectId left over from before Stripe closed for new accounts (real, live
+ * example: Maple Lake Mall's Organizer row has stripeConnectId set but stripeOnboarded=false)
+ * made these functions attempt a doomed live Stripe API call for an organizer who is actually
+ * Square-only. Fixed by requiring `stripeOnboarded === true` as well (mirrors this codebase's own
+ * established Square-side convention: `squareOnboarded === true && !!squareMerchantId`, see
+ * squarePaymentService.ts's resolveOrganizerSquareAccessToken), and by resolving which processor
+ * (if either) an organizer actually has before doing anything processor-specific.
+ *
+ * SQUARE CAPABILITY, RESEARCHED (not fabricated -- squareConnectService.ts's own header and
+ * squareConnectController.ts's hub-owner branch are already on record about this exact gap):
+ * Square's OAuth-connected-merchant model has NO documented equivalent to Stripe's on-demand
+ * balance.retrieve / accounts.retrieve|update payout schedule / payouts.create for an app the
+ * merchant connected via OAuth. A Square seller's payout timing is configured and viewed entirely
+ * on Square's OWN side (their Square Dashboard) -- the connected OAuth app (FindA.Sale) has no
+ * API to read or control it. This is not a gap to silently work around or fake -- it is normal,
+ * documented Square behavior, communicated to the organizer as such below (never a 500, never a
+ * generic error) the same way STRIPE_UNAVAILABLE_MESSAGE (creator/dashboard.tsx) and the
+ * hub-owner "no createLoginLink equivalent" note already handle an analogous processor-capability
+ * gap elsewhere in this codebase.
+ */
+const SQUARE_BALANCE_MESSAGE =
+  "Square manages your payout balance directly. Funds settle automatically to your bank on Square's own schedule -- view your balance anytime in your Square Dashboard.";
+const SQUARE_SCHEDULE_MESSAGE =
+  "Payout timing for Square accounts is set in your Square Dashboard, not through FindA.Sale. Square settles funds to your bank automatically on its own schedule.";
+const SQUARE_SCHEDULE_UPDATE_MESSAGE =
+  "Payout schedule isn't configurable through FindA.Sale for Square accounts. Manage it directly in your Square Dashboard.";
+const SQUARE_ON_DEMAND_PAYOUT_MESSAGE =
+  "On-demand payouts aren't available through FindA.Sale for Square accounts. Square settles funds to your bank automatically -- check your Square Dashboard for your payout schedule and history.";
+const NO_PROCESSOR_MESSAGE =
+  'No payment processor is connected for this account yet. Complete onboarding first.';
+
+type PayoutProcessor = 'STRIPE' | 'SQUARE' | 'NONE';
+
+interface OrganizerPayoutProcessorInfo {
+  stripeConnectId: string | null;
+  stripeOnboarded: boolean;
+  squareOnboarded: boolean;
+}
+
+/** Retrieve the fields needed to decide which processor (if any) handles this organizer's payouts. */
+const getOrganizerPayoutProcessorInfo = async (userId: string): Promise<OrganizerPayoutProcessorInfo | null> => {
   const organizer = await prisma.organizer.findUnique({
     where: { userId },
-    select: { stripeConnectId: true },
+    select: { stripeConnectId: true, stripeOnboarded: true, squareOnboarded: true },
   });
-  return organizer?.stripeConnectId ?? null;
+  return organizer ?? null;
+};
+
+/**
+ * Square wins when an organizer somehow has both flags set (e.g. a legacy stripeOnboarded=true
+ * row that never got cleared post-changeover) -- explicit priority call for this dispatch, since
+ * Square is the current/live processor going forward.
+ */
+const resolvePayoutProcessor = (info: OrganizerPayoutProcessorInfo): PayoutProcessor => {
+  if (info.squareOnboarded) return 'SQUARE';
+  if (info.stripeOnboarded && info.stripeConnectId) return 'STRIPE';
+  return 'NONE';
 };
 
 /**
  * GET /api/stripe/balance
- * Returns the organizer's Stripe Connect available + pending balance in USD.
+ * Returns the organizer's available + pending balance in USD (Stripe organizers only -- Square
+ * has no equivalent on-demand balance API for a connected OAuth merchant, see the file-header
+ * note above; a Square-onboarded organizer gets an honest explanatory 200 response instead of a
+ * doomed live Stripe API call).
  */
 export const getBalance = async (req: AuthRequest, res: Response) => {
   try {
@@ -28,18 +85,27 @@ export const getBalance = async (req: AuthRequest, res: Response) => {
       return res.status(403).json({ message: 'Organizer access required' });
     }
 
-    const connectId = await getOrganizerStripeId(req.user.id);
-    if (!connectId) {
-      return res.status(400).json({ message: 'Stripe account not connected. Complete onboarding first.' });
+    const info = await getOrganizerPayoutProcessorInfo(req.user.id);
+    if (!info) {
+      return res.status(404).json({ message: 'Organizer not found' });
+    }
+    const processor = resolvePayoutProcessor(info);
+
+    if (processor === 'SQUARE') {
+      return res.json({ processor: 'SQUARE', available: null, pending: null, message: SQUARE_BALANCE_MESSAGE });
+    }
+    if (processor === 'NONE') {
+      return res.status(400).json({ message: NO_PROCESSOR_MESSAGE });
     }
 
     const stripe = getStripe();
-    const balance = await stripe.balance.retrieve({ stripeAccount: connectId });
+    const balance = await stripe.balance.retrieve({ stripeAccount: info.stripeConnectId! });
 
     const usdAvailable = balance.available.find(b => b.currency === 'usd');
     const usdPending = balance.pending.find(b => b.currency === 'usd');
 
     res.json({
+      processor: 'STRIPE',
       available: (usdAvailable?.amount ?? 0) / 100,
       pending: (usdPending?.amount ?? 0) / 100,
     });
@@ -51,7 +117,9 @@ export const getBalance = async (req: AuthRequest, res: Response) => {
 
 /**
  * GET /api/stripe/payout-schedule
- * Returns the organizer's current payout schedule setting.
+ * Returns the organizer's current payout schedule setting (Stripe organizers only -- see the
+ * file-header note; Square has no equivalent, so a Square-onboarded organizer gets an honest
+ * explanatory 200 response instead of a doomed live Stripe API call).
  */
 export const getPayoutSchedule = async (req: AuthRequest, res: Response) => {
   try {
@@ -60,16 +128,31 @@ export const getPayoutSchedule = async (req: AuthRequest, res: Response) => {
       return res.status(403).json({ message: 'Organizer access required' });
     }
 
-    const connectId = await getOrganizerStripeId(req.user.id);
-    if (!connectId) {
-      return res.status(400).json({ message: 'Stripe account not connected' });
+    const info = await getOrganizerPayoutProcessorInfo(req.user.id);
+    if (!info) {
+      return res.status(404).json({ message: 'Organizer not found' });
+    }
+    const processor = resolvePayoutProcessor(info);
+
+    if (processor === 'SQUARE') {
+      return res.json({
+        processor: 'SQUARE',
+        interval: null,
+        weeklyAnchor: null,
+        monthlyAnchor: null,
+        message: SQUARE_SCHEDULE_MESSAGE,
+      });
+    }
+    if (processor === 'NONE') {
+      return res.status(400).json({ message: NO_PROCESSOR_MESSAGE });
     }
 
     const stripe = getStripe();
-    const account = await stripe.accounts.retrieve(connectId);
+    const account = await stripe.accounts.retrieve(info.stripeConnectId!);
     const schedule = account.settings?.payouts?.schedule;
 
     res.json({
+      processor: 'STRIPE',
       interval: schedule?.interval ?? 'daily',
       weeklyAnchor: (schedule as any)?.weekly_anchor ?? null,
       monthlyAnchor: (schedule as any)?.monthly_anchor ?? null,
@@ -83,7 +166,9 @@ export const getPayoutSchedule = async (req: AuthRequest, res: Response) => {
 /**
  * PATCH /api/stripe/payout-schedule
  * Body: { interval: 'daily' | 'weekly' | 'monthly' | 'manual' }
- * Updates how often Stripe automatically sends funds to the organizer's bank.
+ * Updates how often Stripe automatically sends funds to the organizer's bank (Stripe organizers
+ * only -- see the file-header note; Square has no equivalent, so this returns an honest 400 for
+ * a Square-onboarded organizer instead of a doomed live Stripe API call).
  * 'manual' means no automatic payouts — organizer requests them via createPayout.
  */
 export const updatePayoutSchedule = async (req: AuthRequest, res: Response) => {
@@ -93,9 +178,17 @@ export const updatePayoutSchedule = async (req: AuthRequest, res: Response) => {
       return res.status(403).json({ message: 'Organizer access required' });
     }
 
-    const connectId = await getOrganizerStripeId(req.user.id);
-    if (!connectId) {
-      return res.status(400).json({ message: 'Stripe account not connected' });
+    const info = await getOrganizerPayoutProcessorInfo(req.user.id);
+    if (!info) {
+      return res.status(404).json({ message: 'Organizer not found' });
+    }
+    const processor = resolvePayoutProcessor(info);
+
+    if (processor === 'SQUARE') {
+      return res.status(400).json({ message: SQUARE_SCHEDULE_UPDATE_MESSAGE, processor: 'SQUARE' });
+    }
+    if (processor === 'NONE') {
+      return res.status(400).json({ message: NO_PROCESSOR_MESSAGE });
     }
 
     const { interval } = req.body;
@@ -105,7 +198,7 @@ export const updatePayoutSchedule = async (req: AuthRequest, res: Response) => {
     }
 
     const stripe = getStripe();
-    const account = await stripe.accounts.update(connectId, {
+    const account = await stripe.accounts.update(info.stripeConnectId!, {
       settings: {
         payouts: {
           schedule: { interval: interval as any },
@@ -115,6 +208,7 @@ export const updatePayoutSchedule = async (req: AuthRequest, res: Response) => {
 
     const schedule = account.settings?.payouts?.schedule;
     res.json({
+      processor: 'STRIPE',
       interval: schedule?.interval,
       weeklyAnchor: (schedule as any)?.weekly_anchor ?? null,
     });
@@ -127,7 +221,10 @@ export const updatePayoutSchedule = async (req: AuthRequest, res: Response) => {
 /**
  * POST /api/stripe/payout
  * Body: { amount: number (dollars), method?: 'standard' | 'instant' }
- * Triggers an on-demand payout from the organizer's Stripe Connect balance to their bank.
+ * Triggers an on-demand payout from the organizer's Stripe Connect balance to their bank
+ * (Stripe organizers only -- see the file-header note; Square has no on-demand payout API for a
+ * connected OAuth merchant, so a Square-onboarded organizer gets an honest 400 explanation
+ * instead of a doomed live Stripe API call).
  * Automatically deducts any accumulated cash platform fees before the Stripe call.
  * 'instant' requires an eligible debit card external account; falls back gracefully if unsupported.
  */
@@ -138,9 +235,35 @@ export const createPayout = async (req: AuthRequest, res: Response) => {
       return res.status(403).json({ message: 'Organizer access required' });
     }
 
-    const connectId = await getOrganizerStripeId(req.user.id);
-    if (!connectId) {
-      return res.status(400).json({ message: 'Stripe account not connected' });
+    // Single organizer fetch — id/cashFeeBalance for the fee-deduction logic below, plus the
+    // processor-identity fields needed to decide Stripe vs. Square vs. neither (fixes the
+    // stale-stripeConnectId bug: stripeConnectId can be non-null while stripeOnboarded=false,
+    // e.g. a Square-only organizer with a leftover pre-changeover Stripe row -- Maple Lake Mall
+    // is a real, live example).
+    const organizer = await prisma.organizer.findUnique({
+      where: { userId: req.user.id },
+      // id added (2026-09-06, S1198) so the fraud-hold check below can key off it --
+      // was previously not selected since nothing else in this function needed it.
+      select: {
+        id: true,
+        cashFeeBalance: true,
+        cashFeeBalanceUpdatedAt: true,
+        stripeConnectId: true,
+        stripeOnboarded: true,
+        squareOnboarded: true,
+      },
+    });
+
+    if (!organizer) {
+      return res.status(404).json({ message: 'Organizer not found' });
+    }
+
+    const processor = resolvePayoutProcessor(organizer);
+    if (processor === 'SQUARE') {
+      return res.status(400).json({ message: SQUARE_ON_DEMAND_PAYOUT_MESSAGE, processor: 'SQUARE' });
+    }
+    if (processor === 'NONE') {
+      return res.status(400).json({ message: NO_PROCESSOR_MESSAGE });
     }
 
     const { amount, method = 'standard' } = req.body;
@@ -149,18 +272,6 @@ export const createPayout = async (req: AuthRequest, res: Response) => {
     }
     if (!['standard', 'instant'].includes(method)) {
       return res.status(400).json({ message: "method must be 'standard' or 'instant'" });
-    }
-
-    // Fetch organizer's accumulated cash fee balance
-    const organizer = await prisma.organizer.findUnique({
-      where: { userId: req.user.id },
-      // id added (2026-09-06, S1198) so the fraud-hold check below can key off it --
-      // was previously not selected since nothing else in this function needed it.
-      select: { id: true, cashFeeBalance: true, cashFeeBalanceUpdatedAt: true },
-    });
-
-    if (!organizer) {
-      return res.status(404).json({ message: 'Organizer not found' });
     }
 
     // Check 30-day guardrail: advisory warning if balance > 0 and > 30 days old
@@ -200,7 +311,7 @@ export const createPayout = async (req: AuthRequest, res: Response) => {
         method: method as 'standard' | 'instant',
         statement_descriptor: 'FindA.Sale Payout',
       },
-      { stripeAccount: connectId }
+      { stripeAccount: organizer.stripeConnectId! }
     );
 
     // After successful payout, reset the cash fee balance
@@ -213,6 +324,7 @@ export const createPayout = async (req: AuthRequest, res: Response) => {
     });
 
     res.json({
+      processor: 'STRIPE',
       id: payout.id,
       amount: payout.amount / 100,
       method: payout.method,
@@ -250,6 +362,16 @@ export const createPayout = async (req: AuthRequest, res: Response) => {
 
 const STRIPE_RATE = 0.029;
 const STRIPE_FIXED = 0.30;
+// Square's published "Online API" rate -- confirmed LIVE this session via Square's own
+// fee-schedule support article (squareup.com/help/us/en/article/5068-what-are-square-s-fees,
+// fetched 2026-09-09): "Online API: 2.9% + 30¢" is listed identically across every current
+// Square plan (Free/Plus/Premium) and is the exact category FindA.Sale's checkout uses
+// (squarePaymentService.ts's createSquareCharge calls client.payments.create -- the Payments
+// API with a sourceId, i.e. Square's "Online API"/eCommerce API category). Not assumed identical
+// to Stripe's rate by coincidence -- independently verified as Square's own real published number
+// for this exact integration surface.
+const SQUARE_RATE = 0.029;
+const SQUARE_FIXED = 0.30;
 
 export interface EarningsBreakdownItem {
   purchaseId: string;
@@ -262,7 +384,14 @@ export interface EarningsBreakdownItem {
   purchaseDate: Date;
   salePrice: number;
   platformFee: number;
-  stripeFee: number;
+  // Processor-fee mislabeling fix (2026-09-09): `processor` is Purchase.processor AS CHARGED
+  // (not the organizer's current processor -- a sale charged through Stripe before the Square
+  // changeover keeps its historically-accurate Stripe label forever, even after the organizer
+  // moves to Square). `processorFee` is computed at that row's own processor's published rate.
+  // `processorFeeLabel` is the human-readable name for UI display ("Stripe" | "Square").
+  processor: string; // 'STRIPE' | 'SQUARE'
+  processorFee: number;
+  processorFeeLabel: string;
   netPayout: number;
   // ADR-110 Decision Flag 3: buyer's ship-to address for a native-checkout physical
   // shipment (only ever present on the requesting organizer's OWN sale -- whereClause
@@ -290,12 +419,18 @@ export interface EarningsBreakdownItem {
 /**
  * GET /api/stripe/earnings?saleId=<optional>
  *
- * Returns an item-level payout breakdown for the organizer's PAID purchases,
- * showing gross sale price, platform fee, estimated Stripe fee, and net payout.
- * Also includes accumulated cash platform fees from POS sales.
+ * Returns an item-level payout breakdown for the organizer's PAID purchases, showing gross sale
+ * price, platform fee, estimated processor (Stripe/Square) fee, and net payout. Also includes
+ * accumulated cash platform fees from POS sales.
  *
- * Stripe fee is estimated at 2.9% + $0.30. Actual fees may vary slightly.
- * Platform fee is tier-aware: 10% for SIMPLE, 8% for PRO/TEAMS (S388).
+ * PROCESSOR-FEE MISLABELING FIX (2026-09-09, S-URGENT-PAYOUTS-STRIPE-ONLY): this endpoint used
+ * to hardcode every row's estimate as a "Stripe fee" regardless of which processor actually
+ * charged it -- every Square-processed sale (post changeover) was silently mislabeled and
+ * potentially fee-rate-wrong. Fee is now estimated per row at THAT row's own Purchase.processor:
+ * Stripe 2.9% + $0.30, Square (Online API category, the one this codebase's checkout actually
+ * uses) 2.9% + $0.30 -- confirmed live via Square's own fee-schedule support article this
+ * session, not assumed identical to Stripe by coincidence. Actual fees may vary slightly either
+ * way. Platform fee is tier-aware: 10% for SIMPLE, 8% for PRO/TEAMS (S388).
  */
 export const getEarningsBreakdown = async (req: AuthRequest, res: Response) => {
   try {
@@ -356,10 +491,18 @@ export const getEarningsBreakdown = async (req: AuthRequest, res: Response) => {
       // was on SIMPLE keeps reporting its 10% fee after they upgrade to PRO, instead of being
       // silently restated at 8%. Pre-snapshot rows fall back to the recompute below.
       const { grossSalePrice: salePrice, platformFee } = resolveOrganizerFeeReport(p, tierRate);
-      // Stripe's cut is charged on what the card was actually run for — the premium-inclusive
-      // total — not on the reported hammer price.
-      const stripeFee = parseFloat((p.amount * STRIPE_RATE + STRIPE_FIXED).toFixed(2));
-      const netPayout = parseFloat((salePrice - platformFee - stripeFee).toFixed(2));
+      // Processor's cut is charged on what the card was actually run for — the premium-inclusive
+      // total — not on the reported hammer price. Rate/fixed-fee picked per THIS ROW's own
+      // processor (p.processor), never the organizer's current processor -- see the
+      // processor-fee mislabeling fix note on EarningsBreakdownItem above.
+      const rowProcessor = p.processor === 'SQUARE' ? 'SQUARE' : 'STRIPE';
+      const processorFee = parseFloat(
+        (rowProcessor === 'SQUARE'
+          ? p.amount * SQUARE_RATE + SQUARE_FIXED
+          : p.amount * STRIPE_RATE + STRIPE_FIXED
+        ).toFixed(2)
+      );
+      const netPayout = parseFloat((salePrice - platformFee - processorFee).toFixed(2));
 
       return {
         purchaseId: p.id,
@@ -372,7 +515,9 @@ export const getEarningsBreakdown = async (req: AuthRequest, res: Response) => {
         purchaseDate: p.createdAt,
         salePrice: parseFloat(salePrice.toFixed(2)),
         platformFee,
-        stripeFee,
+        processor: rowProcessor,
+        processorFee,
+        processorFeeLabel: rowProcessor === 'SQUARE' ? 'Square' : 'Stripe',
         netPayout,
         // ADR-110 Decision Flag 3: `p` is a full Purchase row (no `select` on the base
         // model above, same "comes along for free" pattern the fee-snapshot columns
@@ -404,11 +549,11 @@ export const getEarningsBreakdown = async (req: AuthRequest, res: Response) => {
       (acc, item) => {
         acc.grossRevenue += item.salePrice;
         acc.totalPlatformFees += item.platformFee;
-        acc.totalStripeFees += item.stripeFee;
+        acc.totalProcessorFees += item.processorFee;
         acc.totalNetPayout += item.netPayout;
         return acc;
       },
-      { grossRevenue: 0, totalPlatformFees: 0, totalStripeFees: 0, totalNetPayout: 0 }
+      { grossRevenue: 0, totalPlatformFees: 0, totalProcessorFees: 0, totalNetPayout: 0 }
     );
 
     res.json({
@@ -416,11 +561,11 @@ export const getEarningsBreakdown = async (req: AuthRequest, res: Response) => {
       totals: {
         grossRevenue: parseFloat(totals.grossRevenue.toFixed(2)),
         totalPlatformFees: parseFloat(totals.totalPlatformFees.toFixed(2)),
-        totalStripeFees: parseFloat(totals.totalStripeFees.toFixed(2)),
+        totalProcessorFees: parseFloat(totals.totalProcessorFees.toFixed(2)),
         totalNetPayout: parseFloat(totals.totalNetPayout.toFixed(2)),
       },
       count: items.length,
-      note: 'Stripe fee estimated at 2.9% + $0.30. Platform fee is 10% for SIMPLE, 8% for PRO/TEAMS, on every sale including auctions. On an auction the winning bidder also pays a separate buyer premium on top of their bid — 5% by default, or whatever rate you set on that sale. It comes out of their pocket, not yours, so it is not included in the sale price or fees shown here.',
+      note: "Processor fee is estimated per sale at that sale's own processor's published rate (Stripe: 2.9% + $0.30; Square Online API: 2.9% + $0.30, confirmed 2026-09-09). Platform fee is 10% for SIMPLE, 8% for PRO/TEAMS, on every sale including auctions. On an auction the winning bidder also pays a separate buyer premium on top of their bid — 5% by default, or whatever rate you set on that sale. It comes out of their pocket, not yours, so it is not included in the sale price or fees shown here.",
       // Cash POS: accumulated fees awaiting payout deduction
       cashFeeBalance: organizer.cashFeeBalance,
       cashFeeBalanceUpdatedAt: organizer.cashFeeBalanceUpdatedAt,

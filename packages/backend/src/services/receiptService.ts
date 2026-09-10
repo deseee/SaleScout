@@ -180,7 +180,15 @@ export const sendBoothCartReceiptEmail = async (cartTransactionId: string): Prom
       headline: 'Your receipt from FindA.Sale',
       body: `<p>Thank you for your purchase${cart.hub?.name ? ` at ${cart.hub.name}` : ''}! ${multiVendorIntro}</p>${boothSectionsHtml}<p><strong>Total: $${grandTotal.toFixed(2)}</strong></p>`,
       ctaText: 'View your purchases',
-      ctaUrl: `${process.env.FRONTEND_URL || 'https://finda.sale'}/shopper/purchases`,
+      // Stripe dead-link fix (2026-09-09, findasale-dev BUG MODE): /shopper/purchases is not
+      // a real route (404s). Unlike a single-purchase email, this function summarizes an
+      // ENTIRE booth cart (cart.purchases, potentially many rows across different vendor
+      // booths) -- there is no single purchaseId in scope to build a /purchases/{id} deep
+      // link to, and picking one arbitrarily would misrepresent a multi-item cart as a
+      // single purchase. /shopper/dashboard is the real shopper purchase-history list page
+      // (confirmed: fetches GET /users/purchases) and is the correct "view your purchases"
+      // destination for a cart-level summary.
+      ctaUrl: `${process.env.FRONTEND_URL || 'https://finda.sale'}/shopper/dashboard`,
     });
 
     await transactionalEmailService.emails.send({

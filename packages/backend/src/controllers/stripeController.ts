@@ -181,7 +181,10 @@ const sendReceiptEmail = async (purchase: {
 }) => {
   
   const fromEmail = process.env.GMAIL_FROM_EMAIL || process.env.SES_FROM_EMAIL || 'find@outreach.finda.sale';
-  const historyUrl = `${process.env.FRONTEND_URL || 'https://finda.sale'}/shopper/purchases`;
+  // Stripe dead-link fix (2026-09-09, findasale-dev BUG MODE): /shopper/purchases is not
+  // a real route (404s). purchase.id is a parameter of this very function -- use it to
+  // build the real persistent purchase page URL.
+  const historyUrl = `${process.env.FRONTEND_URL || 'https://finda.sale'}/purchases/${purchase.id}`;
   try {
     // Platform Safety #97: Post-Purchase Confirmation Email with Premium Breakdown & Enrichment
     let itemPhotoHtml = '';
@@ -1616,6 +1619,61 @@ export const webhookHandler = async (req: Request, res: Response) => {
             data: { status: 'PAID' },
           });
 
+          // BUG FIX (2026-09-09, findasale-dev BUG MODE, Item.status SOLD gap): this Stripe
+          // branch (like the Square branch in bountyController.ts) never marked the purchased
+          // Item SOLD or decremented its stock -- every other purchase path in this codebase
+          // (Standard Purchase below, POS, Square, eBay sync, etc.) calls sellItemUnits
+          // (itemStockService.ts) for exactly this. Placed AFTER the bountySubmission.status
+          // flip to PURCHASED above -- the idempotency guard at the very top of this block
+          // (`if (bountySubmission.status === 'PURCHASED') { ...; break; }`) is what prevents a
+          // Stripe webhook retry/redelivery for this same PaymentIntent from ever reaching this
+          // line a second time, so this can never double-decrement stock for one confirmed
+          // payment. InsufficientStockError is caught non-fatal (mirrors every other
+          // sellItemUnits call site in this file): Stripe has already captured real money by
+          // this point, so a rare stock race must never throw back out of this handler (which
+          // would make Stripe treat the webhook as failed and retry it -- itself harmless here
+          // since the guard above would then just skip, but there is no reason to invite the
+          // retry storm).
+          let bountyFullySoldOut = false;
+          let bountyRemainingStock: number | undefined;
+          try {
+            ({ fullySoldOut: bountyFullySoldOut, remainingStock: bountyRemainingStock } = await sellItemUnits(bountySubmission.itemId, 1));
+          } catch (stockErr: any) {
+            if (stockErr instanceof InsufficientStockError) {
+              console.error(`[bounty-webhook] Stock race on item ${bountySubmission.itemId}: payment ${paymentIntent.id} captured but item already sold out -- needs manual review.`, stockErr.message);
+              try {
+                Sentry.captureMessage(
+                  `[bounty-webhook] Stock race needs review: paymentIntentId=${paymentIntent.id} itemId=${bountySubmission.itemId} submissionId=${submissionId}`,
+                  'error'
+                );
+              } catch {
+                // Sentry may not be initialized
+              }
+            } else {
+              throw stockErr;
+            }
+          }
+
+          // Mirrors the "Standard Purchase" flow's own fully-sold-out / partial-sale hooks
+          // below -- a bounty-fulfillment item is a regular Item row and can be cross-listed on
+          // eBay/Shopify exactly like any other, so it must be removed/revised there too once
+          // sold via this path.
+          if (bountyFullySoldOut) {
+            markShopifyItemSold(bountySubmission.itemId).catch(err =>
+              console.error('[bounty-webhook] Shopify markSold failed:', err)
+            );
+            endEbayListingIfExists(bountySubmission.itemId).catch(err =>
+              console.error('[bounty-webhook] eBay withdraw failed:', err)
+            );
+            notifyFacebookExportedItemSold(bountySubmission.itemId).catch(err =>
+              console.warn(`[bounty-webhook] FB nudge failed for item ${bountySubmission.itemId}:`, err.message)
+            );
+          } else if (bountyRemainingStock !== undefined) {
+            syncMarketplaceStock(bountySubmission.itemId, { fullySoldOut: false, remainingStock: bountyRemainingStock }).catch(err =>
+              console.error('[bounty-webhook] eBay ReviseQty sync failed for item', bountySubmission.itemId, err)
+            );
+          }
+
           await createNotification({
             userId: bountySubmission.organizerId,
             type: 'BOUNTY_PURCHASED',
@@ -2303,7 +2361,9 @@ export const webhookHandler = async (req: Request, res: Response) => {
             type: 'purchase',
             title: 'Purchase confirmed',
             body: `Your purchase of "${purchase.item?.title || 'item'}" is confirmed!`,
-            link: '/shopper/purchases',
+            // Stripe dead-link fix (2026-09-09, findasale-dev BUG MODE): /shopper/purchases is
+            // not a real route (404s); purchase.id is already in scope here.
+            link: `/purchases/${purchase.id}`,
             channel: 'OPERATIONAL'
           }).catch(err => console.error('[notification] Failed to create purchase notification:', err));
         }
@@ -3674,6 +3734,7 @@ export const webhookHandler = async (req: Request, res: Response) => {
                 wasCapped: false,
                 itemTitle: p.item?.title,
                 organizerBusinessName: p.sale?.organizer?.businessName,
+                purchaseId: p.id,
               });
 
               // Same in-app notification shape createRefund uses (email already sent above).
@@ -3683,7 +3744,9 @@ export const webhookHandler = async (req: Request, res: Response) => {
                   type: 'refund_issued',
                   title: 'Refund issued',
                   body: `A refund of $${refundAmount.toFixed(2)} was issued for "${p.item?.title || 'item'}"`,
-                  link: '/shopper/purchases',
+                  // Stripe dead-link fix (2026-09-09, findasale-dev BUG MODE): /shopper/purchases
+                  // is not a real route (404s); p.id (this Purchase's id) is already in scope.
+                  link: `/purchases/${p.id}`,
                   channel: 'OPERATIONAL',
                   sendEmail: false, // sendRefundConfirmationEmail above already sends the email for this event
                 }).catch((err) => console.error('[notification] Failed to create refund_issued notification (dashboard-refund path):', err));
@@ -4313,6 +4376,7 @@ export const createRefund = async (req: AuthRequest, res: Response) => {
       wasCapped,
       itemTitle: purchase.item?.title,
       organizerBusinessName: purchase.sale?.organizer?.businessName,
+      purchaseId,
     });
 
     // Notification audit fix (2026-08-04): sendRefundConfirmationEmail above is a raw
@@ -4328,7 +4392,9 @@ export const createRefund = async (req: AuthRequest, res: Response) => {
         type: 'refund_issued',
         title: 'Refund issued',
         body: `A refund of $${refundAmount.toFixed(2)} was issued for "${purchase.item?.title || 'item'}"`,
-        link: '/shopper/purchases',
+        // Stripe dead-link fix (2026-09-09, findasale-dev BUG MODE): /shopper/purchases is not
+        // a real route (404s); purchaseId is the route param already used above (== purchase.id).
+        link: `/purchases/${purchaseId}`,
         channel: 'OPERATIONAL',
         sendEmail: false, // sendRefundConfirmationEmail above already sends the email for this event
       }).catch((err) => console.error('[notification] Failed to create refund_issued notification:', err));
