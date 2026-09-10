@@ -1696,6 +1696,11 @@ model Purchase {
   squarePaymentId         String? // Square Payment.id -- not unique alone, same multi-item-cart
   // reasoning as stripePaymentIntentId; needs the same compound partial-unique-index
   // treatment (see migration 20260907_square_migration_wave0_schema) once real rows exist.
+  // Square PaymentLink checkout (2026-09-09): mirrors the POS QR payment-link flow's move
+  // from Stripe Payment Links to Square Payment Links -- see
+  // claude_docs/feature-notes/square-changeover-remaining-work-scoping-2026-09-09.md.
+  squarePaymentLinkId     String? // Square PaymentLink.id, set at link-creation time
+  squareOrderId           String? // Square's underlying Order.id -- nullable, Square's own response can omit it
   affiliateLinkId        String?
   affiliateLink          AffiliateLink?        @relation(fields: [affiliateLinkId], references: [id], onDelete: SetNull)
   // Vendor Booth Payments (2026-07-07): roaming multi-booth cart attribution.
@@ -1850,6 +1855,8 @@ model Purchase {
   @@index([boothCartTransactionId])
   @@index([buyerCardFingerprint]) // guest-checkout collusion lookups (S1072 Finding #4 follow-up)
   @@index([chargeType])
+  @@index([squarePaymentId])
+  @@index([squarePaymentLinkId])
 }
 
 model SaleSubscriber {
@@ -2160,6 +2167,11 @@ model HoldInvoice {
   // payment-id equivalent is needed here.
   processor              String           @default("STRIPE") // 'STRIPE' | 'SQUARE'
   squarePaymentId        String?          @unique // Square Payment.id
+  // Square PaymentLink checkout (2026-09-09): mirrors Purchase.squarePaymentLinkId /
+  // POSPaymentLink's Square move -- see claude_docs/feature-notes/
+  // square-changeover-remaining-work-scoping-2026-09-09.md.
+  squarePaymentLinkId    String?          @unique // Square PaymentLink.id
+  squareOrderId          String?          @unique // Square's underlying Order.id
   status                InvoiceStatus    @default(PENDING)
   totalAmount           Int // in cents
   platformFeeAmount     Int // in cents (deducted from organizer payout)
@@ -2201,6 +2213,7 @@ model HoldInvoice {
   @@index([expiresAt])
   @@index([cartSessionId])
   @@index([stripeAccountId])
+  @@index([squarePaymentLinkId])
 }
 
 // Feature #121: Sale Check-in — per-shopper GPS-based validation for hold rank enforcement
@@ -4604,8 +4617,17 @@ model POSPaymentLink {
   organizer            Organizer @relation(fields: [organizerId], references: [id], onDelete: Cascade)
   saleId               String
   sale                 Sale      @relation(fields: [saleId], references: [id], onDelete: Cascade)
-  stripePaymentLinkId  String    @unique
-  stripePaymentLinkUrl String // the buy.stripe.com/... URL
+  // Square changeover (2026-09-09): Stripe columns relaxed to nullable so a SQUARE-processor
+  // link can omit them entirely -- mirrors BoothCartLeg's stripePaymentIntentId precedent
+  // (migration 20260907020000_square_oauth_token_storage_and_boothcartleg_processor). Safe:
+  // both columns have been NOT NULL since creation, so every existing row already has a
+  // non-NULL value; this is a metadata-only relaxation, no data changes.
+  processor            String    @default("STRIPE") // 'STRIPE' | 'SQUARE'
+  stripePaymentLinkId  String?   @unique
+  stripePaymentLinkUrl String? // the buy.stripe.com/... URL
+  squarePaymentLinkId  String?   @unique // Square PaymentLink.id
+  squareOrderId        String?   @unique // Square's underlying Order.id
+  squarePaymentLinkUrl String? // Square-hosted checkout URL, mirrors stripePaymentLinkUrl
   qrCodeDataUrl        String? // base64 QR code image, generated on backend
   amount               Int // total in cents
   status               String    @default("ACTIVE") // ACTIVE | COMPLETED | CANCELLED | EXPIRED
@@ -4632,6 +4654,8 @@ model POSPaymentLink {
   @@index([organizerId, status])
   @@index([saleId])
   @@index([stripeAccountId])
+  @@index([squarePaymentLinkId])
+  @@index([squareOrderId])
 }
 
 model POSPaymentRequest {
