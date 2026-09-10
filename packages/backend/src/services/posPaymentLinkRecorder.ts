@@ -9,6 +9,7 @@ import { syncMarketplaceStock } from '../services/marketplaceStockSyncService';
 import { createNotification } from '../lib/notificationService';
 import { shouldUseDirectCharge } from './stripeConnectService'; // Direct-charges migration (2026-08-08)
 import { getStripe } from '../utils/stripe'; // S-POS-QR-DOUBLE-CHARGE (2026-09-02): deactivate the Payment Link post-completion
+import { deleteSquareCheckoutLink } from './squareCheckoutLinkService'; // Square changeover Wave S2 #4 follow-up (2026-09-09): processor-aware post-record deactivation
 
 const stripe = () => getStripe();
 
@@ -315,9 +316,34 @@ export async function recordPosPaymentLinkSale(
   // recording a real sale that already happened.
   if (didRecord) {
     setImmediate(() => {
+      // Square changeover Wave S2 #4 follow-up (2026-09-09): this call used to be
+      // unconditionally Stripe -- for a SQUARE-processor link, posPaymentLink.stripePaymentLinkId
+      // is null (POSPaymentLink's Stripe columns were relaxed to nullable for exactly this case,
+      // see schema.prisma's own comment), so the old unconditional call would have misfired
+      // against Stripe with a garbage/undefined id. Branch on processor instead, mirroring the
+      // Purchase-row processor branch a few lines up.
+      if (posPaymentLink.processor === 'SQUARE') {
+        if (!posPaymentLink.squarePaymentLinkId) {
+          console.warn(`[pos-record/${source}] SQUARE-processor link ${posPaymentLink.id} has no squarePaymentLinkId -- cannot deactivate; link may still be technically payable a second time until it expires.`);
+          return;
+        }
+        deleteSquareCheckoutLink({
+          organizerId: posPaymentLink.organizerId,
+          paymentLinkId: posPaymentLink.squarePaymentLinkId,
+        })
+          .then((result) => {
+            if (!result.ok) {
+              console.warn(`[pos-record/${source}] Failed to cancel Square payment link ${posPaymentLink.squarePaymentLinkId} after recording sale (link ${posPaymentLink.id}) -- link may still be technically payable a second time until it expires: ${result.code} -- ${result.message}`);
+            }
+          })
+          .catch((err: any) => {
+            console.warn(`[pos-record/${source}] Failed to cancel Square payment link ${posPaymentLink.squarePaymentLinkId} after recording sale (link ${posPaymentLink.id}) -- link may still be technically payable a second time until it expires:`, err?.message ?? err);
+          });
+        return;
+      }
       stripe()
         .paymentLinks.update(
-          posPaymentLink.stripePaymentLinkId,
+          posPaymentLink.stripePaymentLinkId!,
           { active: false },
           recordedUseDirect && recordedStripeAccountId ? { stripeAccount: recordedStripeAccountId } : undefined
         )
@@ -347,7 +373,10 @@ export async function recordPosPaymentLinkSale(
   }
 
   if (didRecord) {
-    console.log(`[pos-record/${source}] Payment link completed: ${posPaymentLink.stripePaymentLinkId} (link ${posPaymentLink.id})`);
+    // Square changeover Wave S2 #4 follow-up (2026-09-09): log the processor-appropriate
+    // external id instead of always naming a (possibly null, for SQUARE) stripePaymentLinkId.
+    const externalLinkRef = posPaymentLink.processor === 'SQUARE' ? posPaymentLink.squarePaymentLinkId : posPaymentLink.stripePaymentLinkId;
+    console.log(`[pos-record/${source}] Payment link completed: ${externalLinkRef} (link ${posPaymentLink.id})`);
   }
 
   // findasale-hacker fix (2026-08-06): surface oversold/already-sold-elsewhere captures to

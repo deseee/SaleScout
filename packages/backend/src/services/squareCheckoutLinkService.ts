@@ -218,6 +218,92 @@ export async function createSquareCheckoutLink(
   }
 }
 
+export interface GetSquareOrderPaymentStatusParams {
+  organizerId: string;
+  orderId: string;
+}
+
+export interface GetSquareOrderPaymentStatusSuccess {
+  ok: true;
+  /** Square Order.state -- 'OPEN' | 'COMPLETED' | 'CANCELED' per Square's Orders API
+   *  (confirmed via a live fetch of developer.squareup.com/reference/square/objects/Order,
+   *  2026-09-09). An Order reaches COMPLETED once it has been paid in full -- this is the
+   *  reliable "was it paid?" signal for a Quick Pay Checkout link, since Square's Payment
+   *  Links API itself documents no simpler single-call answer to that question (no
+   *  `checkout.sessions.list({ payment_link })` equivalent exists -- see
+   *  posStrandedSaleReconcileCron.ts's Square branch, the caller of this function). */
+  state: string;
+  paid: boolean;
+  /** Best-effort real Square Payment id for the completed order, extracted from the Order's
+   *  (Beta, legacy but still populated) `tenders[].paymentId` field. Null if the order isn't
+   *  paid yet, or if Square's response ever omits tenders/paymentId (defensive -- callers must
+   *  tolerate this and fall back to their own recorder's synthetic-id path, exactly like every
+   *  other caller of recordPosPaymentLinkSale already does for a missing externalPaymentId). */
+  paymentId: string | null;
+}
+
+export interface GetSquareOrderPaymentStatusFailure {
+  ok: false;
+  code: string;
+  message: string;
+}
+
+export type GetSquareOrderPaymentStatusResult = GetSquareOrderPaymentStatusSuccess | GetSquareOrderPaymentStatusFailure;
+
+const GET_ORDER_STATUS_FAILURE_MESSAGE = 'Failed to check the Square order status.';
+
+/**
+ * Reconciliation helper -- Square changeover Wave S3 (2026-09-09), for
+ * posStrandedSaleReconcileCron.ts's Square branch. Square's Checkout API (Payment Links) has
+ * no session-list/retrieve endpoint the way Stripe's `checkout.sessions.list({ payment_link })`
+ * does (confirmed by the architect's scoping pass, claude_docs/feature-notes/
+ * square-changeover-remaining-work-scoping-2026-09-09.md Section 1 Wave S3 #2) -- but every
+ * Quick Pay Checkout link creates an underlying Order (`createSquareCheckoutLink`'s own
+ * `orderId` return value), and Square's Orders API DOES support a direct RetrieveOrder-by-id
+ * call (`client.orders.get({ orderId })`, confirmed via a live fetch of
+ * developer.squareup.com/reference/square/orders-api/retrieve-order this dispatch) -- simpler
+ * and more direct than SearchOrders (which is for filtering across many orders) since the
+ * caller already has the exact order id stored on its own POSPaymentLink/HoldInvoice row.
+ * Mirrors this file's own createSquareCheckoutLink/deleteSquareCheckoutLink error-handling
+ * convention: a genuine Square API error is returned as a discriminated result, never thrown
+ * (except SquareOnboardingIncompleteError, same fail-closed posture as every other function
+ * here).
+ */
+export async function getSquareOrderPaymentStatus(
+  params: GetSquareOrderPaymentStatusParams
+): Promise<GetSquareOrderPaymentStatusResult> {
+  const organizer = await resolveOrganizerForSquareCheckout(params.organizerId);
+  const accessToken = await resolveOrganizerSquareAccessToken(organizer);
+  const client = getSquareClientForMerchant(accessToken);
+
+  try {
+    const response = await client.orders.get({ orderId: params.orderId });
+    const order = (response as any)?.order;
+    if (!order?.state) {
+      console.error(
+        `[squareCheckoutLinkService] RetrieveOrder for organizer ${params.organizerId} order ${params.orderId} returned no usable order:`,
+        response
+      );
+      return { ok: false, code: 'NO_ORDER_IN_RESPONSE', message: GET_ORDER_STATUS_FAILURE_MESSAGE };
+    }
+    const paid = order.state === 'COMPLETED';
+    const paymentId: string | null = paid
+      ? (Array.isArray(order.tenders) && order.tenders.length > 0 ? (order.tenders[0]?.paymentId ?? null) : null)
+      : null;
+    return { ok: true, state: order.state, paid, paymentId };
+  } catch (err) {
+    if (err instanceof SquareError) {
+      const first = err.errors?.[0];
+      const code = first?.code || 'SQUARE_ERROR';
+      console.warn(
+        `[squareCheckoutLinkService] Square error retrieving order ${params.orderId} for organizer ${params.organizerId}: ${code} -- ${first?.detail || err.message}`
+      );
+      return { ok: false, code, message: GET_ORDER_STATUS_FAILURE_MESSAGE };
+    }
+    throw err;
+  }
+}
+
 export interface DeleteSquareCheckoutLinkParams {
   organizerId: string;
   paymentLinkId: string;

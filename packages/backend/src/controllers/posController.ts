@@ -30,6 +30,9 @@ import { stripeCheckoutExpiry } from '../utils/stripeCheckoutExpiry'; // Hold-to
 import { shouldUseDirectCharge } from '../services/stripeConnectService'; // Direct-charges migration (2026-08-08): staged-rollout routing decision
 import { invoiceableWhere, isInvoicedOrClaimed, releaseDeadInvoiceAnchors } from '../services/holdInvoiceClaim'; // Hold-to-Pay P0 (2026-08-16): non-FK invoice claim must be visible to every hold read site; P0 (2026-08-17): dead-anchor release
 import { markHoldInvoicePaid } from '../services/holdInvoicePaymentRecorder'; // ADR-114 (2026-08-31): fully-cash sendHoldInvoice path reuses the single source of truth for recording a paid invoice
+import { createHoldInvoiceSquareCheckout, generateHoldInvoiceId } from '../services/holdInvoiceSquareCheckoutHelper'; // Square changeover Wave S2 #3 (2026-09-09): Hold-to-Pay invoice creation, Square branch
+import { SquareOnboardingIncompleteError, buildSquareIdempotencyKey } from '../services/squarePaymentService'; // thrown by createHoldInvoiceSquareCheckout when the organizer's Square onboarding is incomplete; buildSquareIdempotencyKey added Wave S2 #4 (2026-09-09) for the POS QR payment-link Square branch below
+import { createSquareCheckoutLink } from '../services/squareCheckoutLinkService'; // Square changeover Wave S2 #4 (2026-09-09): POS QR payment link, Square branch
 
 const stripe = () => getStripe();
 
@@ -65,8 +68,16 @@ export async function createPaymentLinkInternal(opts: {
   // flips Item.status) omit this and keep the flat 24h default -- there is no hold
   // timer to derive from and no INVOICE_ISSUED item for a reclaim job to act on.
   expiresAt?: Date;
+  // Square changeover Wave S2 #4 (2026-09-09): organizer's Square-onboarding signal, same
+  // `organizerHasSquare = squareOnboarded === true && !!squareMerchantId` gate already used
+  // by bountyController.ts / reservationController.ts / this file's own sendHoldInvoice.
+  // Both existing callers (createPaymentLink below, reservationController.ts's
+  // batchUpdateHolds CHECKOUT_LINK branch) already have these fields on their own resolved
+  // `organizer` object -- no extra query needed here.
+  squareOnboarded?: boolean;
+  squareMerchantId?: string | null;
 }): Promise<{ linkId: string; paymentLinkUrl: string; qrCodeDataUrl?: string; amount: number }> {
-  const { organizerId, stripeConnectId, subscriptionTier, saleId, itemIds, amount, buyerEmail, expiresAt } = opts;
+  const { organizerId, stripeConnectId, subscriptionTier, saleId, itemIds, amount, buyerEmail, expiresAt, squareOnboarded, squareMerchantId } = opts;
 
   const items = itemIds.length > 0
     ? await prisma.item.findMany({
@@ -80,87 +91,130 @@ export async function createPaymentLinkInternal(opts: {
   const feeRate = getPlatformFeeRate(subscriptionTier as SubscriptionTier);
   const platformFeeAmount = Math.round(amountCents * feeRate);
 
-  // Direct-charges migration (2026-08-08): staged-rollout routing decision.
-  // MOVED ABOVE price creation (bug fix, 2026-08-20, S-QR-DIRECT-CHARGE-PRICE-MISMATCH):
-  // a Stripe Price object lives in whichever account context it was created in, and
-  // paymentLinks.create() below is invoked in THAT same context via the
-  // { stripeAccount } request option. The price used to always be created on the
-  // PLATFORM account (no request option) while the Payment Link for Direct-charge
-  // organizers was then created on the CONNECTED account -- a cross-account reference
-  // Stripe rejects outright. Confirmed via Railway deploy logs: two live
-  // "StripeInvalidRequestError: No such price: 'price_...'" failures for organizer
-  // cmnxueoas0005tfv8brnc0kky (artifactmi@gmail.com) at 2026-08-20T17:30:55Z and
-  // 17:31:23Z, both surfaced to the organizer as the generic POS toast
-  // "Failed to generate QR code". Fix: compute useDirect first, create the Price with
-  // the same { stripeAccount } request option the Payment Link uses, and never
-  // reference the platform-side STRIPE_GENERIC_ITEM_PRODUCT_ID for a Direct-charge
-  // organizer (that product also only exists on the platform account) -- always fall
-  // back to inline product_data in that case, same as when no genericProductId is
-  // configured at all.
-  const validConnectId = !!(stripeConnectId && stripeConnectId.length >= 21);
-  const useDirect = validConnectId
-    ? await shouldUseDirectCharge(organizerId, stripeConnectId!)
-    : false;
-  const stripeRequestOptions = useDirect ? { stripeAccount: stripeConnectId! } : undefined;
+  const organizerHasSquare = squareOnboarded === true && !!squareMerchantId;
 
-  const genericProductId = process.env.STRIPE_GENERIC_ITEM_PRODUCT_ID;
-  const adHocPrice = await stripe().prices.create(
-    {
-      currency: 'usd',
-      unit_amount: amountCents,
-      ...(genericProductId && !useDirect
-        ? { product: genericProductId }
-        : {
-            product_data: {
-              name: `FindA.Sale: ${items.map(i => i.title).join(', ').slice(0, 200) || 'Item Sale'}`,
-            },
-          }),
-    },
-    stripeRequestOptions
-  );
+  let paymentLinkUrl: string;
+  let processorFields: Record<string, any>;
 
-  // 2026-08-26 fix (Patrick): a real live $0.50 POS payment link left the shopper
-  // stranded on Stripe's own generic "Payment successful" hosted page instead of
-  // returning to finda.sale. Switched to a redirect -- targeting the PUBLIC sale
-  // page (/sales/{saleId}), NOT /shopper/checkout-success, because that page hard-
-  // requires an authenticated session (redirects to /login if !user -- confirmed by
-  // reading packages/frontend/pages/shopper/checkout-success.tsx) and this is
-  // explicitly a "shopper self-checkout via QR" flow (see file header) with no
-  // guarantee the payer is logged into FindA.Sale at all. /sales/[id].tsx is public.
-  const baseUrl = process.env.FRONTEND_URL || 'https://finda.sale';
-  const paymentLink = await stripe().paymentLinks.create(
-    {
-      line_items: [{ price: adHocPrice.id, quantity: 1 }],
-      after_completion: {
-        type: 'redirect',
-        redirect: { url: `${baseUrl}/sales/${saleId}?paymentStatus=success` },
+  if (organizerHasSquare) {
+    // Square changeover Wave S2 #4 (2026-09-09): Square branch. Square's Quick Pay
+    // Checkout (via the Wave S1 shared squareCheckoutLinkService.ts) is a near-exact
+    // structural match for this ad-hoc single-use link -- see that file's own header
+    // comment and holdInvoiceSquareCheckoutHelper.ts for the sibling Hold-to-Pay usage.
+    // POSPaymentLink.id is pre-generated (mirrors HoldInvoice's identical trick) so it can
+    // serve as a stable idempotency-key input; unlike HoldInvoice, no paymentNote
+    // correlation trick is needed here -- the POSPaymentLink row is created immediately
+    // after this succeeds (not asynchronously later), so squareWebhookController.ts can
+    // always find it via a direct squareOrderId match once the row exists.
+    const preAssignedLinkId = crypto.randomUUID();
+    const squareDescription = `FindA.Sale: ${items.map(i => i.title).join(', ').slice(0, 200) || 'Item Sale'}`;
+    const squareResult = await createSquareCheckoutLink({
+      organizerId,
+      idempotencyKey: buildSquareIdempotencyKey(['pos-payment-link', preAssignedLinkId]),
+      amountCents,
+      description: squareDescription,
+      appFeeCents: platformFeeAmount,
+    });
+    if (!squareResult.ok) {
+      throw new Error(`Square payment link creation failed: ${squareResult.code} -- ${squareResult.message}`);
+    }
+    paymentLinkUrl = squareResult.url;
+    processorFields = {
+      id: preAssignedLinkId,
+      processor: 'SQUARE',
+      squarePaymentLinkId: squareResult.paymentLinkId,
+      squareOrderId: squareResult.orderId,
+      squarePaymentLinkUrl: squareResult.url,
+    };
+  } else {
+    // ── Stripe branch (unchanged behavior for every existing Stripe-only organizer) ──
+    // Direct-charges migration (2026-08-08): staged-rollout routing decision.
+    // MOVED ABOVE price creation (bug fix, 2026-08-20, S-QR-DIRECT-CHARGE-PRICE-MISMATCH):
+    // a Stripe Price object lives in whichever account context it was created in, and
+    // paymentLinks.create() below is invoked in THAT same context via the
+    // { stripeAccount } request option. The price used to always be created on the
+    // PLATFORM account (no request option) while the Payment Link for Direct-charge
+    // organizers was then created on the CONNECTED account -- a cross-account reference
+    // Stripe rejects outright. Confirmed via Railway deploy logs: two live
+    // "StripeInvalidRequestError: No such price: 'price_...'" failures for organizer
+    // cmnxueoas0005tfv8brnc0kky (artifactmi@gmail.com) at 2026-08-20T17:30:55Z and
+    // 17:31:23Z, both surfaced to the organizer as the generic POS toast
+    // "Failed to generate QR code". Fix: compute useDirect first, create the Price with
+    // the same { stripeAccount } request option the Payment Link uses, and never
+    // reference the platform-side STRIPE_GENERIC_ITEM_PRODUCT_ID for a Direct-charge
+    // organizer (that product also only exists on the platform account) -- always fall
+    // back to inline product_data in that case, same as when no genericProductId is
+    // configured at all.
+    const validConnectId = !!(stripeConnectId && stripeConnectId.length >= 21);
+    const useDirect = validConnectId
+      ? await shouldUseDirectCharge(organizerId, stripeConnectId!)
+      : false;
+    const stripeRequestOptions = useDirect ? { stripeAccount: stripeConnectId! } : undefined;
+
+    const genericProductId = process.env.STRIPE_GENERIC_ITEM_PRODUCT_ID;
+    const adHocPrice = await stripe().prices.create(
+      {
+        currency: 'usd',
+        unit_amount: amountCents,
+        ...(genericProductId && !useDirect
+          ? { product: genericProductId }
+          : {
+              product_data: {
+                name: `FindA.Sale: ${items.map(i => i.title).join(', ').slice(0, 200) || 'Item Sale'}`,
+              },
+            }),
       },
-      // Direct-charges migration (2026-08-08): a Direct charge lives on the connected
-      // account itself -- drop transfer_data (there is no platform-side Transfer) and keep
-      // application_fee_amount; the { stripeAccount } request option below routes the
-      // create call to the connected account. Destination-charge shape (else branch) is
-      // UNCHANGED.
-      ...(useDirect
-        ? ({ application_fee_amount: platformFeeAmount } as any)
-        : validConnectId
-          ? ({ application_fee_amount: platformFeeAmount, transfer_data: { destination: stripeConnectId } } as any)
-          : {}),
-      // Single-use fix (S-POS-QR-DOUBLE-CHARGE, 2026-09-02): Stripe Payment Links are
-      // reusable by default -- with no restriction, the same QR code / URL can be paid
-      // again by a second checkout session, producing a second real charge Stripe
-      // processes fine but that FindA.Sale's own idempotency (posPaymentLinkRecorder.ts)
-      // silently no-ops on, since that idempotency only protects OUR database from a
-      // duplicate Purchase row, not Stripe from actually capturing a second payment.
-      // completed_sessions.limit: 1 makes Stripe itself refuse a second session against
-      // this link once the first completes. Defense-in-depth: posPaymentLinkRecorder.ts
-      // also deactivates the link server-side right after recording the first sale.
-      restrictions: { completed_sessions: { limit: 1 } },
-    },
-    stripeRequestOptions
-  );
+      stripeRequestOptions
+    );
 
-  const paymentLinkUrl = paymentLink.url;
-  const stripePaymentLinkId = paymentLink.id;
+    // 2026-08-26 fix (Patrick): a real live $0.50 POS payment link left the shopper
+    // stranded on Stripe's own generic "Payment successful" hosted page instead of
+    // returning to finda.sale. Switched to a redirect -- targeting the PUBLIC sale
+    // page (/sales/{saleId}), NOT /shopper/checkout-success, because that page hard-
+    // requires an authenticated session (redirects to /login if !user -- confirmed by
+    // reading packages/frontend/pages/shopper/checkout-success.tsx) and this is
+    // explicitly a "shopper self-checkout via QR" flow (see file header) with no
+    // guarantee the payer is logged into FindA.Sale at all. /sales/[id].tsx is public.
+    const baseUrl = process.env.FRONTEND_URL || 'https://finda.sale';
+    const paymentLink = await stripe().paymentLinks.create(
+      {
+        line_items: [{ price: adHocPrice.id, quantity: 1 }],
+        after_completion: {
+          type: 'redirect',
+          redirect: { url: `${baseUrl}/sales/${saleId}?paymentStatus=success` },
+        },
+        // Direct-charges migration (2026-08-08): a Direct charge lives on the connected
+        // account itself -- drop transfer_data (there is no platform-side Transfer) and keep
+        // application_fee_amount; the { stripeAccount } request option below routes the
+        // create call to the connected account. Destination-charge shape (else branch) is
+        // UNCHANGED.
+        ...(useDirect
+          ? ({ application_fee_amount: platformFeeAmount } as any)
+          : validConnectId
+            ? ({ application_fee_amount: platformFeeAmount, transfer_data: { destination: stripeConnectId } } as any)
+            : {}),
+        // Single-use fix (S-POS-QR-DOUBLE-CHARGE, 2026-09-02): Stripe Payment Links are
+        // reusable by default -- with no restriction, the same QR code / URL can be paid
+        // again by a second checkout session, producing a second real charge Stripe
+        // processes fine but that FindA.Sale's own idempotency (posPaymentLinkRecorder.ts)
+        // silently no-ops on, since that idempotency only protects OUR database from a
+        // duplicate Purchase row, not Stripe from actually capturing a second payment.
+        // completed_sessions.limit: 1 makes Stripe itself refuse a second session against
+        // this link once the first completes. Defense-in-depth: posPaymentLinkRecorder.ts
+        // also deactivates the link server-side right after recording the first sale.
+        restrictions: { completed_sessions: { limit: 1 } },
+      },
+      stripeRequestOptions
+    );
+
+    paymentLinkUrl = paymentLink.url;
+    processorFields = {
+      stripePaymentLinkId: paymentLink.id,
+      stripePaymentLinkUrl: paymentLinkUrl,
+      chargeType: useDirect ? 'DIRECT' : 'DESTINATION',
+      ...(useDirect ? { stripeAccountId: stripeConnectId! } : {}),
+    };
+  }
 
   let qrCodeDataUrl: string | undefined;
   try {
@@ -174,8 +228,6 @@ export async function createPaymentLinkInternal(opts: {
     data: {
       organizerId,
       saleId,
-      stripePaymentLinkId,
-      stripePaymentLinkUrl: paymentLinkUrl,
       qrCodeDataUrl,
       amount: amountCents,
       itemIds,
@@ -184,12 +236,7 @@ export async function createPaymentLinkInternal(opts: {
       // (CHECKOUT_LINK settlement router) so posStrandedSaleReconcileCron.ts's expiry-based
       // reclaim branch has a real deadline to act on; ad-hoc/no-hold callers keep the flat 24h.
       expiresAt: expiresAt ?? new Date(Date.now() + 24 * 60 * 60 * 1000),
-      // Stripe account snapshot (2026-08-20 migration): pin the routing decision actually
-      // used above so posStrandedSaleReconcileCron.ts / posPaymentLinkRecorder.ts never have
-      // to recompute it live -- see schema.prisma's POSPaymentLink comment for why that
-      // recompute was a real bug.
-      chargeType: useDirect ? 'DIRECT' : 'DESTINATION',
-      ...(useDirect ? { stripeAccountId: stripeConnectId! } : {}),
+      ...processorFields,
     },
   });
 
@@ -199,7 +246,7 @@ export async function createPaymentLinkInternal(opts: {
       const html = buildEmail({
         preheader: `Your payment link for $${amount.toFixed(2)}`,
         headline: `Your Payment Link`,
-        body: `<p>Your organizer has sent you a payment link for <strong>$${amount.toFixed(2)}</strong>. Click below to pay securely via Stripe.</p>`,
+        body: `<p>Your organizer has sent you a payment link for <strong>$${amount.toFixed(2)}</strong>. Click below to pay securely.</p>`,
         ctaText: 'Pay Now',
         ctaUrl: paymentLinkUrl,
         accentColor: '#10b981',
@@ -506,6 +553,10 @@ export const createPaymentLink = async (req: AuthRequest, res: Response) => {
         itemIds,
         amount,
         buyerEmail,
+        // Square changeover Wave S2 #4 (2026-09-09): `organizer` here is a ResolvedPosActor
+        // (utils/posAuth.ts) which already resolves these two fields -- no extra query needed.
+        squareOnboarded: organizer.squareOnboarded,
+        squareMerchantId: organizer.squareMerchantId,
       });
     } catch (stripeErr) {
       console.error('[pos] Stripe payment link creation failed:', stripeErr);
@@ -909,6 +960,168 @@ export const sendHoldInvoice = async (req: AuthRequest, res: Response) => {
         cashAmountCents: finalCashAmountCents,
         cardAmountCents: 0,
         platformFeeAmount,
+      });
+    }
+
+    // Square changeover Wave S2 #3 (2026-09-09): Square-connected organizer branch for the
+    // card/balance-due leg. Same server-determined processor-selection signal used by
+    // bountyController.ts's completeBountyPurchase / squarePaymentEligibilityService.ts's
+    // own gate (squareOnboarded === true && squareMerchantId present). `organizer` here is
+    // a ResolvedPosActor (utils/posAuth.ts) -- squareOnboarded/squareMerchantId are already
+    // resolved on it, no extra query needed. Existing Stripe-only organizers fall through
+    // to the untouched Stripe branch below -- zero behavior change for them. The fully-cash
+    // branch above already returned before this point and never touches a processor at
+    // all, so it is unaffected either way.
+    const organizerHasSquare = organizer.squareOnboarded === true && !!organizer.squareMerchantId;
+
+    if (organizerHasSquare) {
+      // Pre-generated so the SAME id can be embedded in the Square Payment Link's
+      // paymentNote (Square has no way to backfill it after creation) -- see
+      // holdInvoiceSquareCheckoutHelper.ts's header comment for the full rationale.
+      const holdInvoiceId = generateHoldInvoiceId();
+      const squareDescription = finalCashAmountCents > 0
+        ? `Balance due -- remaining balance after $${(finalCashAmountCents / 100).toFixed(2)} cash collected at checkout`
+        : (reservation.item.title || 'FindA.Sale payment');
+
+      let squareResult;
+      try {
+        squareResult = await createHoldInvoiceSquareCheckout({
+          organizerId: organizer.id,
+          holdInvoiceId,
+          amountCents: cardAmountCents,
+          description: squareDescription,
+          appFeeCents: platformFeeAmount,
+        });
+      } catch (squareError: any) {
+        if (squareError instanceof SquareOnboardingIncompleteError) {
+          return res.status(409).json({
+            message: "This seller isn't set up to accept online payments yet. Please contact the organizer to arrange your purchase.",
+            code: 'SELLER_PAYMENTS_UNAVAILABLE',
+          });
+        }
+        console.error('[pos] sendHoldInvoice: Square payment link creation failed:', squareError);
+        return res.status(400).json({ message: 'Failed to create Square payment link', error: squareError?.message });
+      }
+
+      if (!squareResult.ok) {
+        return res.status(402).json({ message: squareResult.message, code: 'SQUARE_PAYMENT_LINK_FAILED' });
+      }
+
+      const squareHoldInvoice = await prisma.holdInvoice.create({
+        data: {
+          id: holdInvoiceId,
+          reservationId,
+          shopperUserId: reservation.userId,
+          organizerUserId: organizer.ownerUserId,
+          saleId: reservation.item.sale!.id,
+          itemIds: [reservation.itemId, ...mergedRealItemIds],
+          totalAmount: grandTotal,
+          platformFeeAmount,
+          status: 'PENDING',
+          expiresAt,
+          processor: 'SQUARE',
+          stripeSessionId: null,
+          stripePaymentIntentId: null,
+          // Square changeover Wave S3 follow-up (2026-09-09): persist the identifiers
+          // createHoldInvoiceSquareCheckout returned now that HoldInvoice has columns for
+          // them -- lets squareWebhookController.ts's direct squareOrderId match find this
+          // row without relying solely on the paymentNote-decode fallback.
+          squarePaymentLinkId: squareResult.paymentLinkId,
+          squareOrderId: squareResult.orderId,
+          cashAmountCents: finalCashAmountCents > 0 ? finalCashAmountCents : null,
+          cardAmountCents: cardAmountCents > 0 ? cardAmountCents : null,
+          // Stripe-specific charge-shape snapshot fields -- left null for a Square row,
+          // same posture bountyController.ts's Square Purchase rows already use.
+          chargeType: null,
+          stripeAccountId: null,
+        },
+      });
+
+      await prisma.itemReservation.update({
+        where: { id: reservationId },
+        data: { invoiceId: squareHoldInvoice.id },
+      });
+      if (mergedRealItemIds.length > 0) {
+        await prisma.itemReservation.updateMany({
+          where: { itemId: { in: mergedRealItemIds } },
+          data: { invoiceId: squareHoldInvoice.id },
+        });
+      }
+
+      // Send email (mirrors the Stripe branch's own email below, pointed at the Square
+      // payment link URL instead of a Stripe Checkout URL).
+      let squareEmailWarning: string | null = null;
+      try {
+        const { buildEmail } = await import('../services/emailTemplateService');
+        const fromEmail = process.env.GMAIL_FROM_EMAIL || process.env.SES_FROM_EMAIL || 'find@outreach.finda.sale';
+
+        let itemsList = `<strong>${reservation.item.title}</strong> - $${reservation.item.price?.toFixed(2)}`;
+        if (miscItems && miscItems.length > 0) {
+          const miscItemsHtml = miscItems
+            .map(item => `<strong>${item.title}</strong> - $${item.amount.toFixed(2)}`)
+            .join('<br/>');
+          itemsList += '<br/>' + miscItemsHtml;
+        }
+
+        const html = buildEmail({
+          preheader: `Invoice for your hold`,
+          headline: `Invoice: ${reservation.item.title}${miscItems && miscItems.length > 0 ? ' + more' : ''}`,
+          body: `<p>Hi ${reservation.user.name},</p><p>Your hold is ready for payment:</p><p>${itemsList}</p><p><strong>Total: $${(grandTotal / 100).toFixed(2)}</strong></p>`,
+          ctaText: 'Complete Payment',
+          ctaUrl: squareResult.url,
+          accentColor: '#10b981',
+        });
+
+        const emailResult = await transactionalEmailService.emails.send({
+          from: fromEmail,
+          to: reservation.user.email,
+          subject: `Invoice: ${reservation.item.title}`,
+          html,
+        });
+
+        if (!emailResult.sent) {
+          squareEmailWarning = `Invoice created, but the email could not be delivered (${emailResult.reason ?? 'unknown reason'}). Share the payment link with the shopper directly.`;
+          console.warn(`[pos] sendHoldInvoice: email not sent (reason=${emailResult.reason}) to ${reservation.user.email}`);
+        }
+      } catch (emailErr: any) {
+        squareEmailWarning = 'Invoice created, but the email failed to send. Share the payment link with the shopper directly.';
+        console.warn('[pos] sendHoldInvoice: Failed to send invoice email (Square):', emailErr);
+      }
+
+      try {
+        const io = getIO();
+        io.to(`user:${reservation.userId}`).emit('HOLD_INVOICE', {
+          type: 'HOLD_INVOICE',
+          invoiceId: squareHoldInvoice.id,
+          total: grandTotal / 100,
+          expiresAt: squareHoldInvoice.expiresAt,
+          itemTitle: reservation.item.title,
+          checkoutUrl: squareResult.url,
+        });
+      } catch (socketErr) {
+        console.warn('[pos] Failed to emit HOLD_INVOICE socket event (Square):', socketErr);
+      }
+
+      try {
+        await createNotification({
+          userId: reservation.userId,
+          type: 'hold_invoice',
+          title: 'Invoice Ready',
+          body: `Your invoice for ${reservation.item.title} is ready. Total: $${(grandTotal / 100).toFixed(2)}`,
+          link: squareResult.url,
+        });
+      } catch (notifErr) {
+        console.warn('[pos] Failed to create hold invoice notification (Square):', notifErr);
+      }
+
+      return res.json({
+        invoiceId: squareHoldInvoice.id,
+        status: 'SENT',
+        checkoutUrl: squareResult.url,
+        cashAmountCents: finalCashAmountCents > 0 ? finalCashAmountCents : null,
+        cardAmountCents,
+        platformFeeAmount,
+        ...(squareEmailWarning ? { emailWarning: squareEmailWarning } : {}),
       });
     }
 

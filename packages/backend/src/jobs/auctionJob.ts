@@ -7,6 +7,8 @@ import { emailService } from '../lib/emailService';
 import { suppressionService } from '../services/suppressionService';
 import { createNotification } from '../services/notificationService';
 import { shouldUseDirectCharge } from '../services/stripeConnectService'; // Direct-charges migration (2026-08-08): staged-rollout routing decision
+import { createSquareCheckoutLink } from '../services/squareCheckoutLinkService'; // Square migration Wave S2 #2 (2026-09-09): auction-winner-pays-later replacement for the Stripe PaymentIntent below
+import { buildSquareIdempotencyKey } from '../services/squarePaymentService';
 import { calculateApplicationFee, getPlatformFeeRate, snapshotFromBreakdown, SubscriptionTier } from '../utils/feeCalculator';
 import { evaluateAuctionReserve } from '../utils/auctionRules'; // Shared with services/auctionService.closeAuction — see that file's header
 const stripe = () => getStripe();
@@ -97,7 +99,10 @@ export const endAuctions = async () => {
                 // Fix 1 in paymentEligibilityService.ts, just never routed through that shared
                 // gate because this is a cron job, not an HTTP request. See that file's 2026-09-03
                 // fix comment for the incident this traces back to.
-                organizer: { select: { stripeConnectId: true, stripeOnboarded: true, userId: true, subscriptionTier: true } },
+                // squareMerchantId/squareOnboarded added Square migration Wave S2 #2 (2026-09-09):
+                // Square-onboarded organizers route here automatically (Stripe's platform
+                // account is permanently closed) -- see organizerHasSquare below.
+                organizer: { select: { stripeConnectId: true, stripeOnboarded: true, userId: true, subscriptionTier: true, squareMerchantId: true, squareOnboarded: true } },
               },
             },
           },
@@ -166,6 +171,30 @@ export const endAuctions = async () => {
         // organizer not onboarded), never inferred after the fact.
         let purchaseChargeType: string = 'DESTINATION';
         let purchaseStripeAccountId: string | null = null;
+        // Square migration Wave S2 #2 (2026-09-09): 'STRIPE' unless the Square branch below
+        // actually creates a payment link -- matches Purchase.processor's own String-discriminator
+        // default convention (schema.prisma, Square migration Wave 0).
+        let purchaseProcessor: string = 'STRIPE';
+        // Square has no PaymentIntent/clientSecret concept -- the winner completes payment on
+        // Square's own hosted page, so all this cron needs is the URL to hand to the winner
+        // (email/notification below). paymentLinkId/orderId ARE now persisted on the Purchase
+        // row below (Purchase.squarePaymentLinkId/squareOrderId, added 2026-09-09) so
+        // squareWebhookController.ts's payment.updated handler can find this exact row and flip
+        // it PAID once the winner actually pays (see that file's syncSquarePaymentStatus).
+        let squareCheckoutUrl: string | null = null;
+        let purchaseSquarePaymentLinkId: string | null = null;
+        let purchaseSquareOrderId: string | null = null;
+
+        // Square migration Wave S2 #2 (2026-09-09): Square-onboarded organizers route here
+        // automatically, not optionally -- Stripe's platform account is permanently closed
+        // (see claude_docs/feature-notes/square-changeover-remaining-work-scoping-2026-09-09.md).
+        // Same signal bountyController.ts's completeBountyPurchase (Wave S2 #1) already
+        // established: squareOnboarded === true && squareMerchantId truthy. Existing
+        // Stripe-only organizers (squareOnboarded stays false until Square onboarding is
+        // actually completed) fall through to the untouched Stripe branch below unchanged.
+        const organizerHasSquare =
+          currentItem.sale!.organizer.squareOnboarded === true &&
+          !!currentItem.sale!.organizer.squareMerchantId;
 
         // 2026-09-03 fix (findasale-hacker reverify pass): require the SAME eligibility bar as
         // the online-checkout gate (paymentEligibilityService.ts Fix 1) -- a live, non-test
@@ -178,7 +207,24 @@ export const endAuctions = async () => {
           !currentItem.sale!.organizer.stripeConnectId.startsWith('acct_test_') &&
           currentItem.sale!.organizer.stripeOnboarded === true;
 
-        if (organizerStripeEligible && highestBid) {
+        if (organizerHasSquare && highestBid) {
+          const linkResult = await createSquareCheckoutLink({
+            organizerId: currentItem.sale!.organizerId,
+            idempotencyKey: buildSquareIdempotencyKey(['auction-square', currentItem.id]),
+            amountCents: buyerChargeCents,
+            description: `Auction win: ${currentItem.title}`.slice(0, 500),
+            appFeeCents: auctionFees.applicationFeeCents,
+            metadata: { itemId: currentItem.id, saleId: currentItem.sale!.id, userId: highestBid.userId },
+          });
+          if (linkResult.ok) {
+            squareCheckoutUrl = linkResult.url;
+            purchaseProcessor = 'SQUARE';
+            purchaseSquarePaymentLinkId = linkResult.paymentLinkId;
+            purchaseSquareOrderId = linkResult.orderId;
+          } else {
+            console.error(`[auctionJob] Square payment link creation failed for item ${currentItem.id}: ${linkResult.code} -- ${linkResult.message}`);
+          }
+        } else if (organizerStripeEligible && highestBid) {
           try {
             const feeAmount = auctionFees.applicationFeeCents;
             const stripeConnectId = currentItem.sale!.organizer.stripeConnectId!;
@@ -207,8 +253,8 @@ export const endAuctions = async () => {
           } catch (err) {
             console.error(`Stripe PaymentIntent creation failed for item ${currentItem.id}:`, err);
           }
-        } else if (!organizerStripeEligible) {
-          console.warn(`Organizer for item ${currentItem.id} is not Stripe-eligible (missing/test Connect id, or not fully onboarded) — skipping payment intent`);
+        } else if (!organizerHasSquare && !organizerStripeEligible) {
+          console.warn(`Organizer for item ${currentItem.id} is not Square- or Stripe-eligible (missing/incomplete onboarding on both) — skipping payment link/intent`);
         }
 
         // Purchase.amount is what the buyer was CHARGED (premium included, matching
@@ -217,6 +263,10 @@ export const endAuctions = async () => {
         // premium back out via utils/feeCalculator.resolveOrganizerFeeReport — they must never
         // read platformFeeAmount directly.
         const platformFeeAmount = auctionFees.applicationFeeCents / 100;
+        // Square migration Wave S2 #2 (2026-09-09): a Square checkout link is exactly as
+        // "payment not yet collected" as a Stripe PaymentIntent -- either one existing means
+        // the winner still owes money and the Purchase must stay PENDING, not PAID.
+        const hasPendingPayment = !!stripePaymentIntentId || !!squareCheckoutUrl;
         if (highestBid) {
           await tx.purchase.create({
             data: {
@@ -230,16 +280,22 @@ export const endAuctions = async () => {
               // never has to re-derive this lot's fee from whatever the rates and the
               // organizer's subscription tier happen to be when the report is run.
               ...snapshotFromBreakdown(auctionFees, feePercent, organizerCoversPremium),
+              processor: purchaseProcessor,
               stripePaymentIntentId,
-              // Only mark PAID when there's no Stripe (organizer not onboarded)
-              status: stripePaymentIntentId ? 'PENDING' : 'PAID',
+              // Square migration Wave S2 #2 follow-up (2026-09-09): persist the real Square
+              // link/order identifiers so the payment.updated webhook can find this row later.
+              ...(purchaseSquarePaymentLinkId ? { squarePaymentLinkId: purchaseSquarePaymentLinkId } : {}),
+              ...(purchaseSquareOrderId ? { squareOrderId: purchaseSquareOrderId } : {}),
+              // Only mark PAID when there's no processor payment pending (organizer not onboarded
+              // on either Square or Stripe)
+              status: hasPendingPayment ? 'PENDING' : 'PAID',
               chargeType: purchaseChargeType,
               ...(purchaseStripeAccountId ? { stripeAccountId: purchaseStripeAccountId } : {}),
             },
           });
         }
 
-        return { status: 'SUCCESS', item: currentItem, highestBid, stripePaymentIntentId, price };
+        return { status: 'SUCCESS', item: currentItem, highestBid, stripePaymentIntentId, squareCheckoutUrl, price };
       });
 
       // All transaction-critical operations complete. Now handle post-transaction side effects.
@@ -268,12 +324,23 @@ export const endAuctions = async () => {
         }
 
         // Email the winner with a payment link
-        if (result.stripePaymentIntentId && result.highestBid.user?.email) {
+        if ((result.stripePaymentIntentId || result.squareCheckoutUrl) && result.highestBid.user?.email) {
           if (await suppressionService.isHardSuppressed(result.highestBid.user.email)) {
             console.log(`[auctionJob] Skipping hard-suppressed winner: ${result.highestBid.user.email}`);
           } else {
             const fromEmail = process.env.GMAIL_FROM_EMAIL || process.env.SES_FROM_EMAIL || 'find@outreach.finda.sale';
-            const payUrl = `${process.env.FRONTEND_URL || 'https://finda.sale'}/shopper/purchases`;
+            // Square migration Wave S2 #2 (2026-09-09): a Square payment link is a fully
+            // self-contained hosted checkout page -- no FindA.Sale frontend page is needed at
+            // all, so the winner goes straight there. Found during this dispatch's knock-on
+            // check (NOT fixed here, flagged in the handoff): the Stripe fallback URL below
+            // (`/shopper/purchases`) has no corresponding frontend page -- CheckoutModal.tsx's
+            // purchaseId-resume capability (which calls GET /stripe/pending-payment/:purchaseId)
+            // is never invoked from any page, so this link has been a dead 404 pre-existing this
+            // change. Left byte-for-byte unchanged for the untouched Stripe branch per this
+            // dispatch's "don't touch existing Stripe code beyond what's needed" scope.
+            const payUrl = result.squareCheckoutUrl
+              ? result.squareCheckoutUrl
+              : `${process.env.FRONTEND_URL || 'https://finda.sale'}/shopper/purchases`;
             try {
               await emailService.emails.send({
                 from: fromEmail,
@@ -333,7 +400,7 @@ export const endAuctions = async () => {
 
       console.log(
         `Auction ended for item ${result.item.id}. Winner: user ${result.highestBid?.userId || 'none'}, $${result.price}. ` +
-        `Payment: ${result.stripePaymentIntentId ? 'PENDING (intent created)' : 'PAID (no Stripe account)'}`
+        `Payment: ${result.stripePaymentIntentId ? 'PENDING (Stripe intent created)' : result.squareCheckoutUrl ? 'PENDING (Square payment link created)' : 'PAID (no processor account)'}`
       );
       } catch (itemError) {
         // Per-item isolation: one broken auction (e.g. a $transaction failure on a

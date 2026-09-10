@@ -29,6 +29,9 @@ import { invoiceableWhere, isInvoicedOrClaimed, InvoiceClaimLostError, releaseDe
 import { stripeCheckoutExpiry } from '../utils/stripeCheckoutExpiry'; // Hold-to-Pay P0 (2026-08-16): Stripe expires_at floor/ceiling clamp
 import { expireCheckoutSessionSafely } from '../utils/expireCheckoutSession'; // Hold-to-Pay P1 (2026-08-17): released invoices left PAYABLE Stripe sessions live
 import { assertSaleCanAcceptPayment } from '../services/paymentEligibilityService'; // P1 fix (2026-09-04, S-CARDING-INCIDENT-2026-09-03 follow-up): Hold-to-Pay invoicing never ran the shared Stripe-onboarding/sale-state gate
+import { createHoldInvoiceSquareCheckout, generateHoldInvoiceId } from '../services/holdInvoiceSquareCheckoutHelper'; // Square changeover Wave S2 #3 (2026-09-09): Hold-to-Pay invoice creation, Square branch
+import { deleteSquareCheckoutLink } from '../services/squareCheckoutLinkService'; // orphaned-payable-link cleanup, Square counterpart of expireCheckoutSessionSafely below
+import { SquareOnboardingIncompleteError } from '../services/squarePaymentService'; // thrown by createHoldInvoiceSquareCheckout when the organizer's Square onboarding is incomplete
 
 // markSold settlement router (Decision A): settlement modes
 type SettlementMode = 'RECORD' | 'POS_CART' | 'CHECKOUT_LINK';
@@ -980,6 +983,14 @@ export const batchUpdateHolds = async (req: AuthRequest, res: Response) => {
             amount,
             buyerEmail: validRouted[0].user.email,
             expiresAt: linkExpiresAt,
+            // Square changeover Wave S2 #4 (2026-09-09): `organizer` here is a plain
+            // prisma.organizer.findUnique({ where: { userId } }) with no `select` (see
+            // batchUpdateHolds' own organizer fetch above), so every scalar column
+            // including squareOnboarded/squareMerchantId is already loaded -- no extra
+            // query needed. Mirrors this same file's own organizerHasSquare gate used a
+            // few hundred lines below for markSoldAndCreateInvoice's Square branch.
+            squareOnboarded: (organizer as any).squareOnboarded ?? false,
+            squareMerchantId: (organizer as any).squareMerchantId ?? null,
           });
         } catch (stripeErr: any) {
           console.error('[settlement] CHECKOUT_LINK payment link creation failed:', stripeErr);
@@ -1738,6 +1749,11 @@ export const markSoldAndCreateInvoice = async (req: AuthRequest, res: Response) 
   // and cannot be expired with a platform-scoped call.
   let createdStripeSessionId: string | null = null;
   let createdStripeSessionAccount: string | null = null;
+  // Square counterpart of the two Stripe handles above -- set once createHoldInvoiceSquareCheckout
+  // returns a real payment link, cleared once the HoldInvoice transaction commits. See the outer
+  // catch below for the cleanup call (deleteSquareCheckoutLink), mirroring expireCheckoutSessionSafely.
+  let createdSquarePaymentLinkId: string | null = null;
+  let createdSquareOrganizerId: string | null = null;
 
   // Token-scoped claim release. NEVER release by id alone: another request may have
   // legitimately stolen a stale claim on the same rows, and an id-only release would
@@ -1896,6 +1912,171 @@ export const markSoldAndCreateInvoice = async (req: AuthRequest, res: Response) 
 
     // LOCKED DECISION #7: Payment window = hold timer remainder (earliest expiry)
     const expiresAt = new Date(Math.min(...allShopperHolds.map(h => h.expiresAt.getTime())));
+
+    // Square changeover Wave S2 #3 (2026-09-09): Square-connected organizer branch.
+    // Same server-determined processor-selection signal as bountyController.ts's
+    // completeBountyPurchase / squarePaymentEligibilityService.ts's own gate
+    // (squareOnboarded === true && squareMerchantId present) -- Stripe's platform account
+    // is permanently closed, so a Square-onboarded organizer's Hold-to-Pay invoices must
+    // route to Square automatically, not optionally. `organizer` here is already a full
+    // Organizer row (Prisma `include`, not `select`, at the top of this function), so
+    // squareOnboarded/squareMerchantId/squareLocationId are already loaded -- no extra
+    // query needed. Existing Stripe-only organizers (squareOnboarded stays false until an
+    // organizer actually completes Square Connect onboarding) fall through to the
+    // untouched Stripe branch below -- zero behavior change for them.
+    const organizerHasSquare = organizer.squareOnboarded === true && !!organizer.squareMerchantId;
+
+    if (organizerHasSquare) {
+      // Pre-generated so the SAME id can be embedded in the Square Payment Link's
+      // paymentNote (Square has no way to backfill it after creation, unlike Stripe's
+      // metadata.update below) -- see holdInvoiceSquareCheckoutHelper.ts's header comment
+      // for the full rationale and the known paymentLinkId/orderId-persistence gap.
+      const holdInvoiceId = generateHoldInvoiceId();
+      const squareDescription = allShopperHolds.length > 1
+        ? `${allShopperHolds.length} items from ${reservation.item.sale!.title}`
+        : (allShopperHolds[0]?.item.title || 'FindA.Sale payment');
+
+      let squareResult;
+      try {
+        squareResult = await createHoldInvoiceSquareCheckout({
+          organizerId: organizer.id,
+          holdInvoiceId,
+          amountCents: Math.round(totalAmount * 100),
+          description: squareDescription,
+          appFeeCents: Math.round(totalPlatformFeeAmount * 100),
+        });
+      } catch (squareError: any) {
+        await releaseClaim();
+        if (squareError instanceof SquareOnboardingIncompleteError) {
+          return res.status(409).json({
+            message: "This seller isn't set up to accept online payments yet. Please contact the organizer to arrange your purchase.",
+            code: 'SELLER_PAYMENTS_UNAVAILABLE',
+          });
+        }
+        console.error('[hold-invoice] Square payment link creation failed:', squareError);
+        return res.status(400).json({ message: 'Failed to create Square payment link', error: squareError?.message });
+      }
+
+      if (!squareResult.ok) {
+        await releaseClaim();
+        return res.status(402).json({ message: squareResult.message, code: 'SQUARE_PAYMENT_LINK_FAILED' });
+      }
+
+      // Record what we just created so a failure below (e.g. InvoiceClaimLostError -- a
+      // concurrent request won the claim race) can close it -- same orphaned-payable-link
+      // guard the Stripe branch already has via createdStripeSessionId, Square-flavored.
+      createdSquarePaymentLinkId = squareResult.paymentLinkId;
+      createdSquareOrganizerId = organizer.id;
+
+      const squareTransaction = await prisma.$transaction(async (tx) => {
+        // P0 fix (2026-08-17), same as the Stripe branch below: clear any dead anchor
+        // left behind by a released/expired invoice before claiming this one.
+        await releaseDeadInvoiceAnchors(tx, holdIds);
+
+        const holdInvoice = await tx.holdInvoice.create({
+          data: {
+            id: holdInvoiceId,
+            reservationId: reservationId,
+            shopperUserId: reservation.user.id,
+            organizerUserId: organizer.userId,
+            saleId: reservation.item.saleId!,
+            processor: 'SQUARE',
+            totalAmount: Math.round(totalAmount * 100),
+            platformFeeAmount: Math.round(totalPlatformFeeAmount * 100),
+            itemIds: bundledItemIds,
+            status: 'PENDING',
+            expiresAt,
+            // Square changeover Wave S3 follow-up (2026-09-09): persist the identifiers
+            // createHoldInvoiceSquareCheckout returned now that HoldInvoice has columns for
+            // them -- lets squareWebhookController.ts's direct squareOrderId match find this
+            // row without relying solely on the paymentNote-decode fallback.
+            squarePaymentLinkId: squareResult.paymentLinkId,
+            squareOrderId: squareResult.orderId,
+            // No Square equivalent of stripeCheckoutExpiry's clamp is applied -- Square
+            // Payment Links have no expires_at field at all (confirmed live, see
+            // utils/stripeCheckoutExpiry.ts's own header note added this dispatch). The
+            // real deadline is enforced server-side by invoiceExpiryJob regardless of
+            // processor. chargeType/stripeAccountId are Stripe-specific charge-shape
+            // snapshot fields (2026-08-18 migration) -- left null for a Square row, same
+            // posture bountyController.ts's Square Purchase rows already use.
+            chargeType: null,
+            stripeAccountId: null,
+          },
+        });
+
+        const finalize = await tx.itemReservation.updateMany({
+          where: { id: { in: holdIds }, invoiceClaimToken: claimToken },
+          data: { invoiceId: holdInvoice.id, invoiceClaimToken: null, invoiceClaimedAt: null },
+        });
+        if (finalize.count !== holdIds.length) throw new InvoiceClaimLostError();
+
+        await tx.item.updateMany({
+          where: { id: { in: bundledItemIds } },
+          data: { status: 'INVOICE_ISSUED' },
+        });
+
+        return holdInvoice;
+      });
+
+      createdStripeSessionId = null;
+      createdStripeSessionAccount = null;
+      createdSquarePaymentLinkId = null;
+      createdSquareOrganizerId = null;
+
+      const squareItemList = bundledItemIds.length > 1
+        ? `${bundledItemIds.length} items`
+        : `"${allShopperHolds[0]?.item.title}"`;
+
+      createNotification({
+        userId: reservation.user.id,
+        type: 'invoice_sent',
+        title: 'Payment requested',
+        body: `Payment requested for ${squareItemList}. Complete payment before your hold expires.`,
+        link: `/items/${bundledItemIds[0]}`,
+        channel: 'OPERATIONAL',
+        sendEmail: true,
+      }).catch((err: unknown) => console.error(`[hold-invoice] Failed to create invoice_sent notification for user ${reservation.user.id}:`, err));
+
+      // Send checkout email to shopper (fire-and-forget) -- mirrors the Stripe branch's
+      // own email below, just pointed at the Square payment link URL.
+      setImmediate(async () => {
+        try {
+          const expiryTime = new Date(expiresAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'America/Chicago' });
+          const itemListEmail = bundledItemIds.length > 1
+            ? `${bundledItemIds.length} items from ${reservation.item.sale!.title}`
+            : `${allShopperHolds[0]?.item.title} from ${reservation.item.sale!.title}`;
+
+          if (await suppressionService.isHardSuppressed(reservation.user.email)) {
+            console.log(`[hold-invoice] Skipping hard-suppressed recipient: ${reservation.user.email}`);
+            return;
+          }
+          await emailService.emails.send({
+            from: process.env.GMAIL_FROM_EMAIL || process.env.SES_FROM_EMAIL || 'find@outreach.finda.sale',
+            to: reservation.user.email,
+            subject: `Complete your purchase: ${itemListEmail}`,
+            html: `
+              <h2>Complete Your Purchase</h2>
+              <p>Hi ${reservation.user.name},</p>
+              <p>The organizer is ready for payment on <strong>${itemListEmail}</strong>.</p>
+              <p><a href="${squareResult.url}" style="background-color: #10b981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">Review and Pay</a></p>
+              <p style="color: #6b7280; font-size: 14px;">This link expires at ${expiryTime} (in approximately ${Math.round((expiresAt.getTime() - Date.now()) / 3600000)} hours).</p>
+            `,
+          });
+        } catch (err) {
+          console.warn('[hold-invoice] Failed to send checkout email (Square):', err);
+        }
+      });
+
+      return res.status(201).json({
+        invoiceId: squareTransaction.id,
+        checkoutUrl: squareResult.url,
+        expiresAt,
+        totalAmount,
+        totalPlatformFeeAmount,
+        estimatedOrganizerPayout: totalAmount - totalPlatformFeeAmount,
+        itemCount: bundledItemIds.length,
+      });
+    }
 
     // Create Stripe Checkout Session
     const stripe = require('../utils/stripe').getStripe();
@@ -2243,6 +2424,18 @@ export const markSoldAndCreateInvoice = async (req: AuthRequest, res: Response) 
         stripeAccount: createdStripeSessionAccount,
         context: `markSoldAndCreateInvoice orphan reservation=${req.params?.id}`,
       }).catch(e => console.error('[hold-invoice] Failed to close orphaned checkout session:', e));
+    }
+
+    // Square counterpart of the Stripe orphan-session guard above: reaching this catch
+    // after a Square Payment Link was created (createdSquarePaymentLinkId set) but before
+    // the HoldInvoice transaction committed means the link is live, payable, and orphaned
+    // -- nothing in the DB points at it. Best-effort cleanup; never let this mask the
+    // original error (which is what the code below this block still handles).
+    if (createdSquarePaymentLinkId && createdSquareOrganizerId) {
+      await deleteSquareCheckoutLink({
+        organizerId: createdSquareOrganizerId,
+        paymentLinkId: createdSquarePaymentLinkId,
+      }).catch(e => console.error('[hold-invoice] Failed to close orphaned Square payment link:', e));
     }
 
     if (error instanceof InvoiceClaimLostError) {

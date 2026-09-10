@@ -5,6 +5,7 @@ import { getStripe } from '../utils/stripe';
 import { createNotification } from '../lib/notificationService';
 import { recordPosPaymentLinkSale } from '../services/posPaymentLinkRecorder';
 import { shouldUseDirectCharge } from '../services/stripeConnectService';
+import { getSquareOrderPaymentStatus, deleteSquareCheckoutLink } from '../services/squareCheckoutLinkService'; // Square changeover Wave S3 (2026-09-09): POSPaymentLink reconciliation, Square branch
 import type { POSPaymentLink } from '@prisma/client';
 
 /**
@@ -146,12 +147,26 @@ const reclaimExpiredPaymentLink = async (
       console.log(`[pos-reconcile] EXPIRED-NOOP link=${link.id} -- ${reasonLabel}, but no items still INVOICE_ISSUED (already resolved elsewhere, or an ad-hoc link with no underlying hold).`);
     }
 
-    // Best-effort Stripe-side deactivation -- non-fatal, mirrors
-    // invoiceExpiryJob.ts's best-effort Checkout Session expire() call.
+    // Best-effort deactivation -- non-fatal, mirrors invoiceExpiryJob.ts's best-effort
+    // Checkout Session expire() call. Square changeover Wave S3 (2026-09-09): processor-aware
+    // -- a SQUARE-processor link has no stripePaymentLinkId to deactivate (nullable columns,
+    // see schema.prisma's POSPaymentLink comment) and calling deleteSquareCheckoutLink is the
+    // direct equivalent (see that function's own header comment).
     try {
-      await stripe().paymentLinks.update(link.stripePaymentLinkId, { active: false }, stripeRequestOptions);
+      if (link.processor === 'SQUARE') {
+        if (link.squarePaymentLinkId) {
+          const delResult = await deleteSquareCheckoutLink({ organizerId: link.organizerId, paymentLinkId: link.squarePaymentLinkId });
+          if (!delResult.ok) {
+            console.warn(`[pos-reconcile] Failed to cancel Square payment link ${link.squarePaymentLinkId} (non-fatal): ${delResult.code} -- ${delResult.message}`);
+          }
+        } else {
+          console.warn(`[pos-reconcile] SQUARE-processor link ${link.id} has no squarePaymentLinkId -- cannot deactivate (non-fatal).`);
+        }
+      } else {
+        await stripe().paymentLinks.update(link.stripePaymentLinkId!, { active: false }, stripeRequestOptions);
+      }
     } catch (deactivateErr: any) {
-      console.warn(`[pos-reconcile] Failed to deactivate Stripe payment link ${link.stripePaymentLinkId} (non-fatal):`, deactivateErr?.message ?? deactivateErr);
+      console.warn(`[pos-reconcile] Failed to deactivate payment link ${link.id} (non-fatal):`, deactivateErr?.message ?? deactivateErr);
     }
   } catch (revertErr: any) {
     console.error(`[pos-reconcile] Failed to reclaim payment link ${link.id} -- will retry next run:`, revertErr?.message ?? revertErr);
@@ -193,6 +208,13 @@ export const reconcileStrandedPosSales = async (): Promise<void> => {
   console.log(`[pos-reconcile] Checking ${candidates.length} ACTIVE POS payment link(s) older than 10 min for stranded sales.`);
 
   for (const link of candidates) {
+    // Square changeover Wave S3 (2026-09-09): SQUARE-processor links skip all Stripe-specific
+    // Direct-charge account-context resolution below -- there is no Stripe account to route
+    // against, and Square's own per-organizer access-token resolution happens inside
+    // getSquareOrderPaymentStatus/deleteSquareCheckoutLink instead (mirrors
+    // squareCheckoutLinkService.ts's own token-resolution-lives-inside-the-service design).
+    const isSquareLink = link.processor === 'SQUARE';
+
     // Direct-charge account-context fix (2026-08-20, updated same day once the
     // stripeAccountId/chargeType columns landed -- 20260820190000_add_pos_payment_link_
     // stripe_account_snapshot): prefer the value PINNED on the link at creation time.
@@ -202,24 +224,26 @@ export const reconcileStrandedPosSales = async (): Promise<void> => {
     // Fails closed to undefined (platform account) on any lookup error, mirroring
     // shouldUseDirectCharge's own fail-closed contract.
     let linkStripeRequestOptions: { stripeAccount: string } | undefined;
-    if (link.chargeType) {
-      if (link.chargeType === 'DIRECT' && link.stripeAccountId) {
-        linkStripeRequestOptions = { stripeAccount: link.stripeAccountId };
-      }
-    } else {
-      try {
-        const linkOrganizer = await prisma.organizer.findUnique({
-          where: { id: link.organizerId },
-          select: { stripeConnectId: true },
-        });
-        if (linkOrganizer?.stripeConnectId) {
-          const linkUseDirect = await shouldUseDirectCharge(link.organizerId, linkOrganizer.stripeConnectId);
-          if (linkUseDirect) {
-            linkStripeRequestOptions = { stripeAccount: linkOrganizer.stripeConnectId };
-          }
+    if (!isSquareLink) {
+      if (link.chargeType) {
+        if (link.chargeType === 'DIRECT' && link.stripeAccountId) {
+          linkStripeRequestOptions = { stripeAccount: link.stripeAccountId };
         }
-      } catch (routingErr: any) {
-        console.warn(`[pos-reconcile] Failed to resolve Stripe account context for link=${link.id} (falling back to platform account):`, routingErr?.message ?? routingErr);
+      } else {
+        try {
+          const linkOrganizer = await prisma.organizer.findUnique({
+            where: { id: link.organizerId },
+            select: { stripeConnectId: true },
+          });
+          if (linkOrganizer?.stripeConnectId) {
+            const linkUseDirect = await shouldUseDirectCharge(link.organizerId, linkOrganizer.stripeConnectId);
+            if (linkUseDirect) {
+              linkStripeRequestOptions = { stripeAccount: linkOrganizer.stripeConnectId };
+            }
+          }
+        } catch (routingErr: any) {
+          console.warn(`[pos-reconcile] Failed to resolve Stripe account context for link=${link.id} (falling back to platform account):`, routingErr?.message ?? routingErr);
+        }
       }
     }
 
@@ -247,9 +271,86 @@ export const reconcileStrandedPosSales = async (): Promise<void> => {
     }
 
     try {
+      // Square changeover Wave S3 (2026-09-09): Square has no checkout.sessions.list
+      // equivalent for a Payment Link (confirmed by the architect's scoping pass -- Square's
+      // Checkout API supports no session-list/retrieve call at all) -- instead, look up the
+      // underlying Order this link created (RetrieveOrder via squareCheckoutLinkService.ts's
+      // getSquareOrderPaymentStatus) and treat Order.state === 'COMPLETED' as "paid".
+      if (isSquareLink) {
+        if (!link.squareOrderId) {
+          console.error(`[pos-reconcile] STRANDED-UNRECOVERED link=${link.id} -- SQUARE-processor link has no squareOrderId, cannot check payment status.`);
+          continue;
+        }
+
+        const statusResult = await getSquareOrderPaymentStatus({ organizerId: link.organizerId, orderId: link.squareOrderId });
+        if (!statusResult.ok) {
+          console.error(`[pos-reconcile] STRANDED-UNRECOVERED link=${link.id} -- Square order status check failed: ${statusResult.code} -- ${statusResult.message}`);
+          continue;
+        }
+
+        if (!statusResult.paid) {
+          // Same expiry-reclaim logic as the Stripe branch below -- see its own comment for
+          // full rationale (Reclaim-gap fix, 2026-08-04).
+          const nowTs = new Date();
+          const linkExpiresAt = link.expiresAt;
+          if (
+            linkExpiresAt &&
+            linkExpiresAt < nowTs &&
+            process.env.POS_PAYMENT_LINK_EXPIRY_RECLAIM_DISABLED !== '1'
+          ) {
+            await reclaimExpiredPaymentLink(
+              link,
+              `CHECKOUT_LINK Square payment link passed its own expiresAt (${linkExpiresAt.toISOString()}) with no paid Square order found (order state=${statusResult.state})`,
+              undefined
+            );
+          }
+          continue;
+        }
+
+        // Re-read the row immediately before recording to avoid racing the live webhook.
+        const freshSquare = await prisma.pOSPaymentLink.findUnique({ where: { id: link.id } });
+        if (!freshSquare || freshSquare.status === 'COMPLETED') continue;
+
+        const squareResult = await recordPosPaymentLinkSale(freshSquare, {
+          source: 'reconcile',
+          processor: 'SQUARE',
+          externalPaymentId: statusResult.paymentId ?? undefined,
+        });
+
+        if (squareResult.recorded) {
+          const amountDollars = (link.amount / 100).toFixed(2);
+          console.error(`[pos-reconcile] AUTO-RECORDED stranded sale link=${link.id} (Square order ${link.squareOrderId}) amount=$${amountDollars}`);
+
+          const squareOrganizer = await prisma.organizer
+            .findUnique({ where: { id: link.organizerId }, select: { userId: true } })
+            .catch((e) => {
+              console.error(`[pos-reconcile] Organizer lookup failed for link=${link.id} organizerId=${link.organizerId}:`, e?.message ?? e);
+              return null;
+            });
+
+          if (squareOrganizer?.userId) {
+            await createNotification({
+              userId: squareOrganizer.userId,
+              type: 'POS_SALE_RECOVERED',
+              title: 'A POS sale was auto-recovered',
+              body: `A QR / payment-link sale of $${amountDollars} was captured by Square but not recorded at the moment of sale. FindA.Sale automatically reconciled and recorded it -- no action needed.`,
+              link: '/organizer/pos',
+              channel: 'OPERATIONAL',
+            }).catch((e) => console.error(`[pos-reconcile] Failed to notify organizer of recovered sale link=${link.id}:`, e));
+          }
+        } else if (!squareResult.alreadyCompleted) {
+          console.error(`[pos-reconcile] STRANDED-UNRECOVERED link=${link.id} -- Square order ${link.squareOrderId} is COMPLETED but recorder did not record; manual review needed.`);
+        }
+        continue;
+      }
+
       const sessions = await stripe().checkout.sessions.list(
         {
-          payment_link: link.stripePaymentLinkId,
+          // Non-null assertion safe here: this line is only reached once isSquareLink has
+          // already continue'd above -- every STRIPE-processor row always has
+          // stripePaymentLinkId set (the column is nullable only to accommodate SQUARE rows,
+          // see schema.prisma's POSPaymentLink comment).
+          payment_link: link.stripePaymentLinkId!,
           limit: 5,
         },
         linkStripeRequestOptions

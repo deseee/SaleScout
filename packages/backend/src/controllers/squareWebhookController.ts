@@ -3,6 +3,9 @@ import { WebhooksHelper } from 'square';
 import { prisma } from '../lib/prisma';
 import { createNotification } from '../lib/notificationService';
 import { handleSquareDisputeWebhook, type SquareDisputeWebhookEvent } from '../services/squareRefundService'; // findasale-hacker fix-and-reverify (2026-09-08): wire the REAL dispute handler -- squareRefundService.ts's handleSquareDisputeWebhook was fully built for exactly this call site (see its own doc comment) but was never actually invoked here; the dispute.created/dispute.state.updated cases below were silently calling a local log-only stub instead, meaning real Square chargebacks were never processed (no DISPUTED/DISPUTE_LOST status, no serial-chargeback buyer suspension, no organizer notification, no chargeback-rate metric). See VALID-STATE-ONLY-EXPOSURE finding in the 2026-09-08 security-QA pass.
+import { markHoldInvoicePaid } from '../services/holdInvoicePaymentRecorder'; // Square changeover Wave S2 #3 (2026-09-09): wires the payment.updated stub below to actually record a Hold-to-Pay invoice as PAID -- see HOLD_INVOICE_NOTE_KEY import below for how the invoice is found.
+import { HOLD_INVOICE_NOTE_KEY } from '../services/holdInvoiceSquareCheckoutHelper'; // the paymentNote key holdInvoiceSquareCheckoutHelper.ts encodes a HoldInvoice.id into at link-creation time
+import { recordPosPaymentLinkSale } from '../services/posPaymentLinkRecorder'; // Square changeover Wave S3 follow-up (2026-09-09): direct squareOrderId match for POSPaymentLink, see the new branch in syncSquarePaymentStatus below
 
 /**
  * Square webhook payload envelope shape (confirmed via live fetch of Square's webhook event
@@ -24,12 +27,35 @@ interface SquareWebhookEnvelope {
 }
 
 /**
- * TODO (Wave 1 #1 -- Checkout, squarePaymentController.ts/squarePaymentService.ts, a
- * concurrent dispatch not yet built at the time this file was written): integration point
- * for real Square payment-status sync (Purchase/HoldInvoice/POSPaymentRequest records).
- * Deliberately NOT importing from a file that doesn't exist yet -- would break the build for
- * whichever dispatch lands second. Once that dispatch lands, replace this stub's body (or
- * this call site in handleSquareWebhook below) with the real sync call.
+ * Square changeover Wave S2 #3 (2026-09-09), extended Wave S2 #2 follow-up (2026-09-09):
+ * Wave 1 #1's direct/synchronous Square checkout (squarePaymentController.ts's
+ * createSquarePayment) never goes through this webhook at all (it records the Purchase
+ * inline, in the same request/response cycle, per that file's own header comment), so this
+ * function handles the two "pay later via a hosted link" cases:
+ *
+ * 1. Hold-to-Pay invoice: reservationController.ts's markSoldAndCreateInvoice and
+ *    posController.ts's sendHoldInvoice both create a Square Payment Link via
+ *    holdInvoiceSquareCheckoutHelper.ts's createHoldInvoiceSquareCheckout, which embeds the
+ *    pre-generated HoldInvoice.id into the link's paymentNote (key: HOLD_INVOICE_NOTE_KEY).
+ *    Square attaches that paymentNote to the resulting Payment once paid (confirmed via
+ *    squareCheckoutLinkService.ts's own header comment, sourced from Square's live docs) --
+ *    so a COMPLETED payment.updated event carries `payment.note` = "invoiceId=<uuid>",
+ *    decoded below to find the exact HoldInvoice row and call markHoldInvoicePaid, the same
+ *    single source of truth stripeController.ts's charge.succeeded handler and
+ *    invoiceExpiryJob.ts's reconcile branch already use for the Stripe side.
+ *
+ * 2. Auction winner payment link: jobs/auctionJob.ts's cron and
+ *    services/auctionService.ts's closeAuction both create a Square Payment Link via
+ *    createSquareCheckoutLink and persist the returned paymentLinkId/orderId directly on the
+ *    PENDING Purchase row (Purchase.squarePaymentLinkId/squareOrderId, schema addition
+ *    2026-09-09) instead of a paymentNote key -- no HoldInvoice note match falls through to
+ *    look up that Purchase row by squareOrderId (falling back to squarePaymentLinkId) and
+ *    flips it PAID + squarePaymentId. Before this, a paid Square auction-win link had no
+ *    mechanism to ever reach PAID.
+ *
+ * Any OTHER Square payment (no invoiceId note, no matching PENDING Purchase -- e.g. a future
+ * Wave S2 bounty/POS-QR Square payment link not yet wired the same way, or Wave 1 #1's
+ * direct-charge Purchase, which never reaches this function) is a deliberate no-op here.
  */
 async function syncSquarePaymentStatus(
   eventType: 'payment.created' | 'payment.updated',
@@ -37,8 +63,161 @@ async function syncSquarePaymentStatus(
 ): Promise<void> {
   console.log(
     `[square-webhook] ${eventType} received for Square payment ${payment?.id ?? 'unknown'} ` +
-    `(status=${payment?.status ?? 'unknown'}, order_id=${payment?.order_id ?? 'unknown'}) -- ` +
-    `payment-sync integration point (see TODO above), not yet wired.`
+    `(status=${payment?.status ?? 'unknown'}, order_id=${payment?.order_id ?? 'unknown'})`
+  );
+
+  // Only a COMPLETED payment represents money actually captured -- mirrors
+  // stripeController.ts only recording on charge.succeeded, never on an intermediate
+  // PaymentIntent state. payment.created events (and any non-COMPLETED payment.updated,
+  // e.g. APPROVED/CANCELED/FAILED) are logged above and otherwise ignored here.
+  if (eventType !== 'payment.updated' || payment?.status !== 'COMPLETED') {
+    return;
+  }
+
+  // Square changeover Wave S3 follow-up (2026-09-09): direct-ID-match branch, tried FIRST --
+  // cheaper and more direct than the paymentNote-decode path below. Both POSPaymentLink
+  // (Wave S2 #4) and HoldInvoice (Wave S2 #3 follow-up) now persist the exact squareOrderId
+  // createSquareCheckoutLink returned at creation time, so a completed payment can usually be
+  // matched straight off payment.order_id with no note-decoding needed.
+  //
+  // No fallback to a squarePaymentLinkId match here when order_id is absent: Square's Payment
+  // object (confirmed via this dispatch's live doc read of the Orders/Payments API reference)
+  // exposes order_id but no payment-link-id field, so there is no second identifier on the
+  // payment payload itself to key off. If order_id is ever missing, this branch is skipped
+  // (logged below) and control falls through to the paymentNote-decode path, which still
+  // covers HoldInvoice (POSPaymentLink never adopted a paymentNote correlator, since -- unlike
+  // HoldInvoice -- its DB row always exists by the time Square's CreatePaymentLink call
+  // returns, so a direct squareOrderId match is sufficient and no note-based backstop is
+  // needed).
+  const orderId: string | undefined = typeof payment?.order_id === 'string' ? payment.order_id : undefined;
+  if (orderId) {
+    const posLink = await prisma.pOSPaymentLink.findFirst({ where: { squareOrderId: orderId } });
+    if (posLink) {
+      const result = await recordPosPaymentLinkSale(posLink, {
+        source: 'webhook',
+        processor: 'SQUARE',
+        externalPaymentId: typeof payment?.id === 'string' ? payment.id : undefined,
+      });
+      if (!result.recorded && !result.alreadyCompleted) {
+        console.error(`[square-webhook] recordPosPaymentLinkSale returned neither recorded nor alreadyCompleted for POSPaymentLink ${posLink.id}, payment ${payment?.id}.`);
+      }
+      return;
+    }
+
+    const holdInvoiceByOrder = await prisma.holdInvoice.findFirst({ where: { squareOrderId: orderId } });
+    if (holdInvoiceByOrder) {
+      const result = await markHoldInvoicePaid(
+        holdInvoiceByOrder.id,
+        { processor: 'SQUARE', externalPaymentId: payment?.id ?? null },
+        { source: 'webhook' }
+      );
+      if (result.deadInvoice) {
+        console.error(`[square-webhook] payment.updated for Square payment ${payment?.id} landed on dead HoldInvoice ${holdInvoiceByOrder.id} -- see reportDeadInvoicePayment alert.`);
+      } else if (!result.recorded && !result.alreadyPaid) {
+        console.error(`[square-webhook] markHoldInvoicePaid returned neither recorded nor alreadyPaid for invoice ${holdInvoiceByOrder.id}, payment ${payment?.id}.`);
+      }
+      return;
+    }
+    // order_id present but matched neither table directly -- fall through to the
+    // paymentNote-decode path below (still covers a HoldInvoice created before this
+    // dispatch's schema columns existed) and the auction-Purchase order_id/paymentLinkId
+    // fallback further down.
+  } else {
+    console.warn(`[square-webhook] payment.updated for Square payment ${payment?.id} has no order_id -- skipping direct squareOrderId match, falling back to paymentNote decode.`);
+  }
+
+  const note: string | undefined = typeof payment?.note === 'string' ? payment.note : undefined;
+
+  // Decodes the exact inverse of holdInvoiceSquareCheckoutHelper.ts's
+  // createHoldInvoiceSquareCheckout -> squareCheckoutLinkService.ts's
+  // encodeMetadataAsPaymentNote encoding (`key=value;key=value`, <=500 chars). Only the
+  // single `invoiceId` key is ever written by that encoder for a Hold-to-Pay link today,
+  // so a simple split is sufficient. A note IS present but with no invoiceId key for other
+  // createSquareCheckoutLink callers (auction winner payment links encode
+  // itemId/saleId/userId instead, see below) -- that is not a HoldInvoice payment, fall
+  // through rather than returning early.
+  let invoiceId: string | undefined;
+  if (note) {
+    for (const pair of note.split(';')) {
+      const eq = pair.indexOf('=');
+      if (eq === -1) continue;
+      if (pair.slice(0, eq) === HOLD_INVOICE_NOTE_KEY) {
+        invoiceId = pair.slice(eq + 1);
+        break;
+      }
+    }
+  }
+
+  if (invoiceId) {
+    // Deliberately NOT wrapped in a try/catch here -- a throw from markHoldInvoicePaid
+    // propagates up through handleSquareWebhook's own try/catch (below), which marks the
+    // idempotency row FAILED and returns 500 so Square retries with backoff. Same posture
+    // as every other case in that switch (dispute/payout handling, etc.).
+    const result = await markHoldInvoicePaid(
+      invoiceId,
+      { processor: 'SQUARE', externalPaymentId: payment?.id ?? null },
+      { source: 'webhook' }
+    );
+    if (result.deadInvoice) {
+      console.error(`[square-webhook] payment.updated for Square payment ${payment?.id} landed on dead HoldInvoice ${invoiceId} -- see reportDeadInvoicePayment alert.`);
+    } else if (!result.recorded && !result.alreadyPaid) {
+      console.error(`[square-webhook] markHoldInvoicePaid returned neither recorded nor alreadyPaid for invoice ${invoiceId}, payment ${payment?.id}.`);
+    }
+    return;
+  }
+
+  // Square changeover Wave S2 #2 follow-up (2026-09-09): no HoldInvoice note match -- this may
+  // be an auction-winner Square payment link (jobs/auctionJob.ts / services/auctionService.ts's
+  // closeAuction), which persists Purchase.squarePaymentLinkId/squareOrderId at
+  // link-creation time (Purchase schema addition, 2026-09-09) instead of a note key. Correlate
+  // via those columns -- exactly the durable correlation mechanism
+  // squareCheckoutLinkService.ts's own header comment calls out ("Callers that need durable
+  // correlation must key off the returned paymentLinkId/orderId and their own DB row... not
+  // this note"). Before this, a paid Square auction-win link had no mechanism to ever flip its
+  // Purchase row from PENDING to PAID.
+  // orderId already resolved above (direct-match branch) -- reused here, not re-declared.
+  // Square's Payment object does not document a payment_link_id field (per the live SDK
+  // reference squareCheckoutLinkService.ts's own header already confirmed for this migration) --
+  // checked defensively only, since CreateSquareCheckoutLinkSuccess's own orderId can be null
+  // ("not expected in practice" per that file), and this is the only other column a Purchase
+  // row might be keyed on if it ever is.
+  const paymentLinkId: string | undefined =
+    typeof payment?.payment_link_id === 'string' ? payment.payment_link_id : undefined;
+
+  if (!orderId && !paymentLinkId) return;
+
+  const purchase = await prisma.purchase.findFirst({
+    where: {
+      status: 'PENDING',
+      OR: [
+        ...(orderId ? [{ squareOrderId: orderId }] : []),
+        ...(paymentLinkId ? [{ squarePaymentLinkId: paymentLinkId }] : []),
+      ],
+    },
+  });
+
+  if (!purchase) {
+    console.log(
+      `[square-webhook] payment.updated COMPLETED for Square payment ${payment?.id} matched no ` +
+      `HoldInvoice note and no PENDING Purchase (order_id=${orderId ?? 'none'}, ` +
+      `payment_link_id=${paymentLinkId ?? 'none'}) -- ignoring.`
+    );
+    return;
+  }
+
+  // Mirrors stripeController.ts's checkout.session.completed AUCTION_WINNER branch: that
+  // branch's ONLY side effect is writing the Purchase row as PAID -- the item's status flip to
+  // SOLD (sellItemUnits), stock sync, XP award and winner/organizer notifications all already
+  // happened at auction-CLOSE time (both jobs/auctionJob.ts's cron and
+  // services/auctionService.ts's closeAuction), well before the winner pays. So marking this
+  // row PAID is the complete parity -- no additional item/notification side effects belong here.
+  await prisma.purchase.update({
+    where: { id: purchase.id },
+    data: { status: 'PAID', squarePaymentId: payment?.id ?? null },
+  });
+  console.log(
+    `[square-webhook] Purchase ${purchase.id} (item ${purchase.itemId ?? 'unknown'}) marked PAID ` +
+    `from Square payment ${payment?.id}.`
   );
 }
 
